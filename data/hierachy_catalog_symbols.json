@@ -1,0 +1,183 @@
+{
+    "name": "Solomonic Clock of Spheres",
+    "summary": "Nested cosmological model uniting the 1 Master Seal, 9 Celestial Seals, 44 Planetary Pentacles, and 72 Spirit Seals into a symbolic calendar of time.",
+    "metadata": {
+      "created_by": "Master Benjamin",
+      "purpose": "Symbolic visualization of wisdom hierarchy, not ritual use.",
+      "version": "1.0",
+      "color_scheme": {
+        "core": "#facc15",
+        "celestial": "#60a5fa",
+        "planetary": "#34d399",
+        "elemental": "#f472b6"
+      }
+    },
+    "layers": [
+      {
+        "id": "L1",
+        "name": "Master Seal of Solomon",
+        "type": "core",
+        "motion": { "speed": 0, "unit": "still" },
+        "symbol": "Hexagram / Ring",
+        "meaning": "Center of wisdom and divine authority; the fixed hub aligning all lower motions.",
+        "radius": 0,
+        "children": [
+          {
+            "id": "L2",
+            "name": "Celestial Seals",
+            "type": "celestial",
+            "motion": { "speed": 1, "unit": "aeons" },
+            "count": 9,
+            "spheres": [
+              { "order": 1, "name": "Earth", "virtue": "Foundation", "element": "Earth" },
+              { "order": 2, "name": "Moon", "virtue": "Reflection & Change", "element": "Water" },
+              { "order": 3, "name": "Mercury", "virtue": "Thought & Motion", "element": "Air" },
+              { "order": 4, "name": "Venus", "virtue": "Harmony & Love", "element": "Air" },
+              { "order": 5, "name": "Sun", "virtue": "Illumination & Life", "element": "Fire" },
+              { "order": 6, "name": "Mars", "virtue": "Justice & Strength", "element": "Fire" },
+              { "order": 7, "name": "Jupiter", "virtue": "Mercy & Rule", "element": "Ether" },
+              { "order": 8, "name": "Saturn", "virtue": "Boundaries & Time", "element": "Lead" },
+              { "order": 9, "name": "Divine Throne", "virtue": "Source & Rest", "element": "Pure Spirit" }
+            ],
+            "children": [
+              {
+                "id": "L3",
+                "name": "Planetary Pentacles",
+                "type": "planetary",
+                "motion": { "speed": 3, "unit": "weeks / hours" },
+                "count": 44,
+                "mapping": {
+                  "Saturn": { "day": "Saturday", "count": 7 },
+                  "Jupiter": { "day": "Thursday", "count": 7 },
+                  "Mars": { "day": "Tuesday", "count": 5 },
+                  "Sun": { "day": "Sunday", "count": 6 },
+                  "Venus": { "day": "Friday", "count": 5 },
+                  "Mercury": { "day": "Wednesday", "count": 8 },
+                  "Moon": { "day": "Monday", "count": 6 }
+                },
+                "planets": [
+                  {
+                    "name": "Saturn",
+                    "themes": ["Discipline", "Protection", "Silence"],
+                    "pentacles": [
+                      { "index": 1, "focus": "Banish harmful forces" },
+                      { "index": 2, "focus": "Endurance under trial" },
+                      { "index": 3, "focus": "Invisibility before foes" },
+                      { "index": 4, "focus": "Defense against illness" },
+                      { "index": 5, "focus": "Discover hidden things" },
+                      { "index": 6, "focus": "Patience and restraint" },
+                      { "index": 7, "focus": "Binding destructive powers" }
+                    ]
+                  },
+                  {
+                    "name": "Jupiter",
+                    "themes": ["Mercy", "Justice", "Wealth"],
+                    "pentacles": [
+                      { "index": 1, "focus": "Gain favor of rulers" },
+                      { "index": 2, "focus": "Growth of fortune" },
+                      { "index": 3, "focus": "Peace and reconciliation" },
+                      { "index": 4, "focus": "Divine grace and goodwill" },
+                      { "index": 5, "focus": "Longevity and reputation" },
+                      { "index": 6, "focus": "Victory in disputes" },
+                      { "index": 7, "focus": "Righteous rulership" }
+                    ]
+                  },
+                  {
+                    "name": "Mars",
+                    "themes": ["Courage", "Purification", "Defense"],
+                    "pentacles": [
+                      { "index": 1, "focus": "Victory in conflict" },
+                      { "index": 2, "focus": "Overcome anger" },
+                      { "index": 3, "focus": "Destroy malice" },
+                      { "index": 4, "focus": "Protection from harm" },
+                      { "index": 5, "focus": "Strength of purpose" }
+                    ]
+                  },
+                  {
+                    "name": "Sun",
+                    "themes": ["Glory", "Healing", "Authority"],
+                    "pentacles": [
+                      { "index": 1, "focus": "Success and illumination" },
+                      { "index": 2, "focus": "Restoration of vitality" },
+                      { "index": 3, "focus": "Clarity of understanding" },
+                      { "index": 4, "focus": "Favor before leaders" },
+                      { "index": 5, "focus": "Revelation of truth" },
+                      { "index": 6, "focus": "Blessing and joy" }
+                    ]
+                  },
+                  {
+                    "name": "Venus",
+                    "themes": ["Love", "Beauty", "Harmony"],
+                    "pentacles": [
+                      { "index": 1, "focus": "Unity and affection" },
+                      { "index": 2, "focus": "Forgiveness and peace" },
+                      { "index": 3, "focus": "Artistic inspiration" },
+                      { "index": 4, "focus": "Joy and delight" },
+                      { "index": 5, "focus": "Charm and eloquence" }
+                    ]
+                  },
+                  {
+                    "name": "Mercury",
+                    "themes": ["Wisdom", "Speech", "Invention"],
+                    "pentacles": [
+                      { "index": 1, "focus": "Increase of knowledge" },
+                      { "index": 2, "focus": "Retention of learning" },
+                      { "index": 3, "focus": "Understanding mysteries" },
+                      { "index": 4, "focus": "Eloquent speech" },
+                      { "index": 5, "focus": "Negotiation success" },
+                      { "index": 6, "focus": "Discovery of secrets" },
+                      { "index": 7, "focus": "Safe travel" },
+                      { "index": 8, "focus": "Prosperity in trade" }
+                    ]
+                  },
+                  {
+                    "name": "Moon",
+                    "themes": ["Dreams", "Protection", "Intuition"],
+                    "pentacles": [
+                      { "index": 1, "focus": "Prophetic dreams" },
+                      { "index": 2, "focus": "Fertility and safe birth" },
+                      { "index": 3, "focus": "Emotional cleansing" },
+                      { "index": 4, "focus": "Protection for travelers" },
+                      { "index": 5, "focus": "Guidance through darkness" },
+                      { "index": 6, "focus": "Manifestation of hidden things" }
+                    ]
+                  }
+                ],
+                "children": [
+                  {
+                    "id": "L4",
+                    "name": "Spirit Seals",
+                    "type": "elemental",
+                    "motion": { "speed": 6, "unit": "days / degrees" },
+                    "count": 72,
+                    "structure": "72 spirits × 5° per zodiacal segment = 360° year",
+                    "ranks": [
+                      { "rank": "Kings", "count": 4 },
+                      { "rank": "Princes", "count": 7 },
+                      { "rank": "Dukes", "count": 32 },
+                      { "rank": "Marquises", "count": 11 },
+                      { "rank": "Counts / Earls", "count": 13 },
+                      { "rank": "Presidents", "count": 6 },
+                      { "rank": "Knights", "count": 9 }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "temporal_mapping": {
+      "celestial": "Precession of Ages (slowest gear)",
+      "planetary": "Week and Planetary Hours (medium gear)",
+      "spirit": "Zodiacal Year (fast gear)",
+      "core": "Still center around which all others rotate"
+    },
+    "relationships": [
+      { "from": "Master Seal", "to": "Celestial Seals", "type": "emanation" },
+      { "from": "Celestial Seals", "to": "Planetary Pentacles", "type": "influence" },
+      { "from": "Planetary Pentacles", "to": "Spirit Seals", "type": "manifestation" },
+      { "from": "Spirit Seals", "to": "Master Seal", "type": "return / completion" }
+    ]
+  }

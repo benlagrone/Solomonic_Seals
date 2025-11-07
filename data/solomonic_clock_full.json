@@ -1,0 +1,856 @@
+{
+  "title": "Solomonic Clock of Spheres",
+  "generated_at": "2025-10-27T21:16:16Z",
+  "visual_parameters": {
+    "radius": {
+      "core": 100,
+      "celestial": 200,
+      "planetary": 300,
+      "spirit": 400
+    },
+    "rotation_speed": {
+      "core": 0.0,
+      "celestial": 0.001,
+      "planetary": 0.05,
+      "spirit": 0.3
+    },
+    "color_scheme": {
+      "core": "#facc15",
+      "celestial": "#60a5fa",
+      "planetary": "#34d399",
+      "spirit": "#f472b6"
+    }
+  },
+  "layers": {
+    "core": {
+      "name": "Master Seal of Solomon",
+      "description": "Fixed hub aligning the motions of the heavens and spirits."
+    },
+    "celestial": {
+      "count": 9,
+      "seals": [
+        {
+          "order": 1,
+          "name": "Earth",
+          "virtue": "Foundation",
+          "element": "Earth"
+        },
+        {
+          "order": 2,
+          "name": "Moon",
+          "virtue": "Reflection & Change",
+          "element": "Water"
+        },
+        {
+          "order": 3,
+          "name": "Mercury",
+          "virtue": "Thought & Motion",
+          "element": "Air"
+        },
+        {
+          "order": 4,
+          "name": "Venus",
+          "virtue": "Harmony & Love",
+          "element": "Air"
+        },
+        {
+          "order": 5,
+          "name": "Sun",
+          "virtue": "Illumination & Life",
+          "element": "Fire"
+        },
+        {
+          "order": 6,
+          "name": "Mars",
+          "virtue": "Justice & Strength",
+          "element": "Fire"
+        },
+        {
+          "order": 7,
+          "name": "Jupiter",
+          "virtue": "Mercy & Rule",
+          "element": "Ether"
+        },
+        {
+          "order": 8,
+          "name": "Saturn",
+          "virtue": "Boundaries & Time",
+          "element": "Lead"
+        },
+        {
+          "order": 9,
+          "name": "Divine Throne",
+          "virtue": "Source & Rest",
+          "element": "Pure Spirit"
+        }
+      ]
+    },
+    "planetary": {
+      "count": 44,
+      "groups": [
+        {
+          "name": "Saturn",
+          "day": "Saturday",
+          "themes": [
+            "Discipline",
+            "Protection",
+            "Silence"
+          ],
+          "pentacles": [
+            {
+              "index": 1,
+              "focus": "Banish harmful forces"
+            },
+            {
+              "index": 2,
+              "focus": "Endurance under trial"
+            },
+            {
+              "index": 3,
+              "focus": "Invisibility before foes"
+            },
+            {
+              "index": 4,
+              "focus": "Defense against illness"
+            },
+            {
+              "index": 5,
+              "focus": "Discover hidden things"
+            },
+            {
+              "index": 6,
+              "focus": "Patience and restraint"
+            },
+            {
+              "index": 7,
+              "focus": "Binding destructive powers"
+            }
+          ]
+        },
+        {
+          "name": "Jupiter",
+          "day": "Thursday",
+          "themes": [
+            "Mercy",
+            "Justice",
+            "Wealth"
+          ],
+          "pentacles": [
+            {
+              "index": 1,
+              "focus": "Gain favor of rulers"
+            },
+            {
+              "index": 2,
+              "focus": "Growth of fortune"
+            },
+            {
+              "index": 3,
+              "focus": "Peace and reconciliation"
+            },
+            {
+              "index": 4,
+              "focus": "Divine grace and goodwill"
+            },
+            {
+              "index": 5,
+              "focus": "Longevity and reputation"
+            },
+            {
+              "index": 6,
+              "focus": "Victory in disputes"
+            },
+            {
+              "index": 7,
+              "focus": "Righteous rulership"
+            }
+          ]
+        },
+        {
+          "name": "Mars",
+          "day": "Tuesday",
+          "themes": [
+            "Courage",
+            "Purification",
+            "Defense"
+          ],
+          "pentacles": [
+            {
+              "index": 1,
+              "focus": "Victory in conflict"
+            },
+            {
+              "index": 2,
+              "focus": "Overcome anger"
+            },
+            {
+              "index": 3,
+              "focus": "Destroy malice"
+            },
+            {
+              "index": 4,
+              "focus": "Protection from harm"
+            },
+            {
+              "index": 5,
+              "focus": "Strength of purpose"
+            }
+          ]
+        },
+        {
+          "name": "Sun",
+          "day": "Sunday",
+          "themes": [
+            "Glory",
+            "Healing",
+            "Authority"
+          ],
+          "pentacles": [
+            {
+              "index": 1,
+              "focus": "Success and illumination"
+            },
+            {
+              "index": 2,
+              "focus": "Restoration of vitality"
+            },
+            {
+              "index": 3,
+              "focus": "Clarity of understanding"
+            },
+            {
+              "index": 4,
+              "focus": "Favor before leaders"
+            },
+            {
+              "index": 5,
+              "focus": "Revelation of truth"
+            },
+            {
+              "index": 6,
+              "focus": "Blessing and joy"
+            }
+          ]
+        },
+        {
+          "name": "Venus",
+          "day": "Friday",
+          "themes": [
+            "Love",
+            "Beauty",
+            "Harmony"
+          ],
+          "pentacles": [
+            {
+              "index": 1,
+              "focus": "Unity and affection"
+            },
+            {
+              "index": 2,
+              "focus": "Forgiveness and peace"
+            },
+            {
+              "index": 3,
+              "focus": "Artistic inspiration"
+            },
+            {
+              "index": 4,
+              "focus": "Joy and delight"
+            },
+            {
+              "index": 5,
+              "focus": "Charm and eloquence"
+            }
+          ]
+        },
+        {
+          "name": "Mercury",
+          "day": "Wednesday",
+          "themes": [
+            "Wisdom",
+            "Speech",
+            "Invention"
+          ],
+          "pentacles": [
+            {
+              "index": 1,
+              "focus": "Increase of knowledge"
+            },
+            {
+              "index": 2,
+              "focus": "Retention of learning"
+            },
+            {
+              "index": 3,
+              "focus": "Understanding mysteries"
+            },
+            {
+              "index": 4,
+              "focus": "Eloquent speech"
+            },
+            {
+              "index": 5,
+              "focus": "Negotiation success"
+            },
+            {
+              "index": 6,
+              "focus": "Discovery of secrets"
+            },
+            {
+              "index": 7,
+              "focus": "Safe travel"
+            },
+            {
+              "index": 8,
+              "focus": "Prosperity in trade"
+            }
+          ]
+        },
+        {
+          "name": "Moon",
+          "day": "Monday",
+          "themes": [
+            "Dreams",
+            "Protection",
+            "Intuition"
+          ],
+          "pentacles": [
+            {
+              "index": 1,
+              "focus": "Prophetic dreams"
+            },
+            {
+              "index": 2,
+              "focus": "Fertility and safe birth"
+            },
+            {
+              "index": 3,
+              "focus": "Emotional cleansing"
+            },
+            {
+              "index": 4,
+              "focus": "Protection for travelers"
+            },
+            {
+              "index": 5,
+              "focus": "Guidance through darkness"
+            },
+            {
+              "index": 6,
+              "focus": "Manifestation of hidden things"
+            }
+          ]
+        }
+      ]
+    },
+    "spirit": {
+      "count": 72,
+      "sectors": [
+        {
+          "sector": 1,
+          "zodiac": "Aries",
+          "degrees": "0–5",
+          "spirit": "Bael",
+          "rank": "King"
+        },
+        {
+          "sector": 2,
+          "zodiac": "Aries",
+          "degrees": "5–10",
+          "spirit": "Agares",
+          "rank": "Duke"
+        },
+        {
+          "sector": 3,
+          "zodiac": "Aries",
+          "degrees": "10–15",
+          "spirit": "Vassago",
+          "rank": "Prince"
+        },
+        {
+          "sector": 4,
+          "zodiac": "Aries",
+          "degrees": "15–20",
+          "spirit": "Samigina",
+          "rank": "Marquis"
+        },
+        {
+          "sector": 5,
+          "zodiac": "Aries",
+          "degrees": "20–25",
+          "spirit": "Marbas",
+          "rank": "President"
+        },
+        {
+          "sector": 6,
+          "zodiac": "Aries",
+          "degrees": "25–30",
+          "spirit": "Valefor",
+          "rank": "Duke"
+        },
+        {
+          "sector": 7,
+          "zodiac": "Taurus",
+          "degrees": "0–5",
+          "spirit": "Amon",
+          "rank": "Marquis"
+        },
+        {
+          "sector": 8,
+          "zodiac": "Taurus",
+          "degrees": "5–10",
+          "spirit": "Barbatos",
+          "rank": "Duke"
+        },
+        {
+          "sector": 9,
+          "zodiac": "Taurus",
+          "degrees": "10–15",
+          "spirit": "Paimon",
+          "rank": "King"
+        },
+        {
+          "sector": 10,
+          "zodiac": "Taurus",
+          "degrees": "15–20",
+          "spirit": "Buer",
+          "rank": "President"
+        },
+        {
+          "sector": 11,
+          "zodiac": "Taurus",
+          "degrees": "20–25",
+          "spirit": "Gusion",
+          "rank": "Duke"
+        },
+        {
+          "sector": 12,
+          "zodiac": "Taurus",
+          "degrees": "25–30",
+          "spirit": "Sitri",
+          "rank": "Prince"
+        },
+        {
+          "sector": 13,
+          "zodiac": "Gemini",
+          "degrees": "0–5",
+          "spirit": "Beleth",
+          "rank": "King"
+        },
+        {
+          "sector": 14,
+          "zodiac": "Gemini",
+          "degrees": "5–10",
+          "spirit": "Leraje",
+          "rank": "Marquis"
+        },
+        {
+          "sector": 15,
+          "zodiac": "Gemini",
+          "degrees": "10–15",
+          "spirit": "Eligos",
+          "rank": "Duke"
+        },
+        {
+          "sector": 16,
+          "zodiac": "Gemini",
+          "degrees": "15–20",
+          "spirit": "Zepar",
+          "rank": "Duke"
+        },
+        {
+          "sector": 17,
+          "zodiac": "Gemini",
+          "degrees": "20–25",
+          "spirit": "Botis",
+          "rank": "President"
+        },
+        {
+          "sector": 18,
+          "zodiac": "Gemini",
+          "degrees": "25–30",
+          "spirit": "Bathin",
+          "rank": "Duke"
+        },
+        {
+          "sector": 19,
+          "zodiac": "Cancer",
+          "degrees": "0–5",
+          "spirit": "Sallos",
+          "rank": "Duke"
+        },
+        {
+          "sector": 20,
+          "zodiac": "Cancer",
+          "degrees": "5–10",
+          "spirit": "Purson",
+          "rank": "King"
+        },
+        {
+          "sector": 21,
+          "zodiac": "Cancer",
+          "degrees": "10–15",
+          "spirit": "Marax",
+          "rank": "Earl"
+        },
+        {
+          "sector": 22,
+          "zodiac": "Cancer",
+          "degrees": "15–20",
+          "spirit": "Ipos",
+          "rank": "Earl"
+        },
+        {
+          "sector": 23,
+          "zodiac": "Cancer",
+          "degrees": "20–25",
+          "spirit": "Aim",
+          "rank": "Duke"
+        },
+        {
+          "sector": 24,
+          "zodiac": "Cancer",
+          "degrees": "25–30",
+          "spirit": "Naberius",
+          "rank": "Marquis"
+        },
+        {
+          "sector": 25,
+          "zodiac": "Leo",
+          "degrees": "0–5",
+          "spirit": "Glasya-Labolas",
+          "rank": "President"
+        },
+        {
+          "sector": 26,
+          "zodiac": "Leo",
+          "degrees": "5–10",
+          "spirit": "Bune",
+          "rank": "Duke"
+        },
+        {
+          "sector": 27,
+          "zodiac": "Leo",
+          "degrees": "10–15",
+          "spirit": "Ronove",
+          "rank": "Marquis"
+        },
+        {
+          "sector": 28,
+          "zodiac": "Leo",
+          "degrees": "15–20",
+          "spirit": "Berith",
+          "rank": "Duke"
+        },
+        {
+          "sector": 29,
+          "zodiac": "Leo",
+          "degrees": "20–25",
+          "spirit": "Astaroth",
+          "rank": "Duke"
+        },
+        {
+          "sector": 30,
+          "zodiac": "Leo",
+          "degrees": "25–30",
+          "spirit": "Forneus",
+          "rank": "Marquis"
+        },
+        {
+          "sector": 31,
+          "zodiac": "Virgo",
+          "degrees": "0–5",
+          "spirit": "Foras",
+          "rank": "President"
+        },
+        {
+          "sector": 32,
+          "zodiac": "Virgo",
+          "degrees": "5–10",
+          "spirit": "Asmoday",
+          "rank": "King"
+        },
+        {
+          "sector": 33,
+          "zodiac": "Virgo",
+          "degrees": "10–15",
+          "spirit": "Gaap",
+          "rank": "President"
+        },
+        {
+          "sector": 34,
+          "zodiac": "Virgo",
+          "degrees": "15–20",
+          "spirit": "Furfur",
+          "rank": "Earl"
+        },
+        {
+          "sector": 35,
+          "zodiac": "Virgo",
+          "degrees": "20–25",
+          "spirit": "Marchosias",
+          "rank": "Marquis"
+        },
+        {
+          "sector": 36,
+          "zodiac": "Virgo",
+          "degrees": "25–30",
+          "spirit": "Stolas",
+          "rank": "Prince"
+        },
+        {
+          "sector": 37,
+          "zodiac": "Libra",
+          "degrees": "0–5",
+          "spirit": "Phenex",
+          "rank": "Marquis"
+        },
+        {
+          "sector": 38,
+          "zodiac": "Libra",
+          "degrees": "5–10",
+          "spirit": "Halphas",
+          "rank": "Earl"
+        },
+        {
+          "sector": 39,
+          "zodiac": "Libra",
+          "degrees": "10–15",
+          "spirit": "Malphas",
+          "rank": "President"
+        },
+        {
+          "sector": 40,
+          "zodiac": "Libra",
+          "degrees": "15–20",
+          "spirit": "Raum",
+          "rank": "Earl"
+        },
+        {
+          "sector": 41,
+          "zodiac": "Libra",
+          "degrees": "20–25",
+          "spirit": "Focalor",
+          "rank": "Duke"
+        },
+        {
+          "sector": 42,
+          "zodiac": "Libra",
+          "degrees": "25–30",
+          "spirit": "Vepar",
+          "rank": "Duke"
+        },
+        {
+          "sector": 43,
+          "zodiac": "Scorpio",
+          "degrees": "0–5",
+          "spirit": "Sabnock",
+          "rank": "Marquis"
+        },
+        {
+          "sector": 44,
+          "zodiac": "Scorpio",
+          "degrees": "5–10",
+          "spirit": "Shax",
+          "rank": "Marquis"
+        },
+        {
+          "sector": 45,
+          "zodiac": "Scorpio",
+          "degrees": "10–15",
+          "spirit": "Vine",
+          "rank": "King"
+        },
+        {
+          "sector": 46,
+          "zodiac": "Scorpio",
+          "degrees": "15–20",
+          "spirit": "Bifrons",
+          "rank": "Earl"
+        },
+        {
+          "sector": 47,
+          "zodiac": "Scorpio",
+          "degrees": "20–25",
+          "spirit": "Uvall",
+          "rank": "Duke"
+        },
+        {
+          "sector": 48,
+          "zodiac": "Scorpio",
+          "degrees": "25–30",
+          "spirit": "Haagenti",
+          "rank": "President"
+        },
+        {
+          "sector": 49,
+          "zodiac": "Sagittarius",
+          "degrees": "0–5",
+          "spirit": "Crocell",
+          "rank": "Duke"
+        },
+        {
+          "sector": 50,
+          "zodiac": "Sagittarius",
+          "degrees": "5–10",
+          "spirit": "Furcas",
+          "rank": "Knight"
+        },
+        {
+          "sector": 51,
+          "zodiac": "Sagittarius",
+          "degrees": "10–15",
+          "spirit": "Balam",
+          "rank": "King"
+        },
+        {
+          "sector": 52,
+          "zodiac": "Sagittarius",
+          "degrees": "15–20",
+          "spirit": "Alloces",
+          "rank": "Duke"
+        },
+        {
+          "sector": 53,
+          "zodiac": "Sagittarius",
+          "degrees": "20–25",
+          "spirit": "Camio",
+          "rank": "President"
+        },
+        {
+          "sector": 54,
+          "zodiac": "Sagittarius",
+          "degrees": "25–30",
+          "spirit": "Murmur",
+          "rank": "Duke"
+        },
+        {
+          "sector": 55,
+          "zodiac": "Capricorn",
+          "degrees": "0–5",
+          "spirit": "Orobas",
+          "rank": "Prince"
+        },
+        {
+          "sector": 56,
+          "zodiac": "Capricorn",
+          "degrees": "5–10",
+          "spirit": "Gremory",
+          "rank": "Duke"
+        },
+        {
+          "sector": 57,
+          "zodiac": "Capricorn",
+          "degrees": "10–15",
+          "spirit": "Ose",
+          "rank": "President"
+        },
+        {
+          "sector": 58,
+          "zodiac": "Capricorn",
+          "degrees": "15–20",
+          "spirit": "Amy",
+          "rank": "President"
+        },
+        {
+          "sector": 59,
+          "zodiac": "Capricorn",
+          "degrees": "20–25",
+          "spirit": "Orias",
+          "rank": "Marquis"
+        },
+        {
+          "sector": 60,
+          "zodiac": "Capricorn",
+          "degrees": "25–30",
+          "spirit": "Vapula",
+          "rank": "Duke"
+        },
+        {
+          "sector": 61,
+          "zodiac": "Aquarius",
+          "degrees": "0–5",
+          "spirit": "Zagan",
+          "rank": "King"
+        },
+        {
+          "sector": 62,
+          "zodiac": "Aquarius",
+          "degrees": "5–10",
+          "spirit": "Valac",
+          "rank": "President"
+        },
+        {
+          "sector": 63,
+          "zodiac": "Aquarius",
+          "degrees": "10–15",
+          "spirit": "Andras",
+          "rank": "Marquis"
+        },
+        {
+          "sector": 64,
+          "zodiac": "Aquarius",
+          "degrees": "15–20",
+          "spirit": "Flauros",
+          "rank": "Duke"
+        },
+        {
+          "sector": 65,
+          "zodiac": "Aquarius",
+          "degrees": "20–25",
+          "spirit": "Andrealphus",
+          "rank": "Marquis"
+        },
+        {
+          "sector": 66,
+          "zodiac": "Aquarius",
+          "degrees": "25–30",
+          "spirit": "Cimejes",
+          "rank": "Marquis"
+        },
+        {
+          "sector": 67,
+          "zodiac": "Pisces",
+          "degrees": "0–5",
+          "spirit": "Amdusias",
+          "rank": "Duke"
+        },
+        {
+          "sector": 68,
+          "zodiac": "Pisces",
+          "degrees": "5–10",
+          "spirit": "Belial",
+          "rank": "King"
+        },
+        {
+          "sector": 69,
+          "zodiac": "Pisces",
+          "degrees": "10–15",
+          "spirit": "Decarabia",
+          "rank": "Marquis"
+        },
+        {
+          "sector": 70,
+          "zodiac": "Pisces",
+          "degrees": "15–20",
+          "spirit": "Seere",
+          "rank": "Prince"
+        },
+        {
+          "sector": 71,
+          "zodiac": "Pisces",
+          "degrees": "20–25",
+          "spirit": "Dantalion",
+          "rank": "Duke"
+        },
+        {
+          "sector": 72,
+          "zodiac": "Pisces",
+          "degrees": "25–30",
+          "spirit": "Andromalius",
+          "rank": "Earl"
+        }
+      ]
+    }
+  }
+}

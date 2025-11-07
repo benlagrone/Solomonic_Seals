@@ -1,0 +1,18 @@
+version: "3.9"
+
+services:
+  solomonic-clock:
+    build: .
+    image: solomonic-clock:latest
+    container_name: solomonic-clock
+    restart: unless-stopped
+    environment:
+      - PORT=8080
+    ports:
+      - "8085:8080"
+    networks:
+      - fortress-phronesis-net
+
+networks:
+  fortress-phronesis-net:
+    external: true

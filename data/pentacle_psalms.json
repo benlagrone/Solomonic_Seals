@@ -1,0 +1,364 @@
+{
+  "metadata": {
+    "source": "Key of Solomon, Book II (Mathers / Peterson transcription, esotericarchives.com/solomon/ksol.htm)",
+    "psalm_numbering": "Vulgate numbering as in Mathers edition",
+    "generated_from": "Automated parse of editorial notes citing Psalms for each planetary pentacle"
+  },
+  "pentacles": [
+    {
+      "planet": "Saturn",
+      "pentacle": 1,
+      "psalms": [
+        {
+          "number": 2
+        },
+        {
+          "number": 54
+        },
+        {
+          "number": 113
+        },
+        {
+          "number": 67
+        },
+        {
+          "number": 47
+        },
+        {
+          "number": 68
+        },
+        {
+          "number": 60,
+          "verses": "4"
+        },
+        {
+          "number": 21
+        },
+        {
+          "number": 72,
+          "verses": "9"
+        }
+      ]
+    },
+    {
+      "planet": "Saturn",
+      "pentacle": 2,
+      "psalms": []
+    },
+    {
+      "planet": "Saturn",
+      "pentacle": 3,
+      "psalms": []
+    },
+    {
+      "planet": "Saturn",
+      "pentacle": 4,
+      "psalms": [
+        {
+          "number": 109,
+          "verses": "18"
+        }
+      ]
+    },
+    {
+      "planet": "Saturn",
+      "pentacle": 5,
+      "psalms": []
+    },
+    {
+      "planet": "Saturn",
+      "pentacle": 6,
+      "psalms": [
+        {
+          "number": 108,
+          "verses": "6"
+        }
+      ]
+    },
+    {
+      "planet": "Saturn",
+      "pentacle": 7,
+      "psalms": [
+        {
+          "number": 18,
+          "verses": "7"
+        }
+      ]
+    },
+    {
+      "planet": "Jupiter",
+      "pentacle": 1,
+      "psalms": []
+    },
+    {
+      "planet": "Jupiter",
+      "pentacle": 2,
+      "psalms": [
+        {
+          "number": 112,
+          "verses": "3"
+        }
+      ]
+    },
+    {
+      "planet": "Jupiter",
+      "pentacle": 3,
+      "psalms": [
+        {
+          "number": 125,
+          "verses": "1"
+        }
+      ]
+    },
+    {
+      "planet": "Jupiter",
+      "pentacle": 4,
+      "psalms": [
+        {
+          "number": 112,
+          "verses": "3"
+        }
+      ]
+    },
+    {
+      "planet": "Jupiter",
+      "pentacle": 5,
+      "psalms": [
+        {
+          "number": 113,
+          "verses": "7"
+        }
+      ]
+    },
+    {
+      "planet": "Jupiter",
+      "pentacle": 6,
+      "psalms": [
+        {
+          "number": 22,
+          "verses": "16"
+        }
+      ]
+    },
+    {
+      "planet": "Jupiter",
+      "pentacle": 7,
+      "psalms": []
+    },
+    {
+      "planet": "Mars",
+      "pentacle": 1,
+      "psalms": []
+    },
+    {
+      "planet": "Mars",
+      "pentacle": 2,
+      "psalms": []
+    },
+    {
+      "planet": "Mars",
+      "pentacle": 3,
+      "psalms": [
+        {
+          "number": 77,
+          "verses": "13"
+        }
+      ]
+    },
+    {
+      "planet": "Mars",
+      "pentacle": 4,
+      "psalms": [
+        {
+          "number": 110,
+          "verses": "5"
+        }
+      ]
+    },
+    {
+      "planet": "Mars",
+      "pentacle": 5,
+      "psalms": [
+        {
+          "number": 91,
+          "verses": "13"
+        }
+      ]
+    },
+    {
+      "planet": "Mars",
+      "pentacle": 6,
+      "psalms": [
+        {
+          "number": 37,
+          "verses": "15"
+        }
+      ]
+    },
+    {
+      "planet": "Mars",
+      "pentacle": 7,
+      "psalms": [
+        {
+          "number": 105,
+          "verses": "32"
+        }
+      ]
+    },
+    {
+      "planet": "Sun",
+      "pentacle": 1,
+      "psalms": []
+    },
+    {
+      "planet": "Sun",
+      "pentacle": 2,
+      "psalms": []
+    },
+    {
+      "planet": "Sun",
+      "pentacle": 3,
+      "psalms": []
+    },
+    {
+      "planet": "Sun",
+      "pentacle": 4,
+      "psalms": [
+        {
+          "number": 13,
+          "verses": "3-4-5"
+        }
+      ]
+    },
+    {
+      "planet": "Sun",
+      "pentacle": 5,
+      "psalms": [
+        {
+          "number": 91,
+          "verses": "11"
+        }
+      ]
+    },
+    {
+      "planet": "Sun",
+      "pentacle": 6,
+      "psalms": []
+    },
+    {
+      "planet": "Sun",
+      "pentacle": 7,
+      "psalms": [
+        {
+          "number": 116,
+          "verses": "16"
+        }
+      ]
+    },
+    {
+      "planet": "Venus",
+      "pentacle": 1,
+      "psalms": []
+    },
+    {
+      "planet": "Venus",
+      "pentacle": 2,
+      "psalms": []
+    },
+    {
+      "planet": "Venus",
+      "pentacle": 3,
+      "psalms": []
+    },
+    {
+      "planet": "Venus",
+      "pentacle": 4,
+      "psalms": []
+    },
+    {
+      "planet": "Venus",
+      "pentacle": 5,
+      "psalms": [
+        {
+          "number": 22,
+          "verses": "14"
+        }
+      ]
+    },
+    {
+      "planet": "Mercury",
+      "pentacle": 1,
+      "psalms": []
+    },
+    {
+      "planet": "Mercury",
+      "pentacle": 2,
+      "psalms": []
+    },
+    {
+      "planet": "Mercury",
+      "pentacle": 3,
+      "psalms": []
+    },
+    {
+      "planet": "Mercury",
+      "pentacle": 4,
+      "psalms": [
+        {
+          "number": 24,
+          "verses": "7"
+        }
+      ]
+    },
+    {
+      "planet": "Moon",
+      "pentacle": 1,
+      "psalms": [
+        {
+          "number": 107,
+          "verses": "16"
+        }
+      ]
+    },
+    {
+      "planet": "Moon",
+      "pentacle": 2,
+      "psalms": [
+        {
+          "number": 56,
+          "verses": "11"
+        }
+      ]
+    },
+    {
+      "planet": "Moon",
+      "pentacle": 3,
+      "psalms": [
+        {
+          "number": 40,
+          "verses": "13"
+        }
+      ]
+    },
+    {
+      "planet": "Moon",
+      "pentacle": 4,
+      "psalms": []
+    },
+    {
+      "planet": "Moon",
+      "pentacle": 5,
+      "psalms": [
+        {
+          "number": 68,
+          "verses": "1"
+        }
+      ]
+    },
+    {
+      "planet": "Moon",
+      "pentacle": 6,
+      "psalms": []
+    }
+  ]
+}

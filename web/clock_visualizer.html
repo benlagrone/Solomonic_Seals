@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Solomonic Clock of Spheres</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="layout">
+      <main class="page">
+        <h1 class="title">Solomonic Clock of Spheres</h1>
+        <section class="clock-wrapper">
+          <svg id="clock" width="800" height="800" viewBox="0 0 800 800"></svg>
+        </section>
+        <p class="caption">
+          Generated from <code>data/solomonic_clock_full.json</code>. Hover outer sectors for
+          detailed spirit info.
+        </p>
+      </main>
+      <aside class="drawer" aria-label="Psalm references">
+        <header class="drawer-header">
+          <h2>Psalm Correspondences</h2>
+          <p class="drawer-subtitle">Live mapping for the active planetary pentacle.</p>
+        </header>
+        <div class="drawer-body">
+          <div class="psalm-summary">
+            <p class="psalm-planet">—</p>
+            <p class="psalm-focus">Select a pentacle to view its verses.</p>
+          </div>
+          <ul class="psalm-list"></ul>
+        </div>
+      </aside>
+    </div>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="clock.js"></script>
+  </body>
+</html>
