@@ -80,11 +80,45 @@ const drawerElements = {
   focus: document.querySelector(".psalm-focus"),
   list: document.querySelector(".psalm-list"),
   subtitle: document.querySelector(".drawer-subtitle"),
+  guidanceDay: document.querySelector(".guidance-day"),
+  guidanceTone: document.querySelector(".guidance-tone"),
+  guidanceList: document.querySelector(".guidance-list"),
 };
 let lastPsalmKey = null;
+let lastGuidanceKey = null;
 let currentPsalmRequestId = 0;
 const psalmTextCache = new Map();
-const PSALM_API_ENDPOINT = "http://192.168.86.23:8001/get-verse";
+const PSALM_API_ENDPOINT = "/api/psalm";
+const PLANETARY_DAY_GUIDANCE = {
+  Sun: {
+    tone: "Visibility, confidence, and leadership work are favored.",
+    activities: ["Present your work publicly.", "Make decisions that set direction.", "Focus on vitality and renewal."],
+  },
+  Moon: {
+    tone: "Reflection, receptivity, and home-centered work are favored.",
+    activities: ["Journal dreams and emotional patterns.", "Cleanse your space and routines.", "Prioritize family and restoration."],
+  },
+  Mars: {
+    tone: "Bold action, protection, and difficult tasks are favored.",
+    activities: ["Handle conflict directly and clearly.", "Do hard tasks first.", "Set and defend boundaries."],
+  },
+  Mercury: {
+    tone: "Communication, study, and planning are favored.",
+    activities: ["Write, research, and organize ideas.", "Schedule key conversations.", "Review contracts and details."],
+  },
+  Jupiter: {
+    tone: "Growth, opportunity, and wise leadership are favored.",
+    activities: ["Plan expansion and long-range goals.", "Teach, mentor, or advise.", "Act on strategic opportunities."],
+  },
+  Venus: {
+    tone: "Harmony, creativity, and relationship work are favored.",
+    activities: ["Repair social friction with diplomacy.", "Make time for art or design.", "Strengthen key partnerships."],
+  },
+  Saturn: {
+    tone: "Discipline, structure, and enduring work are favored.",
+    activities: ["Set limits and simplify commitments.", "Complete long-term maintenance work.", "Focus on serious, patient progress."],
+  },
+};
 
 function computeRingLayout(items) {
   if (!items || !items.length) {
@@ -265,6 +299,34 @@ function updateCenterLabels(coreName, timeState) {
   }
 }
 
+function updateDailyGuidance(timeState) {
+  if (!drawerElements.guidanceDay || !drawerElements.guidanceTone || !drawerElements.guidanceList) {
+    return;
+  }
+
+  const dayText = timeState?.dayLabel?.dayText || "Unknown day";
+  const rulerText = timeState?.dayLabel?.rulerText || "Unknown ruler";
+  const key = `${dayText}-${rulerText}`;
+
+  if (key === lastGuidanceKey) {
+    return;
+  }
+  lastGuidanceKey = key;
+
+  const guidance = PLANETARY_DAY_GUIDANCE[rulerText];
+  drawerElements.guidanceDay.textContent = `${dayText} (${rulerText})`;
+  drawerElements.guidanceTone.textContent =
+    guidance?.tone || "Use this day for steady, intentional progress with focused attention.";
+
+  drawerElements.guidanceList.innerHTML = "";
+  const activities = guidance?.activities || ["Review priorities.", "Do one high-value task deeply.", "End with reflection."];
+  activities.forEach((activity) => {
+    const li = document.createElement("li");
+    li.textContent = activity;
+    drawerElements.guidanceList.appendChild(li);
+  });
+}
+
 function computeTimeState(now, layers, derived) {
   const yearLength = isLeapYear(now.getFullYear()) ? 366 : 365;
   const dayIndex = getDayOfYear(now);
@@ -431,6 +493,20 @@ function expandVerseSpecification(spec) {
     return [];
   }
 
+  if (/^\d+(?:,\d+)+$/.test(clean)) {
+    return clean
+      .split(",")
+      .map((value) => value.trim())
+      .filter(Boolean);
+  }
+
+  if (/^\d+(?:-\d+){2,}$/.test(clean)) {
+    return clean
+      .split("-")
+      .map((value) => value.trim())
+      .filter(Boolean);
+  }
+
   if (clean.includes("-")) {
     const [startRaw, endRaw] = clean.split("-").map((value) => value.replace(/[^0-9]/g, ""));
     const start = Number.parseInt(startRaw, 10);
@@ -451,52 +527,17 @@ async function retrievePsalmText(chapter, verse) {
     return psalmTextCache.get(key);
   }
 
-  const body = {
-    book: "Psalm",
-    chapter: String(chapter),
-    translation: "KJV",
-  };
+  const params = new URLSearchParams({ chapter: String(chapter) });
   if (verse) {
-    body.verse = String(verse);
+    params.set("verse", String(verse));
   }
-
-  const response = await fetch(PSALM_API_ENDPOINT, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Accept: "application/json",
-    },
-    body: JSON.stringify(body),
-  });
+  const response = await fetch(`${PSALM_API_ENDPOINT}?${params.toString()}`);
 
   if (!response.ok) {
     throw new Error(`HTTP ${response.status}`);
   }
 
-  const textPayload = await response.text();
-
-  const tryParse = (payload) => {
-    try {
-      return JSON.parse(payload);
-    } catch (error) {
-      return null;
-    }
-  };
-
-  let data = tryParse(textPayload);
-  if (typeof data === "string") {
-    data = tryParse(data);
-  }
-
-  if (!data) {
-    const normalized = textPayload.trim().replace(/^"|"$/g, "").replace(/\\"/g, '"');
-    data = tryParse(normalized);
-  }
-
-  if (!data || typeof data !== "object") {
-    console.error("Unable to parse scripture response", textPayload);
-    throw new Error("Invalid scripture response");
-  }
+  const data = await response.json();
 
   const verseText = (
     data.text ||
@@ -577,6 +618,7 @@ function renderClock(data, psalmMap) {
     highlightLayer("celestial", timeState.indices.celestial);
 
     updateCenterLabels(layers.core.name, timeState);
+    updateDailyGuidance(timeState);
     updatePsalmDrawer(timeState.active.pentacle, psalmMap);
 
     requestAnimationFrame(frame);

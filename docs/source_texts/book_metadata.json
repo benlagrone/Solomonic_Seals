@@ -1,0 +1,38 @@
+[
+  {
+    "filename": "Proverbs.txt",
+    "title": "Proverbs",
+    "work": "Proverbs",
+    "author_slug": "solomon",
+    "author_traditional": "Solomon",
+    "canonical_order": 20,
+    "testament": "OT",
+    "section": "Wisdom",
+    "translation": "KJV",
+    "source_url": "https://bible-api.com/data/kjv/PRO"
+  },
+  {
+    "filename": "Ecclesiastes.txt",
+    "title": "Ecclesiastes",
+    "work": "Ecclesiastes",
+    "author_slug": "solomon",
+    "author_traditional": "Solomon",
+    "canonical_order": 21,
+    "testament": "OT",
+    "section": "Wisdom",
+    "translation": "KJV",
+    "source_url": "https://bible-api.com/data/kjv/ECC"
+  },
+  {
+    "filename": "Song_of_Solomon.txt",
+    "title": "Song of Solomon",
+    "work": "Song of Solomon",
+    "author_slug": "solomon",
+    "author_traditional": "Solomon",
+    "canonical_order": 22,
+    "testament": "OT",
+    "section": "Wisdom",
+    "translation": "KJV",
+    "source_url": "https://bible-api.com/data/kjv/SNG"
+  }
+]

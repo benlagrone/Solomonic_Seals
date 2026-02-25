@@ -1,0 +1,2677 @@
+{
+  "generated": "2026-01-24",
+  "source_whitelist": [
+    "ecclesiastes",
+    "odes_of_solomon_fbe",
+    "proverbs",
+    "psalms_of_solomon_fbe",
+    "song_of_solomon",
+    "wisdom_of_solomon_gutenberg",
+    "wisdom_of_solomon_web"
+  ],
+  "min_section_chars": 200,
+  "max_results_per_intent": 40,
+  "max_results_per_source": 8,
+  "intents": {
+    "health": [
+      {
+        "source_id": "wisdom_of_solomon_web",
+        "source_title": "Wisdom Of Solomon Web",
+        "section_id": "wisdom_of_solomon_16_9_xliv_wisdom_of_solomon_16_17",
+        "heading": "Wisdom of Solomon 16:9 xliv Wisdom of Solomon 16:17",
+        "score": 6,
+        "match_terms": [
+          "heal",
+          "life",
+          "strength"
+        ],
+        "char_start": 47738,
+        "char_end": 48927
+      },
+      {
+        "source_id": "wisdom_of_solomon_gutenberg",
+        "source_title": "Wisdom Of Solomon Gutenberg",
+        "section_id": "13_18_for_health_he_calleth_upon_that_which_is_weak_for_life_prayeth",
+        "heading": "13:18 For health he calleth upon that which is weak: for life prayeth",
+        "score": 6,
+        "match_terms": [
+          "health",
+          "heal",
+          "life"
+        ],
+        "char_start": 38310,
+        "char_end": 38541
+      },
+      {
+        "source_id": "proverbs",
+        "source_title": "Proverbs",
+        "section_id": "chapter_4",
+        "heading": "Chapter 4",
+        "score": 6,
+        "match_terms": [
+          "health",
+          "heal",
+          "life"
+        ],
+        "char_start": 7636,
+        "char_end": 9894
+      },
+      {
+        "source_id": "proverbs",
+        "source_title": "Proverbs",
+        "section_id": "chapter_13",
+        "heading": "Chapter 13",
+        "score": 6,
+        "match_terms": [
+          "health",
+          "heal",
+          "life"
+        ],
+        "char_start": 30389,
+        "char_end": 32710
+      },
+      {
+        "source_id": "proverbs",
+        "source_title": "Proverbs",
+        "section_id": "chapter_3",
+        "heading": "Chapter 3",
+        "score": 5,
+        "match_terms": [
+          "health",
+          "heal",
+          "life"
+        ],
+        "char_start": 4688,
+        "char_end": 7636
+      },
+      {
+        "source_id": "proverbs",
+        "source_title": "Proverbs",
+        "section_id": "chapter_16",
+        "heading": "Chapter 16",
+        "score": 5,
+        "match_terms": [
+          "health",
+          "heal",
+          "whole",
+          "life"
+        ],
+        "char_start": 38932,
+        "char_end": 41885
+      },
+      {
+        "source_id": "wisdom_of_solomon_web",
+        "source_title": "Wisdom Of Solomon Web",
+        "section_id": "wisdom_of_solomon_13_12_xxxv_wisdom_of_solomon_13_19",
+        "heading": "Wisdom of Solomon 13:12 xxxv Wisdom of Solomon 13:19",
+        "score": 4,
+        "match_terms": [
+          "health",
+          "heal",
+          "life"
+        ],
+        "char_start": 37362,
+        "char_end": 38533
+      },
+      {
+        "source_id": "psalms_of_solomon_fbe",
+        "source_title": "Psalms Of Solomon Fbe",
+        "section_id": "xvii",
+        "heading": "XVII.",
+        "score": 4,
+        "match_terms": [
+          "whole",
+          "life",
+          "strength"
+        ],
+        "char_start": 40452,
+        "char_end": 47104
+      },
+      {
+        "source_id": "proverbs",
+        "source_title": "Proverbs",
+        "section_id": "chapter_10",
+        "heading": "Chapter 10",
+        "score": 4,
+        "match_terms": [
+          "life",
+          "strength"
+        ],
+        "char_start": 21747,
+        "char_end": 24678
+      },
+      {
+        "source_id": "proverbs",
+        "source_title": "Proverbs",
+        "section_id": "chapter_12",
+        "heading": "Chapter 12",
+        "score": 4,
+        "match_terms": [
+          "health",
+          "heal",
+          "life"
+        ],
+        "char_start": 27725,
+        "char_end": 30389
+      },
+      {
+        "source_id": "proverbs",
+        "source_title": "Proverbs",
+        "section_id": "chapter_31",
+        "heading": "Chapter 31",
+        "score": 4,
+        "match_terms": [
+          "life",
+          "strength"
+        ],
+        "char_start": 80367,
+        "char_end": 82957
+      },
+      {
+        "source_id": "wisdom_of_solomon_web",
+        "source_title": "Wisdom Of Solomon Web",
+        "section_id": "wisdom_of_solomon_1_15_iii_wisdom_of_solomon_2_4",
+        "heading": "Wisdom of Solomon 1:15 iii Wisdom of Solomon 2:4",
+        "score": 3,
+        "match_terms": [
+          "heal",
+          "life"
+        ],
+        "char_start": 1101,
+        "char_end": 2113
+      },
+      {
+        "source_id": "wisdom_of_solomon_web",
+        "source_title": "Wisdom Of Solomon Web",
+        "section_id": "wisdom_of_solomon_7_3_xvi_wisdom_of_solomon_7_13",
+        "heading": "Wisdom of Solomon 7:3 xvi Wisdom of Solomon 7:13",
+        "score": 3,
+        "match_terms": [
+          "health",
+          "heal",
+          "life"
+        ],
+        "char_start": 15950,
+        "char_end": 17133
+      },
+      {
+        "source_id": "wisdom_of_solomon_web",
+        "source_title": "Wisdom Of Solomon Web",
+        "section_id": "wisdom_of_solomon_7_30_xix_wisdom_of_solomon_8_8",
+        "heading": "Wisdom of Solomon 7:30 xix Wisdom of Solomon 8:8",
+        "score": 3,
+        "match_terms": [
+          "life",
+          "strength"
+        ],
+        "char_start": 19432,
+        "char_end": 20521
+      },
+      {
+        "source_id": "wisdom_of_solomon_web",
+        "source_title": "Wisdom Of Solomon Web",
+        "section_id": "wisdom_of_solomon_12_12_xxxi_wisdom_of_solomon_12_19",
+        "heading": "Wisdom of Solomon 12:12 xxxi Wisdom of Solomon 12:19",
+        "score": 3,
+        "match_terms": [
+          "strength"
+        ],
+        "char_start": 32831,
+        "char_end": 33998
+      },
+      {
+        "source_id": "wisdom_of_solomon_web",
+        "source_title": "Wisdom Of Solomon Web",
+        "section_id": "wisdom_of_solomon_15_9_xli_wisdom_of_solomon_15_13",
+        "heading": "Wisdom of Solomon 15:9 xli Wisdom of Solomon 15:13",
+        "score": 3,
+        "match_terms": [
+          "life"
+        ],
+        "char_start": 44294,
+        "char_end": 45306
+      },
+      {
+        "source_id": "psalms_of_solomon_fbe",
+        "source_title": "Psalms Of Solomon Fbe",
+        "section_id": "sacred_texts_7",
+        "heading": "Sacred Texts",
+        "score": 3,
+        "match_terms": [
+          "life"
+        ],
+        "char_start": 8315,
+        "char_end": 10054
+      },
+      {
+        "source_id": "proverbs",
+        "source_title": "Proverbs",
+        "section_id": "chapter_6",
+        "heading": "Chapter 6",
+        "score": 3,
+        "match_terms": [
+          "restore",
+          "life"
+        ],
+        "char_start": 11829,
+        "char_end": 14864
+      },
+      {
+        "source_id": "odes_of_solomon_fbe",
+        "source_title": "Odes Of Solomon Fbe",
+        "section_id": "ode_6",
+        "heading": "ODE 6.",
+        "score": 3,
+        "match_terms": [
+          "whole",
+          "life",
+          "strength"
+        ],
+        "char_start": 8128,
+        "char_end": 9786
+      },
+      {
+        "source_id": "ecclesiastes",
+        "source_title": "Ecclesiastes",
+        "section_id": "chapter_9",
+        "heading": "Chapter 9",
+        "score": 3,
+        "match_terms": [
+          "life",
+          "strength"
+        ],
+        "char_start": 20688,
+        "char_end": 23528
+      },
+      {
+        "source_id": "wisdom_of_solomon_web",
+        "source_title": "Wisdom Of Solomon Web",
+        "section_id": "wisdom_of_solomon_1_7_ii_wisdom_of_solomon_1_14",
+        "heading": "Wisdom of Solomon 1:7 ii Wisdom of Solomon 1:14",
+        "score": 2,
+        "match_terms": [
+          "whole",
+          "life"
+        ],
+        "char_start": 0,
+        "char_end": 1069
+      },
+      {
+        "source_id": "wisdom_of_solomon_gutenberg",
+        "source_title": "Wisdom Of Solomon Gutenberg",
+        "section_id": "1_14_for_he_created_all_things_that_they_might_have_their_being_and",
+        "heading": "1:14 For he created all things, that they might have their being: and",
+        "score": 2,
+        "match_terms": [
+          "health",
+          "heal"
+        ],
+        "char_start": 1693,
+        "char_end": 1897
+      },
+      {
+        "source_id": "wisdom_of_solomon_gutenberg",
+        "source_title": "Wisdom Of Solomon Gutenberg",
+        "section_id": "16_24_for_the_creature_that_serveth_thee_who_art_the_maker_increaseth",
+        "heading": "16:24 For the creature that serveth thee, who art the Maker increaseth",
+        "score": 2,
+        "match_terms": [
+          "strength"
+        ],
+        "char_start": 49506,
+        "char_end": 49714
+      },
+      {
+        "source_id": "psalms_of_solomon_fbe",
+        "source_title": "Psalms Of Solomon Fbe",
+        "section_id": "sacred_texts_5",
+        "heading": "Sacred Texts",
+        "score": 2,
+        "match_terms": [
+          "strength"
+        ],
+        "char_start": 3345,
+        "char_end": 7960
+      },
+      {
+        "source_id": "psalms_of_solomon_fbe",
+        "source_title": "Psalms Of Solomon Fbe",
+        "section_id": "sacred_texts_9",
+        "heading": "Sacred Texts",
+        "score": 2,
+        "match_terms": [
+          "life"
+        ],
+        "char_start": 10408,
+        "char_end": 13944
+      },
+      {
+        "source_id": "psalms_of_solomon_fbe",
+        "source_title": "Psalms Of Solomon Fbe",
+        "section_id": "sacred_texts_11",
+        "heading": "Sacred Texts",
+        "score": 2,
+        "match_terms": [
+          "whole",
+          "restore"
+        ],
+        "char_start": 14297,
+        "char_end": 16630
+      },
+      {
+        "source_id": "psalms_of_solomon_fbe",
+        "source_title": "Psalms Of Solomon Fbe",
+        "section_id": "sacred_texts_19",
+        "heading": "Sacred Texts",
+        "score": 2,
+        "match_terms": [
+          "life"
+        ],
+        "char_start": 24368,
+        "char_end": 26720
+      },
+      {
+        "source_id": "psalms_of_solomon_fbe",
+        "source_title": "Psalms Of Solomon Fbe",
+        "section_id": "sacred_texts_29",
+        "heading": "Sacred Texts",
+        "score": 2,
+        "match_terms": [
+          "life"
+        ],
+        "char_start": 33996,
+        "char_end": 35294
+      },
+      {
+        "source_id": "psalms_of_solomon_fbe",
+        "source_title": "Psalms Of Solomon Fbe",
+        "section_id": "sacred_texts_33",
+        "heading": "Sacred Texts",
+        "score": 2,
+        "match_terms": [
+          "strength"
+        ],
+        "char_start": 37955,
+        "char_end": 39926
+      },
+      {
+        "source_id": "odes_of_solomon_fbe",
+        "source_title": "Odes Of Solomon Fbe",
+        "section_id": "ode_10",
+        "heading": "ODE 10.",
+        "score": 2,
+        "match_terms": [
+          "life"
+        ],
+        "char_start": 17936,
+        "char_end": 18789
+      },
+      {
+        "source_id": "odes_of_solomon_fbe",
+        "source_title": "Odes Of Solomon Fbe",
+        "section_id": "ode_26",
+        "heading": "ODE 26.",
+        "score": 2,
+        "match_terms": [
+          "whole",
+          "life"
+        ],
+        "char_start": 46790,
+        "char_end": 47840
+      },
+      {
+        "source_id": "odes_of_solomon_fbe",
+        "source_title": "Odes Of Solomon Fbe",
+        "section_id": "ode_38",
+        "heading": "ODE 38.",
+        "score": 2,
+        "match_terms": [
+          "whole",
+          "life"
+        ],
+        "char_start": 63248,
+        "char_end": 65407
+      },
+      {
+        "source_id": "ecclesiastes",
+        "source_title": "Ecclesiastes",
+        "section_id": "chapter_2",
+        "heading": "Chapter 2",
+        "score": 2,
+        "match_terms": [
+          "life"
+        ],
+        "char_start": 2106,
+        "char_end": 5879
+      },
+      {
+        "source_id": "ecclesiastes",
+        "source_title": "Ecclesiastes",
+        "section_id": "chapter_3",
+        "heading": "Chapter 3",
+        "score": 2,
+        "match_terms": [
+          "heal",
+          "life"
+        ],
+        "char_start": 5879,
+        "char_end": 8451
+      },
+      {
+        "source_id": "ecclesiastes",
+        "source_title": "Ecclesiastes",
+        "section_id": "chapter_5",
+        "heading": "Chapter 5",
+        "score": 2,
+        "match_terms": [
+          "life"
+        ],
+        "char_start": 10469,
+        "char_end": 13245
+      },
+      {
+        "source_id": "ecclesiastes",
+        "source_title": "Ecclesiastes",
+        "section_id": "chapter_6",
+        "heading": "Chapter 6",
+        "score": 2,
+        "match_terms": [
+          "life"
+        ],
+        "char_start": 13245,
+        "char_end": 14779
+      },
+      {
+        "source_id": "ecclesiastes",
+        "source_title": "Ecclesiastes",
+        "section_id": "chapter_7",
+        "heading": "Chapter 7",
+        "score": 2,
+        "match_terms": [
+          "life"
+        ],
+        "char_start": 14779,
+        "char_end": 18044
+      },
+      {
+        "source_id": "ecclesiastes",
+        "source_title": "Ecclesiastes",
+        "section_id": "chapter_10",
+        "heading": "Chapter 10",
+        "score": 2,
+        "match_terms": [
+          "strength"
+        ],
+        "char_start": 23528,
+        "char_end": 25685
+      },
+      {
+        "source_id": "ecclesiastes",
+        "source_title": "Ecclesiastes",
+        "section_id": "chapter_12",
+        "heading": "Chapter 12",
+        "score": 2,
+        "match_terms": [
+          "whole"
+        ],
+        "char_start": 27103,
+        "char_end": 29101
+      },
+      {
+        "source_id": "wisdom_of_solomon_gutenberg",
+        "source_title": "Wisdom Of Solomon Gutenberg",
+        "section_id": "2_1_for_the_ungodly_said_reasoning_with_themselves_but_not_aright",
+        "heading": "2:1 For the ungodly said, reasoning with themselves, but not aright,",
+        "score": 1,
+        "match_terms": [
+          "life"
+        ],
+        "char_start": 2151,
+        "char_end": 2363
+      }
+    ],
+    "wealth": [
+      {
+        "source_id": "ecclesiastes",
+        "source_title": "Ecclesiastes",
+        "section_id": "chapter_5",
+        "heading": "Chapter 5",
+        "score": 11,
+        "match_terms": [
+          "wealth",
+          "rich",
+          "abundance",
+          "silver",
+          "increase"
+        ],
+        "char_start": 10469,
+        "char_end": 13245
+      },
+      {
+        "source_id": "proverbs",
+        "source_title": "Proverbs",
+        "section_id": "chapter_22",
+        "heading": "Chapter 22",
+        "score": 9,
+        "match_terms": [
+          "rich",
+          "gold",
+          "silver",
+          "increase"
+        ],
+        "char_start": 55012,
+        "char_end": 57649
+      },
+      {
+        "source_id": "proverbs",
+        "source_title": "Proverbs",
+        "section_id": "chapter_8",
+        "heading": "Chapter 8",
+        "score": 8,
+        "match_terms": [
+          "rich",
+          "treasure",
+          "gold",
+          "silver"
+        ],
+        "char_start": 17077,
+        "char_end": 20175
+      },
+      {
+        "source_id": "proverbs",
+        "source_title": "Proverbs",
+        "section_id": "chapter_10",
+        "heading": "Chapter 10",
+        "score": 6,
+        "match_terms": [
+          "wealth",
+          "rich",
+          "treasure",
+          "silver"
+        ],
+        "char_start": 21747,
+        "char_end": 24678
+      },
+      {
+        "source_id": "proverbs",
+        "source_title": "Proverbs",
+        "section_id": "chapter_13",
+        "heading": "Chapter 13",
+        "score": 6,
+        "match_terms": [
+          "wealth",
+          "rich",
+          "increase"
+        ],
+        "char_start": 30389,
+        "char_end": 32710
+      },
+      {
+        "source_id": "proverbs",
+        "source_title": "Proverbs",
+        "section_id": "chapter_28",
+        "heading": "Chapter 28",
+        "score": 6,
+        "match_terms": [
+          "rich",
+          "prosper",
+          "increase"
+        ],
+        "char_start": 71606,
+        "char_end": 74543
+      },
+      {
+        "source_id": "wisdom_of_solomon_web",
+        "source_title": "Wisdom Of Solomon Web",
+        "section_id": "wisdom_of_solomon_7_3_xvi_wisdom_of_solomon_7_13",
+        "heading": "Wisdom of Solomon 7:3 xvi Wisdom of Solomon 7:13",
+        "score": 5,
+        "match_terms": [
+          "rich",
+          "gold",
+          "silver"
+        ],
+        "char_start": 15950,
+        "char_end": 17133
+      },
+      {
+        "source_id": "proverbs",
+        "source_title": "Proverbs",
+        "section_id": "chapter_25",
+        "heading": "Chapter 25",
+        "score": 5,
+        "match_terms": [
+          "gold",
+          "silver"
+        ],
+        "char_start": 63880,
+        "char_end": 66643
+      },
+      {
+        "source_id": "psalms_of_solomon_fbe",
+        "source_title": "Psalms Of Solomon Fbe",
+        "section_id": "i",
+        "heading": "I",
+        "score": 4,
+        "match_terms": [
+          "wealth",
+          "rich",
+          "prosper"
+        ],
+        "char_start": 2179,
+        "char_end": 2991
+      },
+      {
+        "source_id": "proverbs",
+        "source_title": "Proverbs",
+        "section_id": "chapter_3",
+        "heading": "Chapter 3",
+        "score": 4,
+        "match_terms": [
+          "rich",
+          "gold",
+          "silver",
+          "increase"
+        ],
+        "char_start": 4688,
+        "char_end": 7636
+      },
+      {
+        "source_id": "proverbs",
+        "source_title": "Proverbs",
+        "section_id": "chapter_11",
+        "heading": "Chapter 11",
+        "score": 4,
+        "match_terms": [
+          "rich",
+          "gold"
+        ],
+        "char_start": 24678,
+        "char_end": 27725
+      },
+      {
+        "source_id": "song_of_solomon",
+        "source_title": "Song of Solomon",
+        "section_id": "chapter_1",
+        "heading": "Chapter 1",
+        "score": 3,
+        "match_terms": [
+          "gold",
+          "silver"
+        ],
+        "char_start": 0,
+        "char_end": 1761
+      },
+      {
+        "source_id": "song_of_solomon",
+        "source_title": "Song of Solomon",
+        "section_id": "chapter_5",
+        "heading": "Chapter 5",
+        "score": 3,
+        "match_terms": [
+          "gold"
+        ],
+        "char_start": 7071,
+        "char_end": 9140
+      },
+      {
+        "source_id": "psalms_of_solomon_fbe",
+        "source_title": "Psalms Of Solomon Fbe",
+        "section_id": "xvii",
+        "heading": "XVII.",
+        "score": 3,
+        "match_terms": [
+          "gold",
+          "silver"
+        ],
+        "char_start": 40452,
+        "char_end": 47104
+      },
+      {
+        "source_id": "ecclesiastes",
+        "source_title": "Ecclesiastes",
+        "section_id": "chapter_2",
+        "heading": "Chapter 2",
+        "score": 3,
+        "match_terms": [
+          "treasure",
+          "gold",
+          "silver"
+        ],
+        "char_start": 2106,
+        "char_end": 5879
+      },
+      {
+        "source_id": "ecclesiastes",
+        "source_title": "Ecclesiastes",
+        "section_id": "chapter_6",
+        "heading": "Chapter 6",
+        "score": 3,
+        "match_terms": [
+          "wealth",
+          "rich",
+          "increase"
+        ],
+        "char_start": 13245,
+        "char_end": 14779
+      },
+      {
+        "source_id": "wisdom_of_solomon_web",
+        "source_title": "Wisdom Of Solomon Web",
+        "section_id": "wisdom_of_solomon_7_30_xix_wisdom_of_solomon_8_8",
+        "heading": "Wisdom of Solomon 7:30 xix Wisdom of Solomon 8:8",
+        "score": 2,
+        "match_terms": [
+          "rich"
+        ],
+        "char_start": 19432,
+        "char_end": 20521
+      },
+      {
+        "source_id": "wisdom_of_solomon_web",
+        "source_title": "Wisdom Of Solomon Web",
+        "section_id": "wisdom_of_solomon_10_9_xxv_wisdom_of_solomon_10_14",
+        "heading": "Wisdom of Solomon 10:9 xxv Wisdom of Solomon 10:14",
+        "score": 2,
+        "match_terms": [
+          "rich",
+          "prosper"
+        ],
+        "char_start": 26113,
+        "char_end": 27143
+      },
+      {
+        "source_id": "wisdom_of_solomon_web",
+        "source_title": "Wisdom Of Solomon Web",
+        "section_id": "wisdom_of_solomon_13_5_xxxiv_wisdom_of_solomon_13_11",
+        "heading": "Wisdom of Solomon 13:5 xxxiv Wisdom of Solomon 13:11",
+        "score": 2,
+        "match_terms": [
+          "gold",
+          "silver"
+        ],
+        "char_start": 36212,
+        "char_end": 37271
+      },
+      {
+        "source_id": "wisdom_of_solomon_gutenberg",
+        "source_title": "Wisdom Of Solomon Gutenberg",
+        "section_id": "13_10_but_miserable_are_they_and_in_dead_things_is_their_hope_who",
+        "heading": "13:10 But miserable are they, and in dead things is their hope, who",
+        "score": 2,
+        "match_terms": [
+          "gold",
+          "silver"
+        ],
+        "char_start": 36969,
+        "char_end": 37209
+      },
+      {
+        "source_id": "song_of_solomon",
+        "source_title": "Song of Solomon",
+        "section_id": "chapter_3",
+        "heading": "Chapter 3",
+        "score": 2,
+        "match_terms": [
+          "gold",
+          "silver"
+        ],
+        "char_start": 3582,
+        "char_end": 5071
+      },
+      {
+        "source_id": "song_of_solomon",
+        "source_title": "Song of Solomon",
+        "section_id": "chapter_8",
+        "heading": "Chapter 8",
+        "score": 2,
+        "match_terms": [
+          "silver"
+        ],
+        "char_start": 12199,
+        "char_end": 14084
+      },
+      {
+        "source_id": "psalms_of_solomon_fbe",
+        "source_title": "Psalms Of Solomon Fbe",
+        "section_id": "sacred_texts_11",
+        "heading": "Sacred Texts",
+        "score": 2,
+        "match_terms": [
+          "wealth",
+          "abundance"
+        ],
+        "char_start": 14297,
+        "char_end": 16630
+      },
+      {
+        "source_id": "ecclesiastes",
+        "source_title": "Ecclesiastes",
+        "section_id": "chapter_10",
+        "heading": "Chapter 10",
+        "score": 2,
+        "match_terms": [
+          "rich"
+        ],
+        "char_start": 23528,
+        "char_end": 25685
+      },
+      {
+        "source_id": "wisdom_of_solomon_web",
+        "source_title": "Wisdom Of Solomon Web",
+        "section_id": "wisdom_of_solomon_3_1_vi_wisdom_of_solomon_3_10",
+        "heading": "Wisdom of Solomon 3:1 vi Wisdom of Solomon 3:10",
+        "score": 1,
+        "match_terms": [
+          "gold"
+        ],
+        "char_start": 4566,
+        "char_end": 5628
+      },
+      {
+        "source_id": "wisdom_of_solomon_web",
+        "source_title": "Wisdom Of Solomon Web",
+        "section_id": "wisdom_of_solomon_5_7_xi_wisdom_of_solomon_5_14",
+        "heading": "Wisdom of Solomon 5:7 xi Wisdom of Solomon 5:14",
+        "score": 1,
+        "match_terms": [
+          "rich"
+        ],
+        "char_start": 10162,
+        "char_end": 11283
+      },
+      {
+        "source_id": "wisdom_of_solomon_web",
+        "source_title": "Wisdom Of Solomon Web",
+        "section_id": "wisdom_of_solomon_7_14_xvii_wisdom_of_solomon_7_22",
+        "heading": "Wisdom of Solomon 7:14 xvii Wisdom of Solomon 7:22",
+        "score": 1,
+        "match_terms": [
+          "treasure"
+        ],
+        "char_start": 17133,
+        "char_end": 18221
+      },
+      {
+        "source_id": "wisdom_of_solomon_web",
+        "source_title": "Wisdom Of Solomon Web",
+        "section_id": "wisdom_of_solomon_8_18_xxi_wisdom_of_solomon_9_4",
+        "heading": "Wisdom of Solomon 8:18 xxi Wisdom of Solomon 9:4",
+        "score": 1,
+        "match_terms": [
+          "wealth"
+        ],
+        "char_start": 21682,
+        "char_end": 22769
+      },
+      {
+        "source_id": "wisdom_of_solomon_gutenberg",
+        "source_title": "Wisdom Of Solomon Gutenberg",
+        "section_id": "8_18_and_great_pleasure_it_is_to_have_her_friendship_and_in_the_works",
+        "heading": "8:18 And great pleasure it is to have her friendship; and in the works",
+        "score": 1,
+        "match_terms": [
+          "rich"
+        ],
+        "char_start": 22334,
+        "char_end": 22578
+      },
+      {
+        "source_id": "wisdom_of_solomon_gutenberg",
+        "source_title": "Wisdom Of Solomon Gutenberg",
+        "section_id": "10_10_when_the_righteous_fled_from_his_brother_s_wrath_she_guided_him",
+        "heading": "10:10 When the righteous fled from his brothers wrath she guided him",
+        "score": 1,
+        "match_terms": [
+          "rich"
+        ],
+        "char_start": 26580,
+        "char_end": 26808
+      },
+      {
+        "source_id": "psalms_of_solomon_fbe",
+        "source_title": "Psalms Of Solomon Fbe",
+        "section_id": "xviii",
+        "heading": "XVIII.",
+        "score": 1,
+        "match_terms": [
+          "rich"
+        ],
+        "char_start": 47647,
+        "char_end": 49413
+      },
+      {
+        "source_id": "odes_of_solomon_fbe",
+        "source_title": "Odes Of Solomon Fbe",
+        "section_id": "ode_4",
+        "heading": "ODE 4.",
+        "score": 1,
+        "match_terms": [
+          "rich"
+        ],
+        "char_start": 5051,
+        "char_end": 6562
+      },
+      {
+        "source_id": "odes_of_solomon_fbe",
+        "source_title": "Odes Of Solomon Fbe",
+        "section_id": "ode_11",
+        "heading": "ODE 11.",
+        "score": 1,
+        "match_terms": [
+          "abundance"
+        ],
+        "char_start": 19312,
+        "char_end": 21599
+      },
+      {
+        "source_id": "odes_of_solomon_fbe",
+        "source_title": "Odes Of Solomon Fbe",
+        "section_id": "ode_16",
+        "heading": "ODE 16.",
+        "score": 1,
+        "match_terms": [
+          "treasure"
+        ],
+        "char_start": 28068,
+        "char_end": 29773
+      },
+      {
+        "source_id": "odes_of_solomon_fbe",
+        "source_title": "Odes Of Solomon Fbe",
+        "section_id": "ode_20",
+        "heading": "ODE 20.",
+        "score": 1,
+        "match_terms": [
+          "silver"
+        ],
+        "char_start": 36123,
+        "char_end": 37215
+      },
+      {
+        "source_id": "odes_of_solomon_fbe",
+        "source_title": "Odes Of Solomon Fbe",
+        "section_id": "ode_28",
+        "heading": "ODE 28.",
+        "score": 1,
+        "match_terms": [
+          "rich"
+        ],
+        "char_start": 49158,
+        "char_end": 50868
+      },
+      {
+        "source_id": "ecclesiastes",
+        "source_title": "Ecclesiastes",
+        "section_id": "chapter_4",
+        "heading": "Chapter 4",
+        "score": 1,
+        "match_terms": [
+          "rich"
+        ],
+        "char_start": 8451,
+        "char_end": 10469
+      },
+      {
+        "source_id": "ecclesiastes",
+        "source_title": "Ecclesiastes",
+        "section_id": "chapter_7",
+        "heading": "Chapter 7",
+        "score": 1,
+        "match_terms": [
+          "prosper"
+        ],
+        "char_start": 14779,
+        "char_end": 18044
+      },
+      {
+        "source_id": "ecclesiastes",
+        "source_title": "Ecclesiastes",
+        "section_id": "chapter_9",
+        "heading": "Chapter 9",
+        "score": 1,
+        "match_terms": [
+          "rich"
+        ],
+        "char_start": 20688,
+        "char_end": 23528
+      },
+      {
+        "source_id": "ecclesiastes",
+        "source_title": "Ecclesiastes",
+        "section_id": "chapter_11",
+        "heading": "Chapter 11",
+        "score": 1,
+        "match_terms": [
+          "prosper"
+        ],
+        "char_start": 25685,
+        "char_end": 27103
+      }
+    ],
+    "power": [
+      {
+        "source_id": "psalms_of_solomon_fbe",
+        "source_title": "Psalms Of Solomon Fbe",
+        "section_id": "xvii",
+        "heading": "XVII.",
+        "score": 23,
+        "match_terms": [
+          "might",
+          "rule",
+          "king",
+          "strength"
+        ],
+        "char_start": 40452,
+        "char_end": 47104
+      },
+      {
+        "source_id": "wisdom_of_solomon_web",
+        "source_title": "Wisdom Of Solomon Web",
+        "section_id": "wisdom_of_solomon_12_12_xxxi_wisdom_of_solomon_12_19",
+        "heading": "Wisdom of Solomon 12:12 xxxi Wisdom of Solomon 12:19",
+        "score": 9,
+        "match_terms": [
+          "power",
+          "might",
+          "rule",
+          "king",
+          "strength"
+        ],
+        "char_start": 32831,
+        "char_end": 33998
+      },
+      {
+        "source_id": "wisdom_of_solomon_web",
+        "source_title": "Wisdom Of Solomon Web",
+        "section_id": "wisdom_of_solomon_5_23_xiii_wisdom_of_solomon_6_7",
+        "heading": "Wisdom of Solomon 5:23 xiii Wisdom of Solomon 6:7",
+        "score": 8,
+        "match_terms": [
+          "might",
+          "dominion",
+          "rule",
+          "king"
+        ],
+        "char_start": 12575,
+        "char_end": 13661
+      },
+      {
+        "source_id": "psalms_of_solomon_fbe",
+        "source_title": "Psalms Of Solomon Fbe",
+        "section_id": "sacred_texts_5",
+        "heading": "Sacred Texts",
+        "score": 8,
+        "match_terms": [
+          "might",
+          "king",
+          "strength"
+        ],
+        "char_start": 3345,
+        "char_end": 7960
+      },
+      {
+        "source_id": "proverbs",
+        "source_title": "Proverbs",
+        "section_id": "chapter_16",
+        "heading": "Chapter 16",
+        "score": 7,
+        "match_terms": [
+          "might",
+          "rule",
+          "king"
+        ],
+        "char_start": 38932,
+        "char_end": 41885
+      },
+      {
+        "source_id": "proverbs",
+        "source_title": "Proverbs",
+        "section_id": "chapter_31",
+        "heading": "Chapter 31",
+        "score": 7,
+        "match_terms": [
+          "king",
+          "strength"
+        ],
+        "char_start": 80367,
+        "char_end": 82957
+      },
+      {
+        "source_id": "ecclesiastes",
+        "source_title": "Ecclesiastes",
+        "section_id": "chapter_10",
+        "heading": "Chapter 10",
+        "score": 7,
+        "match_terms": [
+          "rule",
+          "king",
+          "strength"
+        ],
+        "char_start": 23528,
+        "char_end": 25685
+      },
+      {
+        "source_id": "proverbs",
+        "source_title": "Proverbs",
+        "section_id": "chapter_25",
+        "heading": "Chapter 25",
+        "score": 6,
+        "match_terms": [
+          "rule",
+          "king"
+        ],
+        "char_start": 63880,
+        "char_end": 66643
+      },
+      {
+        "source_id": "proverbs",
+        "source_title": "Proverbs",
+        "section_id": "chapter_29",
+        "heading": "Chapter 29",
+        "score": 6,
+        "match_terms": [
+          "authority",
+          "rule",
+          "king"
+        ],
+        "char_start": 74543,
+        "char_end": 76982
+      },
+      {
+        "source_id": "odes_of_solomon_fbe",
+        "source_title": "Odes Of Solomon Fbe",
+        "section_id": "ode_7",
+        "heading": "ODE 7.",
+        "score": 6,
+        "match_terms": [
+          "power",
+          "might"
+        ],
+        "char_start": 10306,
+        "char_end": 12983
+      },
+      {
+        "source_id": "odes_of_solomon_fbe",
+        "source_title": "Odes Of Solomon Fbe",
+        "section_id": "ode_22",
+        "heading": "ODE 22.",
+        "score": 6,
+        "match_terms": [
+          "might",
+          "authority",
+          "king"
+        ],
+        "char_start": 39066,
+        "char_end": 40309
+      },
+      {
+        "source_id": "odes_of_solomon_fbe",
+        "source_title": "Odes Of Solomon Fbe",
+        "section_id": "ode_29",
+        "heading": "ODE 29.",
+        "score": 6,
+        "match_terms": [
+          "power",
+          "might",
+          "victory"
+        ],
+        "char_start": 51392,
+        "char_end": 52456
+      },
+      {
+        "source_id": "ecclesiastes",
+        "source_title": "Ecclesiastes",
+        "section_id": "chapter_8",
+        "heading": "Chapter 8",
+        "score": 6,
+        "match_terms": [
+          "power",
+          "rule",
+          "king"
+        ],
+        "char_start": 18044,
+        "char_end": 20688
+      },
+      {
+        "source_id": "wisdom_of_solomon_web",
+        "source_title": "Wisdom Of Solomon Web",
+        "section_id": "wisdom_of_solomon_10_9_xxv_wisdom_of_solomon_10_14",
+        "heading": "Wisdom of Solomon 10:9 xxv Wisdom of Solomon 10:14",
+        "score": 5,
+        "match_terms": [
+          "power",
+          "might",
+          "authority",
+          "king"
+        ],
+        "char_start": 26113,
+        "char_end": 27143
+      },
+      {
+        "source_id": "wisdom_of_solomon_web",
+        "source_title": "Wisdom Of Solomon Web",
+        "section_id": "wisdom_of_solomon_11_14_xxviii_wisdom_of_solomon_11_20",
+        "heading": "Wisdom of Solomon 11:14 xxviii Wisdom of Solomon 11:20",
+        "score": 5,
+        "match_terms": [
+          "power",
+          "might"
+        ],
+        "char_start": 29364,
+        "char_end": 30549
+      },
+      {
+        "source_id": "psalms_of_solomon_fbe",
+        "source_title": "Psalms Of Solomon Fbe",
+        "section_id": "sacred_texts_11",
+        "heading": "Sacred Texts",
+        "score": 5,
+        "match_terms": [
+          "might",
+          "rule",
+          "king"
+        ],
+        "char_start": 14297,
+        "char_end": 16630
+      },
+      {
+        "source_id": "proverbs",
+        "source_title": "Proverbs",
+        "section_id": "chapter_20",
+        "heading": "Chapter 20",
+        "score": 5,
+        "match_terms": [
+          "king",
+          "strength"
+        ],
+        "char_start": 49498,
+        "char_end": 52204
+      },
+      {
+        "source_id": "proverbs",
+        "source_title": "Proverbs",
+        "section_id": "chapter_22",
+        "heading": "Chapter 22",
+        "score": 5,
+        "match_terms": [
+          "might",
+          "rule",
+          "king"
+        ],
+        "char_start": 55012,
+        "char_end": 57649
+      },
+      {
+        "source_id": "odes_of_solomon_fbe",
+        "source_title": "Odes Of Solomon Fbe",
+        "section_id": "ode_18",
+        "heading": "ODE 18.",
+        "score": 5,
+        "match_terms": [
+          "might",
+          "king",
+          "victory",
+          "strength"
+        ],
+        "char_start": 32299,
+        "char_end": 33855
+      },
+      {
+        "source_id": "wisdom_of_solomon_web",
+        "source_title": "Wisdom Of Solomon Web",
+        "section_id": "wisdom_of_solomon_12_27_xxxiii_wisdom_of_solomon_13_4",
+        "heading": "Wisdom of Solomon 12:27 xxxiii Wisdom of Solomon 13:4",
+        "score": 4,
+        "match_terms": [
+          "power",
+          "rule"
+        ],
+        "char_start": 35143,
+        "char_end": 36212
+      },
+      {
+        "source_id": "wisdom_of_solomon_web",
+        "source_title": "Wisdom Of Solomon Web",
+        "section_id": "wisdom_of_solomon_16_18_xlv_wisdom_of_solomon_16_24",
+        "heading": "Wisdom of Solomon 16:18 xlv Wisdom of Solomon 16:24",
+        "score": 4,
+        "match_terms": [
+          "power",
+          "might"
+        ],
+        "char_start": 48927,
+        "char_end": 50145
+      },
+      {
+        "source_id": "psalms_of_solomon_fbe",
+        "source_title": "Psalms Of Solomon Fbe",
+        "section_id": "sacred_texts_33",
+        "heading": "Sacred Texts",
+        "score": 4,
+        "match_terms": [
+          "might",
+          "rule",
+          "strength"
+        ],
+        "char_start": 37955,
+        "char_end": 39926
+      },
+      {
+        "source_id": "odes_of_solomon_fbe",
+        "source_title": "Odes Of Solomon Fbe",
+        "section_id": "ode_23",
+        "heading": "ODE 23.",
+        "score": 4,
+        "match_terms": [
+          "power",
+          "might",
+          "rule",
+          "king"
+        ],
+        "char_start": 40833,
+        "char_end": 42964
+      },
+      {
+        "source_id": "ecclesiastes",
+        "source_title": "Ecclesiastes",
+        "section_id": "chapter_2",
+        "heading": "Chapter 2",
+        "score": 4,
+        "match_terms": [
+          "might",
+          "rule",
+          "king"
+        ],
+        "char_start": 2106,
+        "char_end": 5879
+      },
+      {
+        "source_id": "ecclesiastes",
+        "source_title": "Ecclesiastes",
+        "section_id": "chapter_9",
+        "heading": "Chapter 9",
+        "score": 4,
+        "match_terms": [
+          "might",
+          "rule",
+          "king",
+          "strength"
+        ],
+        "char_start": 20688,
+        "char_end": 23528
+      },
+      {
+        "source_id": "wisdom_of_solomon_web",
+        "source_title": "Wisdom Of Solomon Web",
+        "section_id": "wisdom_of_solomon_7_23_xviii_wisdom_of_solomon_7_29",
+        "heading": "Wisdom of Solomon 7:23 xviii Wisdom of Solomon 7:29",
+        "score": 3,
+        "match_terms": [
+          "power"
+        ],
+        "char_start": 18241,
+        "char_end": 19432
+      },
+      {
+        "source_id": "wisdom_of_solomon_web",
+        "source_title": "Wisdom Of Solomon Web",
+        "section_id": "wisdom_of_solomon_14_18_xxxviii_wisdom_of_solomon_14_24",
+        "heading": "Wisdom of Solomon 14:18 xxxviii Wisdom of Solomon 14:24",
+        "score": 3,
+        "match_terms": [
+          "might",
+          "rule",
+          "king"
+        ],
+        "char_start": 40887,
+        "char_end": 42068
+      },
+      {
+        "source_id": "wisdom_of_solomon_gutenberg",
+        "source_title": "Wisdom Of Solomon Gutenberg",
+        "section_id": "1_14_for_he_created_all_things_that_they_might_have_their_being_and",
+        "heading": "1:14 For he created all things, that they might have their being: and",
+        "score": 3,
+        "match_terms": [
+          "might",
+          "king"
+        ],
+        "char_start": 1693,
+        "char_end": 1897
+      },
+      {
+        "source_id": "wisdom_of_solomon_gutenberg",
+        "source_title": "Wisdom Of Solomon Gutenberg",
+        "section_id": "11_20_yea_and_without_these_might_they_have_fallen_down_with_one",
+        "heading": "11:20 Yea, and without these might they have fallen down with one",
+        "score": 3,
+        "match_terms": [
+          "power",
+          "might"
+        ],
+        "char_start": 30571,
+        "char_end": 30797
+      },
+      {
+        "source_id": "wisdom_of_solomon_gutenberg",
+        "source_title": "Wisdom Of Solomon Gutenberg",
+        "section_id": "16_3_to_the_end_that_they_desiring_food_might_for_the_ugly_sight_of",
+        "heading": "16:3 To the end that they, desiring food, might for the ugly sight of",
+        "score": 3,
+        "match_terms": [
+          "might"
+        ],
+        "char_start": 46301,
+        "char_end": 46537
+      },
+      {
+        "source_id": "wisdom_of_solomon_gutenberg",
+        "source_title": "Wisdom Of Solomon Gutenberg",
+        "section_id": "16_18_for_sometime_the_flame_was_mitigated_that_it_might_not_burn_up",
+        "heading": "16:18 For sometime the flame was mitigated, that it might not burn up",
+        "score": 3,
+        "match_terms": [
+          "might"
+        ],
+        "char_start": 48529,
+        "char_end": 48737
+      },
+      {
+        "source_id": "psalms_of_solomon_fbe",
+        "source_title": "Psalms Of Solomon Fbe",
+        "section_id": "viii",
+        "heading": "VIII.",
+        "score": 3,
+        "match_terms": [
+          "might"
+        ],
+        "char_start": 20116,
+        "char_end": 24014
+      },
+      {
+        "source_id": "proverbs",
+        "source_title": "Proverbs",
+        "section_id": "chapter_8",
+        "heading": "Chapter 8",
+        "score": 3,
+        "match_terms": [
+          "rule",
+          "king",
+          "strength"
+        ],
+        "char_start": 17077,
+        "char_end": 20175
+      },
+      {
+        "source_id": "proverbs",
+        "source_title": "Proverbs",
+        "section_id": "chapter_14",
+        "heading": "Chapter 14",
+        "score": 3,
+        "match_terms": [
+          "king",
+          "strength"
+        ],
+        "char_start": 32710,
+        "char_end": 35872
+      },
+      {
+        "source_id": "odes_of_solomon_fbe",
+        "source_title": "Odes Of Solomon Fbe",
+        "section_id": "ode_31",
+        "heading": "ODE 31.",
+        "score": 3,
+        "match_terms": [
+          "might"
+        ],
+        "char_start": 54176,
+        "char_end": 55459
+      },
+      {
+        "source_id": "ecclesiastes",
+        "source_title": "Ecclesiastes",
+        "section_id": "chapter_4",
+        "heading": "Chapter 4",
+        "score": 3,
+        "match_terms": [
+          "power",
+          "king"
+        ],
+        "char_start": 8451,
+        "char_end": 10469
+      },
+      {
+        "source_id": "wisdom_of_solomon_gutenberg",
+        "source_title": "Wisdom Of Solomon Gutenberg",
+        "section_id": "10_14_and_left_him_not_in_bonds_till_she_brought_him_the_sceptre_of",
+        "heading": "10:14 And left him not in bonds, till she brought him the sceptre of",
+        "score": 2,
+        "match_terms": [
+          "power",
+          "king"
+        ],
+        "char_start": 27212,
+        "char_end": 27432
+      },
+      {
+        "source_id": "wisdom_of_solomon_gutenberg",
+        "source_title": "Wisdom Of Solomon Gutenberg",
+        "section_id": "14_17_whom_men_could_not_honour_in_presence_because_they_dwelt_far",
+        "heading": "14:17 Whom men could not honour in presence, because they dwelt far",
+        "score": 2,
+        "match_terms": [
+          "might",
+          "king"
+        ],
+        "char_start": 40821,
+        "char_end": 41106
+      },
+      {
+        "source_id": "wisdom_of_solomon_gutenberg",
+        "source_title": "Wisdom Of Solomon Gutenberg",
+        "section_id": "16_24_for_the_creature_that_serveth_thee_who_art_the_maker_increaseth",
+        "heading": "16:24 For the creature that serveth thee, who art the Maker increaseth",
+        "score": 2,
+        "match_terms": [
+          "strength"
+        ],
+        "char_start": 49506,
+        "char_end": 49714
+      },
+      {
+        "source_id": "song_of_solomon",
+        "source_title": "Song of Solomon",
+        "section_id": "chapter_1",
+        "heading": "Chapter 1",
+        "score": 2,
+        "match_terms": [
+          "king"
+        ],
+        "char_start": 0,
+        "char_end": 1761
+      }
+    ],
+    "protection": [
+      {
+        "source_id": "proverbs",
+        "source_title": "Proverbs",
+        "section_id": "chapter_1",
+        "heading": "Chapter 1",
+        "score": 6,
+        "match_terms": [
+          "fear",
+          "safe"
+        ],
+        "char_start": 0,
+        "char_end": 2882
+      },
+      {
+        "source_id": "proverbs",
+        "source_title": "Proverbs",
+        "section_id": "chapter_11",
+        "heading": "Chapter 11",
+        "score": 6,
+        "match_terms": [
+          "deliver",
+          "safe"
+        ],
+        "char_start": 24678,
+        "char_end": 27725
+      },
+      {
+        "source_id": "psalms_of_solomon_fbe",
+        "source_title": "Psalms Of Solomon Fbe",
+        "section_id": "xvii",
+        "heading": "XVII.",
+        "score": 5,
+        "match_terms": [
+          "deliver",
+          "save",
+          "fear"
+        ],
+        "char_start": 40452,
+        "char_end": 47104
+      },
+      {
+        "source_id": "wisdom_of_solomon_web",
+        "source_title": "Wisdom Of Solomon Web",
+        "section_id": "wisdom_of_solomon_10_9_xxv_wisdom_of_solomon_10_14",
+        "heading": "Wisdom of Solomon 10:9 xxv Wisdom of Solomon 10:14",
+        "score": 4,
+        "match_terms": [
+          "deliver",
+          "guard",
+          "safe"
+        ],
+        "char_start": 26113,
+        "char_end": 27143
+      },
+      {
+        "source_id": "psalms_of_solomon_fbe",
+        "source_title": "Psalms Of Solomon Fbe",
+        "section_id": "sacred_texts_31",
+        "heading": "Sacred Texts",
+        "score": 4,
+        "match_terms": [
+          "refuge",
+          "save",
+          "fear"
+        ],
+        "char_start": 35648,
+        "char_end": 37600
+      },
+      {
+        "source_id": "psalms_of_solomon_fbe",
+        "source_title": "Psalms Of Solomon Fbe",
+        "section_id": "xviii",
+        "heading": "XVIII.",
+        "score": 4,
+        "match_terms": [
+          "fear"
+        ],
+        "char_start": 47647,
+        "char_end": 49413
+      },
+      {
+        "source_id": "proverbs",
+        "source_title": "Proverbs",
+        "section_id": "chapter_14",
+        "heading": "Chapter 14",
+        "score": 4,
+        "match_terms": [
+          "deliver",
+          "refuge",
+          "fear"
+        ],
+        "char_start": 32710,
+        "char_end": 35872
+      },
+      {
+        "source_id": "wisdom_of_solomon_web",
+        "source_title": "Wisdom Of Solomon Web",
+        "section_id": "wisdom_of_solomon_9_12_xxiii_wisdom_of_solomon_10_3",
+        "heading": "Wisdom of Solomon 9:12 xxiii Wisdom of Solomon 10:3",
+        "score": 3,
+        "match_terms": [
+          "deliver",
+          "save",
+          "guard"
+        ],
+        "char_start": 23875,
+        "char_end": 25004
+      },
+      {
+        "source_id": "wisdom_of_solomon_web",
+        "source_title": "Wisdom Of Solomon Web",
+        "section_id": "wisdom_of_solomon_14_1_xxxvi_wisdom_of_solomon_14_9",
+        "heading": "Wisdom of Solomon 14:1 xxxvi Wisdom of Solomon 14:9",
+        "score": 3,
+        "match_terms": [
+          "refuge",
+          "save",
+          "safe"
+        ],
+        "char_start": 38533,
+        "char_end": 39680
+      },
+      {
+        "source_id": "wisdom_of_solomon_web",
+        "source_title": "Wisdom Of Solomon Web",
+        "section_id": "wisdom_of_solomon_17_3_xlvii_wisdom_of_solomon_17_10",
+        "heading": "Wisdom of Solomon 17:3 xlvii Wisdom of Solomon 17:10",
+        "score": 3,
+        "match_terms": [
+          "guard",
+          "fear"
+        ],
+        "char_start": 51267,
+        "char_end": 52417
+      },
+      {
+        "source_id": "wisdom_of_solomon_gutenberg",
+        "source_title": "Wisdom Of Solomon Gutenberg",
+        "section_id": "18_21_for_then_the_blameless_man_made_haste_and_stood_forth_to_defend",
+        "heading": "18:21 For then the blameless man made haste, and stood forth to defend",
+        "score": 3,
+        "match_terms": [
+          "defend",
+          "shield"
+        ],
+        "char_start": 56567,
+        "char_end": 56844
+      },
+      {
+        "source_id": "psalms_of_solomon_fbe",
+        "source_title": "Psalms Of Solomon Fbe",
+        "section_id": "sacred_texts_5",
+        "heading": "Sacred Texts",
+        "score": 3,
+        "match_terms": [
+          "deliver",
+          "fear"
+        ],
+        "char_start": 3345,
+        "char_end": 7960
+      },
+      {
+        "source_id": "psalms_of_solomon_fbe",
+        "source_title": "Psalms Of Solomon Fbe",
+        "section_id": "sacred_texts_7",
+        "heading": "Sacred Texts",
+        "score": 3,
+        "match_terms": [
+          "deliver",
+          "fear"
+        ],
+        "char_start": 8315,
+        "char_end": 10054
+      },
+      {
+        "source_id": "psalms_of_solomon_fbe",
+        "source_title": "Psalms Of Solomon Fbe",
+        "section_id": "sacred_texts_9",
+        "heading": "Sacred Texts",
+        "score": 3,
+        "match_terms": [
+          "deliver",
+          "fear"
+        ],
+        "char_start": 10408,
+        "char_end": 13944
+      },
+      {
+        "source_id": "psalms_of_solomon_fbe",
+        "source_title": "Psalms Of Solomon Fbe",
+        "section_id": "viii",
+        "heading": "VIII.",
+        "score": 3,
+        "match_terms": [
+          "deliver",
+          "safe"
+        ],
+        "char_start": 20116,
+        "char_end": 24014
+      },
+      {
+        "source_id": "psalms_of_solomon_fbe",
+        "source_title": "Psalms Of Solomon Fbe",
+        "section_id": "xiii",
+        "heading": "XIII.",
+        "score": 3,
+        "match_terms": [
+          "deliver",
+          "save",
+          "fear"
+        ],
+        "char_start": 32346,
+        "char_end": 33641
+      },
+      {
+        "source_id": "proverbs",
+        "source_title": "Proverbs",
+        "section_id": "chapter_2",
+        "heading": "Chapter 2",
+        "score": 3,
+        "match_terms": [
+          "deliver",
+          "fear"
+        ],
+        "char_start": 2882,
+        "char_end": 4688
+      },
+      {
+        "source_id": "proverbs",
+        "source_title": "Proverbs",
+        "section_id": "chapter_3",
+        "heading": "Chapter 3",
+        "score": 3,
+        "match_terms": [
+          "fear",
+          "safe"
+        ],
+        "char_start": 4688,
+        "char_end": 7636
+      },
+      {
+        "source_id": "proverbs",
+        "source_title": "Proverbs",
+        "section_id": "chapter_10",
+        "heading": "Chapter 10",
+        "score": 3,
+        "match_terms": [
+          "deliver",
+          "fear"
+        ],
+        "char_start": 21747,
+        "char_end": 24678
+      },
+      {
+        "source_id": "proverbs",
+        "source_title": "Proverbs",
+        "section_id": "chapter_24",
+        "heading": "Chapter 24",
+        "score": 3,
+        "match_terms": [
+          "deliver",
+          "fear",
+          "safe"
+        ],
+        "char_start": 60701,
+        "char_end": 63880
+      },
+      {
+        "source_id": "ecclesiastes",
+        "source_title": "Ecclesiastes",
+        "section_id": "chapter_8",
+        "heading": "Chapter 8",
+        "score": 3,
+        "match_terms": [
+          "deliver",
+          "fear"
+        ],
+        "char_start": 18044,
+        "char_end": 20688
+      },
+      {
+        "source_id": "wisdom_of_solomon_web",
+        "source_title": "Wisdom Of Solomon Web",
+        "section_id": "wisdom_of_solomon_2_15_v_wisdom_of_solomon_2_24",
+        "heading": "Wisdom of Solomon 2:15 v Wisdom of Solomon 2:24",
+        "score": 2,
+        "match_terms": [
+          "protect",
+          "deliver"
+        ],
+        "char_start": 3414,
+        "char_end": 4566
+      },
+      {
+        "source_id": "wisdom_of_solomon_web",
+        "source_title": "Wisdom Of Solomon Web",
+        "section_id": "wisdom_of_solomon_4_19_x_wisdom_of_solomon_5_6",
+        "heading": "Wisdom of Solomon 4:19 x Wisdom of Solomon 5:6",
+        "score": 2,
+        "match_terms": [
+          "fear"
+        ],
+        "char_start": 9096,
+        "char_end": 10162
+      },
+      {
+        "source_id": "wisdom_of_solomon_web",
+        "source_title": "Wisdom Of Solomon Web",
+        "section_id": "wisdom_of_solomon_5_15_xii_wisdom_of_solomon_5_22",
+        "heading": "Wisdom of Solomon 5:15 xii Wisdom of Solomon 5:22",
+        "score": 2,
+        "match_terms": [
+          "shield"
+        ],
+        "char_start": 11310,
+        "char_end": 12409
+      },
+      {
+        "source_id": "wisdom_of_solomon_web",
+        "source_title": "Wisdom Of Solomon Web",
+        "section_id": "wisdom_of_solomon_16_2_xliii_wisdom_of_solomon_16_8",
+        "heading": "Wisdom of Solomon 16:2 xliii Wisdom of Solomon 16:8",
+        "score": 2,
+        "match_terms": [
+          "deliver",
+          "save"
+        ],
+        "char_start": 46566,
+        "char_end": 47738
+      },
+      {
+        "source_id": "proverbs",
+        "source_title": "Proverbs",
+        "section_id": "chapter_6",
+        "heading": "Chapter 6",
+        "score": 2,
+        "match_terms": [
+          "deliver"
+        ],
+        "char_start": 11829,
+        "char_end": 14864
+      },
+      {
+        "source_id": "odes_of_solomon_fbe",
+        "source_title": "Odes Of Solomon Fbe",
+        "section_id": "ode_5",
+        "heading": "ODE 5.",
+        "score": 2,
+        "match_terms": [
+          "fear"
+        ],
+        "char_start": 7093,
+        "char_end": 8128
+      },
+      {
+        "source_id": "odes_of_solomon_fbe",
+        "source_title": "Odes Of Solomon Fbe",
+        "section_id": "ode_8",
+        "heading": "ODE 8.",
+        "score": 2,
+        "match_terms": [
+          "save"
+        ],
+        "char_start": 13503,
+        "char_end": 15638
+      },
+      {
+        "source_id": "odes_of_solomon_fbe",
+        "source_title": "Odes Of Solomon Fbe",
+        "section_id": "ode_17",
+        "heading": "ODE 17.",
+        "score": 2,
+        "match_terms": [
+          "save"
+        ],
+        "char_start": 30297,
+        "char_end": 31775
+      },
+      {
+        "source_id": "wisdom_of_solomon_gutenberg",
+        "source_title": "Wisdom Of Solomon Gutenberg",
+        "section_id": "14_5_nevertheless_thou_wouldest_not_that_the_works_of_thy_wisdom_should",
+        "heading": "14:5 Nevertheless thou wouldest not that the works of thy wisdom should",
+        "score": 1,
+        "match_terms": [
+          "save"
+        ],
+        "char_start": 39139,
+        "char_end": 39341
+      },
+      {
+        "source_id": "wisdom_of_solomon_gutenberg",
+        "source_title": "Wisdom Of Solomon Gutenberg",
+        "section_id": "14_15_for_a_father_afflicted_with_untimely_mourning_when_he_hath_made",
+        "heading": "14:15 For a father afflicted with untimely mourning, when he hath made",
+        "score": 1,
+        "match_terms": [
+          "deliver"
+        ],
+        "char_start": 40441,
+        "char_end": 40676
+      },
+      {
+        "source_id": "wisdom_of_solomon_gutenberg",
+        "source_title": "Wisdom Of Solomon Gutenberg",
+        "section_id": "17_19_or_a_terrible_sound_of_stones_cast_down_or_a_running_that_could",
+        "heading": "17:19 Or a terrible sound of stones cast down, or a running that could",
+        "score": 1,
+        "match_terms": [
+          "fear"
+        ],
+        "char_start": 53020,
+        "char_end": 53261
+      },
+      {
+        "source_id": "wisdom_of_solomon_gutenberg",
+        "source_title": "Wisdom Of Solomon Gutenberg",
+        "section_id": "18_5_and_when_they_had_determined_to_slay_the_babes_of_the_saints_one",
+        "heading": "18:5 And when they had determined to slay the babes of the saints, one",
+        "score": 1,
+        "match_terms": [
+          "save"
+        ],
+        "char_start": 54217,
+        "char_end": 54443
+      },
+      {
+        "source_id": "song_of_solomon",
+        "source_title": "Song of Solomon",
+        "section_id": "chapter_3",
+        "heading": "Chapter 3",
+        "score": 1,
+        "match_terms": [
+          "fear"
+        ],
+        "char_start": 3582,
+        "char_end": 5071
+      },
+      {
+        "source_id": "song_of_solomon",
+        "source_title": "Song of Solomon",
+        "section_id": "chapter_4",
+        "heading": "Chapter 4",
+        "score": 1,
+        "match_terms": [
+          "shield"
+        ],
+        "char_start": 5071,
+        "char_end": 7071
+      },
+      {
+        "source_id": "odes_of_solomon_fbe",
+        "source_title": "Odes Of Solomon Fbe",
+        "section_id": "ode_9",
+        "heading": "ODE 9.",
+        "score": 1,
+        "match_terms": [
+          "save"
+        ],
+        "char_start": 16158,
+        "char_end": 17413
+      },
+      {
+        "source_id": "odes_of_solomon_fbe",
+        "source_title": "Odes Of Solomon Fbe",
+        "section_id": "ode_10",
+        "heading": "ODE 10.",
+        "score": 1,
+        "match_terms": [
+          "save"
+        ],
+        "char_start": 17936,
+        "char_end": 18789
+      },
+      {
+        "source_id": "odes_of_solomon_fbe",
+        "source_title": "Odes Of Solomon Fbe",
+        "section_id": "ode_19",
+        "heading": "ODE 19.",
+        "score": 1,
+        "match_terms": [
+          "guard"
+        ],
+        "char_start": 34390,
+        "char_end": 35599
+      },
+      {
+        "source_id": "odes_of_solomon_fbe",
+        "source_title": "Odes Of Solomon Fbe",
+        "section_id": "ode_25",
+        "heading": "ODE 25.",
+        "score": 1,
+        "match_terms": [
+          "save"
+        ],
+        "char_start": 45270,
+        "char_end": 46266
+      },
+      {
+        "source_id": "odes_of_solomon_fbe",
+        "source_title": "Odes Of Solomon Fbe",
+        "section_id": "ode_26",
+        "heading": "ODE 26.",
+        "score": 1,
+        "match_terms": [
+          "save"
+        ],
+        "char_start": 46790,
+        "char_end": 47840
+      }
+    ],
+    "clarity": [
+      {
+        "source_id": "proverbs",
+        "source_title": "Proverbs",
+        "section_id": "chapter_1",
+        "heading": "Chapter 1",
+        "score": 18,
+        "match_terms": [
+          "wisdom",
+          "understanding",
+          "knowledge",
+          "counsel",
+          "instruction"
+        ],
+        "char_start": 0,
+        "char_end": 2882
+      },
+      {
+        "source_id": "proverbs",
+        "source_title": "Proverbs",
+        "section_id": "chapter_8",
+        "heading": "Chapter 8",
+        "score": 17,
+        "match_terms": [
+          "wisdom",
+          "understanding",
+          "knowledge",
+          "truth",
+          "counsel",
+          "instruction"
+        ],
+        "char_start": 17077,
+        "char_end": 20175
+      },
+      {
+        "source_id": "proverbs",
+        "source_title": "Proverbs",
+        "section_id": "chapter_2",
+        "heading": "Chapter 2",
+        "score": 15,
+        "match_terms": [
+          "wisdom",
+          "understanding",
+          "knowledge",
+          "guide"
+        ],
+        "char_start": 2882,
+        "char_end": 4688
+      },
+      {
+        "source_id": "wisdom_of_solomon_web",
+        "source_title": "Wisdom Of Solomon Web",
+        "section_id": "wisdom_of_solomon_6_18_xv_wisdom_of_solomon_7_2",
+        "heading": "Wisdom of Solomon 6:18 xv Wisdom of Solomon 7:2",
+        "score": 13,
+        "match_terms": [
+          "wisdom",
+          "understanding",
+          "knowledge",
+          "light",
+          "truth",
+          "instruction"
+        ],
+        "char_start": 14881,
+        "char_end": 15907
+      },
+      {
+        "source_id": "wisdom_of_solomon_web",
+        "source_title": "Wisdom Of Solomon Web",
+        "section_id": "wisdom_of_solomon_7_30_xix_wisdom_of_solomon_8_8",
+        "heading": "Wisdom of Solomon 7:30 xix Wisdom of Solomon 8:8",
+        "score": 12,
+        "match_terms": [
+          "wisdom",
+          "understanding",
+          "knowledge"
+        ],
+        "char_start": 19432,
+        "char_end": 20521
+      },
+      {
+        "source_id": "proverbs",
+        "source_title": "Proverbs",
+        "section_id": "chapter_14",
+        "heading": "Chapter 14",
+        "score": 11,
+        "match_terms": [
+          "wisdom",
+          "understanding",
+          "knowledge",
+          "truth"
+        ],
+        "char_start": 32710,
+        "char_end": 35872
+      },
+      {
+        "source_id": "proverbs",
+        "source_title": "Proverbs",
+        "section_id": "chapter_19",
+        "heading": "Chapter 19",
+        "score": 11,
+        "match_terms": [
+          "wisdom",
+          "understanding",
+          "knowledge",
+          "counsel",
+          "instruction"
+        ],
+        "char_start": 46685,
+        "char_end": 49498
+      },
+      {
+        "source_id": "proverbs",
+        "source_title": "Proverbs",
+        "section_id": "chapter_24",
+        "heading": "Chapter 24",
+        "score": 11,
+        "match_terms": [
+          "wisdom",
+          "understanding",
+          "knowledge",
+          "counsel",
+          "instruction"
+        ],
+        "char_start": 60701,
+        "char_end": 63880
+      },
+      {
+        "source_id": "odes_of_solomon_fbe",
+        "source_title": "Odes Of Solomon Fbe",
+        "section_id": "ode_38",
+        "heading": "ODE 38.",
+        "score": 11,
+        "match_terms": [
+          "wisdom",
+          "knowledge",
+          "light",
+          "truth"
+        ],
+        "char_start": 63248,
+        "char_end": 65407
+      },
+      {
+        "source_id": "wisdom_of_solomon_web",
+        "source_title": "Wisdom Of Solomon Web",
+        "section_id": "wisdom_of_solomon_8_18_xxi_wisdom_of_solomon_9_4",
+        "heading": "Wisdom of Solomon 8:18 xxi Wisdom of Solomon 9:4",
+        "score": 10,
+        "match_terms": [
+          "wisdom",
+          "understanding"
+        ],
+        "char_start": 21682,
+        "char_end": 22769
+      },
+      {
+        "source_id": "wisdom_of_solomon_web",
+        "source_title": "Wisdom Of Solomon Web",
+        "section_id": "wisdom_of_solomon_9_5_xxii_wisdom_of_solomon_9_11",
+        "heading": "Wisdom of Solomon 9:5 xxii Wisdom of Solomon 9:11",
+        "score": 10,
+        "match_terms": [
+          "wisdom",
+          "understanding",
+          "guide"
+        ],
+        "char_start": 22789,
+        "char_end": 23843
+      },
+      {
+        "source_id": "wisdom_of_solomon_web",
+        "source_title": "Wisdom Of Solomon Web",
+        "section_id": "wisdom_of_solomon_9_12_xxiii_wisdom_of_solomon_10_3",
+        "heading": "Wisdom of Solomon 9:12 xxiii Wisdom of Solomon 10:3",
+        "score": 10,
+        "match_terms": [
+          "wisdom",
+          "knowledge",
+          "counsel"
+        ],
+        "char_start": 23875,
+        "char_end": 25004
+      },
+      {
+        "source_id": "proverbs",
+        "source_title": "Proverbs",
+        "section_id": "chapter_4",
+        "heading": "Chapter 4",
+        "score": 10,
+        "match_terms": [
+          "wisdom",
+          "understanding",
+          "light",
+          "instruction"
+        ],
+        "char_start": 7636,
+        "char_end": 9894
+      },
+      {
+        "source_id": "proverbs",
+        "source_title": "Proverbs",
+        "section_id": "chapter_12",
+        "heading": "Chapter 12",
+        "score": 10,
+        "match_terms": [
+          "wisdom",
+          "understanding",
+          "knowledge",
+          "truth",
+          "counsel",
+          "instruction"
+        ],
+        "char_start": 27725,
+        "char_end": 30389
+      },
+      {
+        "source_id": "wisdom_of_solomon_web",
+        "source_title": "Wisdom Of Solomon Web",
+        "section_id": "wisdom_of_solomon_7_14_xvii_wisdom_of_solomon_7_22",
+        "heading": "Wisdom of Solomon 7:14 xvii Wisdom of Solomon 7:22",
+        "score": 9,
+        "match_terms": [
+          "wisdom",
+          "understanding",
+          "knowledge",
+          "guide"
+        ],
+        "char_start": 17133,
+        "char_end": 18221
+      },
+      {
+        "source_id": "wisdom_of_solomon_web",
+        "source_title": "Wisdom Of Solomon Web",
+        "section_id": "wisdom_of_solomon_7_23_xviii_wisdom_of_solomon_7_29",
+        "heading": "Wisdom of Solomon 7:23 xviii Wisdom of Solomon 7:29",
+        "score": 9,
+        "match_terms": [
+          "wisdom",
+          "understanding",
+          "light"
+        ],
+        "char_start": 18241,
+        "char_end": 19432
+      },
+      {
+        "source_id": "wisdom_of_solomon_web",
+        "source_title": "Wisdom Of Solomon Web",
+        "section_id": "wisdom_of_solomon_10_9_xxv_wisdom_of_solomon_10_14",
+        "heading": "Wisdom of Solomon 10:9 xxv Wisdom of Solomon 10:14",
+        "score": 9,
+        "match_terms": [
+          "wisdom",
+          "knowledge",
+          "guide"
+        ],
+        "char_start": 26113,
+        "char_end": 27143
+      },
+      {
+        "source_id": "ecclesiastes",
+        "source_title": "Ecclesiastes",
+        "section_id": "chapter_2",
+        "heading": "Chapter 2",
+        "score": 9,
+        "match_terms": [
+          "wisdom",
+          "knowledge",
+          "light"
+        ],
+        "char_start": 2106,
+        "char_end": 5879
+      },
+      {
+        "source_id": "odes_of_solomon_fbe",
+        "source_title": "Odes Of Solomon Fbe",
+        "section_id": "ode_12",
+        "heading": "ODE 12.",
+        "score": 8,
+        "match_terms": [
+          "knowledge",
+          "light",
+          "truth",
+          "counsel"
+        ],
+        "char_start": 22123,
+        "char_end": 23594
+      },
+      {
+        "source_id": "ecclesiastes",
+        "source_title": "Ecclesiastes",
+        "section_id": "chapter_9",
+        "heading": "Chapter 9",
+        "score": 8,
+        "match_terms": [
+          "wisdom",
+          "understanding",
+          "knowledge"
+        ],
+        "char_start": 20688,
+        "char_end": 23528
+      },
+      {
+        "source_id": "odes_of_solomon_fbe",
+        "source_title": "Odes Of Solomon Fbe",
+        "section_id": "ode_7",
+        "heading": "ODE 7.",
+        "score": 7,
+        "match_terms": [
+          "wisdom",
+          "knowledge",
+          "light"
+        ],
+        "char_start": 10306,
+        "char_end": 12983
+      },
+      {
+        "source_id": "odes_of_solomon_fbe",
+        "source_title": "Odes Of Solomon Fbe",
+        "section_id": "ode_8",
+        "heading": "ODE 8.",
+        "score": 7,
+        "match_terms": [
+          "understanding",
+          "knowledge",
+          "light",
+          "truth"
+        ],
+        "char_start": 13503,
+        "char_end": 15638
+      },
+      {
+        "source_id": "ecclesiastes",
+        "source_title": "Ecclesiastes",
+        "section_id": "chapter_1",
+        "heading": "Chapter 1",
+        "score": 7,
+        "match_terms": [
+          "wisdom",
+          "knowledge"
+        ],
+        "char_start": 0,
+        "char_end": 2106
+      },
+      {
+        "source_id": "ecclesiastes",
+        "source_title": "Ecclesiastes",
+        "section_id": "chapter_7",
+        "heading": "Chapter 7",
+        "score": 7,
+        "match_terms": [
+          "wisdom",
+          "knowledge"
+        ],
+        "char_start": 14779,
+        "char_end": 18044
+      },
+      {
+        "source_id": "odes_of_solomon_fbe",
+        "source_title": "Odes Of Solomon Fbe",
+        "section_id": "ode_11",
+        "heading": "ODE 11.",
+        "score": 6,
+        "match_terms": [
+          "knowledge",
+          "light",
+          "truth"
+        ],
+        "char_start": 19312,
+        "char_end": 21599
+      },
+      {
+        "source_id": "wisdom_of_solomon_gutenberg",
+        "source_title": "Wisdom Of Solomon Gutenberg",
+        "section_id": "6_22_as_for_wisdom_what_she_is_and_how_she_came_up_i_will_tell_you",
+        "heading": "6:22 As for wisdom, what she is, and how she came up, I will tell you,",
+        "score": 5,
+        "match_terms": [
+          "wisdom",
+          "knowledge",
+          "light",
+          "truth"
+        ],
+        "char_start": 15814,
+        "char_end": 16059
+      },
+      {
+        "source_id": "odes_of_solomon_fbe",
+        "source_title": "Odes Of Solomon Fbe",
+        "section_id": "ode_41",
+        "heading": "ODE 41.",
+        "score": 5,
+        "match_terms": [
+          "light",
+          "truth"
+        ],
+        "char_start": 68860,
+        "char_end": 70243
+      },
+      {
+        "source_id": "psalms_of_solomon_fbe",
+        "source_title": "Psalms Of Solomon Fbe",
+        "section_id": "xvii",
+        "heading": "XVII.",
+        "score": 4,
+        "match_terms": [
+          "wisdom",
+          "understanding",
+          "truth"
+        ],
+        "char_start": 40452,
+        "char_end": 47104
+      },
+      {
+        "source_id": "ecclesiastes",
+        "source_title": "Ecclesiastes",
+        "section_id": "chapter_8",
+        "heading": "Chapter 8",
+        "score": 4,
+        "match_terms": [
+          "wisdom",
+          "discern",
+          "counsel"
+        ],
+        "char_start": 18044,
+        "char_end": 20688
+      },
+      {
+        "source_id": "wisdom_of_solomon_gutenberg",
+        "source_title": "Wisdom Of Solomon Gutenberg",
+        "section_id": "7_22_for_wisdom_which_is_the_worker_of_all_things_taught_me_for_in",
+        "heading": "7:22 For wisdom, which is the worker of all things, taught me: for in",
+        "score": 3,
+        "match_terms": [
+          "wisdom",
+          "understanding"
+        ],
+        "char_start": 18786,
+        "char_end": 19056
+      },
+      {
+        "source_id": "wisdom_of_solomon_gutenberg",
+        "source_title": "Wisdom Of Solomon Gutenberg",
+        "section_id": "10_10_when_the_righteous_fled_from_his_brother_s_wrath_she_guided_him",
+        "heading": "10:10 When the righteous fled from his brothers wrath she guided him",
+        "score": 3,
+        "match_terms": [
+          "knowledge",
+          "guide"
+        ],
+        "char_start": 26580,
+        "char_end": 26808
+      },
+      {
+        "source_id": "psalms_of_solomon_fbe",
+        "source_title": "Psalms Of Solomon Fbe",
+        "section_id": "sacred_texts_5",
+        "heading": "Sacred Texts",
+        "score": 3,
+        "match_terms": [
+          "wisdom",
+          "light"
+        ],
+        "char_start": 3345,
+        "char_end": 7960
+      },
+      {
+        "source_id": "odes_of_solomon_fbe",
+        "source_title": "Odes Of Solomon Fbe",
+        "section_id": "ode_5",
+        "heading": "ODE 5.",
+        "score": 3,
+        "match_terms": [
+          "light",
+          "counsel"
+        ],
+        "char_start": 7093,
+        "char_end": 8128
+      },
+      {
+        "source_id": "odes_of_solomon_fbe",
+        "source_title": "Odes Of Solomon Fbe",
+        "section_id": "ode_15",
+        "heading": "ODE 15.",
+        "score": 3,
+        "match_terms": [
+          "knowledge",
+          "light",
+          "truth"
+        ],
+        "char_start": 26475,
+        "char_end": 27544
+      },
+      {
+        "source_id": "ecclesiastes",
+        "source_title": "Ecclesiastes",
+        "section_id": "chapter_10",
+        "heading": "Chapter 10",
+        "score": 3,
+        "match_terms": [
+          "wisdom"
+        ],
+        "char_start": 23528,
+        "char_end": 25685
+      },
+      {
+        "source_id": "ecclesiastes",
+        "source_title": "Ecclesiastes",
+        "section_id": "chapter_12",
+        "heading": "Chapter 12",
+        "score": 3,
+        "match_terms": [
+          "knowledge",
+          "light",
+          "truth"
+        ],
+        "char_start": 27103,
+        "char_end": 29101
+      },
+      {
+        "source_id": "wisdom_of_solomon_gutenberg",
+        "source_title": "Wisdom Of Solomon Gutenberg",
+        "section_id": "10_8_for_regarding_not_wisdom_they_gat_not_only_this_hurt_that_they",
+        "heading": "10:8 For regarding not wisdom, they gat not only this hurt, that they",
+        "score": 2,
+        "match_terms": [
+          "wisdom"
+        ],
+        "char_start": 26255,
+        "char_end": 26513
+      },
+      {
+        "source_id": "wisdom_of_solomon_gutenberg",
+        "source_title": "Wisdom Of Solomon Gutenberg",
+        "section_id": "14_5_nevertheless_thou_wouldest_not_that_the_works_of_thy_wisdom_should",
+        "heading": "14:5 Nevertheless thou wouldest not that the works of thy wisdom should",
+        "score": 2,
+        "match_terms": [
+          "wisdom"
+        ],
+        "char_start": 39139,
+        "char_end": 39341
+      },
+      {
+        "source_id": "psalms_of_solomon_fbe",
+        "source_title": "Psalms Of Solomon Fbe",
+        "section_id": "i",
+        "heading": "I",
+        "score": 2,
+        "match_terms": [
+          "understanding",
+          "knowledge"
+        ],
+        "char_start": 2179,
+        "char_end": 2991
+      },
+      {
+        "source_id": "psalms_of_solomon_fbe",
+        "source_title": "Psalms Of Solomon Fbe",
+        "section_id": "viii",
+        "heading": "VIII.",
+        "score": 2,
+        "match_terms": [
+          "light",
+          "counsel"
+        ],
+        "char_start": 20116,
+        "char_end": 24014
+      }
+    ]
+  }
+}

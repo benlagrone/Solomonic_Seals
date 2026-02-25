@@ -2,7 +2,36 @@
   "metadata": {
     "source": "Key of Solomon, Book II (Mathers / Peterson transcription, esotericarchives.com/solomon/ksol.htm)",
     "psalm_numbering": "Vulgate numbering as in Mathers edition",
-    "generated_from": "Automated parse of editorial notes citing Psalms for each planetary pentacle"
+    "generated_from": "Automated parse of editorial notes citing Psalms for each planetary pentacle",
+    "duplicate_psalm_policy": {
+      "allow_duplicates": true,
+      "reason": "Mathers/Peterson assigns identical Psalm verses to distinct pentacles (e.g., Jupiter 2/4 and 5/7). Preserve canonical assignments from source tradition.",
+      "allowed_examples": [
+        {
+          "planet": "Jupiter",
+          "pentacles": [
+            2,
+            4
+          ],
+          "psalm": 112,
+          "verses": "3"
+        },
+        {
+          "planet": "Jupiter",
+          "pentacles": [
+            5,
+            7
+          ],
+          "psalm": 113,
+          "verses": "7"
+        }
+      ]
+    },
+    "supplemental_reference_policy": {
+      "field": "supplemental_references",
+      "purpose": "Capture non-Psalm biblical citations or grimoire-only references where no Psalm citation exists.",
+      "source": "docs/source_texts/key_of_solomon_esotericarchives.txt"
+    }
   },
   "pentacles": [
     {
@@ -43,12 +72,24 @@
     {
       "planet": "Saturn",
       "pentacle": 2,
-      "psalms": []
+      "psalms": [
+        {
+          "number": 72,
+          "verses": "8"
+        }
+      ]
     },
     {
       "planet": "Saturn",
       "pentacle": 3,
-      "psalms": []
+      "psalms": [],
+      "supplemental_references": [
+        {
+          "type": "grimoire_only",
+          "note": "No explicit biblical verse is given for this pentacle; source note provides angelic names only.",
+          "source_path": "docs/source_texts/key_of_solomon_esotericarchives.txt:5055"
+        }
+      ]
     },
     {
       "planet": "Saturn",
@@ -63,7 +104,17 @@
     {
       "planet": "Saturn",
       "pentacle": 5,
-      "psalms": []
+      "psalms": [],
+      "supplemental_references": [
+        {
+          "type": "biblical",
+          "book": "Deuteronomy",
+          "chapter": 10,
+          "verses": "17",
+          "note": "Source versicle: 'A great God, a mighty, and a terrible.'",
+          "source_path": "docs/source_texts/key_of_solomon_esotericarchives.txt:5121"
+        }
+      ]
     },
     {
       "planet": "Saturn",
@@ -88,7 +139,14 @@
     {
       "planet": "Jupiter",
       "pentacle": 1,
-      "psalms": []
+      "psalms": [],
+      "supplemental_references": [
+        {
+          "type": "grimoire_only",
+          "note": "No explicit biblical verse is given for this pentacle; source note lists angel names.",
+          "source_path": "docs/source_texts/key_of_solomon_esotericarchives.txt:5200"
+        }
+      ]
     },
     {
       "planet": "Jupiter",
@@ -143,17 +201,39 @@
     {
       "planet": "Jupiter",
       "pentacle": 7,
-      "psalms": []
+      "psalms": [
+        {
+          "number": 113,
+          "verses": "7"
+        }
+      ]
     },
     {
       "planet": "Mars",
       "pentacle": 1,
-      "psalms": []
+      "psalms": [],
+      "supplemental_references": [
+        {
+          "type": "grimoire_only",
+          "note": "No explicit biblical verse is given for this pentacle; source note lists angel names.",
+          "source_path": "docs/source_texts/key_of_solomon_esotericarchives.txt:5374"
+        }
+      ]
     },
     {
       "planet": "Mars",
       "pentacle": 2,
-      "psalms": []
+      "psalms": [],
+      "supplemental_references": [
+        {
+          "type": "biblical",
+          "book": "John",
+          "chapter": 1,
+          "verses": "4",
+          "note": "Source sentence: 'In him was life, and the life was the light of man.'",
+          "source_path": "docs/source_texts/key_of_solomon_esotericarchives.txt:5393"
+        }
+      ]
     },
     {
       "planet": "Mars",
@@ -208,17 +288,50 @@
     {
       "planet": "Sun",
       "pentacle": 1,
-      "psalms": []
+      "psalms": [],
+      "supplemental_references": [
+        {
+          "type": "latin_versicle",
+          "text": "Ecce faciem eius facta sunt et cui omnes obedieunt creaturae.",
+          "note": "Latin inscription in source note; no Psalm citation provided.",
+          "source_path": "docs/source_texts/key_of_solomon_esotericarchives.txt:5522"
+        }
+      ]
     },
     {
       "planet": "Sun",
       "pentacle": 2,
-      "psalms": []
+      "psalms": [],
+      "supplemental_references": [
+        {
+          "type": "grimoire_only",
+          "note": "No explicit biblical verse is given for this pentacle; source note lists angel names.",
+          "source_path": "docs/source_texts/key_of_solomon_esotericarchives.txt:5541"
+        }
+      ]
     },
     {
       "planet": "Sun",
       "pentacle": 3,
-      "psalms": []
+      "psalms": [],
+      "supplemental_references": [
+        {
+          "type": "biblical",
+          "book": "Daniel",
+          "chapter": 4,
+          "verses": "34",
+          "note": "Source note states the versicle is similar to Daniel 4:34.",
+          "source_path": "docs/source_texts/key_of_solomon_esotericarchives.txt:5559"
+        },
+        {
+          "type": "parallel",
+          "book": "Psalms",
+          "chapter": 145,
+          "verses": "13",
+          "note": "Source note marks a parallel to Psalm 145:13 (Vulgate 144:13).",
+          "source_path": "docs/source_texts/key_of_solomon_esotericarchives.txt:5565"
+        }
+      ]
     },
     {
       "planet": "Sun",
@@ -226,7 +339,7 @@
       "psalms": [
         {
           "number": 13,
-          "verses": "3-4-5"
+          "verses": "3,4,5"
         }
       ]
     },
@@ -243,7 +356,16 @@
     {
       "planet": "Sun",
       "pentacle": 6,
-      "psalms": []
+      "psalms": [
+        {
+          "number": 69,
+          "verses": "23"
+        },
+        {
+          "number": 135,
+          "verses": "16"
+        }
+      ]
     },
     {
       "planet": "Sun",
@@ -258,22 +380,59 @@
     {
       "planet": "Venus",
       "pentacle": 1,
-      "psalms": []
+      "psalms": [],
+      "supplemental_references": [
+        {
+          "type": "grimoire_only",
+          "note": "No explicit biblical verse is given for this pentacle; source note lists angel names.",
+          "source_path": "docs/source_texts/key_of_solomon_esotericarchives.txt:5685"
+        }
+      ]
     },
     {
       "planet": "Venus",
       "pentacle": 2,
-      "psalms": []
+      "psalms": [],
+      "supplemental_references": [
+        {
+          "type": "biblical",
+          "book": "Song of Songs",
+          "chapter": 8,
+          "verses": "6",
+          "note": "Source versicle: 'Place me as a signet upon thine heart...'.",
+          "source_path": "docs/source_texts/key_of_solomon_esotericarchives.txt:5702"
+        }
+      ]
     },
     {
       "planet": "Venus",
       "pentacle": 3,
-      "psalms": []
+      "psalms": [],
+      "supplemental_references": [
+        {
+          "type": "biblical",
+          "book": "Genesis",
+          "chapter": 1,
+          "verses": "28",
+          "note": "Source versicle: 'Be fruitful, and multiply...'.",
+          "source_path": "docs/source_texts/key_of_solomon_esotericarchives.txt:5728"
+        }
+      ]
     },
     {
       "planet": "Venus",
       "pentacle": 4,
-      "psalms": []
+      "psalms": [],
+      "supplemental_references": [
+        {
+          "type": "biblical",
+          "book": "Genesis",
+          "chapter": 2,
+          "verses": "23-24",
+          "note": "Source versicle: 'This is bone of my bones... and they two were one flesh.'",
+          "source_path": "docs/source_texts/key_of_solomon_esotericarchives.txt:5762"
+        }
+      ]
     },
     {
       "planet": "Venus",
@@ -288,17 +447,38 @@
     {
       "planet": "Mercury",
       "pentacle": 1,
-      "psalms": []
+      "psalms": [],
+      "supplemental_references": [
+        {
+          "type": "grimoire_only",
+          "note": "No explicit biblical verse is given for this pentacle; source note lists spirit names.",
+          "source_path": "docs/source_texts/key_of_solomon_esotericarchives.txt:5819"
+        }
+      ]
     },
     {
       "planet": "Mercury",
       "pentacle": 2,
-      "psalms": []
+      "psalms": [],
+      "supplemental_references": [
+        {
+          "type": "grimoire_only",
+          "note": "No explicit biblical verse is given for this pentacle; source note lists spirit names.",
+          "source_path": "docs/source_texts/key_of_solomon_esotericarchives.txt:5835"
+        }
+      ]
     },
     {
       "planet": "Mercury",
       "pentacle": 3,
-      "psalms": []
+      "psalms": [],
+      "supplemental_references": [
+        {
+          "type": "grimoire_only",
+          "note": "No explicit biblical verse is given for this pentacle; source note lists angel names.",
+          "source_path": "docs/source_texts/key_of_solomon_esotericarchives.txt:5850"
+        }
+      ]
     },
     {
       "planet": "Mercury",
@@ -343,7 +523,17 @@
     {
       "planet": "Moon",
       "pentacle": 4,
-      "psalms": []
+      "psalms": [],
+      "supplemental_references": [
+        {
+          "type": "biblical",
+          "book": "Jeremiah",
+          "chapter": 17,
+          "verses": "18",
+          "note": "Source versicle aligns with Jeremiah 17:18.",
+          "source_path": "docs/source_texts/key_of_solomon_esotericarchives.txt:5982"
+        }
+      ]
     },
     {
       "planet": "Moon",
@@ -358,7 +548,17 @@
     {
       "planet": "Moon",
       "pentacle": 6,
-      "psalms": []
+      "psalms": [],
+      "supplemental_references": [
+        {
+          "type": "biblical",
+          "book": "Genesis",
+          "chapter": 7,
+          "verses": "11-12",
+          "note": "Source versicle for rain operation from Genesis flood account.",
+          "source_path": "docs/source_texts/key_of_solomon_esotericarchives.txt:6027"
+        }
+      ]
     }
   ]
 }

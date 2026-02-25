@@ -1,0 +1,481 @@
+{
+  "metadata": {
+    "description": "Canonical Psalm verse payloads keyed by Vulgate numbering for Solomonic Clock mappings.",
+    "editions": {
+      "vulgate": "Biblia Sacra Vulgata (Clementine, 1592)",
+      "douay_rheims": "Douay–Rheims Bible (1899)"
+    },
+    "sources": {
+      "vulgate_online": "https://vulgate.org/",
+      "douay_online": "https://drbo.org/"
+    },
+    "created": "2024-11-24",
+    "notes": "Seed file – extend with additional psalms and translations as verse gathering proceeds. Expanded with referenced pentacle psalms from data/pentacle_psalms.json using local Psalms corpus."
+  },
+  "psalms": {
+    "2": {
+      "psalm_number_vulgate": 2,
+      "psalm_number_hebrew": 2,
+      "latin_excerpt": "Pending Vulgate excerpt capture.",
+      "translation_excerpt": "1 Why do the heathen rage, and the people imagine a vain thing?",
+      "tradition": "Key of Solomon",
+      "themes": [
+        "Solomonic pentacle reference"
+      ],
+      "links": {
+        "vulgate": "https://vulgate.org/psalm/2",
+        "douay_rheims": "https://drbo.org/chapter/21002.htm"
+      }
+    },
+    "13": {
+      "psalm_number_vulgate": 13,
+      "psalm_number_hebrew": 14,
+      "latin_excerpt": "Pending Vulgate excerpt capture.",
+      "translation_excerpt": "3 Consider and hear me, O LORD my God: lighten mine eyes, lest I sleep the sleep of death; 4 Lest mine enemy say, I have prevailed against him; and those that trouble me rejoice when I am moved. 5 But I have trusted in thy mercy; my heart shall rejoice in thy salvation.",
+      "tradition": "Key of Solomon",
+      "themes": [
+        "Solomonic pentacle reference"
+      ],
+      "links": {
+        "vulgate": "https://vulgate.org/psalm/13",
+        "douay_rheims": "https://drbo.org/chapter/21013.htm"
+      },
+      "verse_range": "3-5"
+    },
+    "18": {
+      "psalm_number_vulgate": 18,
+      "psalm_number_hebrew": 19,
+      "latin_excerpt": "Pending Vulgate excerpt capture.",
+      "translation_excerpt": "7 Then the earth shook and trembled; the foundations also of the hills moved and were shaken, because he was wroth.",
+      "tradition": "Key of Solomon",
+      "themes": [
+        "Solomonic pentacle reference"
+      ],
+      "links": {
+        "vulgate": "https://vulgate.org/psalm/18",
+        "douay_rheims": "https://drbo.org/chapter/21018.htm"
+      },
+      "verse_range": "7"
+    },
+    "21": {
+      "psalm_number_vulgate": 21,
+      "psalm_number_hebrew": 22,
+      "latin_excerpt": "Pending Vulgate excerpt capture.",
+      "translation_excerpt": "1 The king shall joy in thy strength, O LORD; and in thy salvation how greatly shall he rejoice!",
+      "tradition": "Key of Solomon",
+      "themes": [
+        "Solomonic pentacle reference"
+      ],
+      "links": {
+        "vulgate": "https://vulgate.org/psalm/21",
+        "douay_rheims": "https://drbo.org/chapter/21021.htm"
+      }
+    },
+    "22": {
+      "psalm_number_vulgate": 22,
+      "psalm_number_hebrew": 23,
+      "latin_excerpt": "Pending Vulgate excerpt capture.",
+      "translation_excerpt": "14 I am poured out like water, and all my bones are out of joint: my heart is like wax; it is melted in the midst of my bowels. 16 For dogs have compassed me: the assembly of the wicked have inclosed me: they pierced my hands and my feet.",
+      "tradition": "Key of Solomon",
+      "themes": [
+        "Solomonic pentacle reference"
+      ],
+      "links": {
+        "vulgate": "https://vulgate.org/psalm/22",
+        "douay_rheims": "https://drbo.org/chapter/21022.htm"
+      },
+      "verse_range": "14,16"
+    },
+    "24": {
+      "psalm_number_vulgate": 24,
+      "psalm_number_hebrew": 25,
+      "latin_excerpt": "Pending Vulgate excerpt capture.",
+      "translation_excerpt": "7 Lift up your heads, O ye gates; and be ye lift up, ye everlasting doors; and the King of glory shall come in.",
+      "tradition": "Key of Solomon",
+      "themes": [
+        "Solomonic pentacle reference"
+      ],
+      "links": {
+        "vulgate": "https://vulgate.org/psalm/24",
+        "douay_rheims": "https://drbo.org/chapter/21024.htm"
+      },
+      "verse_range": "7"
+    },
+    "36": {
+      "psalm_number_vulgate": 36,
+      "psalm_number_hebrew": 37,
+      "verse_range": "3-5",
+      "latin_excerpt": "Spera in Domino, et fac bonitatem ... Delectare in Domino, et dabit tibi petitiones cordis tui.",
+      "translation_excerpt": "Trust in the Lord, and do good ... Delight in the Lord, and he shall give thee the desires of thy heart.",
+      "tradition": "Key of Solomon",
+      "themes": [
+        "Alignment",
+        "Petition",
+        "Desire"
+      ],
+      "links": {
+        "vulgate": "https://vulgate.org/psalm/36",
+        "douay_rheims": "https://drbo.org/chapter/21036.htm"
+      }
+    },
+    "37": {
+      "psalm_number_vulgate": 37,
+      "psalm_number_hebrew": 38,
+      "latin_excerpt": "Pending Vulgate excerpt capture.",
+      "translation_excerpt": "15 Their sword shall enter into their own heart, and their bows shall be broken.",
+      "tradition": "Key of Solomon",
+      "themes": [
+        "Solomonic pentacle reference"
+      ],
+      "links": {
+        "vulgate": "https://vulgate.org/psalm/37",
+        "douay_rheims": "https://drbo.org/chapter/21037.htm"
+      },
+      "verse_range": "15"
+    },
+    "40": {
+      "psalm_number_vulgate": 40,
+      "psalm_number_hebrew": 41,
+      "latin_excerpt": "Pending Vulgate excerpt capture.",
+      "translation_excerpt": "13 Be pleased, O LORD, to deliver me: O LORD, make haste to help me.",
+      "tradition": "Key of Solomon",
+      "themes": [
+        "Solomonic pentacle reference"
+      ],
+      "links": {
+        "vulgate": "https://vulgate.org/psalm/40",
+        "douay_rheims": "https://drbo.org/chapter/21040.htm"
+      },
+      "verse_range": "13"
+    },
+    "47": {
+      "psalm_number_vulgate": 47,
+      "psalm_number_hebrew": 48,
+      "latin_excerpt": "Pending Vulgate excerpt capture.",
+      "translation_excerpt": "1 O clap your hands, all ye people; shout unto God with the voice of triumph.",
+      "tradition": "Key of Solomon",
+      "themes": [
+        "Solomonic pentacle reference"
+      ],
+      "links": {
+        "vulgate": "https://vulgate.org/psalm/47",
+        "douay_rheims": "https://drbo.org/chapter/21047.htm"
+      }
+    },
+    "54": {
+      "psalm_number_vulgate": 54,
+      "psalm_number_hebrew": 55,
+      "latin_excerpt": "Pending Vulgate excerpt capture.",
+      "translation_excerpt": "1 Save me, O God, by thy name, and judge me by thy strength.",
+      "tradition": "Key of Solomon",
+      "themes": [
+        "Solomonic pentacle reference"
+      ],
+      "links": {
+        "vulgate": "https://vulgate.org/psalm/54",
+        "douay_rheims": "https://drbo.org/chapter/21054.htm"
+      }
+    },
+    "56": {
+      "psalm_number_vulgate": 56,
+      "psalm_number_hebrew": 57,
+      "latin_excerpt": "Pending Vulgate excerpt capture.",
+      "translation_excerpt": "11 In God have I put my trust: I will not be afraid what man can do unto me.",
+      "tradition": "Key of Solomon",
+      "themes": [
+        "Solomonic pentacle reference"
+      ],
+      "links": {
+        "vulgate": "https://vulgate.org/psalm/56",
+        "douay_rheims": "https://drbo.org/chapter/21056.htm"
+      },
+      "verse_range": "11"
+    },
+    "60": {
+      "psalm_number_vulgate": 60,
+      "psalm_number_hebrew": 61,
+      "latin_excerpt": "Pending Vulgate excerpt capture.",
+      "translation_excerpt": "4 Thou hast given a banner to them that fear thee, that it may be displayed because of the truth. Selah.",
+      "tradition": "Key of Solomon",
+      "themes": [
+        "Solomonic pentacle reference"
+      ],
+      "links": {
+        "vulgate": "https://vulgate.org/psalm/60",
+        "douay_rheims": "https://drbo.org/chapter/21060.htm"
+      },
+      "verse_range": "4"
+    },
+    "67": {
+      "psalm_number_vulgate": 67,
+      "psalm_number_hebrew": 68,
+      "latin_excerpt": "Pending Vulgate excerpt capture.",
+      "translation_excerpt": "1 God be merciful unto us, and bless us; and cause his face to shine upon us; Selah.",
+      "tradition": "Key of Solomon",
+      "themes": [
+        "Solomonic pentacle reference"
+      ],
+      "links": {
+        "vulgate": "https://vulgate.org/psalm/67",
+        "douay_rheims": "https://drbo.org/chapter/21067.htm"
+      }
+    },
+    "68": {
+      "psalm_number_vulgate": 68,
+      "psalm_number_hebrew": 69,
+      "latin_excerpt": "Pending Vulgate excerpt capture.",
+      "translation_excerpt": "1 Let God arise, let his enemies be scattered: let them also that hate him flee before him.",
+      "tradition": "Key of Solomon",
+      "themes": [
+        "Solomonic pentacle reference"
+      ],
+      "links": {
+        "vulgate": "https://vulgate.org/psalm/68",
+        "douay_rheims": "https://drbo.org/chapter/21068.htm"
+      },
+      "verse_range": "1"
+    },
+    "69": {
+      "psalm_number_vulgate": 69,
+      "psalm_number_hebrew": 70,
+      "latin_excerpt": "Pending Vulgate excerpt capture.",
+      "translation_excerpt": "23 Let their eyes be darkened, that they see not; and make their loins continually to shake.",
+      "tradition": "Key of Solomon",
+      "themes": [
+        "Solomonic pentacle reference"
+      ],
+      "links": {
+        "vulgate": "https://vulgate.org/psalm/69",
+        "douay_rheims": "https://drbo.org/chapter/21069.htm"
+      },
+      "verse_range": "23"
+    },
+    "72": {
+      "psalm_number_vulgate": 72,
+      "psalm_number_hebrew": 73,
+      "latin_excerpt": "Pending Vulgate excerpt capture.",
+      "translation_excerpt": "8 He shall have dominion also from sea to sea, and from the river unto the ends of the earth. 9 They that dwell in the wilderness shall bow before him; and his enemies shall lick the dust.",
+      "tradition": "Key of Solomon",
+      "themes": [
+        "Solomonic pentacle reference"
+      ],
+      "links": {
+        "vulgate": "https://vulgate.org/psalm/72",
+        "douay_rheims": "https://drbo.org/chapter/21072.htm"
+      },
+      "verse_range": "8-9"
+    },
+    "77": {
+      "psalm_number_vulgate": 77,
+      "psalm_number_hebrew": 78,
+      "latin_excerpt": "Pending Vulgate excerpt capture.",
+      "translation_excerpt": "13 Thy way, O God, is in the sanctuary: who is so great a God as our God?",
+      "tradition": "Key of Solomon",
+      "themes": [
+        "Solomonic pentacle reference"
+      ],
+      "links": {
+        "vulgate": "https://vulgate.org/psalm/77",
+        "douay_rheims": "https://drbo.org/chapter/21077.htm"
+      },
+      "verse_range": "13"
+    },
+    "90": {
+      "psalm_number_vulgate": 90,
+      "psalm_number_hebrew": 91,
+      "verse_range": "11-13",
+      "latin_excerpt": "Quoniam angelis suis mandavit de te, ut custodiant te in omnibus viis tuis...",
+      "translation_excerpt": "For he hath given his angels charge over thee; to keep thee in all thy ways.",
+      "tradition": "Key of Solomon",
+      "themes": [
+        "Protection",
+        "Angelic Guardianship"
+      ],
+      "links": {
+        "vulgate": "https://vulgate.org/psalm/90",
+        "douay_rheims": "https://drbo.org/chapter/21090.htm"
+      }
+    },
+    "91": {
+      "psalm_number_vulgate": 91,
+      "psalm_number_hebrew": 92,
+      "latin_excerpt": "Pending Vulgate excerpt capture.",
+      "translation_excerpt": "11 For he shall give his angels charge over thee, to keep thee in all thy ways. 13 Thou shalt tread upon the lion and adder: the young lion and the dragon shalt thou trample under feet.",
+      "tradition": "Key of Solomon",
+      "themes": [
+        "Solomonic pentacle reference"
+      ],
+      "links": {
+        "vulgate": "https://vulgate.org/psalm/91",
+        "douay_rheims": "https://drbo.org/chapter/21091.htm"
+      },
+      "verse_range": "11,13"
+    },
+    "105": {
+      "psalm_number_vulgate": 105,
+      "psalm_number_hebrew": 106,
+      "latin_excerpt": "Pending Vulgate excerpt capture.",
+      "translation_excerpt": "32 He gave them hail for rain, and flaming fire in their land.",
+      "tradition": "Key of Solomon",
+      "themes": [
+        "Solomonic pentacle reference"
+      ],
+      "links": {
+        "vulgate": "https://vulgate.org/psalm/105",
+        "douay_rheims": "https://drbo.org/chapter/21105.htm"
+      },
+      "verse_range": "32"
+    },
+    "107": {
+      "psalm_number_vulgate": 107,
+      "psalm_number_hebrew": 108,
+      "latin_excerpt": "Pending Vulgate excerpt capture.",
+      "translation_excerpt": "16 For he hath broken the gates of brass, and cut the bars of iron in sunder.",
+      "tradition": "Key of Solomon",
+      "themes": [
+        "Solomonic pentacle reference"
+      ],
+      "links": {
+        "vulgate": "https://vulgate.org/psalm/107",
+        "douay_rheims": "https://drbo.org/chapter/21107.htm"
+      },
+      "verse_range": "16"
+    },
+    "108": {
+      "psalm_number_vulgate": 108,
+      "psalm_number_hebrew": 109,
+      "latin_excerpt": "Pending Vulgate excerpt capture.",
+      "translation_excerpt": "6 That thy beloved may be delivered: save with thy right hand, and answer me.",
+      "tradition": "Key of Solomon",
+      "themes": [
+        "Solomonic pentacle reference"
+      ],
+      "links": {
+        "vulgate": "https://vulgate.org/psalm/108",
+        "douay_rheims": "https://drbo.org/chapter/21108.htm"
+      },
+      "verse_range": "6"
+    },
+    "109": {
+      "psalm_number_vulgate": 109,
+      "psalm_number_hebrew": 110,
+      "latin_excerpt": "Pending Vulgate excerpt capture.",
+      "translation_excerpt": "18 As he clothed himself with cursing like as with his garment, so let it come into his bowels like water, and like oil into his bones.",
+      "tradition": "Key of Solomon",
+      "themes": [
+        "Solomonic pentacle reference"
+      ],
+      "links": {
+        "vulgate": "https://vulgate.org/psalm/109",
+        "douay_rheims": "https://drbo.org/chapter/21109.htm"
+      },
+      "verse_range": "18"
+    },
+    "110": {
+      "psalm_number_vulgate": 110,
+      "psalm_number_hebrew": 111,
+      "latin_excerpt": "Pending Vulgate excerpt capture.",
+      "translation_excerpt": "5 The Lord at thy right hand shall strike through kings in the day of his wrath.",
+      "tradition": "Key of Solomon",
+      "themes": [
+        "Solomonic pentacle reference"
+      ],
+      "links": {
+        "vulgate": "https://vulgate.org/psalm/110",
+        "douay_rheims": "https://drbo.org/chapter/21110.htm"
+      },
+      "verse_range": "5"
+    },
+    "111": {
+      "psalm_number_vulgate": 111,
+      "psalm_number_hebrew": 112,
+      "verse_range": "1-3",
+      "latin_excerpt": "Beatus vir qui timet Dominum ... Gloria et divitiae in domo eius, et iustitia eius manet in sæculum sæculi.",
+      "translation_excerpt": "Blessed is the man that feareth the Lord ... Glory and wealth shall be in his house, and his justice remaineth for ever and ever.",
+      "tradition": "Key of Solomon",
+      "themes": [
+        "Justice",
+        "Prosperity"
+      ],
+      "links": {
+        "vulgate": "https://vulgate.org/psalm/111",
+        "douay_rheims": "https://drbo.org/chapter/21111.htm"
+      }
+    },
+    "112": {
+      "psalm_number_vulgate": 112,
+      "psalm_number_hebrew": 113,
+      "latin_excerpt": "Pending Vulgate excerpt capture.",
+      "translation_excerpt": "3 Wealth and riches shall be in his house: and his righteousness endureth for ever.",
+      "tradition": "Key of Solomon",
+      "themes": [
+        "Solomonic pentacle reference"
+      ],
+      "links": {
+        "vulgate": "https://vulgate.org/psalm/112",
+        "douay_rheims": "https://drbo.org/chapter/21112.htm"
+      },
+      "verse_range": "3"
+    },
+    "113": {
+      "psalm_number_vulgate": 113,
+      "psalm_number_hebrew": "114-115",
+      "latin_excerpt": "Pending Vulgate excerpt capture.",
+      "translation_excerpt": "7 He raiseth up the poor out of the dust, and lifteth the needy out of the dunghill;",
+      "tradition": "Key of Solomon",
+      "themes": [
+        "Solomonic pentacle reference"
+      ],
+      "links": {
+        "vulgate": "https://vulgate.org/psalm/113",
+        "douay_rheims": "https://drbo.org/chapter/21113.htm"
+      },
+      "verse_range": "7"
+    },
+    "116": {
+      "psalm_number_vulgate": 116,
+      "psalm_number_hebrew": 117,
+      "latin_excerpt": "Pending Vulgate excerpt capture.",
+      "translation_excerpt": "16 O LORD, truly I am thy servant; I am thy servant, and the son of thine handmaid: thou hast loosed my bonds.",
+      "tradition": "Key of Solomon",
+      "themes": [
+        "Solomonic pentacle reference"
+      ],
+      "links": {
+        "vulgate": "https://vulgate.org/psalm/116",
+        "douay_rheims": "https://drbo.org/chapter/21116.htm"
+      },
+      "verse_range": "16"
+    },
+    "125": {
+      "psalm_number_vulgate": 125,
+      "psalm_number_hebrew": 126,
+      "latin_excerpt": "Pending Vulgate excerpt capture.",
+      "translation_excerpt": "1 They that trust in the LORD shall be as mount Zion, which cannot be removed, but abideth for ever.",
+      "tradition": "Key of Solomon",
+      "themes": [
+        "Solomonic pentacle reference"
+      ],
+      "links": {
+        "vulgate": "https://vulgate.org/psalm/125",
+        "douay_rheims": "https://drbo.org/chapter/21125.htm"
+      },
+      "verse_range": "1"
+    },
+    "135": {
+      "psalm_number_vulgate": 135,
+      "psalm_number_hebrew": 136,
+      "latin_excerpt": "Pending Vulgate excerpt capture.",
+      "translation_excerpt": "16 They have mouths, but they speak not; eyes have they, but they see not;",
+      "tradition": "Key of Solomon",
+      "themes": [
+        "Solomonic pentacle reference"
+      ],
+      "links": {
+        "vulgate": "https://vulgate.org/psalm/135",
+        "douay_rheims": "https://drbo.org/chapter/21135.htm"
+      },
+      "verse_range": "16"
+    }
+  }
+}

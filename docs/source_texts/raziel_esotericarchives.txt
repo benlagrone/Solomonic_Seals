@@ -1,0 +1,4443 @@
+Sources:
+- https://www.esotericarchives.com/raziel/raziel.htm
+Retrieved: 2026-01-24
+Sepher Raziel, Liber Salomonis (Sl. 3846)
+
+Home
+
+Contents
+
+Prev
+
+raziel
+
+Next
+
+timeline
+
+Sepher Raziel (Sl. 3846)
+
+Book of the Angel Raziel
+
+Edited by Joseph H. Peterson, esotericarchives.com, Copyright © 1999, 2006.
+All rights reserved. Updated Nov 15, 2022.
+
+NOTE: If you find this document or others in these archives useful, please
+do not copy except for private use.
+
+See also the edition and transcription, which has been prepared by Sanne de Laat.
+
+   
+
+This text was well known by the end of the fifteenth century. 
+According to Joshua Trachtenberg, it was probably compiled in the thirteenth century.1 
+
+Trithemius mentions it as one of his 
+sources for his Steganographia. 
+It was also apparently used by Agrippa in his 
+book On Occult Philosophy
+on which see the critical edition by 
+V. Perrone Compagni.
+
+  
+
+  1. Jewish Magic and Superstition, p. 315.
+  
+
+  It should be noted that the term raz ("mystery") is borrowed from Old Avestan, and may suggest a Persian influence.
+  
+
+The following English translation of the Book of the angel Raziel,
+is text is taken from Sloane MS. 3846 in the British Library, fols. 128r-157v.
+The text is closely related to that in Sloane 3826, though neither seems 
+to be directly based on the other. 
+
+A transcription of the text from Sl. 3826. 
+has been prepared by 
+Don Karr.
+I have noted some variants from Karr's transcription (abbreviated K).
+
+Another ms is:
+
+UPenn 1685: 
+A compendium of the book called sepher Raziel. (ca 1750-1799)
+
+For Latin text, see:2
+
+  
+
+  2. For more details, see Sophie Page, "Uplifting Souls: The Liber de essentia spirituum and the Liber Razielis 
+  in Claire Fanger, Invoking Angels: Theurgic Ideas and Practices, Thirteenth to Sixteenth Centuries (Magic in History)
+  2012, pp 95-112.
+  
+
+MS Vatikan, Biblioteca Apostolica Vaticana, Reginense Lat. 1300
+(Queen Christina's manuscript, 2nd half of 14th ce)
+
+MS Halle a. S., Universitats- und Landesbibliothek
+Sachsen-Anhalt, cod. 14 B 36, Fol. 1-130v;
+Fol. 171r-177v: Liber Razielis. Prologue and table of contents. 
+(14th ce)
+
+Lübeck, Bibliothek der Hansestadt, Ms. math. 9, fols. 63r-170v. Abridged. (16 ce)
+
+Paris, BnF Latin 3666 (1375-1425)
+
+Firenze, Biblioteca Medicea Laurenziana (BML)
+
+Plut. 44.33
+Rasiel, Liber Secretorum initio mutilus .
+(1550)
+
+München, Bayerische Staatsbibliothek, CLM 51.
+  Liber Sameyn (fols. 111-120, = Book 6 of Alphonsine),
+  Liber virtutis i.e. Semiphoras/Semaforas (fol. 120v-123v = Book 7)
+  (1487)
+
+London British Library ms. Sloane 3847 (breaks off at chapter 3.)
+
+London British Library ms. Sloane 3853, fols. 46-53 (also imperfect.)
+
+Leipzig Cod. Mag. 40
+(ca 1750)
+
+Italian:
+
+UPenn Ms. Codex 1674.
+
+Book 6 of the Latin text ("Liber Razielis") has been edited in Vol. 1 of Rebiger, Bill, Peter Schäfer, 
+Evelyn Burkhardt, Gottfried Reeg, Henrik Wels, and Dorothea M. Salzer. 
+
+Sefer ha-Razim I und II: das Buch der Geheimnisse I und II. Tübingen: Mohr Siebeck, 2009. 
+
+Compare with Michael Morgan 
+Sepher Ha-Razim, the Book of the Mysteries: The Book of the Mysteries (Texts and Translations, No. 25.) (1983), English translation based on Margalioth's "reconstructed" Hebrew text (Jerusalem, 1966.)
+Hebrew text may be as early as 300 CE.
+For discussion see Merchavya, Chen, "Razim, Sefer Ha-," Encyclopedia Judaica, Volume XIII (NY: Macmillan, 1971), pp. 1594-95, and 
+Niggemeyer, J.-H., Beschw�rungsformeln aus dem "Buch der Geheimnisse (Sefer ha-Razim): Zur Topologie der magischen Rede, Judaistische Texte und Studien 3 (Hildesheim, NY: Georg Olms Verlag, 1975)
+
+Comments by JHP are in []. I have also resolved most of the tildes and
+abbreviations in the text.
+(Karr's transcription does not seem to have indicated the tildes or expanded them.)
+
+  
+  NOTES:
+  
+
+The booke, entituled Cephar Raziel, contain'g seuen
+treatises, was written by William Parry of Clyffords Inne1
+by Temple barre in London borne at Northof in the County
+of Flynt & at the charges of John Gwyne of Llandlos in 
+the county of Mountgomericke Esquire in the year
+of our lord god a thousand five hunderd threscore & four
+et Anno Elizabetha dei gratia Angeliæ &c Reginæ sexto:
+
+  
+
+  1. i.e. Cliffords Inn, London.
+  
+
+Londinij 2o Nouembris 1564.
+
+William Parry.
+
+In the publique lib. at Oxford in the manuscript in Archivum 
+A. 116.
+
+[128v is blank]
+
+[129r]
+
+Liber Salomonis
+
+In nomini dei potentis vivi & veri, & eterni &c.
+
+  
+
+  VRL1300 10v; Halle 5r.
+  
+
+In the name of allmighty God living & very & everlasting &
+without all end which is sayd Adonay, Saday, Ehye, Assereye I
+begin this booke which is said Cephar Raziel with all his appurtynanuts2 
+in which be 7 tretises complete or fullfilled that is 7 books.
+
+  
+  
+
+  2. i.e. appurtenances.
+  
+
+Dixit Salomon g'lia [=gloria] & laus cum multo honore &c3
+
+  
+
+  3. VRL1300: Dixit Salomon grã [=gracia] & laus cum maximo honore...
+  
+
+Salomon sayd glory & praysing with much honour be to god of all creatures 
+he that is singuler which made all things at one tyme. And
+he is one god very mighty he alone that is & that was & which 
+evermore shall be. & which had never an even or any like him
+neither he is to have. And he is singuler without end, Lord alone without 
+corruption, holy, cleane, meke & great all things seeing, hearinge, & 
+wise & in all things mighty. And I begin this booke to put an ensample3
+that who ever that hath it blame it not till he have read & heard
+all or some what of it, & then prayse be god maker of all things.
+
+  
+
+  3. ensample: exemplar.
+  
+
+These be the 9 precepts.
+
+Incipiunt precepta / here begine ye p[recepts]
+
+Non credas esse plures nisi unum singularem &c.
+
+  
+  
+
+  VRL1300 11r, Halle 5r, which call these de castigationibus Salomonis.
+  
+
+[1] Ne trowe5 thou 
+not to be mo[r]e or many [+Gods]6 but one singuler alone upon all things 
+which hath none like him & him love you and dread & honour with 
+all trust & with good will & stable & with might & will all thy
+clene heart. 
+
+[2] Ne liue thou not without law & without rule & thou 
+shall be loved of god thy creator & of folkes. 
+
+[3] Ne do you not to 
+another man that thou wouldest that another man did to thee. And loue7 
+thou thine & strangers the same. 
+
+[4] Ne be thou not a liar to the lord, neither 
+to thy friend. And say thou such sothnesse8 that be to thy profitt & not
+harme. 
+
+[5] Ne loue thou not neither fellowship thou more unwise men 
+then wise men. And evermore love you many wisedomes & good
+scyences, and all thy will, & thy life be in them. 
+
+[6] Ne speakest thou 
+not ere thou haue thought before. And that thou will do consider in
+thy heart ere thou doe it. 
+
+[7] Neither discover thou not thy priveties 
+to a woman neither to a child, not to a foole, nor to a drunken man.
+
+[8] Ne prove thou not a medicine, neither venym in thee er in another. 
+
+[9] Ne blame thou not a booke, neither prophecy neither a wiseman till
+that thou have proved him. 
+
+And if thou with holdest these 9 precepts in
+the evermore thou shallt profitt more & more. 
+
+Postquam sensus &
+scire & posse voluntas vera &c. 
+
+After that witt & knowledge &
+might & very will overcometh all things with good witt & good discretion.
+
+  
+  
+
+  5. ne trow, i.e. 'don't suppose', the English translation of 'Non credas.'
+  
+
+  6. VRL1300: multos deos.
+  
+
+  7. In marg: Idem. VRL1300: dilige tuos & extraneos per rationem.
+  
+
+  8. Sothness: truth. K: soothes.
+
+  
+
+Therefore I will expound or make plaine & open this Booke which
+is of a great power & of a great vertue. I Salomon put such
+a knowledge & such a distinction, & explanation in this booke to evry 
+man that readeth or studieth it, that he know whereof he was and from 
+whence he came. know ye that after I Salomon had xxx yeares 
+wich are halfe in the 5. day of the month of hebreys, which was the
+sixt feriall7 day the sonne being in the signe of Leonis. In that 
+day was sent to me from Babylonie of some Prince that was 
+
+[129v]
+greater & more worll8 then all men of his tyme some Booke
+that is said Cephar Raziel, which containeth 7 books & 7 treatises.
+
+  
+  
+
+  7. ferial: i.e. festival (Lat. feria).
+  
+
+  8. VRL1300, Halle: venerabilior ("more venerable"). K: worshipfuller.
+  
+
+Nota tempus in quo Salomon fuit pv adeptus istum librum & quomodo &
+a quo venit sibi. 
+
+Know thou the tyme in which Solomon gate (?) this
+booke & how & of whome it came to him. 
+
+Iste liber est magnæ
+virtutis & magnis secreti &c. 
+
+This booke is of great vertue &
+of greate privity. The name of the Prince that sent it to me
+was Sameton,9 & one of the tway [=two] wisemen that brought it to
+me was said Karmazail,10 & that other Zazont. The name of
+this expounded in Latin is Angelus magnus secreti Creatoris.
+That is to say the great Angell of the secret Creator. And in
+hebrew Cephar Raziel that is the booke of Sothnes & of fullfilling
+& it was the first booke after Adam written in language of Caldey [=Chaldaean]
+& afterward translated in hebrue.  And know each man that
+readeth it, that in it is all Semiforax, that is the great name
+compleate with all his names whole & euen & with his vertues &
+his sacraments & I found in it 7 bookes that is 7 treatises. And
+know yee that I found the first & the last full darke & the twey11
+middle more playne. And allthoug I found them darke, I
+expounded them as much as I could & might. And the 7 treatises
+of this booke be these.
+
+  
+  
+
+  9. VRL1300: Zamechton. Halle 6v: Zametlicon.
+  
+
+  10. VRL1300: Karimazayl. Halle: kazymazayl. K: Kamazan. 
+  
+
+  11. K: five.
+  
+
+[Contents]
+
+The first is said Clavis for that in it, is
+determined of Astronomy, & of the starrs for without them we
+may doe nothing.
+
+The second is said Ala, for that in it is determin'd
+of the vertues of some herbs, of stones & of beasts.
+
+The third is said
+tractatus Thimiamatus for that there is determined in it of Suffumigations
+& of allegacions of them & diuisions.
+
+The fourth is said
+the treatise of tymes of the yeare or of the day & the night for 
+that it is determined in it when euery thing ought to be done
+by this booke.
+
+The fift is said the treatise of Cleanenesse for that
+there is determined in it of Abstinence.
+
+The sixt is said Samaim for
+that it nempness [nameth] all the heauens & her angells & the operations or
+workings of them.
+
+The 7th is the booke of vertues for that
+then is determined of vertues & miracles for there be told the
+properties of the Arte of Magicke, & of his figure & of his ordinance
+of the same.
+
+And Then I began to write all these treatises 
+in a new volume for that one treatise without another suffiseth
+not to the holynes of the worke; therefore I made an hole booke 
+to be made of 7. treatises. Therefore Solomon bad to his 
+writer Clarifaton11 that he should write it which knew well the 
+language of Caldey of Inde & of Ebrew [Hebrew] & Syrike & his right explanation 
+Notheles12 Salomon after that Clarifaton said corrected it & dressed13 after that 
+it should be the better & ordeined it in the better manner that he might.
+Clarifaton said that was the writer of Solomon that this booke is of such
+greate vertue, priuitie & of full greate honour & it was sent to Solomon
+for such great price & most loue. And euerych treatise of these was
+written by it selfe, but although it be so it ought to be one booke alone
+by it selfe, for none of those should suffise without another
+wherefore, it is necessary that they be together. wherefore Solomon
+ordeyned that all were one boke as it ought to be, & as it
+
+[130r]
+ought to be read & wrought & he ordeyned much better then philosophers 
+had ordeyned & he taught how a man ought to doe his worke by it. And
+he put euerych treatise by it self, & euery chapter by it selfe, ordeyned 
+all till to the end of the booke. And put in this booke Semaforas yt
+is the booke of 17 vertues, how it [ought] to be written & of which ynk
+& in what parchmyn, & with what penne & what man & in which
+tyme & in what day & in what night & in what houre, after that
+Solomon had expounded in the booke of Razielis. And how it
+ought to be kept cleanly & with great honour. 
+
+  
+  
+
+  11. Halle: glarifacon. This paragraph is missing from VRL1300.
+  
+
+  12. =Nonetheless? K: Methelis.
+  
+
+  13. Dressed: prepared. Halle: exponebat ("set it forth, published it").
+  
+
+Dixit Salomon
+Qui videt & non cognoscit &c. 
+
+  
+  
+VRL1300 12r; Halle 6r.
+  
+
+Salomon said, who that
+seeth & knoweth not is as he that is borne blind & knoweth not
+colours, who that heareth & understandeth not is such as a deafe man
+who that speaketh & cannot expoune the reason is as a dumb man. 
+who that considereth & knoweth not the consideration is such as a drunken
+man. who that readeth plaine books, & understandeth not is as he that
+dreameth. These proverbs Salomon said that a man beware well
+in this booke. Salomon said in this booke hit (?) that Raziel the Angel
+said to Adam that was the first man in this world And after that Moyses 
+said to other prophetes in sothnesse [=truth] & we trowith so.13
+
+  
+  
+
+  12. in soothness: in truth.
+  
+
+  13. we troth so: we pledge it is so.
+  
+
+[Of parchment or vellum]
+
+Dixit Angelus Salomoni, vt omnes prophet tue operationes &c. 
+
+  
+  
+
+  VRL1300 12r; Halle 6v.
+  
+
+The
+Angell said to Solomon that all thy workings & peticions & wills be
+fullfilled & it shall be made in all it that those shall couvite, that it
+be in thy might. It behoueth yu that when thou haste this booke
+of this or another examplar or ensample that those write it in such
+manner in virgin parchmyn, & that it be not filthy neither of a dead
+beast or in velume vitulino [=vellum], or in parchemyne of silke or in sattin14 
+or in cleane cloaths or in parchemyn of a lambe or of a kidde virgin 
+or of a fawne virgin & this is better then any of the other. 
+
+  
+
+  14. Lat. estari. K: 'Samatyne,' with 'sattin' written above.
+  
+
+[Of the ink]
+
+And the ynke which thou shalt write be it of cleane galles15 & be it 
+made with good white wine & hool [=whole] & with gum & vitriol & Mastick
+& thur,16 & croco [=saffron]. And the third day where it shall well haue
+residence, & shall be cleansed put thou there a little of Algaba &
+of almea & put thou there of good muske or muske more then
+of these three. And put thou there Ambram & balsamum & mirram
+& lignum aloes & when the Incke [ink] shall be made be it boyled with
+masticke & with thur & with ligno aloës & with somewhat of Thymiamate 
+& muculazarat & then clause17 it well with a cleane thynne cloth &
+the cloth be it three fold. Afterward put there mustum18 [musk] & ambram [=ambergris] and
+almeam [=red storax] & algalia [=civet] & balsamum & mirram [myrrh] all well grounded & thou shalt 
+meddle with the Inke full well. & the inke be it so by 3 dayes well couerd
+in a sure place. And know thou that with this inke thou shalt write all the 
+holy names of God & of his Angells & of his Saints & all thing in which his 
+holy greate name is nempned19 or written, and all things that thou will werk (?) 
+truly to be fullfilled with thy well pleasing or with thy seruice & what euer
+thou putteth in thy inke be it newe & bright & pure & good. 
+
+  
+
+  15. Galls, especially oak galls were a common ingredient in preparing inks.
+      The Sword of Moses has a prescription for ink made with
+      'black myrrh (gall)'.  Gall nuts are prescribed in Le Grand Grimoire
+      for the ink used for pacts with devils.
+
+  16. thure: frankincense.
+
+  17. K: clense.
+
+  18. *muscum: musk. On these magical incenses also see Bruno, 
+      De Magia.
+
+  19. nempned: named.
+  
+
+[Of the pen]
+
+And the Pen
+with which thou shalt write the holy name be it of greene reade gathered
+early ere the Sun arise & he that shall gather it he be cleane &
+washen in runnynge water or in a quicke well & he be clothed
+with cleane cloathes. And the Moone be it waxing with 
+
+[130v]
+Capite Draconis, or with Joue, for that they be true & very.
+
+And when thou shalt gather it, thou shalt behold or looke
+toward the Easte & thou shalt say thus.
+
+Adonay el Saday
+Iuvate me ad complendum voluntates meas cum arundine ista.
+
+That is to say,
+
+[Adonay, El, Saday,] help ye me to fulfill my wille with this Reade [=reed].
+
+and when this is said thou shalt cutt one reade or tweyne or
+as many as thou wilt with one stroke. And as Moyses said the
+knife be it well playne & sharpe & hool [whole] as though we should
+cut of a necke with it. And then take the Reade with thy cleane
+hands &; make thou of it gobbets. And when thou wolte cutt
+the penne, cut hit er that the Sunne arise or when it ariseth
+with the pen & with this ynke thou shalt write all the names of
+God holy seuerally. And as ofte as thou writest the name  of the
+Creatour be thou cleane & so leyne20 and scoured & in a cleane
+place, & thou shalt fast ere thou shalt write by 3 days & 
+thou shalt be bathed in cleane water & thou shalt be rather
+cleane by 9 dayes & cloth then thee with cleane cloths. And 
+ordeyne to thee an house or a cleane place made cleane well
+with beesomes21 & washen & watered & suffumed. And ordeyne so
+that when thou writest hold thou thy face toward the East. And
+write then from morro till to midday till that thou eate. And
+after that thou hast eaten or drunken thou shalt not write
+in it any thing. And if thou wilt write             sem~23 with his strengths 
+the number of the moone be it euen, & most in the day of the
+Moone or of Mercury, or of Jovis [Jupiter], or Veneris [Venus]. And be thou ware of
+Saturne, & of Sole upon all. And Salomon said if thou puttest 
+in the ynke of the bloode of a vowter or of a Turtur [turtle or turtle-dove], or of a
+gander holly or all white the ynke shallbe much the better, &
+with the more vertue. Also I say that if there were of Saphire
+poudered & Smaragdo & Jagunua [=jacinth] & Topazio the Inke shall be
+complete & fullfilled. And with this Inke & with this penne ought
+to be written all the names of Sem[iforas]. And know thou that he
+that shall write this booke ought to be cleane & fasting &
+bathed & suffumed with precious aromatikes, that is with spices well
+smelling. And it shall be great profitt to thee & to him that
+maketh it or writeth it. And ech man that hath written this booke
+or hath holden in his house euermore hold he god in mynde & his
+holy angells & hit for which he hath made it, & he be euermore
+suffumed. And glorify he god euermore. And put he his minde in wch
+tymes of the iiij times of the yeare24 he shall worke, or of the iiij
+tymes of the moneth or of the iiij times of the day with his night,
+or of the iiij times of an houre. And euermore put he his mind to his
+foure tymes which they ought to be as invenies in libro p'p'harum. 
+
+  
+  
+
+  20. K: solleme.
+
+  21. besoms: a broom.
+
+  23. K: Semiforax.
+
+  24. K: day.
+  
+
+Dixit Salomon. Sicut si esset Castrum &c 
+
+  
+  
+VRL1300 13v; Halle 7v.
+  
+
+Salomon said as
+though there were a Castell full strong & his hightnes full great 
+& high & enhaunced & well on eich side with walles
+
+[131r]
+environed & the gates in one place well strong & stable or ferme
+& with keys closed, therefore it behoveth that who that would open
+the gates of that close, & holsomly would enter into it, both with
+out traueill of gift, & without brusing of his body. It is necessary
+to haue the same keyes & none other of this Castill & of his gates
+& of his Closings. Thus I say this that is for to know the starrs
+& their names & their figures & their natures. And when they should
+be good, & when they should be evill. And this I say of the fixe25 
+& of the 7 erratic.26 neuertheles consider thou euermore the nature
+of the circle of the 12 signes that is the tuares.27 And therefore it
+behoveth that eich man that hath this booke that he hold it cleanly
+& keepe he hit with great reuerence & with great honour. And
+who that hath it & can read it, ne read he it not, but if he were
+before of full cleane of body & with great witte. And I make every
+man to know or wite that he ought not to worke by this booke in vein,
+neither without witte, neither without lawe or reason, & this is when
+every man doth to the contrary or when any reptiles or wode beasts
+should lett thee or do harmes to thee. And to know thou that although
+thou haue might & trust for to worke by this booke. And allthough thou
+might haue great trust in this, thou shalt not worke but with great right
+or law & with much reason. And thus understand thou of all thy contrarie 
+And if thou workest otherwise by this booke then thou shouldest, thou
+mightest much lett thee, that is if thou workest without reason, & if
+thou were uncleane, or euill in thy selfe.
+
+  
+
+  25. i.e. stars.
+
+  26. i.e. planets.
+
+  27. VRL1300: curribus ("chariots"). K: towards.
+  
+
+Clauis istius libris est cognoscere & scire locu &c. 
+
+  
+  
+
+  VRL1300 14r; Halle 7v.
+  
+
+The key of
+this booke is to know & wite the places of the 7 bodies aboue & their 
+natures, & their sciences & their domes, & all their vertues after that
+it appeareth in the earth to us.
+
+Formata debet esse omnis figura
+cum exemplo vero, &c.
+
+Eich figure ought to be formed with very & true
+ensample.
+
+ Therefore I put the figure of the keye in this booke
+that no man trowe28, that without reason & profitt it be made. & I
+put in figure one key with the skafte to the similitude or likenes
+that there is one soleyn Lord & god which neuer had neither
+shall haue any even or like to him. In the quadrature or that
+<that> is 4 cornered is signified that there be fower Elements & no more.29
+
+  
+
+  28. trowe: suppose.
+  
+
+  29. VRL1300 and the Halle ms leave half a page blank here for the intended figure, but they are never rendered. 
+  
+
+And in this key is one triangle, which signifieth knowing might & will
+for without these three may not any man do any thing in this world,
+neither attayne to any profitt. And Salomon said that the shafte
+of this key is as Raziel said to Adam vnite or one head. And the
+quadrate is as 4 virtues, that be in hearbs & wordes & beasts. And
+they be to the similitude of Elements which openeth & doth all.
+And the 7 wardes be 7 Angells which have might in the 7 heavens
+& in the 7 days of the weeke as furthermore I shall teach you. And the
+triangle signifieth man which is in body & soule & spirite. And these
+above said ledeth together all the world as it was compownded in highnes
+& in lownesse. 
+
+Postquam huivsque diximus oportet nos dicere, &c.
+
+After that we haue said hitherto it behoueth us to say for this booke
+that is said of the key of the 7 bretherne. And these 7 bretherne haue
+among themself 12. remes29 for to deuide or departe. And in eich reme
+beth xxx cities. And in every city be 60 Castells, & in euery Castell 60
+Caldee that is feldy or wilde townes. And this ensample Salomon found
+
+[131v]
+& made distictions & said: There is one father & hath 7 Sonnes
+& these 7 sonnes be germaynes30, for after that they be of the
+same father germayne. And the elder is more hevy among all
+other. And the middle in the middle more ordinate then all.
+And other letle be in the br middle on (?) fellow shiping
+hit euermore. So thlie (?)31 tweyne of these be not much seuered 
+from hit. And these 7 brethern said Solomon be:
+
+  
+
+  29. reme: realm. Lat. regna. K: 'realmes' (here and in other passages).
+
+  30. germains: siblings.
+
+  31. =sothlie = truly? K: they.
+  
+
+Sabaday.322.Saturnus.
+
+Zedek.  2.Jupiter.
+
+Madin.  2.Mars.
+
+hamina  2.Sol.
+
+Noga.   2.Venus.
+
+Cocab.  2.Mercurius.
+
+Labana. 2.Luna.
+
+  
+  32. The seven planets in Hebrew are called
+  שבתאי
+  Shabathai/Sabbathi (Saturn),
+  צדק
+  Tzedeq/Zedeck (Jupiter),
+  מאדים
+  Madim (Mars), 
+  שמש
+  Shemesh/Schemes (the Sun),
+  נוגה
+  Nogah/Noga (Venus),
+  כוכב
+  Cochab (Mercury),
+  and לבנה
+  Levanah (the Moon.)
+  
+
+know thou
+the houses of Planets. And Salomon put names to the 12
+remes of germaynes. And they be said signes. And he beginneth
+to make distinction.
+
+And he gaue to the fighter that is Mars, that
+he should rest & should not fight in the reme of the signe of
+Arietis. And of this vertue he is in the reme of the East. And he
+gaue him in the reme of the world the signe of Scorpionis, that
+he should fight strongly & that he should neuer rest & he is in
+the 8th reme from the first.
+
+And afterward he gaue to the faire 
+Noge i.e. veneri twey remes of the which one hath the halvendle1 (=sign?) of 
+Tauri that is from the highnes of the head with his hornes till to
+the nauell.
+
+  
+  
+
+  1. Halvendle (halfendele) = the half part. Lat. unum regnum est in signo medietatis tauri 
+  ("one of the realms is in the middle of the sign of Taurus").
+  
+
+Another is the 7th from the first that is Libra and
+otherwhile venus is aboue that is in the north & otherwhile beneath
+it is in the south. And so he hath enherited hit in tway parties. 
+And when he gaue to the Paintor which is the writer that is 
+Mercuries twey remes, of which one hath twey men embraced 
+that is clipping together himselfe. That other hath a faire virgin 
+winged & neuermore would be deuided or departed from women for 
+these ymages be such & he displeaseth euermore to go much 
+from the south into the North. And he gaue to the Malis (?)33 2. Lune
+for that Leo goeth euermore one reme & for Leo wole not much
+stand in her house & her signe is a fish [=Pisces], & that is said Cancer, wch
+hath many feete & he signifieth by this Leo wole much go for
+that Leo is under other brethern, this suster [=sister] alone.
+
+  
+
+  33. VRL1300: Et deinde dedit discurrenti labana i.e. lune... 
+  ("and then he gave to the wandering Labana i.e. the Moon, ...").
+  K: Malix.
+  
+
+And he gaue to the middle Brother which is the lord of all 
+other: & he commandeth all & is more onrned (?)34 or fayre 
+arrayed, therefore he gaue to him one Reme full strong in helte & 
+his signe is as the Lyon that sheweth him lord upon all beastes. So he 
+is stronger & of more lordshippe upon all his brethern. And then 
+remayned twey bretherne of the party of the South. And the
+elder tooke twey remes one about another for this that he should
+neuer be ouercomen in the signe of the Reme well meridionall or
+south & he is one beast with one horne in his fronte. And the signe
+of that other Reme is as a man that heldeth out many waters & this
+broder is said the old Sabaday. And than taketh that other brother
+for heritage on his right side the Reme with the signe of half a
+man & of halfe an horse & it is said Sagittarius & on the left
+side of Piscium. Know ye heere the natures of Signes. And
+Salomon said, Aries is a Signe very hott & drie colericke &
+so is Leo & Sagittarius & they haue might in the East. Taurus
+is earthy cold & drie melancolious & so Virgo &
+
+[132r]
+Capricornus & they haue might in the South. Gemini is very
+hott & moyst & sanguine & so libra & Aquarius & they haue
+might in the west. Cancer is watry feminine moist and
+phligmaticke & so Scorpio & Pisces & they haue might in the North.
+
+  
+
+  34. VRL1300: venerabilior ("more venerable"). K: adorned.
+  
+
+Iam diximus de naturis & signis, & eorum complexionibus
+&c.
+
+Now we hau said of natures & signes & of the Complexions
+of them. And then say we of the nature & of the Complexions
+of germaynes & what they signifieth. The first heigher
+that is said the old, Sabaday is Saturnus the Nature of which is
+cold & dry for that it is much straite & melancholiouse & it signifieth
+fathers, & wrath & discord in lands. The second is said zedek, &
+he is temperate for that he is betwixt the old Sabaday & the hott
+Madin, & Zadek is hott & moist sanguine in fauour sweet, &
+it draweth a good ayre & it signifieth good and honour & vertu.
+
+The third is the fighter madyn & he is hott & dry euell &
+lesser & brenner, rauisher & lyer. The forth is haminu [or hamina] i.e. Sol, 
+middle among other hole (?) & mighty & worll. & all the other brethren 
+shameth & dreadeth him & he is much soth faste & stronngr. The 
+fift is the faire Noga called cold & moist glad phlegmaticke fatt 
+& flesht & well seeming in all his members & cheres & he signifieth 
+good singds (?)35 & he is much glad among women. The sixt is the writer 
+& the fore speaker cocab. This holdeth him selfe withall & serueth to 
+all & signifieth writers & teidyngs & voyces after that it shall be 
+with hit that with everych he holdeth himselfe when he is with 
+it. The seuenth brother is Labana [Levanah] & it is Malx, & it is could [cold] 
+& moyst & it signifieth brethern & itt bareth eich month the 
+maundements of brethern to brethern. After that it is seuered from 
+them.
+
+  
+  35. K: soughts.
+  
+
+Deinde Loquamus de septem fratribus quare dicuntur 
+claues &c.
+
+ And then speak we of the 7 brethern why they be sayd 
+the keyes of the world, & which this world may not excuss neither 
+excuseth.  And these were formed as 4 brethern, which be said the 4 
+elements & they hau after signification wit & discretion & might 
+complete & honest & strengt & everych may in his hemispheare yt 
+is empire. As an Emperour in his empire, or as a prince in his lordship. 
+And they hau might on the 7 parties which we seyne Climates. And 
+know thou that these bene mighty upon all beasts heere formed. And 
+Salomon said prophetes clepeth these brethern 7 quicke spirits & hooly 
+And wise men sayden that they were 7 lamps brennynge or 7 candlesticks 
+of light & of life. And all prophetes clepeth 7 heauenly bodies 
+which be 7 Planets & of cominle they be said 7 starrs. And 7 brethern 
+be kept of 4 beasts full of syen before & behynd which be the 
+parties of heuen. East, West, South, North. & they hau might in 
+these foure parties of the world & in 4 times, & in 4 natures with her 
+complexions & with all her parties & in the 4 Elements. And with this together 
+ledde and moued all things moueable of the commaundement of 
+God that put them in their places.
+
+Dixit Salomon Sicut fuerunt semper status superius &c. 
+
+Salomon 
+said as there were euermore states aboue without corruption 
+so know thou that there is now & shall be euermore. And for this 
+we understandeth the bodies aboue cleane & good & made without 
+
+[132v]
+corruption. And the nether bodies uncleane euill treated & 
+broken & eich day they falleth & ben corrupted. And this 
+corruption resteth not neither is made weary of the which 
+we understand that the nether bodies mought not excuse 
+the ouer bodies. And all things which we sene beneath him 
+rote & beginnynge for things aboue. for things aboue be 
+with out life & withou dolour. And things beneath by the 
+contrarie hau death with dolour. & things aboue haue duringe 
+without corruption. And things beneth eich day faylleth & 
+be corrupted & minished. And all prophets sayn that if these 
+lacked any one of the ouer bodies that is of these that be much 
+aboue X. Ml 36 betwixt tho that we sene & tho that we se not. 
+Know thou that it were a greate precipitacion & destruction & 
+confusion in land & in sea & in the 4 Elements if it were 
+broken or euill treated any of the bodies above. And if there 
+failed one of the 7 brettern the Earth  should come againe 
+to his first stake, when all the Elements were cintuse.37
+And if any of them bodylie had receiued corruption know thou 
+that it were destroyed all thing that receiueth soule or life.
+And know thou as the 4 Elements be turned downward they 
+be not turned without some reason of the 7 aboue. & this 
+sayth the philosopher when the Sunn is destroyed eich life 
+& eich soule is destroyed. And when the Moone is destroyed 
+the ligatures or bindinges of the Sea be destroyed. And 
+know thou that Saturnus is earthly & holdeth all the Earth in 
+a ballance that it is not moued. And Jupiter the ayre 
+& Mars the fier. And Sol the day & men. And Venus the 
+fayrer parties of the world. & Mercurius Reason. And 
+Luna the Earth Sea & waters & their powers. And know 
+thou that euerych after that is were or shall be in his exaltation 
+ordeyned & bounden with the sonne that reasons & words 
+& speachs should be good betwixt men. And as ofte as Mercurius 
+were ioyned in Virgine in the same point with Sole direct 
+& not retrograde make we sutill things & reasonable. 
+And as oft as Sol were in Ariete so many yeares unlike he 
+geueth  unto us. And as oft as Saturne were in Libra so many 
+mutations he giueth in lands. And as oft as Jupiter is ioyned 
+with Saturne in an Earthen signe so many diuerse mutations or 
+chaungings he giueth & he changeth lawes & sects38 & 
+Lordshipps. And thus understand thou in other complexions 
+of Planetts after the states of them & their beholdings that 
+is said aspectus.
+
+  
+  36. K: ten thousand.
+
+  37. (?); K: confused.
+
+  38. K: seates.
+  
+
+Et Dixit Hermes istam rationem super 
+capita animalis &c.
+
+ And Hermes said this reason upon them
+heads of beasts. Saturne hath the right eare, [Jupiter the left. The right nostril
+to Mars,] Venus the 
+left, & Sol the right eye, Luna the left. Mercury the 
+mouth.39 These 7 hooles thet hau in power aboue upon the 
+head of a man. And Salomon said that a man is a 
+measure which is said Palmus made with hande in ye which 
+bene all the vertues of the world, & of the 7 planets & that 
+is only the head of a man. Wherefore every man is likened 
+
+[133r]
+to his Starre & to his Elements. And Salomon said when I 
+found a Spirite aboue retrograde or combust, or euill treated. 
+Thus I say that his body was euill treated beneath in which 
+it was like or he signified in hit. And who that were so wise 
+that he knew his Signe & planett & his starre aboue & 
+his sign~atoar,40 he might do good & euill to himselfe & other men 
+And the nativities of beasts beth demed such workings 
+you shall do with the helpe of god.
+
+  
+  39. In marg:  
+  OP1.22: "But Hermes saith, That there are seven holes in the head of an Animall, distributed to the seven Planets, viz. the right ear to Saturne, the left to Jupiter, the right nostrell [nostril] to Mars, the left to Venus, the right eye to the Sun, the left to the Moon, and the mouth to Mercury. The severall Signes also of the Zodiack take care of their members. So Aries governs the head, and face, Taurus the neck, Gemini the armes, ...."
+
+  40. K: signification.
+  
+
+Postquam diximus de 12 figuris [*signes] & planetis &c. 
+
+After that we 
+haue said of thhe 12 figures [*signes] & planetts & of radiis of them
+we should say that ech Planet that were in ascendence it is nempned coniunctio. 
+And how much the Latitude or bridth shall be lesse 
+so much the coniunction is said stronger & if there is more 
+latitude the coniunction is febler & so I say to thee in the middle 
+of heauen. And od the points of the 12 houses which be the 
+stronger places of all houses, I say the point of the first 
+degree of the house. And eich starre that were lesse & hath 
+upon himselfe another, thilke is said41 that it hath power & 
+goeth upon another 
+
+from starr to starre & this ech starr that 
+diuerseth from another by 60 degrees before & after: it is said 
+aspectus sextilis, that is the sixt beholdinge. And ech planet 
+that diuerseth 90 degrees before & behind, it is said in aspectu 4to.
+that is in the 4th beholding. And ech planet that diuerseth 120 
+degrees before & behind it is said in aspectu tertio, that is in the 
+third beholding. And ech planet that diverseth by 180 degrees is 
+in opposition in that that [sic] it is in the Contrarie place. The[se] be the 7 
+beholdings & no mo duo tertii duo 4ti and duo sextiles, & unus 
+oppositus, that is to sey, tweyne42 in the third, tweyne in the fourth & 
+tweyne in the sixt & one contrary as against. The coniunction 
+is complete when they be in one degree. Double coniunction 
+of twey good or temperate sheweth double good. As twey euill 
+by the contrary sheweth much euill. Twey sextiles beholdinge the 
+ascendent auaileth one good of terno. And twey terni auaileth 
+in beholding the ascendent, one good fortune in the ascendent. And 
+twey quarti in beholding the ascendent auayleth one greiuous or 
+heavy, if there were euill sters. And twey opposita auaileth one 
+in fortunate in the ascendent or in the oppo~ita. And twey quarti 
+auaileth as much as a starr falling or combust or retrograde 
+that is letted in the ascendent, one fortune or tweyne in the 
+ascendent and another of sextili, & another of terni beholdinge 
+the ascendent sheweth much good hasty or highing. Twey evill 
+in the ascendent or one with another in opposito that is in the contrary 
+or of falling they shew 
+
+a greiuous & long impediment. And 
+if they be falling & letted it shall be wors, one fortunate in 
+ascendent beholden of twey ternis it sheweth much good, & how 
+much there were mo wittnesses upon the figure of which thou 
+enquirest or seekest, or of which thou workest so much it shall be 
+the better. And if three planets beholding the ascendent with good 
+beholding & twey euill, the good ouer the euill & so of other. One 
+infortune & in hascendent beholden of twey quartis sheweth much 
+griefe. Caput draconis is much better then cauda. Ech Planet 
+in his head of the same degree more Lordshippeth in the figure for 
+that it is twey in latitude to the weye of the Sunne & it profitteth
+
+[133v]
+in going toward the party of the north. Ech planet in the tayle 
+of the dragon is ministring of his worke that goeth toward 
+the South.
+
+  
+  41. thilk is said: the same is said.
+
+  42. tweyn: twain, i.e. two. 
+  
+
+Luna coniunct or ioyned with Saturnu & Marte 
+in the ascendent it constrayneth & thristeth43 diuells. Saturnus 
+maketh in deuills strenght & great power. Luna coniunct 
+or ioyned with Joue [Jupiter] & Venere [Venus] in ascendent it sheweth 
+great dilection & great loue in eich good thing. Luna ioyned 
+with Martis & Saturno in th [sic] ascendent it sheweth impediment 
+but if the planet were of good receiueying. Luna 
+ioyned with Sole in one point [sheweth] greate grace & that if they 
+were good. Luna ioyned in falling (?) & to Mercury in the 
+asce3ndent it sheweth the contrary. Luna in ascendent 
+by it selfe signifieth after that the planet to which it is 
+ioyned. Luna with Capite Draconis in the ascendent sheweth 
+good. Luna with Cauda [Draconis] or Combust or ioyned with 
+
+a starre 
+letted or in euill setting it sheweth much euill. When caput 
+Draconis Lune were with capite Saturni, & there were 
+Luna or Saturne & there is worke of celsan made it 
+signifieth upon burdinger (?) of deuills fowle & euill. Ech 
+planett that is with dracone of another & both be ioyned 
+it sheweth a soth & or vemp*eprke44, & more in the ascendent. 
+And if Caput draconis were of Jouis or Lune & these twey 
+coniunct or ioyned in th ascendent it sheweth much good & 
+encreasing of good & of honour. And if it were in cauda 
+not only when there were twey Cauda Draconis that is of 
+Lune & of other they be full euill when luna were with 
+them. When Caput draconis Lune were with capite draconis 
+Martis, & Luna & mars in thilke point it sheweth strength 
+& might. And if Cauda with Cauda & Luna & Mars together 
+it is full greivous & euill. after yt euerych is euill after 
+the place or beholding of another. Caput draconis & Luna 
+in Capite Arietis Luna Sol in Zamni sheweth great might & 
+great honour. And by the contrary in Libra beneth with cauda 
+draconis. Caput draconis with capite veneris sheweth much 
+loue & in cauda the contrary. Caput draconis mercurii 
+with capite draconis Lune sheweth worke of reason & of 
+voic & of many sownes [sounds]. And in cauda Lune with Mercury 
+& Saturno it sheweth us the beholdinge of many experiments. 
+Lune in capite sui draconis sheweth & if there were Jupiter 
+or venus it shall do the worke of Jouis or of Veneris & it shall 
+profitt in all good as these be good. Luna if it be in cauda sui 
+draconis & Mars 
+
+& Saturne with hit or they beholdeth it with 
+euill beholding sheweth as euill as we haue said of Saturnus & 
+Marte. And we haue said that Saturne norisheth diuills & 
+Mars draweth & thresteth & figureth them. And Saturnus 
+gathereth together many deuills; Venus & Saturnus gathereth 
+togeher diuills & winds from beneth. A good starre 
+in the ascendent & luna ioyned with a good starr
+
+[134r]
+sheweth much good: and the begining in all hit in which were dn~s 
+quarte that is the end Lord of the 4th And if the 4th house is well 
+beholden of good all the end of the thing (?) shall be good when the lord 
+of the forth house were euill & euill treated it sheweth noyi & euill. 
+A signe ascendent sheweth the body. The Lord of the Ascendent 
+or the planet that is in the ascendent or which beholdeth it sheweth 
+it his spirit. And the Lord of the houre signifieth his soule & his will. 
+And thus understand thou in other domes the body & the soule & the 
+spirit, ffor these 3 know thou that they make the body of a man 
+safe & hoole.
+
+  
+  43. thristeth: throws.
+
+  44. (?); K: "it sheweth a very soothe or try worke"
+  
+
+Nota de exaltationibus. Know thou of exaltacions.
+
+Dixit Hermes Saturnus exaltatur in Libra &c. Hermes 
+said Saturnus is anhaunced in libra. And Jupiter in Cancro. And 
+Mars in Capricorno. And Sol in Ariete. And Venus in Piscibus.
+And Mercurius in Virgine. And Luna in Cancro. And know thou 
+that Saturnus gladeth or ioyneth in the 12 house. & Jupiter in the 
+2. & Mars in his 6. & Sol in the 9. And Venus in the 5. And 
+Mercurius in the Ascendent. & Luna in the 3. And th ascendent hath 
+12 vertues, & eich planet that is in it upon eich place of the Circle. 
+The 10 house hath 11 vertues. the 11 houses hath 10 vertues. The 
+7. 9. the forth 8. the fift 7. the ninth 6. the third 5. The second 4. 
+Th eight 3. The twelth 2. The 6. ove vertue. And euermore consider 
+you in all things that thou shallt do upon the planetts how it shall 
+be in the 12 house, & thou shall profitt if thou chesest [choosest] wel. And 
+Salomon said. Ech man that worketh by this booke it behoueth 
+that he know all these thinges, that is reasons, which here I wyl 
+not expowne to thee that is that thou know in which tyme thou were 
+[born] of the 4 tymes of the yeare. And in which month of the months 
+of Lune. And begin you from the Lunacion of the month of Mercury 
+where euer Luna prima were. And all secret or priuity 
+be yt axed in Saturno with aall deepnes. And all honour & 
+substance be it asked upon Joue. And all strife & battell & 
+hastinge of Marte. And all cleauenesse & lordshippe of Sole. 
+And all fairenes & dilections or loves & fattnesses of venere. And 
+all reasons & witts & subtilltyes of Mercurio. And all changing 
+& fortune of Luna. And of these 7 thou shalt aske euermore 
+councels where thou findest them in their houses & 
+signes. And all as they should show to thee deme thou upon them 
+in all good & euill.
+
+Now we hau fullfilled here with the 
+helpe of God the Treatise that is said Liber Clauis, that 
+is the booke of the key.
+
+Here endeth the first booke &
+
+beginneth the second.
+
+[134v]
+
+Liber Secundus
+
+  
+  
+
+  VRL1300 21v.
+  
+
+Dixit Salomon sicut alæ auium sunt membra &c. 
+
+Salomon said As the wings of fowles or birds be members that leadeth 
+the foules to the place where they desire to be, so by vertue of stones 
+& of herbs & of beasts that liueth in flying & swimming, in going, in 
+creeping thou might attayne to thee that that the wolt, yf thou chesest 
+the natures of them, the properties & vertues. And therefore wee 
+clepeth this booke Alæ, that is wings for without wings nether 
+fowles neither fishes mought moue themself. And so as wings beareth 
+bodies toi highnes upward & to fundaments downwards & into  longitude 
+& latitude that is in to length & bredth. So by the vertues of Stones 
+& of herbs with grace & with much might of Sem~ [Semiforas] know thou that thou might attayne yt thou couetest to do as to heale & make sicke 
+or stand or go.
+
+Dixit Salomon sicut Lapides sunt mundiores &c.
+
+Salomon said as 
+stones be cleaner & fayrer then gold & in 4 vertues of this world as 
+be stones, herbs, wordes & beastes. I say that in the beginning of this 
+booke [Cepher] Raziel that was crowned with 7 stones of great power, & he 
+put them in his booke. The first is Rubinus [ruby]. 2. carbunculus. The 
+second Smaragdus [emerald]. The third Saphirus. The 4 berillus. the 5 Topazius. 
+The 6 Jaguncia [jacinth]. the 7 Adamas. And of the vertues of these stones 
+Raziel hath spoken & said that they were crowned of 7 Angells 
+which hau might on the 7 heauens. & of the 7 dayes of the weeke.
+
+And 
+Raziel said know eich man that hath this booke, that in this booke be the 
+more vertues of this world. And the first vertues of this booke that is 
+said of 4 wings be the 
+
+vertues of stones. Wherefore know thou that by 
+stones alone thou might doe wonderfull things, if thou hast well 
+knowen as thou shouldest do with all other Images. If thou keep them 
+cleanly & reuerently.
+
+De Prima Ala.
+
+Et dixit Salomon. Scias quod in prima ala sunt &c. 
+
+And Solomon 
+said know thou that in the first ala or wing be 24 precious stones great 
+& of great power to similitude, & signification that there be 24 houres in 
+the day & night. Salomon began & said. I put or set the first 
+stone Carbuncum, 1.e. rubinum, For that it is brighter & clearer & fairer 
+& of more price aboue all other stones. And I woll say of his colour & his 
+power & his vertue, & of his seale & of his figure that ought to be 
+in it. And thus I shall say in all other stones. Ech stone signifieth 
+durability or lastingnes without end. The colour of Rubin is as the 
+colour of fire sparckling. And his power is that he shyneth by night as 
+starr or as a flame of fire sparklinge. And the vertue of it is that it 
+maketh good colour of men that beareth it reuerently. And it encreaseth 
+his good of this world among other men. And the ymage which thou ought 
+to put in hit ought to be as Draco that is a dragon well fayre with dread.
+
+The second stone is Topazius of which of which the colour is cytrine as of gold. his 
+power is that if it be put in a caudron with feruent or boyling water 
+it with holdeth that it may not boyle which is for great 
+power of making could. And the vertue of it is that it maketh a man 
+chast that beareth it with him & it giueth benevolence or well willing 
+of great Lords. And his figure is a Faucon [falcon]. 
+
+The third stone 
+
+[135r]
+
+is smaragdus this stone is greene & faire upon all greenenesse, and it is 
+not heavy as other. And his power ia to keepe the light, & it healeth 
+the face. And it doth many wonderfull things. And his vertue is to encrease 
+riches. And who that beareth it in gold prophecieth things to come. And 
+the figure of it is Scarabeus that is a man~ flye.
+
+ The 4th stone is 
+Jaguncia [jacinth] the color of which is red as the graynes of an apple. Of these 
+sothlie there will be well coloured some & some a little & some in the 
+middle manner. his power is that he that beareth it is not infect with 
+alien infirmity. his vertue is that he giueth health & honour, & keepeth 
+the man bearing it hoole in ways or in Journeys. And his figure is a 
+Lion well figured.
+
+ The 5 stone Crisopazius of which the colour is 
+greene & within it hath similitude as though it had golden dropps. And 
+his power is to defende a man from the podagrie. And his vertue is that it 
+maketh to prophecy things to come if it were in the hand cleane & chast. And 
+his figure is the Image of an Asse.
+
+ The 6 stone is Saphirus the colour of 
+which is full ledy & faire as the colour of the pure cleane heauen. 
+his power is that he healeth all infirmities that wexeth in a man of 
+inflamacion & greuance of the eyes. And it cleanseth them much. And if 
+in this stone be grauen the head of a man with the beard it delivereth 
+a man from prison & from all pressure. And this stone accordeth to the power 
+of great Lords & of kings. If this stone be kept cleanly, reuerently & chastly 
+& that it be good oriental with it a man might attayne great honour & 
+the profitt of it that he seeketh & coueteth. And sem~en putteth there the 
+signe of a wether z. Arietis.45
+
+  
+  45. K: the signe of a ram. Aries.
+
+  
+
+The 7 stone is Berillus the colour of wch 
+is of the eye or of sea water & some of them be round & some of 5 
+corners. This stone ought to be cleare wthin & cleane and his power is to 
+chauf the hand closed of him that beareth it. And if it be set in gold it 
+giueth great freindshipe betwixt twey men if thou touchest them 
+with it. And his figure is Rana, that is a frogge & it is of great 
+power for to make peace concord & loue. 
+
+The 8 stone is Onix [onyx]. this 
+stone is full blacke, & his power is to giue him that beareth it many 
+dreadfull dreames & dreades. he that beholdeth himselfe in it hath 
+power upon all deuills in constrayneing them & in cleping & in 
+gatheringe them together in speculeo tabileo [jubileo?] coniuring as it behoueth. 
+And his figure is the head of a camell or twey heads betwixt twey trees 
+that be said mirti. 
+
+the ninth stone is said Sardus the colour of which 
+is red & faire, & his power is to make other stones fairer. his vertue is to 
+giue good colour to him that beareth it, and it is put in gold. And if 
+there be grauen in it Aquila that is an Egle [eagle] it giueth great honor. 
+
+the 
+tenth stone is Crisolitus and it is of golden colour & sparkling as 
+fire. his power is to gather together deuills & winds. And his vertue 
+is to defend the place where it is from euill spiritts & dead men that they do 
+not there any euill. And that deuills obey to thee. And his figure is 
+vulture that is a vowter.
+
+The 11 stone is said Cliotopia. And it is a 
+stone of great power of which the colour is greene & faire & shineing 
+& cleare with dropps like blood well red within. This stone is said the 
+stone of wise men, of prophetes & of Philosophers. And this is honoured for twey 
+things for the colour like to Smaragdo in greenesse, and in rednesse 
+to Rubino. The price of this stone ouercometh the price of other, and of his 
+vertues & proprieties. the power of this stone is that if it be put in any 
+broad vessell full of water to the sunne it resolueth the water into vapour. 
+And it maketh it to be raised upward till that into the forme of Rayn [rain] 
+it be conuerted downeward. His vertue is that who that beareth it in the 
+mouth or in the hand closed he may not be seene of any man. With this 
+stone a man may haue power upon all deuills & make eich 
+incantacion or enhantment [enchantment] that he woll. And in this stone ought 
+to be grauen vespertino. thus he saith but I trowe it be vespertilio
+
+[135v]
+
+that is a backe46, or reremouse.47 
+
+  
+
+  46. backe: bat (Lat. vespertilio).
+  
+
+  47. Dormouse.
+
+  
+
+the 12 stone is Cristallus 
+of which the colour is of water congeled of cold. his power is 
+that he putteth asbtray of fire from him. And his vertue is that 
+he encreaseth to norich [nourish] much mylke [milk] and good. And thou may 
+take in it what vertue thou wilte. After that the houre shall 
+be in which thou hast wrought. And after that the ymage 
+shall be which thou hast made although they be many, & hit 
+be seene easy. know thou that it hath many vertues. And his 
+figure is a Griffon that is a fowle & a beast, for he hath 
+4 feete & 2 wings, & he is a great beast. 
+
+the 13 stone 
+is Cornelnia and it is likned to water in which bloode as 
+the loture [i.e. lotion] or washing of blood. And his power is to stanche 
+blood of the nostrills. And of these be grauen in hit a man well 
+clothed holding a yarde48 in hande, it giueth honour to him yt 
+beareth it. 
+
+the 14 stone is Jaspis & it is thicke derke greene 
+& red, & there be some greene & cleare & they be better 
+then other. And there be some red thicke & dropped. And his 
+power is that who yt beareth it, is not 
+
+letted with venyme neither 
+with serpent neither with Attercoppe [i.e. spider], neither with scorpion, & it 
+defendeth a man from a feauer if in it be grauen Leo, Aries, or 
+Sagittarius.
+
+the 15 stone is yris [=iridescent quartz] & it is likened to Cristall or 
+to gellij [jelly]1 & it hath corners, & if any man put it in an house 
+to the beame of the sunne, so that the beames passe through it 
+or by it, the colour appeareth of the Rayne bow [=rainbow]. And for this 
+cause it is sayd yris that is the Rainbow. And this is his might 
+for he hath 7 corners:2 And the vertue of it is to keep the place 
+in which it is with health honestly & there ought to be grauen 
+in hit a man that [+is] armed that beareth a bow & an arrowe. 
+
+  
+
+  1. Lat. gellu ("cold").
+  
+
+  2. VRL1300 and Halle both read sex angulos ("six angles/corners"). Yris, i.e. iridescent quartz 
+  typically has the crystalline shape of a six-sided prism, and produces a rainbow when light is shined through it.
+  
+
+the 16 
+stone is Corallus & it wexeth in riches of the sea as arbor inuersa 
+that is a tree ouerturned. And it hath branches as a tree more 
+till [two] to three palmes or pawmes & no more. And when it is drawen 
+up it is greene & tender & when it is dried in the aire, & it is made 
+red & hard as another stone & otherwhile it is founden white. 
+And know thou that the red be better. And where this stone 
+were it keepeth the house & the vineyard or the place from 
+tempest pestilence & Torment & it keepeth the place with health 
+& it defendeth a man from malefetis z. maleficiis & from all 
+euill enchauntments. And his ymage is a man like to him 
+that holdeth a sword in his hand. 
+
+The 17 stone is prorsms or prossins & 
+it is of greene colour & thicke & fayre & it helpeth malefetis 
+& giueth to them grace to his ministery & taurus 
+
+ought to be 
+grauen in it.
+
+The 18 stone is said Catel & it is of great power 
+both in dedes & in vertue the colour of which is like to Berill, but 
+for it is derker than it although it haue within full cleare & 
+cleane beames or strakes. And there be found some of 6 corners 
+& some of 5. And his power is to enclepe deuills & to speake 
+with them. And his vertue is, which if thou makest in 
+the banke of a water & bringest the rote of Appii & 
+
+[136r]
+the stone hanged to the necke in the skynne of an asse suffumed 
+with mastice, thur, croco, & thou inclepest what dead man thou 
+wolt that is knowen to thee & other. know thou that anone he 
+shall appeare to thee & he shall be with thee in the same tyme. 
+And graue thou in it a lapwing & before draganciam which is a 
+middle herbe & it is said Columbrina.
+
+  
+
+  48. K adds "or a rod."
+  
+
+The 19 stone is Celonites
+& it is greene as an herbe, And his power is that it wexeth and 
+decreaseth as the moone. And his power is to make peace & concord
+betwixt tweyn if in it were the figure of a swallow. 
+
+The 20 
+stone is calcedonius & it is white as betwixt Cristall & Berill 
+or as gytus thicke bright. his power is to overcome plee. his 
+vertue is to hold a man hole in an alien land. And his Image 
+is a man that holdeth his right hand straight forth to heauen. 
+
+The 21 stone is Cerannus. This stone is of diuers colours after 
+diuers climates & diuers lands. Otherwhile white, otherwhile 
+browne & greene & red. And els where it is likened to yron [iron] 
+& somewhere to copper & to sulphure & it hath as roundletts 
+
+painted & little drops. And his power is to defende a place from 
+thundrings & lightnigs. And his vertue is to defende from all 
+enemies. And write thou in hit in one partie Raphael, Michael, 
+Gabriel. And on that other side Pantaseron, Micracon. Saidalson. 
+And thou berest & hast it in thy power thou shalt ouercom all 
+enemyes & thine aduersaries. 
+
+the 22 stone is Ametistus & 
+it hath the colour of wine upon a white cloath or of rose, or 
+violett. And this hath might to chase away fendes. And his 
+vertue is to defend from drunkennesse. And his figure is Vrsus 
+that is a beare. 
+
+the 23 stone is magnetis or magnes. And it is of 
+great weight & like to ferro brunito. his power is that he 
+draweth dead yron [iron] as nayles, knife & sword. And his vertue is 
+that with it thou might be in what house thou wilt & doe 
+what thou wilt with men & with things of the house suffuming 
+the house of hit & with this men made enchantments. And 
+graue thou in it a man 7, armed when Luna were in Ariete 
+or Scorpione ioyned with Marte. And Sol (?) be it beholding them of 
+terno aspectu. And know thou that what manner images thou 
+grauest in this stone such enchantments thou might attayne and 
+beare with thee & thou shalt profitte. 
+
+The 24 stone is Adamas 
+& it is of middle colour & the better hath somewhat of greennesse. 
+And his power is that with it other stones be grauen, & therefore we 
+haue put it more straunge, and more utter.49 And his power or vertue 
+is to keepe the members of a man safe & hole. And this stone is 
+more &
+
+better it selfe at price in enchauntmenmts and in inuocations 
+of winds, spirits & deuills. And with this thou may send whateuer 
+fantasy thou wilt. And his figure is of 5 corners. And 
+know ech man who that woll beare with him a pretious stone, be 
+he pure & cleane, when he would doe any thing with them. 
+And eschew he or keepe himselfe from uncleannesse & keepe he 
+them reverently in a quy iche or in a cleane place. And 
+Raziel said in the houre in which thou wilt do of sem~ [Semiforas] beare 
+the three stones aboue said & thou shalt profitt.
+
+  
+
+  49: K: openly.
+  
+
+[136v]
+
+Dixit Salomon sicut aius corpus volare non pt &c. 
+
+Salomon 
+said as the body of a fowle ne may not fly without wing 
+neither go wither he coueteth. So by science of one thing 
+alone we mought not fullfill that wee desire. And for this 
+we putte the second Key in this booke. And we say ne if [it?] the 
+second, for that it maketh the second openinge.  ffor as this 
+world is closed with 4 elements: so this booke is closed 
+with [i.e. encompassed by] 4 sciences & 4 vertues. And now we haue said of stones, 
+now say we of herbes. Know thou that in herbs is vertue of 
+the most that may be. And some of naturalls of this world 
+beth yt liueth of them as they that haue reason. And some that 
+flieth & some which swymmeth, & wch goeth & which crepeth. And 
+know thou that of trees & herbs some liueth much & some middle 
+& some litle & that is to the similitude of beasts. Know thou 
+that among herbs there be some with which thou may do good 
+& euill. As to heale & make sicke. And so understand thou 
+in these that shall be said furthermore. And Adam said by a 
+tree came wretchednes into the world that is by the tree 
+
+I 
+sinned in it. And Raziel said, An herbe shall be thy life. 
+And Salomon said, A tree shall be & shall wexe of which 
+the leaues shall not fall. And it shall be medicyne of men.
+
+The second wing is to the similitude of 24 houres, & of 24 stones.
+
+De Secunda Ala.
+
+  
+
+  VRL 1300 25v. Halle 14b36 15v.
+  
+
+Prima herba est acyl almalit &c. The first herbe is acyl 
+almalit & it is said Corona regia, and in Latin Ros Marinus. 
+This herbe hath a myddle tree50 & good odour, & little leaues & 
+his power is to chaufe contorte the brayne. And if an house 
+be suffumed with it, it chaceth away deuills. The same doth 
+Pionia. 
+
+  
+  
+
+  Rosemary.
+  
+
+  50. tree i.e. stalk or trunk.
+  
+
+The second herbe is Artemesia & this is mother & 
+first of other. But for that other is said Corona regis that is 
+to say the Crowne of a kinge, we hau putt it first. Of this 
+they saiden all that in all things that thou dost thou shalt 
+put of it. And the leafe is middle greene on that one side 
+& white on that other. And it wexeth middlly. And with this thou 
+shalt clepe windes & all spiritts that thou wilt & thou shalt 
+profitt. 
+
+The third herbe is Canabus [cannabis] & it is long in shafte & 
+clothes be made of it. The vertue of the Juse [juice] of it is to 
+anoynt thee with it & with the iuce of arthemesy & ordyne thee 
+before a mirrour of stele [steel] & clepe thou spiritts & thou shallt see 
+them & thou shalt haue might of binding & of loosing deuills 
+& other things.
+
+The 4 herbe is said feniculus & it hath small 
+leaues & a longe shafte. And it is an holy herbe and 
+worshipfull. And it is medicine of the eyen & it 
+
+giueth good 
+light & it chaceth away euill spiritts & euill eyen in the place 
+where it is. The roote of it chaceth away euill things & 
+helpeth the sight.
+
+The 5 herbe is cardamomu [=cardamom] & it is hott & 
+of good complexion & it is of middle highnesse & it giueth 
+
+[137r]
+gladnes to him that useth it. And gathereth together Spiritts. Eate 
+thou this when thou clepest or makest invocation, & if thou wilt 
+made fame of it. 
+
+The 6 herbe is anisum [=anise] & it is of chastity ioyned 
+to camphore & thou shalt see that spiritts should dread thee. And 
+it is a cleane herbe & it maketh to see secrett things & priuy, & 
+the fume of this ascendeth much. 
+
+The 7 herbe is Coriandrum, & this 
+with holdeth the spirit of a man much with other, & it maketh a 
+man as full of sleepe. And this gathereth much together the 
+Spiritts. Wherefore euermore they standeth with it, so that it is 
+said that if with this and Apio & iusquno [=henbane]51 thou make fumigatione 
+compowned with much Lazaras z. leicula anone it gathereth together 
+sp~ & therefore it is said herba sp~m [=spirituum]. 
+
+  
+  
+
+  51. VRL 1300 27r: apio & iusquiamo (?) K: insquiano.
+  
+
+The 8 herbe is said persilium [=parsley]
+which hath greate might for to chace away the spiritts of 
+roches.52 And his vertue is to breake the stone in the bladder of him 
+that useth it.
+
+  
+  
+
+  VRL 1300 27r: petroxillum
+  
+
+  52. roches: rocks. (Lat. lapidem.)
+  
+
+The 9 herbe is ypericon [=hypericon] & it is a middle herbe thirled 
+the iuyce of hit seemeth bloode. This is of great power for 
+with the iuce of it & wit croco [=crocus], & arthemesia & with fume of 
+radicis Valeriane [=valerian root] if it be written upon what frendshippe thou wilt 
+of a Prince of Spirits of the eyre and deuills know thou that anon 
+it shall be that thou couetest. And so upon spirits & winds. 
+
+The 10 
+herb is Apium [=parsley or wild celery]. this is of great power upon 
+
+winds & deuills, and 
+fantasies, & it is shaded & touched to shade & the (?) cloude alstisse for 
+in it by winds & deuills & this alone maketh albo fortu~.1
+
+  
+
+  VRL 1300 27r, Halle 16v: Et ista sola facit albohor.
+  
+
+Vazebelil. z. martagon.52b  
+& they be much contrary for one is kept 
+with heauenly angells & another with deuills. z. apium. And this 
+breaketh the stone of the reynes [=kidneystones]. And a woman with child use 
+her it not, for it noyeth53 to the child. And it gathereth together 
+deuills when suffumigation is made with it nisqrmo [iusquiamo i.e. hyoscyam i.e. henbane] and arthemesia 
+[=artemisia i.e. mugwort]
+Apium suffumed by 7 nights with fagar almeit,53b & gathered cleanly 
+& the roote of it put & dried & than tempered with aqua lapidis53c 
+suffume thou thee by enviroñ, when thou wilt, & thou shalt 
+see fantasies & deuills of diuerse maners.
+
+  
+  
+
+  52b. VRL 1300: uazabelil hoc est martango. Halle: nazabebil hoc est martagon.
+  
+
+  53. Noy: annoy or vex.
+  
+
+  53b. VRL 1300 27r, Halle 14b36 16v: fagaralmeyet. BoO: fagar Almaits roots.
+  
+  
+
+  53c. VRL1300 has aqua grandinis ("water from hail") instead of aqua lapidis.
+  
+
+The 11 herbe is 
+Coriandrum [=coriander] of the secund kind which maketh to sleep much. And if 
+thou make suffumigation of hit & Croco & [=saffron] iusgrm~o [=iusquiamo = henbane] & apio~ and 
+papavere nigro [=black poppy] grounden together euenly & tempered with succo cicute [=hemlock juice]
+& with ???.1 And then suffume thou the place where thou wilt 
+hide treasure when luna were ioyned to Soli in angulo terræ, that 
+is to say in the corner of the earth. Know thou that thilke treasore 
+shall neuer be found, & who that will take it away shall be made 
+fooles. And if in the houre of deposicion of the gold or siluer of the 
+stones or ymages thou suffumest with thur, must, succo, ligno aloës 
+costo (?) -- euermore deuills kepeth that place & euill winds. And know 
+thou that it might neuer be disolued or fond out without Sem~. or an 
+image made thereto by the point of starres.
+
+  
+  
+
+  1. VRL1300: desiccatis ("dried"); K: msk ("musk").
+  
+
+The 12 herbe is Satureia 
+this is of great vertue & of good odour & who that beareth it with 
+him 
+
+with arruc'la muris in the day of Veneris it giueth grace of goods 
+& it taketh away from the place windes & euill fantasies.
+
+The 13 
+herbe is that is said sta~ [=sancta]53b & this is middle in lenght & hath little 
+leaues: this ought to be holden worshippfully in holy places as in churches 
+for it defendeth the place from euill things. And with his prophetes madeth 
+dead men to speake that were dead by many dayes or fewe. In place 
+
+[137v]
+where is any euill he hath not might if he that bearetht it 
+clepeth him not. And it giueth to him might upon thing which 
+he would. And this herbe put upon the place where deuills 
+be closed it constrayneth them & bindeth them lest they might 
+moue themself. And Salomon said I found in the booke of 
+Hermetis54, that who that taketh water in the 4th houre of the night 
+& goeth upon the tombe of a dead man with Spirit he will 
+haue speech, cast he water upon the tombe with this herbe 
+ysopo. And the water be it suffumed with costo succo musto54b & 
+say surge, surge, surge, that is to say, "rise, rise, rise," & come 
+& speake to me. And do this by 3 nights, & in the third he 
+shall come to thי & he shall speake with thee of what thing 
+thou wilt.
+
+  
+  
+
+  53b. sca (with a macron) is a very common abbreviation for sancta ("sacred").
+  VRL 1300 27v; Halle 14_B_36 16v. Also called prophetarum in both those mss.
+  Du Cange 
+  identifies prophetarum as the herb 
+  vettonica (=betony), 
+  which has a matching folklore going back to Roman physician Antonius Musa.
+  
+
+  In their printed Sepher Raziel, Don Karr and Stephen Skinner (p. 171) interpret 
+  sca as centaurea, citing "the Latin version", but this is not the case 
+  with the Vatican or Halle mss at least. 
+  
+
+  54. For Liber Hermetis see Sloane MS. 3847, fol. 84-100: Hermes. Trismegistus. 
+  Liber Magicus 17th cent. (Liber Hermetis tractans de 15 stellis 15 lapidibus 15 herb. 
+  et 15 harum rerum figuris.)
+  
+
+  54b. VRL 1300 28r: subffumigata cum costo musco et suc et dicat...;
+       Halle 17r: suffumigata cum costo musco et succo et suc et dicat...
+     ("suffumigate with costus, musk, and juice, and say...")
+  
+
+The 14 is spillu~55 which is of great vertue: for it 
+sheweth or maketh open in the ayre, that other mought not do. 
+And it maketh to see spirits in the cloudes of heauen. And this 
+with cicorea56 & garmone, & the tree yt swymmeth which is said 
+Arbor cancri57 & ma~lie with rore pradij [p radii (?)] & with the tree 
+that sheweth by night, & it is said herba lucens that is the herbe 
+
+shineing. Yf thou makest with these an oyntement with the eyne 
+of a whelp & with the fattnes of an heart [hart], thou might go 
+surely whither thou wilt in one houre.
+
+  
+
+  55. K: psyllium.
+  
+56. K: scicorda.
+  
+
+The 15 herbe is maiorana 
+this keepeth an house by it selfe & defendeth from euill infirmities. 
+And Hermes said that genciana & veleriana [valerian] & maiorana [marjoram] 
+availeth much upon great honour of princes & of great men.
+
+The 16 herb is Draguncia. This is of great power & the highnesse 
+of the roote of it ioyned with the tung of Colubri which is lett 
+quicke. And the herbe be gathered when Sol is in the first degree 
+of Cancri [Cancer], & Luna beholdeth mercur~ or is in the house of mercur~, 
+or ioyned with him. Know thou that who that toucheth with this 
+Clausures57 they shall be opened to him anone. And hermes said 
+that it gathereth together winds & spiritts if mandragora were 
+with it & capillus de zoara.
+
+  
+  57. K: clansures or locke.
+  
+
+The 17 herbe is Nepita. And if this 
+with maiorana & Athanasia & trifolio & Saluia, peruca, edera 
+& arthemesia with ysopo58 be ioyned & gathered together crescente
+Luna die Jouis that is to say in the waxinge of the moone in the 
+day of Jouis [Jupiter] in the morrow when the Sunne wexeth from the first 
+degree of Arietis till into the first of Cancri. And when thou shalt 
+gather him be thou cleane & washen worshipfully & stand thou 
+toward the East. Know thou that the house & the place is 
+amended where these 9 herbs were ioyned together & put them 
+upon the gate of thy house & thou shalt profit euermore. And 
+these 9 herbs ioyned be like to rubine
+
+  
+  58. K: maiorana and athanasia & trifolio and salina hermita edera and artemisia wth ysope
+  
+
+The 18 herbe is linu~ suffumigation 
+of the seed of this with sere~psillii .z. azarlochona & radix 
+viole & apii maketh to see in the ayre things to come & to say 
+many propheces.
+
+  
+
+  See OP1.43: 
+  "So they say that fumes made with Lin-seed [linseed], and Flea-bane seed [psyllium, Lat. Psyllii], and roots of Violets, and Parsly [parsley], doth make one to fore-see [foresee] things to come, and doth conduce to prophecying."
+  A more elaborate method can be found in Muzzi's edition of Grimorium Verum.
+  
+
+The 19 herb is saluia [salvia]. This is of great vertue & 
+the long leafe of it as lingue Agni & sharpe. this breaketh or 
+disperseth euill shades & euill spiritts from the place where it is.
+And it is good for to beare with him: for it holdeth a man hool, but 
+a sicke man hold he it not with him.
+
+The 20 herbe is Samina  
+
+[138r]
+[Sanina]. And so~men sayn that it is a tree. this is a tree of loue & 
+dilection, who that can chese it. And if this with somewhat of croci 
+& with Lingua Colubri be borne with him in a ring of gold and 
+somewhat of pvi*ca [provinca] surely go thou before the king or before 
+whomeuer thou wilt, & most if thou put with it the stone that is 
+said Topazius or yf thou wilt Berillum. And if this ring were made 
+when Luna is ioyned to Jovis in trino from Sole it is much the better. 
+And it is said Annulus Solis that is the ring of the Sunne & it is 
+of health & against infirmities & it is of grace & vertue & of 
+honor.
+
+The 21 herb is Nasturcium. This holdeth the members hole 
+& there were with it Origanum & Pulegium & arzolla & be borne 
+together with thee & thou eatest of them, thou shalt be hool wthin 
+& without. And so if thou anoyntest thee with them and were 
+suffumed with marrubio, albofor, & reubarbaro, & herba thuris it 
+shall defend of many infirmities.
+
+The 22 is an herb that it said 
+Canna ferula. this is full dreadfull & greivous, & strong in worke. 
+And if thou takest the iuce of it, & the iuice of cicute & ms~qim 
+& Japsi barbati, & sandalum rubeñ & puprrm nigrum with this 
+confection made fume thou what thou wilt, that thou see deuills 
+and things & strang figures. And if Apm~ were with this know thou 
+that from eich place suffumed deuills should flye, & if thou wilt 
+thou might destroy euill spiritts. This suffumigation is full 
+euill & dreadfull. for the fume of it & the worke ouercometh 
+in malice & worketh most euill. And more strongly if Luna were 
+with Saturno or in oppositio with Marte, that is in opposition of Martis.
+
+The 23 herb is calamintum & it is likened to n~ite [? K: mynte] & it is of great 
+vertue in good suffumigacions, & if there is with it on~ta [? K: menta] & palma 
+xpi~ z Pionia. These be holden taketh away euill winds and 
+spirits from a place & euermore it is against fantasies.
+
+The 24 herb 
+is Cicoreya. This is full good in all exorcisms & if it be ioyned with 
+eri~go & pentafilon & ypericon & vrtica & verbena, and all be together 
+& be borne at the necke & under the feete & be there the 
+herb of 7 knotts & of 7 leaues z martagon & lilium domesticum 
+& siluestre, that is tame and wild & herba angelica who euer 
+hath these under the feete or sitteth about & putteth the other 
+herbs to the necke & hath 7 rings of 7 mettalls in the fingers, 
+know he that he shall haue might in 
+
+binding & in loosinge, & in 
+enchantinge & in unenchantinge, & for to do good & euill 
+in eich place that thou wilt makeinge suffumigation of 
+these 9 things. thur, albo, thymiamate, mastice, musco, ligno alöes [aloes], 
+cassia, cinamomo. And if thou suffume thee with the 
+things aboue said in environ & seist these names. Raphial [*Raphael], 
+Gabriel, Michael, Cherubin, Seraphin, arrielim, pantaseron, 
+micraton, sandalon, complete meam petitionem & meam voluntatem 
+that is to say, fullfill ye my petition or axing & my 
+will & they should fullfill it to thee. And these be the 
+more names of the more 9 angells abouesaid. And know thou 
+them & keepe them. And som~en sayn that they be the 9 orders 
+of angells.
+
+Heere endeth the 24 reasons upon the vertues of herbs of the 
+
+[138v]
+second wing. And these experiments were now written in party 
+in Raziele, although Salomon put to of this there, & of the 
+Saiues of Hermetis. And the herbs be put in the booke of Razielis 
+for that with them we may be excused & worke with 
+herbs as with Sem~ with fasting & words in good & euill. 
+And [let] no man Joyne himself to Semiforas till he know 
+himself in the first wing & in the second. And thus we 
+shall say all thing that shall be to us necessary with 
+the help of god.
+
+De tertia Ala. [The third wing.]
+
+Dixit Salomon super Alam tertiam sicut Corpus Solis &c. Salomon 
+said upon the third wing as the body of the Sunne is more 
+appearing & mighty upon all other bodies & brighter, 
+& fairer & clearer. So the vertues of sensible beasts wch 
+feeleth [K: flyeth] and sendeth out 
+
+voice, & seeth. And so beasts of the 
+third wing haue power upon the twey first wings of stones & 
+of herbs & he put therefore in this Raziel 24 beasts with their 
+names, & vertues & states. And the figures be 24 distincte & 
+departed a twyne. And I will put upon eich element 6 
+beasts euerich distinct from other & euerich of his kynde. And as the 
+fier is the high lord & distinct from the 4 Elements. And the 
+life of them all is purer and cleaner among them, therefore I 
+beginne to say upon the beasts of fire, for as eich of the 
+4 Elements hath his beast beneath, so the fire hath his aboue 
+pure & cleane without corruption. And this fier that is aboue 
+is not expounded of wexe & trees neither oyle, neither with 
+other composition, but it is simple. And the things that liueth in it 
+be the angels cleare & clean & bright like to the beames 
+of the Sunne & like to the flame of the fire, or of a sparck 
+of fire, or of a starre or of the Colour of Quickesiluer or of 
+pure gold. And this similitude is naturall in the beasts of 
+the fire, & the figures of them bene seeme such as the 
+lighteninge in similitude & in deed. For as an Orison is a 
+Messager to the Creator, so they be ready anon to good & 
+euill & they seyn like things of prophetes that upon the 
+4 Elements be heauens with their beasts of which wee 
+should say furthermore.
+
+The second spirit is much cleane, but 
+derker then the ou~ & it is likened to the winde. And his figure 
+after that he will take & after some of the 4  Elements to which 
+he is ioyned, & he formeth himselfe in this manner either by water or 
+by a cloude or by moystnes or by thicknes of some darkenes or he 
+receaueth some body as fume of some kynde by falling in it either 
+by vois or by sleep [K: shape] of a beast elemented by these he taketh 
+forme after that the nature aboue disposeth. 
+
+The third 
+beast of which wisemen seyne is that euermore he fellowshippeth 
+
+[139r]
+spirit & most the corpulent & thicke of the spirit. And therefore his figure is 
+found by night in places of drede & it is heard & seene & that ofte tyme. 
+And the Colour of it is like to tp~i z after the nature of houre, ere it is 
+made, otherwhile to the similitude of the body of which it went out. 
+Wherefore sommen seeth otherwhile the soules of bodies in church yards 
+hayes. And of these souls said the wise Hermes & the prophet that the 
+soule that goeth out & hath might is not neither was but a man or 
+woman, & upon such manner soules speaketh wisemen & clepest 
+them spirituall & heauenly, spirituall for goodnes, heauenly for simplenes. 
+
+The fourth beast is the winde. Eich day we hearen but we seen not 
+although we seen other, & hearen not. And the works of the winde be seene 
+to the eye after the party from which it cometh. And he hath such nature 
+that if he is orientall or meridionall, that is East or South, he is hote. 
+And if he is occidentall or septentrionall that is West or north he is cold. 
+This we seene to haue greate power for it beareth clouds & waters, & 
+tempests & haules [K: gayles]. And it stirreth the Sea, & troubleth the Sea & breaketh 
+trees, & this is said quicke ayer, as the fire aboue is said quicke fire & simple. 
+And therefore the Elements be said double or twey fold, that is to say fixe 
+&  moveable. Moueable it is that it dwelleth in the corners of the Earth 
+althoug it descend from aboue. ffor the 7 aboue bindeth & looseth it for of 
+them it descendeth & it was formed of them & this is a great saeg' [? K: figure] in 
+sea, in ayre, & in land as it cometh temperate. 
+
+The 5 beast or vision 
+is a fantasie that is a shade to the similitude of diuers colours or manners 
+compownd of diuerse together. And this forme is made in desert place 
+or in a corrupt ayre. Or other while it descendeth from hills to the 
+similitude or likenes of knights & they be sayd Exercitus antiquus that 
+is an olde ofte [*host or army]. And otherwhile upon waters to the similitude of faire 
+women & well clothed, or in meades, & some sayne that they be faces. 
+And otherwhile this befalleth in a man of corruption or malice of 
+complexions & of humours that be in a man, & they be said 
+demonaici for that it ascendeth the head & falleth upon the eyne, & 
+such corruption maketh to see many fantasies. 
+
+The 6 beast is 
+said Demon. This descendeth in highnes to lownes & he was formed 
+of pure matter without corruption. Wherefore he faileth not but shall 
+euermore endure although he haue taken thicknes in darknes of the 
+lownesse of the Earth & he is pure in matter and strong in body. And 
+of this saith the wiseman that he knoweth all things that is. And 
+by him Philosophers haue answeres & wisemen of all things, of which 
+they will know the sothnes. And he dwelleth euermore in darkenesse 
+& in obscurity & he is neuer seuered from them. And of this sayth 
+the Prophet that he hath power of takeing forme or shape wch 
+he woll in the Earth after the will of the Creator. And he is said 
+a bright angell mighty & faire as the forme of the sonne & of the 
+moone & of a starre or of an angell or of a cloud or of a fowle 
+or of a fish or of a man, or of a beast or of a reptile that is a 
+creepeing beast or any other forme which he wold. And all these 
+aboue said without them know thou that they be impalpable, 
+or unable to be feled that is that they may not be taken with hand 
+neither be touched with fote for they be spiritts or windes. 
+
+[139v]
+And know thou that euerich of the abouesaid when it befalleth in any 
+of the Elements he taketh a body of them although the life of them 
+be of the fire & the dwelling of them be in the fire & their deeds 
+fuyry, for they be fuyry. And Raziel said upon these 6 that invocation 
+of them & appearing & constrayning & binding & loosing also 
+to do good or euill by them, All is made with cleanesse [therefore] who that 
+would clepe them or haue the seruice of them & with Orison and 
+fasting & fumigation, & with praysing of god as thou shalt here 
+furthermore.
+
+Animalia æris tertiæ alæ vocantur aues &c. Beasts of the ayre 
+of the third wing be cleped souls, for that they flyeth & they be of 
+4 menynge. One is said runnyng. Another flying, & swimminge & 
+going or creeping. Now say we of flying. And begynne we 
+first of Aquila that is an Egle [eagle], for that he is a fowle flyinge 
+much in height. And he hath Lordship upon all other fowles. 
+The Eagle hath such a nature that he taketh his sonns or birds 
+when they be little. And ascendeth them into a place when 
+the Sunne is high. And then he drepeth the face of them to the 
+Sunne & if they behold strongly the Sunn he deemeth them to be 
+his sons & good. And if they behold not, he deemeth to be 
+not his and euill & letteth them fall & dye. And a feather 
+of him freteth another fether. And he seeth farre by one 
+league or mile a little beast. A great beast sothly he seeth by 
+9 leagues or by a days Journey. The eye of him with the heart 
+haue great vertue & grace to a lord king or to a lord of a land, 
+for that giueth to him grace in his reame.
+
+The second fowle is 
+said Vultur that is a Vowter [vulture]. This hath great vertue in all his 
+members. The head of him helpeth against all dreames & against 
+craft of Magicke. And the feete helpe against malefetes. 
+And if an house be suffumed with 9 fethers of him it putteth out 
+from it euill spiritts. The gall of him helpeth the eyne better 
+then any thing of the world. Th' eyen of him put in the skinne 
+of a serpent, & the tong of him in a cloth of silke red 
+wlapped [sic wrapped] with them, helpeth in causes in which thou couitest to 
+ouercome & for to wynne the loue of another lord. The wings 
+of him put upon a bed defendeth a man sleeping from euill winds 
+& from all greevance & from euill spiritts, neither may they may 
+lett in all the house, neither any fantasies haue power nether other 
+things.
+
+The third fowle is Falco, that is a Falcon of whom 
+the vertue is that of great Lords he is sett att much price. 
+
+The boon of the highnes of the right wing ouercometh plees 
+both in rauishing and in takeing away alien thing. and the 
+heighnes of the left wing taketh away euill feuers. But 
+we ought not to slea venatiue foules neither 
+
+[140r]
+hounds although they haue many vertues in themselues. And know thou 
+that how many members be in euery beast, foule, fish or reptile, so 
+many vertues distincte hath euery member by himself.
+
+The 4 foule is 
+a turtur1 simple & good. netheles if thou takest the male & the 
+female together in a new potte with croco & provinca & cicorea 
+gathered together upon them which thou wolt ioyne together if 
+thou casteth the pouder of these upon them know thou that 
+anon they shall be ioyned together. And it giueth great loue [love] to him 
+that beareth the pouders with them.
+
+  
+  1. Turtur: turtledove.
+  
+
+The 5 foule is said Vpupa, that 
+is a lapwing haueing a creast of fethers in the head as a cocke. 
+And he hath many vertues. This hath one boon in his wings & it 
+gathereth together deuills & spiritts of the ayer. The property of him is 
+that who euer taketh the hearte of him & wlappeth [wrappeth] it in hony, 
+And then assoone as he may swallow it, & drinketh the milke 
+of a white or red or a black cowe, know thou that it maketh 
+a man to say things to come. And he hath another vertue for who yt 
+cutteth of the necke where a cocke croweth not neither may be 
+heard, neither the voice of an hound, neither [where] wheate is sowen 
+there & when he cutteth of his necke inclepe the deuills & then 
+bear he with him the halfen deale of the blood. And of that other 
+halfen deale anoynt he himselfe, euermore shall go with  him one 
+of the deuills that is to witte, he whom he can inclepe which shall 
+say many things to him.
+
+The 6 foule is said Ciconia1 that is an 
+haysoule, who that sleath him in the day of Lune & taketh the blood 
+of the heart of him & anoynteth himself with it & eateth the flesh 
+with se~re feni~l & with cardamomo & gariofilo, & ere he eate it suffume 
+he himself with good odours as with thure mastic & cinamom & other such 
+know thou yt he shall haue grace of enchanting which he wolle & of 
+coniuring & constrayning the spiritts of the ayer & other spiritts that goe 
+upon riuers & wells.
+
+  
+  1. Crane or stork.
+  
+
+These 6 foules abouesaid be an ensample upon 
+all other. And when thou wilt know the vertue of any foule, do 
+thou after the precept of this booke, Raziel, upon the booke of visions 
+of Angells upon the begininge of tymes in the 12 months as thou shalt 
+see furthermore.
+
+Dicamus de piscibus marinus & aliis &c. Say we of fishes of the sea & 
+other upon vi of them that is to witt of the more & middle that I  should shew the vertues of them.
+
+The first fish is Balena [whale], the fattnes 
+of which made liquid kept 7 yeares or more, for how much it is elder 
+so much it is better. It healeth a man from eich gout & euill wind if 
+he anoynt himself with it, if he anoynt the head with the blood of 
+him it helpeth him much & yeeldeth him strong & more hoole. And 
+it maketh to see verrt visions. The sperma of him is said Ambra. 
+If thou suffumest tombes with this it gathereth the spiritts aboue 
+downward. And of eich petition or axinge it maketh to giue answer. 
+And Hermes said there is not such suffumigacions for to inclepe Spirits 
+as Ambra & lignum aloes, costus, mustus, crocus & bloud of a lapwinge 
+with thimiamate.1
+These be meate & drinke & gladnes of spirits 
+of the ayre. And these gathereth them together strongly & 
+full sone. And wise men say that the sperme & blood 
+
+[140v]
+& the heart of a baleyne be principalls for to command the winds & 
+spiritts who that maketh fumigations of them.
+
+  
+
+  1. Agrippa quotes this in OP1.43.
+  
+
+The second fish is 
+said Delphin [dolphin]. And he is the knight of the sea. And as the Eagle hath 
+might among foules, & the lion among beast in this manner 
+hath the delphin in the Sea. Who that annoynteth of the bloode of 
+him, the cloathes of twey freinds it maketh them enemyes or 
+casteth the dry blood upon them. And who that beareth the heart 
+of him maketh him hardy.
+
+The third fish is Cancer. this hath 
+6 feet, take & brenne him in panno livido & with the powders frote 
+the teeth sofhlie it healeth them & yeeldeth them faire & cureth 
+the Cancre in the mouth, if thou casteth it upon the fire wth 
+somewhat of Stercosis humani combusti it gathereth together 
+spirits.
+
+The 4 fish is bright as an horne betwixt palenesse 
+& whitenesse z piscis claudims or Cepia. This fish hath many properties, 
+& this enchanters & prophetts knoweth well which made with 
+this their enchantments & their transfigurations. So that when 
+they would that an house should seeme full of water, or that 
+a riuer should enter by the gate, they tooke  this fish & with thimiamati 
+& ligno aloes & rosis & they fumiden an house & 
+they cast there of the water of the Sea. And it seemed that 
+the house were filled with water, & if he cast their blood it 
+seemed bloud, & so if he cast Snow. And when they would that 
+the earth should seme to quake then they cast there of the Earth of 
+a plow. And they made there diuerse similitudes in all things 
+after the thing which they put in the fumigation. And know 
+thou that it dureth so much as the fumigacion in the house, & 
+with the gall of him also they made many enchantments, for that this 
+beast is much unlike to other.
+
+The 5 fish is Murena [eel], & he is 
+lentiguromus (?) 
+the vertue of this is that enchanters beareth the 
+powder of him with them for to make enchantments.
+
+The 6 fish 
+is rana viridis, & if thou take it upon what woman thou wilt 
+and namest the names of the angels of the month in which thou 
+were [K adds: borne as I thinke] which be furthermore within in libro visionum you might 
+do good & euill of what woman you wilt.
+
+And know thou yt 
+if these fishes & all other thou may know the vertues & properties 
+all by the booke of visuions of moneths. And so understand 
+you by like thing in all other things.
+
+Primum animal est Leo. Ista bestia est valde fortis &
+The first beast is a Lyon [lion]. This beast is full strong in the 
+breast & in the cheekes & he is of strong beholding  or lookeing 
+so that when other beasts seeth him they be moued togither with 
+dread. And the skyne of him is of such vertue that if it be 
+put with other skynes it destroyeth them & maketh [them] bare. & 
+who that taketh the biting toothe of him that is cleped 
+dens caninus & putteth it in gold it is good to take away & 
+to take alien things. And the same doth a woolues 
+
+[141r]
+tooth. & if thou maketh a purse of the heart of a lion full of 
+blood musco & almea, & ligno aloes & thimiamate, & it were 
+gadered upon whom thou wilt & thou maketh hote, know thou that in 
+that houre he shall love thee much & doe thy bidding. And if thou 
+inclepest with the blood of a goat the prince of deuills he shall be 
+ready anon to do thy maundement. And so more kinga or he for whom 
+thou dost. And the same I say of great women.
+
+The second beast is Elephans that is an Elephant & he is full great & when 
+he is risen of herd he lieth, & when he falleth of herd he riseth 
+for that therto he hath not knees disposed well. And the boone of 
+the teeth of him is said Ebur that is Evory [ivory]. And if it be put in 
+lectuaries it comforteth the feeblenes of the heart as much as 
+margarita or more. And the bloud of him with the liver 
+comforteth much fasting.
+
+The third beast is Ceruus that is an 
+heart [hart] which liueth much, for that he reneweth as the moone or 
+an Egle. Who that maketh suffumigacion of the hornes is chaseth 
+away serpents, & by it self it chaseth away deuills.
+
+The 4 beast is 
+Catus, that is a Catt, & he seeth better by night then by day, & 
+who that taketh of him & of an yrchin & of a reremouse & 
+maketh of alcofol & alcofolizeth his eyne he seeth well 
+by night & by day. And if thou puttest <--25v--> there the eyne of an asse thou 
+might see whether the spiritts & deuills of the ayre go in.
+
+The 5 beast is mustela, that is a wesill, this bringeth forth her 
+issue at her moneth after Poets not after Philosophers. This helpeth 
+much when he is brent, & the skinne of him is written for to cause 
+loue betwixt tweyne.
+
+The 6 beast is Talpa1 that is a wandwarp 
+& dwelleth under the Earth & is likened to a mouse, with this 
+beast thou may make to come tempests, pestilences, haules, & 
+lightnings & comstacions & many euill things, if thou puttest 
+him bare & naked upon the Earth & ouerturned, 
+And with this thou may make discord & concord whom thou wilt, 
+for he is a cursed beast for that he healeth a man of 
+the fester when he is brent [burnt] & the powder ia incast.
+
+  
+  1. Mole.
+  
+
+And when 
+thou wilt know the vertue of other beasts, do as it is said in libro visionum, 
+upon which aske thou this of the lord of vision that is 
+yt it appeare to the that thou askest, & couetest to know of a beast 
+which thou wilt. 
+
+This beast seeth not neither hath eyn. And know 
+thou that the vision of months is upon all things that thou askest or 
+would knowe. And God shallbe wth thee if of right thou axe. And 
+know thou that heere is fulfilled the third wing. And now beginn 
+we the fourth which is complement & fullfilling upon all the 
+Elements.
+
+[De quarta ala. The fourth wing.]
+
+Dixit Salomon sicut corpus vivum &c. Salomon said as a quicke 
+body middle or great is  not moued with three feete neither 
+any foule lesse then with 2 wings, neither the world 
+
+[141v]
+is gouerned lesse then with 4 elements. So this booke may not neither ought to 
+be lesse then with 4 wings which be said 4 vertues. Wherefore Raziel 
+said that who that shall be filled with this booke shall be as one of the 
+prophets & he shall understand all vertues of things & powers of them. 
+And if he understandeth well he shall be a quicke spirit & if he with holdeth (?) 
+& worketh he shall be as an Angell. And therefore he put in this book 
+22 Elements of great vertue that is 22 letters or figures which the sons of Adae 
+that is of Adam mought not excuse.
+
+1. The first is Aleph א, that is A. 
+This letter is three cornered & it signifieth life power & highnes & the principle 
+or beginninge in all things. These putteth all things in their figures 
+& in their principles.
+
+2. The 2 is said beth ב, that is B, & it is full good 
+in things which we desire in battayle & in plee, & euermore 
+sheweth goodnes & profitt.
+
+3. The third is said gimel ג, that is g. And it 
+sheweth euill & greif & impediment in things.
+
+4. The 4th is said deleth ד, 
+that is d. this sheweth turbation & death of some man & harme to him.
+
+5. The 5 is said he ה, that is h, & it sheweth 
+price & honour & gladnes 
+& it is full good in all thing.
+
+6. The 6 is said vau ו, that is v, & it sheweth 
+death, paine, & trauaile.
+
+7. The 7 is said Zain ז, that is Z, & it sheweth 
+penys & riches.
+
+8. The 8 is said heth ח, that is h, & it signifieth 
+long life & health. 
+
+9. The 9 is said thes [Teth] ט that is t, & it 
+signifieth wrath woodnes & greif.
+
+10. The 10 is said Joth [Yod] י, that is 
+i, & it signifieth good life & gladnes & all good beginninge.
+
+11. The 11 is said Caph כ, it sheweth in very gladnes & 
+trauaile without profit.
+
+12. The 12 is said Lameth ל 
+& it sheweth gladnes & honour & profit.
+
+13. The 13 is said mem מ, that is m, & it sheweth greife & 
+otherwhile dolor.
+
+14. The 14 is said num [Nun] נ, that is n. 
+It signifieth restoring of a freind & a visitation of him & profitt.
+
+[15. The 15 is said Samech ס...]1
+
+  
+  1. Omitted.
+  
+
+16. The 16 is said ayn ע. 
+It sheweth occasion or euill of a woman.
+
+17. The 17 is said pe פ. It sheweth health.
+
+18. The 18 is said fee פ that is f. & it sheweth bloud 
+yshed [is shed] of good men & high.
+
+19. The 19 is said Saday צ. It sheweth health. 
+
+20. The 20 is said Coph ק It sheweth hid life.
+
+21. The 21 is said Res ר, that is r 
+& it sheweth a man that is fallen & is risen.
+
+22. The 22 is said Thau ת, that is 
+c. it sheweth greife & diminution.1
+
+  
+  1. Note there are two forms of Pe, and the Shin is missing.
+  
+
+Now we haue said of the 4 wings 
+upon the 22 letters that be upon the lawes of the table written. 
+And know thou that there be no moe but onely 22 letters which 
+be the roote of Sem~ [Semiforas], for with them it is formed & it is caused & is 
+made & with out them it may not be.  And some men seyne that 
+Camalio found them, but it is not soth, but the Angell Raziell 
+gaue them written to Adam in his booke that is said liber ignis. And 
+with them all the booke of Sem~ written. And know eich man that 
+readeth this booke that the Creator said to Raziel the names of Sem~ 
+wherefore if thou canst transpose these 22 letters or figures as it 
+beseemeth thou shalt attayne the great name of the Creator. And 
+with it thou might do what thou wilt euermore with cleanes & 
+with helpe of the Creator. Now we haue fulfilled this booke 
+of the wing like to the angells that is Panthaseron Micracon Sandalon, 
+for euerych of these hath 4 wings by mandement of the 
+benigne angell, which the Creator sent to me that this book 
+were better compounded & well ordeyned.
+
+Heere endeth the second booke & beginneth the 
+iii book of Thymiamatibus.
+
+[142r]
+
+Liber tertius.
+
+  
+
+  Cp. VRL 1300 37r; Halle 14-B-36 22v.
+  
+
+Dixit Angelus adæ fac thymiamata &c. The Angell said 
+to Adam make thymiamata. Thimiamata be confections of good odours 
+wth which thou shalt suffume & thou shalt please to Creacion & 
+thou shalt attayne to what thou wilt by this. And they of which they be made 
+be preciouse things which thou shalt find out of good odour & of good nature 
+& of cleane things. And when thou shalt do it be thou cleane of without 
+all filth. And then the Angell rested in that houre. And Adam remayned & 
+did that he might. And this Salomon expounded & said, I marvaile 
+why this is the booke  of Moysy, also for the Creator said to Moysy 
+make thou Thymiamata & suffume thou in the hille1 when thou 
+wilt speake with me. Wherefore Salomon said, that suffumigacions & 
+sacrifice, & unction maketh to be opened the gates of the ayre & of 
+the fire & the gates of all other heauens. And by suffumigacions 
+a man may see heauenly things & priuities of the Creator. And 
+eich man know that they thirleth [drill] the Earth, water, & the lownesses. 
+And Salomon said as there be 7 heauens, & 7 starres, & 7 dayes in the 
+weeke, of which euerich is distinct & is not likened to his euen. So 
+know thou eich man that there be 7 suffumigations which wthholdeth wth 
+them the vertue of the 7 starrs, & maketh apaid [K: glad] the spirits of the ayre 
+And the Angells of heauens & deuills, of angells of the world. And 
+therefore for a man yeldeth to them it that is theirs. Therefore they 
+be pleased & apaide for the words which thou sayst, when thou prayest 
+or sayst the names of them or the names of the Creator. And for this 
+that thou dost when thou washest thee & for the gift that thou 
+giuest to them when thou suffumest. And these things yeldeth them 
+earthly & appearing to thee. And the spirituall & invisible that is 
+that neither euill men, neither beasts mought see thee if thou dost 
+strongly about thee & about whom thou dost.
+
+  
+
+  1. The hill: Mt. Sinai.
+  
+
+Thymiamata is made of 
+many things & these be principall upon the 7 dayes of the weeke. And 
+first say we [of] thymiamata of the Saturday for the starre of him is higher 
+& the Angell of him is mighty in the Earth. 
+
+The first Thymiama [sic]
+of the Saturday ought to be of all good things & well smelling rootes as 
+is Costus & herba thuris [=hog's fennel]. And that is Thymiama of good. And so I shall 
+shew of all other as it beseemeth to good. And thymiama to other I shall 
+say in an other place.
+
+Thymiama of the Sunday is thure, mastix, muscus 
+& other such. And all other good gummes & of good odor in all good. And by 
+the contrary in euill.
+
+Thymiama of the Munday is folium mirti, & 
+lauri & leaues of good odor, & so understand thou in his contrary.
+
+Thymiama of the Tuesday is Sandalus rubeus, niger & albus, & all such 
+trees & eich tree of aloes & cipresse, & so understand thou of eich tree.
+
+Thymiama of the Wednesday is made of all ryndes [*woods] as Cinamomo, cassia lignea 
+& cortices [citri et] lauri & macis & so understand thou in other.
+
+Thymiama of the 
+Thursday is nux muscata, [ut] gariofili & citruli & the rynd of arangiarum 
+siccarx & pulverizatarum that is the rynde of orenges dry &d pouderd & all 
+other fruits of good odors.
+
+Thymiamana [sic] of the Friday is maus [*flores] rosa viole 
+& crocus and all other flowers of good odor.2
+
+  
+
+  2. OP1.44: To Saturn are appropriated for fumes all odoriferous roots, 
+  as costus root, etc. and hog's fennel; to Jupiter, odoriferous fruits as 
+  nutmeg, cloves; to Mars all odoriferous wood as sandalwood, cypress, lignum-balsam, 
+  and lignum-aloes; to the Sun, all gums, as frankincense, mastic, benjamin, storax, labdanum [i.e. Cistus], 
+  amber [i.e. ambergris], and Musk; to Venus, flowers as roses, violets, saffron, and such like; 
+  to Mercury all peels of wood and fruit, as cinnamon, lignum cassia, mace, citron peel [i.e. lemon peel], 
+  and bayberries, and whatsoever seeds are odoriferous; to the Moon the leaves of all vegetables, 
+  as the leaf indum, the leaves of the myrtle, and bay-tree.
+  
+
+And in the contrary to the 
+contrary put you all thymiamata stincking. And know thou that eich 
+thymiama of good odor gathereth together his spirits after that is his nature 
+& his colour & his strength. Thus I say for good, good, for better, better.
+
+And Hermes said of thymiamatibus that thymiama Lune is cinamonum 
+& lignum aloes & mastix & crocus & costus & macis & et mirtus. Wee 
+putteth this that eich of the Planetts haue a part in it & all this may be 
+Luna, good & well fortunate by good spices & sharpe.3
+
+  
+
+  3. OP1.44: But Hermes describes the most powerful fume to be, viz. that which is 
+  compounded of the seven aromatics, according to the powers of the seven planets, 
+  for it receives from Saturn, pepperwort; from Jupiter, nutmeg; from Mars, lignum-aloes; 
+  from the Sun, mastic; from Venus, saffron; from Mercury, cinnamon; and from the Moon, the myrtle. 
+  
+
+[142v]
+
+Although Salomon made distinction upon the days & planets of the 
+spices with the which a man ought to make thymiamata. And he 
+said that of Saturni is eich good roote in good, euill in euill. And of 
+Jouis all fruite, & of Martis eich tree, & of Solis eich gumme. 
+& of Veneris eich flower. And of Mercurii each rinde, & of Lune 
+eich leafe. And thus understand you in all other. & eich odorifr 
+herbe is of Veneris. And Raziel bade to Adam that he should 
+make good thymiamata & therefore Hermes understood that 
+eich thymiama is made of all good things, As of roote, tree, rinde, 
+leafe, flower, fruite & gumm. And yett seeds be put in it, as 
+bacre & cardamonum & wexe & put thou in it all good thing 
+& preciouse. And sythen he said Thymiama completum.
+
+And the 24 (?) 
+is some thymiama grecum or of greekes by which heathen men were 
+wont to suffume idols & yet to day churches & aulers [K: altars] be 
+suffumed, And it is said Thymiama Jouis & in sothnes who that 
+useth these thymiamatibus be he cleane & chast & of all good 
+will to the Creator he shall profitt.
+
+Dixit Salomon super 
+suffumigia hermetis quod dur &c. Salomon said upon the 
+suffumigations of Hermetis which be said beneth & they be 
+7 manners with which be made sacrifices. Some be made & 
+the first which giueth fastesth & giueth teithings to the 
+Creator, & therefore they trust that they attayne that they 
+desire & it is sothe.
+
+The second is that they washen themself 
+& clenseth & dwelleth cleane. And therefore they trow to attayn 
+their petition & asking & it is sothe.
+
+The 3 is that they do 
+almes for god & for the holy angells of him.
+
+The 4 is that they 
+sleeth & casteth the blood in the fire.
+
+The 5 is that they 
+sleeth & brenneth all.
+
+The 6 is that they pray much in houers 
+ordayned 7 tymes in the day, & 3 in the night.
+
+The 7 is to make 
+fumigation with good things & well smellinge & euerych of 
+these did this that he might attayne the sothnes of it that 
+he axed & [so] he attayned it by the mandement of the Creator.
+
+And know thou that fumigacion ouercometh in all. Sothely who that 
+suffumeth better to the eye it proneth [? K: proveth] & with this the wise man 
+excuseth all other. And wite thou that who that can well know 
+the natures of fumigacions he migh neigh to thilke spirits wch he 
+would inclepe after the nature of fumigacions. And euermore 
+consider thou the nature of the spirit & of the fumigacion & the 
+spirits be constrayned by their contrary & be comforted by  like 
+things. Wherefore it is to witt that as a wise leche in giueing a 
+medicine to a sick man remoueth the sickenes & in ledeth 
+health. So fumigacion remoueth the contrary from the place if it be 
+good. And with euill fumigacion be remoued good spirits & euill spirits 
+also dreadeth for eich thing more loueth health then sicknes. 
+And therefore it is said that Sulphur remoueth both good spirits 
+& euill. And this is probation & pref [profit] after one way. And there [is] 
+another way for lignum aloes gathereth together the spirits of 
+ligni aloes & none other. And Sulphur chaseth them 
+
+[143r]
+away & this is very reason. And then I say that Sulphur gathereth 
+together his proper spirits & none other & they be full stronge & 
+penetrate & thicke & be not seuerd or departed so soone from 
+a place. But and if a place were suffumed with Sulphur & then 
+were washen with water & suffumed wth ligno aloes, it doth 
+draw away the spirits of Sulphur & induceth or inledeth his 
+owne.
+
+And know thou that the spirit of Azet that is quickesilver 
+& the spirit of Thuris be contrary although spirits yet with all 
+the deuills entreth & thirleth rather then the spirit of Thuris 
+wherefore euerich hath full great might. And if thou wilt 
+out draw the spirits, yet suffume thou with thur & they shall 
+go out. And so understand thou of all other spirits good & euill.
+
+And Salomon said know thou that as a phisitian putteth in a man 
+good pure oyntments & cleane, &  they thirleth the body of a man 
+& heleth, So fumigacions thirleth the 4 Elemts & maketh 
+to se & know heauenly things which were euermore hevenly 
+& wch descendeth from heauens as be angells & spirits of the ayre & the 
+souls of dead men & deuills of lownesses & winds & spelunks [i.e. caves] & 
+of deepnesses & fantasies of desert places. Wherefore know thou 
+that all spiritualls with right fumigacion shall obey to thee & 
+shall come to the & they should do thy commandement.
+
+And Hermes 
+said that all things that was or is present or shall be knoweth that the 
+ouer nature ioyned with the nether by ordinance of tyme 
+& houre maketh one body & understanding & that he can 
+understand & know thilke things wherof creatures haue to liue 
+& themselfe to gouerne. Wherefore know thou that there be fumes 
+that chaseth away spirits & other that sleeth [K: steyeth] them, & constreyneth 
+[them] to come & other that quickeneth them & strengtheneth & giueth 
+might. And so by the contrary is some that destroyeth them & 
+taketh away their might. And this is the probacion of this for the fume 
+of an herte chaseth them away & this he said upon serpents. 
+And that chaseth them away is fumus am~ce [? K: amnecae] that is the fume of 
+fecis of oyle. And that, that sleeth them is the spettell of a fasting 
+man. And therefore he said that fumigacion is fullfilling of ayre 
+which hath not body, nethles fume destroyeth things that haue 
+body. And so fumigacion suffise it to us in all things beneath.
+
+And Raziel said, know thou that as water washeth all uncleanesse 
+And fire maketh liquid or molteth all mettalls & maketh clean 
+& fineth. And as the ayre is the life of a liueing man  & the 
+Earth sustayneth or beareth ech body & nourisheth ech plant: So 
+understand thou that good Thymiama z. fumigacion is fullfilling 
+in the worke to be the invocations of spirits, & of 
+other things & well proporcioned with which Thymiama 
+is confect or medled. And were made in eich houre convenient 
+or accordinge.
+
+Dixit Salomon propter hoc pono horam & tempus &c.
+
+  
+
+  Cp. VRL 1300 40r; Halle 14-B-36 24r.
+  
+
+ Salomon said for 
+this I put the houre & the tyme in the worke ffor in all 
+houre in which a man will speake to a king or to a prince, 
+he may not speake to them, neither in eich houre in which 
+
+[143v]
+a Sonne axeth any thing of the father he giueth to him. Therefor 
+it is darke to thee to chese the tyme & the houre upon these 
+that they axert. 
+
+This is qo tempus quidam that is sometymes said 
+Jovis: be it done in the day of Jovis & of Veneris in the day of 
+Veneris & of Martis in the day of Martis & of Saturni, in 
+the day of Sabote [=Sabbath]. And so of other that be done in invocacion 
+of spirits & in all praysings of Angells. And the fumigacion of 
+Angells which is pure  & cleane. Know thou that it is a 
+spirituall thing & liueing & fellowshiping to heauenly 
+things. And now said Vealha. Know thou that no man ought 
+to make fumigacion of preciouse things, but if he were clene 
+& with cleane waters well washen & anoynted with precious 
+oyntments which be made cleanly & with preciouse things 
+& cera alba [=white wax], balsamo, crono, & musco, Abiba tyneca [K: abitatmeca], algalea [=civet]
+ulmea, thure, mirra, oleo oliuarx [=olive oil]. 
+
+  
+
+  VRL 1300 40v:      "cera alba balsamus muscus ambra thÿrus algalea almea thus mirra & oleum oliuarum."
+  Almost identical is Halle 14-B-36 25r: "cera alba balsamus muscus ambra thyrus algalea almea thus et mirra et oleum oliuarum."
+  ("white wax, balsam, musk, ambergris, thyrus (?), civet, storax, frankincense, myrrh, and olive oil.")
+  
+
+And this oyntment be 
+it well kept & well warded in a cleane  place. Of (?) him after 
+that also the clothings be cleane white, new, & good not 
+broken neither blacke. And then suffume he himself 
+worshippfully & the manner of suffumeing him self ought 
+to be made in 7 manners toward the East, the North, the 
+West & the South toward heauen aboce & toward the 
+Earth beneath, & the 7th tyme all aboute. And as oft as 
+thou dost this euer more dresse1 thy mind unto god & pray that 
+he fullfill thy will. And know thou that I found in some 
+old booke that these were the more fumigacions. Thus 
+thymiama graecum. mastix, laudalus, galbanum, muscha-lazarat, 
+mirra, & ambra.  And these be collectors of 
+spirits & placacions of them.
+
+  
+  1. dresse: direct or address.
+  
+
+And Solomon said when thou wilt 
+gather together the spirits of the ayre do them in this manner.
+
+Cleanse thou thy selfe in the better manner that thou 
+canst & go to a pit where thou wilt knowen to thee & 
+suffume it & inclepe him by his owne proper name & 
+lath him or pray him & that by three nights. And if he 
+appeareth send thou him to a certaine place or to an house 
+or to a quadeirie that is a place there 4 wayes meett 
+or to a yard or garden & suffume thou the pit toward 4 parts 
+& in the place where thou lathest also as I have said & 
+then know thou that he shall come & he shall appeare to 
+thee that thou shalt do this.
+
+Et dixit Hermes, quod spiritus quod apparent &c..
+
+And hermes 
+said that the spirits which appeareth in this world be these.
+
+ 
+Some sothly be heavenly & the prophet clepeth them Angells 
+& they be bright & cleare as flame or a starre as we 
+hav said. Other be ayry or of the aiyre & so many colours 
+greene, bright & other such & of many figures. And other 
+be fuyry [=fiery] & they be bright & red. And other be watrie & 
+they be white & as bright faire or iron burnished or quicksilver. 
+
+[144r]
+Other be that neigheth to men & be like to a 
+white cloud or to a white cloath. And other be derke & dymme 
+& of diverse formes which be said divells, which be hidd with 
+the wind & they be in the deepnes of the sea & of lowness of 
+spirits that bring with them haules & tempests & lightning. 
+And wisemen clepeth them huge spirits & strong. Now we 
+have said of the nature of spirits & putt to thy mind & thou 
+shalt attayne with the helpe of God.
+
+Dixit Raziel. Sicut in aere puro claro &c.
+
+Raziel said. As in 
+the pure, clere, & bright & cleane & peaceable ayre all things 
+gladeth & ioyeth of it. So know thou that for cleannesse and 
+fasting & washing of water & prayers and orison of the Creatour. 
+And for naturall & cleane sufumigacon & very fayth or trust 
+thou might please them which we hav said above. And 
+Raziel said to Adam, know thou that in all maner the life 
+of Angells is heele & cleane. And the suffumigium or suffumigacion 
+is brede of spirits, which spirits liveth in fasting & cleanesse 
+& charity, sacrifice with Orison be the houses of holy soules 
+& trust is the auter [=author] of God [=good]. Wherefore eich man that hath these 
+above said in himselfe he shall attayne or neigh & he shall 
+profitt. 
+
+And Solomon said, these be that befalleth in 
+suffumigacion. Of suffumigacion anone shall come to us fumes 
+& then odour & of the fume & cloud & of the cloud an high 
+cloud & wind. And of the wind ascendeth the cloud higher & 
+of the cloud an high wind, & of the wind ascendeth higher & 
+is made a soule & of this the spirit is made higher. And 
+of the spirit an Angell of heavens & of angells light & 
+these be caused by cleane suffumigacions.
+
+And know thou 
+that suffumigacions be of 7 maners. Some sothly sharpe 
+& other penetratit or persinge, other sweete smelling 
+other stinkinge, other simple, other meeke, other of grife 
+other sothly of peace. And everych of these maners is after 
+his odour said & nature & complexion. Wherefore Hermes 
+said that as coldnes congeleth water with his cold. And as 
+water of the sea is congealed with great heat & as azerta cona 
+congeleth the water of wells. And everych of these 
+congeleth the water, one with coldnes & another with hotnes, 
+another by arte, another by nature & the matter is made one 
+body & one gobbett [=piece]. And know thou that good suffumiacon 
+gathereth together & constrayneth & maketh spirits to appeare 
+in the ayre & secrete or privy things & it maketh them to 
+take a body which our eyne [=eyes] seeth. And Salomon said as the 
+Adamant draweth yron [=iron] to him self, so know thou that suffumigacon 
+gathereth together & draweth the spirits of the ayre 
+& maketh them to come to the place where thou doeth it
+& wold gather them together. And the wise men says suffumigacon
+is like to the roote of arzolle for as it ioyneth together 
+
+[144v]
+gobbets of flesh into one. So suffumigacons gathereth together 
+spirits of heavenly or heaven with the 4 Elements & they make 
+that they taketh a body & spirits taketh visible bodies & 
+palpable. And a body taken they fullfilleth that they be axed 
+of them & that to likenes of a mirrour to which if there be 
+sett before what figure thou wolt a like appeareth within. 
+
+Thus fumigacion made cleanly & invocacion in the houre after 
+the spirits proportionall. The spirits appeare to us & new operacions 
+& workings with fullfillinge upon the thing which thou 
+askest. And be thou never deceived in the knowledge of 
+suffumigacions & put thou thy mind in them least they be 
+transposed, & thou shalt fullfill as that were & after 
+that thou doest as he said. And Salomon said I will touch 
+some what to thee of the nature of suffumigacions. In 
+colericke suffumigacions, who that useth it much, it 
+maketh to see in sleepe, or in sothnes greene things & yelow 
+& diverse colours. Melancholious fumigacion sheweth 
+leady [=grayish] things. Sanguine fumigacions sheweth red things, & 
+otherwhile it is sheweinge of purpure colour. Phlegmaticke 
+fumigacion sheweth white things & faire and so understand 
+thou after that the nature were & the appearing of 
+spirits & of their colours & visions & the worke of them shall 
+be after the sharpnes of it & the goodnes & direccion of 
+fumigii, is fullfilling of the thing after that the ymage 
+were firmed & the orison of the thing nempned & the 
+trust for all is in the intention of the man and in the houre in 
+which it is done.
+
+Now we have said how every of the 
+Planets hath his fumigacions. Now say we the fumigacions of 
+the 12 signes & of the 36 faces of them. 
+
+Aries holdeth by himself mirtam. 
+
+Taurus costum, 
+
+, masticen, 
+
+ Musthalazerath, 
+
+ thus, 
+
+ Clastem, 
+
+ galbanum,
+
+ opopanec, 
+
+ lignum aloes, 
+
+ asafetidam,
+
+ euforbium, 
+
+ thymiama [=thyme].
+
+[Incenses for each decan.]
+
+The first face of Arietis holdeth mirtam, the 2 stamoneam, 
+the 3 piper nigrum. 
+
+The first of Tauri costum, the 2 cardamom, the 3 cassiam.
+
+The 1 of Geminorum masticen, the 2 cinamomum, the 3 cipresenum.
+
+The 1 of  mastum, the 2 succum, the 3 anisum.
+
+The first of  thus, the 2 lignum balsami, the 3 nucem mustatam [=nutmeg].
+
+The first of  sandalos, the 2 crocus, the 3 masticen. 
+
+The first of  galbanum, the 2 befor, the 3 mirtum.
+
+[ is missing.]
+
+The 1 of  lignum aloes, 2 folia lauri, the 3 gariofilium.
+
+The first of  Asam feti, the 2 Colofoniam, the 3 piper longum.
+
+The first of   euforbeum, the 2 reubarbarum [=rhubarb], the 3 stamonea.
+
+The 1 of  thymiama [=thyme], the 2 crocum, the 3 sandalus albus.
+
+Nota secundum Hermetis de fumigiis.
+
+And Hermes said , , & 
+ withholdeth eich choleric 
+spice & bitter, &  , 
+& , melancholius & stipticke. 
+
+[145r]
+   
+sanguine & sweet, 
+  &  
+phlegmatike & salt of 
+savour.
+
+And this Salomon holdeth for the more naturall for such 
+spices we give & with them we suffume. And which maner fumigacion 
+we give to the planetts, such we give to the dayes & houres.
+
+  
+As the Sonday the first houre is of Sola & all the day together, we should 
+give thus, masticen, & mustum. As we have said of planets in the 
+beginning of this booke of thymiamatum. And so understand thou of all 
+other. 
+
+[Incenses for the four seasons]
+
+Know thou the suffumigacion to tymes. 
+
+  
+
+  VRL 1300 43v; Halle 14-B-36 26v.
+  
+
+In primo tempore lignum aloes, thus, & crocum. In the second tyme thymiama, costum, 
+masticen. In the 3 tyme, sandalo, cassia, mertum. In the 4 time 
+mustum, succum & lignum balsami. And he gave to eich of 
+the 4 tymes their spices or kinds, so he giveth to eich month one 
+spice in order.
+
+[Incenses for the four cardinal directions]
+
+Dicamus nunc suffumigia 4 partium mundi &c.
+
+  
+
+  VRL 1300 43v; Halle 14-B-36 26v. 
+  
+
+Say we now suffumigacions of the 4 parties of the world & of the 
+4 Elements, for all things that be in this world be compounded of the 
+elements or simples. Suffumigacions of the 4 parties of this world be 
+these. Upon the party of the East & the fire serveth Ambra, 
+Muscus & alba cera that is white waxe. Upon the party of the South 
+& the Earth, algalia [=civet], almea [=storax], & tyriaca [=theriac].1 Upon the party of the 
+West & the ayre, balsamus, Camphora & clarum olivanum [=olive oil]. Upon 
+the North & the water lignum aloes, mux mustate, & macis.2
+
+  
+
+  1. VRL 1300 reads: tinata; Halle 14b36 reads: cinata. 
+  I have not been able to identify a botanical with that name.
+  Folger and Royal MS 17Axlii both read theriac.
+  
+
+  2. VRL 1300: lignum aloes, muc, & macis.
+  
+
+And Salomon said, eich man that wold do any thing by this booke 
+put he the mind to the chapters of thymiamate that he 
+know the kings & iustly can meddle them. And so know 
+thou that thou might easily worke by hit & without travaile 
+thou might fullfill all thing that thou desirest to set. Now 
+we have fullfilled one Chapter of fumigiis or fumigacions & 
+we will say furthermore hit upon which was our intention 
+with the helpe of God.
+
+[Liber temporum]
+
+  
+
+  VRL 1300 44r; Halle 14-B-36 27r.
+  
+
+Here beginneth the 4 booke that 
+speaketh upon tymes of the yeare.
+
+In nomine dei pii, Incipio scribere librum istum &c.
+
+In 
+the name of the meke god I begin to write this booke that 
+is said Cephar Raziel, which the Angell Raziel gave to 
+Adam & it shall speake upon the 4 tymes of the yeare & month 
+& day with his night how we should nempne eich thing. And know 
+eich man that this is said the booke of tymes, & the Angell gave 
+it that is said mighty & great by the mandement of the Creator 
+quicke God & in all things mighty. And for that Adam should 
+know all things by hit which he would know in this world what 
+it is, what it was, & what it shall be in all things. 12 months of 
+the yeare & dayes & houres & that by order & similitude of 
+cleane fasting & of washings of sacrifices of fumigacions 
+made by 7 dayes ere the first mone [=Moon] were & ere the sunne 
+should ascend his tale i.e. the ascendent. And ere the sunne should 
+ascend upon his starre. Zedet i.e. Jovis. And they should be
+
+[145v]
+
+nempned in this booke by month, holy angells that have might 
+upon the 7 heavens formed of fire & the beholding of them fire 
+& the life of him is fire. And they seeme clothed with fire 
+& they be covered with fire & from the fire went out, & in the 
+fire they dwell & they be of great fellowships mighty upon 
+the 12 months of the yeare by the precept of the Creator of it 
+which said the world by hit, & all angells be & were before 
+it. & there be 7 powers before that face of it, & to eich of them is 
+given might & hath a day of the month & of the weeke. And of 
+them some be standing in environ, & some be some be sytting in chaires 
+with great honour serving to the Creator & they be ever 
+more ready & bound to goe out & to entre to come & to go & with 
+all good & evill, what ever is made & to enchaunte & to put 
+downe & to cover privy things & to discover or to make revelasion.
+And all this that we have said by the mandement of God. 
+& all the more angells & lesse & the princes of them with 
+their powers with their orders, or with their fellowships, they 
+clepeth themselves everich with their names & which be Selly, 
+i.e. high or soveraigne evermore they prayse God the Creator, 
+which formed them. And allso all the powers of all heaven 
+in the month & in the day in which he formed them. And they 
+be all speaking to himself together as men. And Raziel 
+said that these angells wrote these names & this booke, 
+& he said that there be above 7 angells mighty upon 7 starres 
+& these be 7 potestatesor powers mighty upon 7 days of the 
+weeke & they be keepers of them & of the 24 houres of 
+the day & of the 7 heavens & of the 12 signs & of all other 
+things that governeth this world. And Raziel said to Adam 
+behold, know, & withhold these 7 powers or potestates, which 
+have power in the 7 heavens & the 7 stars. The names of 
+which be these.
+
+Sabaday, that is , 
+
+Zedet that is , 
+
+Madyn that is , 
+
+Hamina that is , 
+
+Noga i.e. , 
+
+Cocab i.e. , 
+
+Labana i.e. .
+
+The names of the 7 heavens in which they be borne be these 
+Samayn, Raquia, Saaquyn, Mahum, Maon, Zebal, Araboc.
+
+Upon Samayn goeth ,
+upon Raquia ,
+& upon Araboc ,
+& so understand thou of other. The names of Angells that 
+have power upon the 7 starrs & goeth upon the 7 heavens 
+& otherwhile in their chaires be these. Capziel, Satquiel, 
+Samael, Raphael, <raphael,> [sic] Amael [*Anael], Michael, Gabriel. And the 
+power of these is that Capziel is the power of Sabaday. Satquiel of 
+Zedet & Samael of Madyn & Raphael of Hamina, Amael of 
+Noga, Michael of Cocab, Gabriel of Labana. And everich of 
+these sitteth in his heaven & the meynees [=their company or crew] of them all about. 
+And they be of divers colours. <And they be of divers colours> as white, 
+blacke, red, yellow, greene, ledy, pardi viati, medled over gilt 
+& of the colour of a Peacocks feather & of many other colours.
+
+These be the Angells that have power upon the 12 months 
+of the yeare. The names of the months be these, of the yeare 
+
+[146r]
+
+Nysan, Yar, Zevan, tamus, Abelul, Tysiryn, Marquesnam, Quislep, 
+Tobez, or Thebeth, Sabat, Adar, Post adar, Postmodo.
+
+  
+
+  i.e. Nisan, Iyar, Sivan, Tammuz, Av, Elul, Tishrei, Marcheshvan, Kislev, Tevet, Shevat, Adar, and 
+on leap years, Adar II.
+  
+
+The names 
+of Potestates be these & they be 12 capitalls, that is one upon 
+euerich month of Lune, & the rather is Oriel, Sasuyel, 
+Amariel, Noriel, Beraquiel, Maguynya, Scufriel, Barsiel, Adoniel, 
+Anael, Gabriel, Romiel, Laciel. And euerich of these hath 
+so many potestates, helpers, more or greater as there be days 
+in the month or many other seruants of them. And with the 
+aforesaid Angells a man may know all thing that is to come 
+in euery day & euery houre with the proper signs of them who 
+that knoweth them well. If he woll know of many 
+Reynes or few or when they shall be or if they shall be or no 
+& the day & houre when they shall falle. And a man 
+may know by them which is his signe & his starre. And he may 
+know of his life if it shall be long doinge or of short in the 
+world & other things either for a sick man or an hoole [=hail i.e. healthy] either 
+for a man or for a woman. Or he may know a sutill understanding 
+or sharpe. he may know what is to come & to do with 
+it that he woll. And the dayes of the yeare or of solis, alone 
+in which may be done the working of this booke by 365 & the 
+4 part of one day in the worke of dayes. The yeares of lune be 
+otherwhile 360 dayes or 4 houres & 46 minutes after the yeare 
+of lune. And the fullfilling of tymes is this. In one tyme be 
+3 months, & when the tymes be 4 Sothly til to 12. And knowe 
+thou that Nizan that is the first month entreth in the first day 
+of the first moone wheneuer were Luna prima of the month 
+of Martii, & so of other. And the first very tyme is from the first 
+point in which the  entreth into Arietem till it enter the 
+first point of Cancri [=Cancer], & the 2 from  into 
+am & the 3 from 
+ into  & the 4 from 
+ into Arietem, & this is the better distinction 
+of tymes. And in the hour in wch Raziel gaue the booke 
+to Adam Of tymes, & months, & names of things then was 
+adam conforted only when in thilke day fillen lightnings 
+moued & thunders & coriscations appreariden & there was in that 
+day great tempest in all the world, both in the land, & in the ayre 
+& in the sea. And in the houre in which the Angell Raziel 
+opened this booke & gave it to Adam, then he gaue to him 
+might & strength & suretie in all the wordes of this booke 
+& miracules that be in it. And when this booke fell before 
+the face of Adam. Then Adam dread full much & quoke of 
+great dred, & fill downe into the earth as though he had bin 
+dead. Then the Angel Raziel said to Adam rise & be thou 
+comforted, for know thou that a very soth fast spirit hath 
+descended in thé in the high heauens which hath lightend thee 
+& hath put in this houre in thee knoweing &d might & that 
+thou shallt attayne yt thou shalt axe. And I say to thee that 
+thou consider in this booke & beholde in it, & by it thou shalt 
+know & understand what euer was & that is & that shall be after 
+thee. And in that houre in wch this booke was giuen to Adam 
+fire fell upon the brincke of the flode of paradise & the Angell 
+
+[146v]
+ascended by the flame of the fire to heauen. And an Angell 
+descended in similitude of a cloud white & spake with him 
+playnely, And come to him as a man well bright &d cleare 
+like to the clearenes of a starre in his body &d full of many 
+other all about & in ascending when he was seuered. Euermore 
+Adam was like to a lambe which formed well bright as the 
+flame of fire & clearer then the fire of a furnice in wch gold 
+is purged. And then Adam saw this & found & knew that 
+of the Lord of all worlds which is a great king & mighty in all 
+things. This booke was sent for he. And then he considered 
+or looked in it with holynes & cleanes. And then he beheld in 
+it all thing that he would know in this world. And this was 
+the first word Adam had with the Angell Raziel. And [er]go 
+he considered in it & gouerned him self by it. Salomon said upon 
+the aforesaid reason aboue after that the Angell Raziell said 
+to Adam that it behoueth know the tymes & the month & 
+the day. It behoueth us furthermore to seeke one houre 
+before another and one tyme before another, for who that 
+soweth wheat in Ver [=Spring] it may mot be gathered in the same 
+Ver, & this is after the Temperament of the party of the 
+northe. & [er]go it is necessary or needfull to deuid the yeare 
+into 4 parts & a month into 4 partes, & an houre into 4. And if thou 
+keepest these diuisions & understandest thou shalt profitt in 
+all it that thou wolt, for this that all naturall thing is made 
+in the tyme & in the day & in the houre according as the higher 
+or soueraingne Creator ordeyned. Raziel said if thou wilt 
+know any thing of this world that is of other that be in 
+heauen or heauens which be fellowshipped with the first hevens. 
+Or if thou wilt do any thing that be fullfilled to thy will, 
+clense thou thy body by 7 dayes that is washe thee, & sate thou 
+not a thing of theft, neither of rauen, neither of euill party 
+nor a thing uncleane, neither that is fallen to death, nor a 
+beast of 4 feete, nor other, & eschew thou thee from malice 
+& falsnes. And thou shalt not drinke wine nor 
+neither thou shalt eate fether [K: fishes] or any thing of 
+which bloud goeth out. And ioyne thou thee not to a 
+woman pollute, neither menstruate, neither enter 
+thou into an house where is a dead man neither go thou 
+besyde the pitte of a dead man, neither beside him that suffereth 
+gomorream [=gonorrhea]. And eschew thou and be thou ware of night least 
+thou fall into pollucion. And keepe thee from all lechery & euill 
+pride. And doe thou that thou be euermore cleane & be thou in 
+Orison or prayer. And keep thy tonge from saying euill & from leasing 
+& fast thou cleanly, & keep thou thy body from doing euill 
+& sinne & lighten thou the house with Orison. And prais thou 
+Angells & do them almes to needy men & charity & be 
+thou not ioyned to euill men neither to uncleane & cloathe 
+thou thee with cleane clothes the larger that thou might 
+
+[147r]
+And euermore trust thou unto god & rise thou early & pray the Creator 
+that he dresse thee & wash thee & fullfill thy petitions. And thou 
+shalt attayne that thou axest with God.
+
+Nota hanc partem bene.
+
+Note well this part.
+
+ 
+Primum opus istius libri quod est necessarium &c. The first worke of 
+this booke that is necessary or needfull in all things that a man 
+would do. And when thou wilt know when it is good to do a 
+thing which thou wolt do, or thou wolt know when it is good to 
+do, what things thou wolt of this world & thou canst not any 
+thing thereof understand thou that thou account by 7 dayes before 
+the first day of the moneth that is of the moneth of Luna. And in these 
+7 dayes ne be thou not pollute, neither eate thou a beast hauing 
+blood, neither drinke thou wyne neither touch thou uncleane things, 
+neither lye thou with a woman. And wash thou thee with cleane 
+water running, all the 7 days ere the sonne ascend, & hold 
+thou abstinence which we haue said, & suffume thou thee 
+when thou were bathed with thur, ligno alöes and ambra, croco, 
+costo, camphora, & mastice; & then take thou tway quicke 
+Turtes [=turtledoves] & hoole without languor in themselves, or if thou wilt 
+2 white culuers [=pigeons] if thou might haue none other. And cutt of 
+the necks fasting with a brased redde knife ouergilt, on euerych 
+side cutting, & cutt of the necke of that one Turtur, on that 
+one side, & that other on that other side. Afterward drawe 
+out the intralls, but with holde the blood in a new glasen cup 
+& cast into the fire. And wash thou thentrailes with cleane 
+water. And then take 3 weights of muske, & 3 of croci, & 
+thuris albi lucidi & cinamoni & 10 keyes of gariofili, & ligni alöes 
+as much, & then take 12 grana piperis nigri & old white wine 
+& sandalos & mustum & camphoram, & somewhat of hony 
+& wyne all this with wine, & putt all medled in the entralls of 
+the Turturs & fill them & diuide them into 7 parties or 7 
+members. And cast one member upon the colles of fire in the  
+morrow, ere the sunne rise & that is to understand the 11 
+houre of the night, & when thou burnest the members, be 
+thou couered with white cloth & standing the feete discalciated 
+that is unhosed & unshod. Afterward [blank space approx 12 m-spaces] the 
+names of angells wch be written that is seruinge to the month in 
+which thou dost, for they be prayers & doers there, & know thou 
+that eich day thou hast to say the names of Angells of that 
+month 7 times. & in the 7 days thou shalt gather together the 
+axen [=ashes] which thou hast made in thilke 7 dayes of the foresaid 7 
+members. And the house & the place in which thou shalt burne 
+be it cleane. And when all this is done thou shalt dispose or 
+ordayne a soleyne house cleane seuered to thee. And thou shalt 
+spring th'aforsaid axen upon the earth in the middle of the house 
+& thou shalt sleep there so that thou shalt do this. And then when 
+thou entrest the bed thou shalt name the names of the Angells 
+strong dreadfull mighty & high and then sleep thou & speake thou 
+not with man. And then know that thou be well certayne 
+
+[147v]
+& not dredfull that there shall come to thee some man & he 
+shall shew himselfe to thee in the vision by night. And the
+similitude or likenes of him shall be of a worshipfull 
+man then be thou strong & drede thou not & he shall 
+not leaue himselfe to thee that it be a vision or a dreame 
+but in very or soth manner. And axe thou what thou wilt 
+& without doubt he shall giue to thee. 
+
+Dixit angelus Raziel, volo tibi dicere hoc complementum &c.
+
+  
+
+  VRL 1300 49v; Halle 14-B-36 31r.
+  
+
+ 
+The angell Raziel said: I will say to thee this fullfilling 
+the workeing that thou write by power & vertue & strength 
+of this booke in which be written the powers of the months 
+& of days of the yeare, & they haue power in eueriche month 
+& in eich day for euermore. And know eich man who that 
+gouerneth himself with them with cleannesse that they 
+helpe him in all his deeds & in all his things. And they maketh 
+him to know all his wills & they helpeth him to fullfill 
+what euer he axeth with great power & strength & 
+wisedome. 
+
+The names of Angells of the first month be.
+ 
+
+These be the names of the Angells which be mighty & most 
+mighty & more mighty in the first month which is said 
+Nisan:
+
+Oriel, Malaquitan, Acya, yaziel, paltysur, yesmachi, 
+yariel, araton, Robica, Sephalya, Anaya, quesapule, semquiel, 
+Sereriel, Malga, Ancason, Pacyta, Abdiel ram, asdon, 
+Cafyel, nastiatori, Sugny, Aszrus, Sornadaf, Admyel, necamya, 
+Caisaac, benyt, quor, Adzyriel.
+
+The names of Angells of the 
+2 month which is said yar in language of hebrew.
+
+Safuel, Sambon (?), Cartemat, Axyel, Palthya, bacgar, galnius, necpis, 
+Aaron, mauit, Aadon, quenael, quemon, Abraguy, yehoc, 
+Adnyhya, Parciot, Macinoc, galus, gabymon, resegar, Affry, 
+Absamon, Sarfaf, Alpyn, Carbyel, reguya, Achlas, Nadib, 
+absafyabitan, palylet.
+
+And thou shalt name the names 
+of these foresaid angells of this month yar in eich thing which 
+thou shalt nempne in hit, & they should help thee, & shall 
+make thee to know all thy will.
+
+The names of the Angells of 
+the 3 month.
+
+These be the names of the angells which be 
+keepers of the 3 month that is said Zynan [*Sivan] of which the first is 
+
+Amariel, tatgriel, casinuch, nascyfa, almur, naamab, 
+Mamicazicaran, Samy Sarach, Naaseyn, Andas, paltamus, Abrys, 
+borzac, Saborhac, yayac, dalya, azygor, Mabsuf, Abnisor, 
+Zenam, dersam, Cefanya, Maccator, Naboon, Adyel, Maasyel, 
+Szarzyr, Cartalion, ady, ysar.
+
+And thou shalt nempne these 
+names that be said in all things that thou dost & thou shalt 
+profitt. 
+
+The names of Angells of the 4 Month.
+
+These be 
+the names of angells of the 4 month that is said Tamuth:
+
+Noriel, Satida, Asaf, Mazyca, Sarsac, Adryyaac, Nagron, 
+
+[148r]
+gallgall, dauroc, Saracum, rematidda, lulyaraf, neditar, lyaf, Iaana, 
+latayel, gauida, Nedyr, delgna, maadon, Samyel, Amrael, lezaidi, 
+El, Ohoc, Nasyby, razy, arsoday, yadna, Caspa, garitan, Elisatun, 
+paschanya, Maday.
+
+And thou shalt nempne these names abouesaid in 
+all hit that thou wolt do & thou shalt profit.
+
+The names of 
+Angells of the 5 month.
+
+These be the names of Angells of the 
+5 moneth that is said Ab.
+
+beraquyel, mauhy, or amaryahaya, byny, 
+madrat, amantuliel, cassurofartis, nactif, necyt, pegnar, tablic, 
+namnot, amacya, guatiel, reycat, gnynzy, palyel, gadat, nesguyraf, 
+abrac, amytar, caruby, nachal, cabachloch, macrya sate, Essaf.
+
+And thou shalt nempne these names before said in all his hit that 
+thou wolt do & thou shalt profit.
+
+The names of Angells of the 6 month.
+
+These be the names of Angells of the 6 month that is said Elul.
+
+Maguyny, arabyel, hanyel, nacery, yassar, rassy, boel, 
+mathyel, naccamarif, zacdon, natac, rapyon, Saspi, Salhy, raseroph, 
+malgel, Samtiel, yoas, gualaby, danpy, yamla, golum, Rasziel, 
+Satpach, nassa, Myssy, Macracit, dadiel, Carciel, eftignap.
+
+And thou shalt nempne these names aboue said in eich thing, which 
+thou wolt do, & thou shalt profit therein.
+
+ The names of Angells 
+of the 7 month.
+
+These be the names of the keepers of the 7 
+month, that is said Tysyryn.
+
+Suryel, sarycan, guabriza, szucariel, 
+Sabybiel, ytrut, cullya, dadiel, marhum, abercaysdon, Sacdon, pagulan, arsabon, 
+aspyramon,  aguyel, fascy, racynas, altun, masulaef, Salamyel, Sasonnnyel, 
+baracharan, yabuc, alycat, vtysacyaya, abay.
+
+And thou shalt nempne 
+these names abouesaid in eich thing that thou wilt do, & thou shalt profit.
+
+The 
+names of Angells of the 8 month.
+
+These be the names of Angells of the 
+8 month that is said Marquesnan.
+
+barbyel, tiszdiel, raamych, nebubael, 
+alysaf, baliel, arzaf, rasliel, alson, naspiel, becar, palyel, elysuaig, 
+nap, nacxas, sansany, aosal, maarym, sascy, yalsenac, Ianbynp, 
+magdiel, sarmas, maaliel, arsufael, nanistiorar, Vecabalaf, 
+nadybael, sucyel, nabuel, saryel, sodiel, marcuel, palytam. 
+
+And thou shalt nempne these names aboue said in eich thing that thou wilt 
+& thou shalt profitt. 
+
+The names of angells of the 9 month.
+
+These be the names of angells of the 9 month that is said quislep.
+
+Adonyel, 
+radiel, Maduch, racyno, hyzy, maryel, azday, mandiel, gumyel, seryel, 
+kery, sahaman, osmyn, sachiel, pazehemy, calchyhay, hehudael, 
+necar, minael, arac, arariqniel, galuel, gima, satuel, elynzy, baquylaguel.
+
+And thou shalt name these names abouesaid in all it that thou 
+doth, and thou shalt profit.
+
+The names of angells of the 10 month.
+
+These 
+be the names of angells of the 10 month which haue might  in the 10 month, that is said 
+Thebul:
+
+Anael, amyel, acyor, naflya, rapinis, raacyel, pacuel, 
+hahun, gnanrina, sucli, aslaqny, naspaya, neogri, somahy, hasasisgason, 
+gascaszif, aczamy, macin, patinas, sarguamuf, oliab, saryel, Canyel, 
+razyziel, pansa, nisquen, sarman, malisan, asyral, marymoc.
+
+And thou shalt name these names in it that thou wilt do & thou shalt 
+profit.
+
+The names of angells of the 11 month.
+
+These be the names of 
+angells that keep the 11 month, that is said cynanth, & which haue might 
+in it:
+
+gabriel, israel, natriel, gazriel, nassam, abrysaf, zefael, 
+zanoyel, Manuel, talyel, miriel, Sahmyel, guryel samhyel, 
+daryel, banorsascy, satyn, nasiel, raufiel, talgnaf, librac, luel, 
+daliel, guadriel, sahuhaf, myschyel.
+
+And thou shalt name these 
+
+[148v]
+
+names before said in all thing that thou dost in the month & thou 
+shalt fullfill.
+
+The names of angells of the 12 month.
+
+These be 
+the names of angells of the 12 month that is said Adar:
+
+Romyel, 
+Patyel, guryel, Laabiel, addriel, capdyel, acquiel, Malquiel, Samyel, 
+Saryel, azryel, paamyel, carcyel el, amalach, parhaya, ytael, 
+beryel, lael, tenebyel, pantan, panteron, ffanyel, falafon, mansiel, 
+pantharon, labyel, Raguel, cetabyel, nyarpatuel.
+
+And thou shalt 
+name these names in all things that thou dost & thou shalt 
+profit.
+
+The names of Angells of the 13 month.
+
+These be the 
+names of the angells of the 13 month. bisextilis which is said Adar the last in March:
+
+Lantyel, ardyel, nasmyel, celidaal, 
+amyel, malgel, gabquiel, sasugos, barylagny, yabtasyper, Magos, 
+Sangos, dragos, yayel, yel, yasmyel, stelhiyel, garasyn, Ceyabos, 
+Sacadyel, guracap, gabanael, tamtyel.
+
+These names 
+abousaid thou shalt name in all things that thou wilt do & they 
+shall fullfill all thy will with fasting & washing & fumigacion & 
+cleannenesse. And thus understand thou of euerich worke. And know 
+thou that the moneths of the hebreys [=Hebrews] & the months of romanes be 
+euened upon the month of March. And know thou well his number 
+& thou shalt profitt.
+
+Scias quod postquam diximus de mensibus &c. Know thou that 
+after that we have said of months we will say the names of 
+the dayes of the weeke with his Angells full strong & mighty 
+upon euerich day & eueryche in his day.
+
+The names of the Angells that serue in the day of Solis.
+
+And these be the names of hamine 
+& his Angells be these:
+
+Danyel, Elyeyl, Saffeyeyl, dargoyeyl, 
+yelbrayeyl, comaguyl, gebarbaya, faceyeyl, caran, neyeyl, 
+Ialgylnenyl, bellitarz, raneyl, falha, hyeyl, armaquieyeyl, 
+roncayl, gybril, zamayl, mychahe, zarfayeyl, ameyl, torayeil, 
+ronmeyeyl, Rencatheyel, barhill, marhill, Roarhyl, Merkyl, 
+Zaratyt, azrayeyl, anebynnyl, dennerzyn, yoecyn, necyl, 
+hadzbeyeyl, Zarfeyeyl, Zarayl, anquihim, Ecytatynyn, Ezriah, 
+yocaleme, detryel, aryeil, arnayel, veremedyn, unaraxxydyn.
+
+These be the mighty angells in the day of Solis, & name thou them 
+worthyly & thou shalt profitt.
+
+The names of the Angells in the day 
+of Lune.
+
+These be the names of angells that serue in the day of 
+Lune.
+
+Semhahylyn, Scemehylyn, Iasrozyn, agrasnydyn, aymtylyn, 
+Cathneylyn, abrasachysyn, Abracansyn, Layraiosyn, langhasyn, 
+anaenyn, Mangaroryn, aczonyn, Montagyn, labelas, Mafatyn, 
+feyharachyn, candanagyn, Laccudonyn, casfrubyn, bachramyn, 
+barthaylyn, amnanyneylyn, hacoylyn, balganarychyn, aryeylyn, 
+badeylyn, abranoryn, tarmanydyn, amdalysyn, sahgragynyn, 
+adyamenyn, sacstoyeyn, latebayfanysyn, caybemynyn, nabyalyn, 
+cizamanyn, abramacyn, laryagathyn, byfealyquyn, 
+baycaladyn, gatoryn, asaphyn, daryenya, macneyelyn, 
+
+[149r]
+
+gemraoryn, madarilyn, yebyryn, arylyn, faryelyn, nepenyelyn, branyelyn, 
+astyeylyn, ceradadyn.
+
+  
+These holy Angells in the day of Lune thou shalt 
+name worthyly & thou shalt profit.
+
+The names of angells of the day of Martis.
+
+These be the names of 
+angells that serue in the day of Martis, & they haue power upon red 
+mettall & in his works.
+
+Samayelyn, tartaylyn, dippeyl, racyeylin, 
+ffarabyn, cabyn, asymeylyn, mabareylyn, tra tralyeylynralbelyn, 
+marmanyn, tarfanyeylyn, fuheylyn, ruffaraneylyn, rabfilyn, eralyn, 
+euplyn, pyrtoplyn, brosylyn, cacitylyn, naffrynyn, impuryn, 
+raffaylyn, nyrysyn, nyenyolyn, nybiryn, celabeyl, tubeylynn, haayn, 
+veyn, paafyryn, cethenoylyn, letytyeylyn, Roraseyl, canntyl, 
+baiteylyn, costyryn, montyelyn, albeylyn, paradibeylyn, alyeil, 
+vaceyl, zalcyeyl, amadyeyl, usaryeyl, lyncodeneyl, daffrypeyl, 
+unleyleyn, carszeneyl, grenyeyl, gabrynyn, narbeyl.
+
+The names 
+of Angells yt serue in ye day of Mercury.
+
+These be the names 
+that serue in the day of Mercury.
+
+ Michael, Zamyrel, beerel, defuyel, 
+arybyryel, boel, baryel, meryol, amyel, aol, semeol, aaon, 
+beryon, ffarionon, kemerion, feyn, ameynyn, zemeynyn, cananyn, aal, 
+merigal, pegal, gabal, leal, amneal, faranyal, gebyn, carybytyn, 
+aucarylyn, metorylyn, nabyasilyn, fysfylyn, barssylyn, camfylyn, 
+aanyturla, fenyturla, gemniturla, elmya, calnamya, rabynya, 
+affya, myaga, tyogra, bee, ylaraorynyt, benenenyl.
+
+The names of 
+Angells in the day of Jouis.
+
+These be the names of Angells that 
+serue in the day of Jouis.
+
+Sachquyel, pachayel, tutyel, osflyel, labyel, 
+caliel, benyel, tarael, Snynyel, ahyel, yebel, aucuyel, Jamyel, 
+Janyel, Amyel, fanyel, ramuel, Santael, Saccynyel, galbyel, 
+Lafyel, Maziel, gunfyel, ymrael, mesmiel, paryel, panhynyel, 
+toupynel, abonyel, omyol, orfyel, ael, bearael, ymel, syymelyel, 
+traacyel, mefenyel, antquiel, quisyel, cmmyriel, rofynyel, rubycyel, 
+Jebrael, pecyel, carbyel, tymel, affarfytyryel, rarbudyel, cabrifyel, 
+beel, bariel, chedaryel.
+
+The names of Angells in the day of Veneris.
+
+These be the names 
+of angells that serue in the day of Veneris.
+
+Hasneyeyl, barnayeyl, 
+varday, heil, alzeyeyl, szeyyeyl, vachayel, zeffayeyl, morayeyl, 
+borayeyl, apheyeyl, arobylyn, canfylyn, amrylyn, zaryalyn, marylyn, 
+bacorayelyn, kelfeyeylyn, arzayeylyn, ambayeryn, ayayeylyn, cadneyryn, 
+alseyryn, asneyryn, abneyryn, monauryn, cazoryn, orysnyn, gedulyn, 
+hareryn, namylyn, halylyn, hymeylyn, reseylyn, noraraabylyn, 
+halyeylyn, laudulyn, & effylyn, theffealyn, patnylyn, keyalyn, naylyn, 
+lebrayeyl, ablayeyl, tabraylaurayn, baxcalyn, bahoraelyn.
+
+The names of angells of the day of Saturne.
+
+These be the names 
+of angells that serue in the day of Saturni or Sabot. 
+
+Micraton, 
+pacryton, Xepilon, capcyel, chenyton, alffyton, chenyon, Sandalson, 
+panyon, almyon, expion, xaxon, calixon, homyon, melyson, aurion, 
+temelion, refacbylyon, ononyteon, bexoraylon, paxilon, lelalyon, 
+onoxyon, quylon, quyron, vixalimon, relyon, castilon, tytomon, 
+Muryon, dedyon, dapsyon, lenanyon, foylylon, monychyon, gabyon, 
+
+[149v]
+xaxonyon, xysaylyon, lexeiron, belon, memytylon, Saron, Salyon,
+xyon, naigron, aaryron, felyypon, ymnybron, raconeab, zalibron.
+
+These holy Angells & blessed bee they named in all thy very 
+workes, & keep thee with them cleane & thou shalt profitt.
+
+The names of houres of the night.
+
+Ista sunt propria nomina horarum noctis. Prima hora etc. 
+
+These be the proper names of hours of the night. 
+
+The first houre of the night is said zedrin, the 2 byroyl, the 2 is said 
+caym, the 4 hacyr, the 5 zaron, the 6 zzya, the 7 Nachlas, 
+the 8 thasrac, the 9 Saphar, the 10 halaga, the 1 galcana, 
+the 12 Sallan.
+
+And these be proper names which the 12 houres of 
+the night haue, & thou shalt name in these that thou doest 
+& thou shalt profit.
+
+These be the names of planetts & of 
+their Angells by the Elements.
+
+These be the proper names 
+
+Ista sunt nomina planetarum 7 & Angelorum super 4 elementa &c.
+
+These be the names of the 7 planetts & of the Angells upon 
+the 4 elements, as is fire, ayre, earth, water, for without these 
+& without the 7 aboue we may not do any thing. 
+
+The first is the highest Sabaday, & Sabaday is said in the fire 
+Campton. In the ayre Scynongoa. In the water Synyn, & in 
+the earth onyon.
+
+And the names of angels of Sabaday 
+upon the fire be these 3: lybyel, nybyel, phynytiel. & upon 
+the ayre be these 3: Arfygyel, gael, nephyel. & upon the water 
+be these: almepyel, hoquyel, fulytyel. & upon the Earth be 
+these: Laryel, tepyel, esyel. Cedet is nempned upon the fire 
+Pheon, & upon the ayre fydon, & upon the water Calyon, & 
+on the Earth Mydon. 
+
+& the names of the angells of Zedet on 
+the fire be these 3: tynsyel, necanynael, fonyel. And upon 
+the water be these 3: Meon, ykyel, yrynyel, & upon the Earth 
+Palryel, tufyel, quyel.
+
+ These be the names of the 3 which is 
+Madyn: Upon the fire it is said roqnyel, upon the ayre pyryel, 
+upon the water Caffyon. Upon the Earth Ignoson. And the 
+Angells of Madyn on the fire be these 3: Kalyel, Kabryel, 
+raloyl. & on the ayre be these 3: pyroyniel, flalonyel, carbyel. 
+& on the water be these 3: Sqtrenyel, Camanyel, Zadriel. & 
+on the earth be these 3: Cazabrtel, Pasaliel, Zebalyel.
+
+These be the names of hamine, upon the fire it is said yeye, on the 
+ayre, don, & on the water, agla, & upon the Earth, On. And the 
+Angells of hamine upon the fire be these 3: dandanyel, zaddanyel, 
+Ellalyel. & on the ayre be these 3: Karaton, verryel, olyel. & 
+on the water be these 3: Muracafel, pecyrael, Machael.
+& on the Earth be these: homycabel, lucyfel, locaryel.
+
+[150r]
+
+Noga is the 5, & is named upon the fire desayon: & in the ayre Clarifon, 
+& in the water Narubyn, & in the Earth Cabyrns. These be the 3 angells 
+of Noge upon the fire Capcyell, Debytael, deparael, & on the ayre 
+Camyrael, Cacazael, nerazyel, & on the water Salonyel, emyel, 
+exxaonyel, & on the Earth, paztyael, amnrael, Salanyel.  
+
+These be 
+the names of Cocab. Upon the fire it is said Pyztal, & in the ayre 
+Cabran, & in the water facayl, & in the Earth tarzon. & the names 
+of angells of Cocab upon the fire be these: Paradyel, darytyel, 
+dameyel. & on the ayre be these ramatyel, loryquiell, bengaryel. 
+And on the water be these: rinafonyel, Melytyel, Alatyel. 
+& on the Earth these Alapyon, beryel, robyel. 
+
+These be the 
+names of Labane: Upon the fire it is said Claron. And upon the 
+ayre becyla. And upon the water taffit. And upon the earth pantours. 
+And the names of the angells of Labane: upon the fire be these: 
+Gabryel, patricael, dylyel. And on the ayre be these barasyel, zfaziel. 
+& on the water be these: Cazael, memyyel, pazycaton. & on the Earth 
+be these: Snnyllyel, Lafaquael, tonyel. 
+
+And name thou these aboue 
+said in all it that thou dost & euermore consider thou the 
+planett with which thou wilt worke and thou shalt 
+profitt.
+
+The names of the heauens in 4 tymes.
+
+Ista sunt nomina celorum in 4 temporibus &c. 
+
+These be the names 
+of the heauens in the 4 tymes. In the first tyme first it is named 
+hacibor, In the 2 runuaquya, in the 3 Mestisnogna. In the fourth 
+Saaemahon. 
+
+These be the names of the heauens in the 
+4. 
+
+And when thou wilt worke any worke, name 
+thou the name of the heauens in the tyme in which thou workest. 
+
+These be the names of the fire in the 4 tymes.
+
+In the first tyme 
+the first named qnoyzyl, in the 2 Enlubra, in the third Merayn, in the 
+4 aybedyn. 
+
+And these angells haue might upon the fire & in 
+the flame: Michael, Rafael, rasoyel, acdyel, roquyel, myryel, 
+Iudam, malquyel, gazryel, amynyel, caryel, yafrael.
+
+And these 
+thou shalt name euermore when thou dost any thing in the 
+fire.
+
+These be the names of the Aire in 4 tymes.
+
+In the first tyme it is said yrstana, in the 2 furayl, in the 3 Oadyon, in the 
+4th gulynon.  And the names of Angells that haue might upon the 
+ayre be these: Rafael, guabriel, Michael, chorubyn, seraphyn, 
+orychyn, pantaceron, Mycraton, Sandalson, barachyel, ragehyel, 
+tobyel.
+
+And name thou them in all things that thou shalt do in the 
+ayre & thou shalt profitte well with the helpe of god.
+
+Ista sunt nomina aquarum & maris in 4 temporibus &c.
+
+These be the 
+names of the waters & of the Sea in the 4 tymes.
+
+In the first tyme it 
+is named Argustiz, in the 2 theon, in the 3 Maddriel, in the 4 Sebylgnadar. And the names of Angells of waters & of the Sea, 
+be these: Urpenyel, armaryel, yyamnel, abrastas, Sapyel, 
+vyotan, oryel, bachmyel, poracknel, acceryel, gallyel zsmyel.
+
+And name thou them upon waters & upon the Sea and 
+
+[150v]
+thou shalt profitt.
+
+These be the names of the Earth in 4 tymes.
+
+In the first tyme it is said inguedon, in the 2 yabassa, in the 3 
+Cebel, in the 4 Aradon, & the Angells of the Earth be these: 
+Samael, yatayel, baranyel, Oryel, arfanyel, tatgriel, danael, 
+affariel, pactryel, bael, byenyel.
+
+And thou shalt name these 
+names of Angells upon the Earth in these that thou hast don 
+in it.
+
+These be the names of lowneses in the 4 tymes.
+
+In the first tyme it is said Haham, & his Angiel is Satuyel, in 
+the 2 Cypaon, & his angell is Jacyel, In the 3 aeresac & his 
+angell is ababact, in the 4 aycyhambabo, & his angell is Caanyel.
+
+These be the names of the 4 parties of the world. In the 4
+tymes.
+
+In the first tyme the East is said Acbedan, in the 
+2 Cadrenac, in the 3 Abriel, in the 4 Acritael.
+
+These be the names of the North part in the 4 tymes: In the 
+first tyme it is said Hemnyna, in the 2 abdich, In the 3 galgadar, 
+in the 4 rabbysor.
+
+These be the names of the west part. In 
+the first tyme Mahanahym, in the 2 Sitgor, in the third Zarzyr, in 
+the 4 Rabyur.
+
+These be the names of the south part. In 
+the 1 tyme Mansor, in the 2 Alparon, in the 3 Machuyel, 
+in the 4 Thamny.
+
+These be the names of Angells in the 4 
+parts of the world. In the parte of the East these haue might 
+or power: guabriel, raphael, Uryel, in the part of the North 
+these: Adryel, yamyel, Zabdyel. And in the parte of the West 
+these: Adtryel, Samael, Joel.  And in the parte of the South these: 
+Cocabyel, Saryel, Mychael.
+
+And name thou them upon all 
+things that thou dost in the 4 parts of the world & thou 
+shalt profitt.
+
+Names of the Planets proper in 4 tymes.
+
+Ista sunt nomina 7 stellarum qui sunt & vadunt &c.
+
+These be the names of the 7 Stares that be & goeth in the 7 
+heauens euerich by himselfe: Sabaday, Zedet, Madyn, 
+Hamyna, Noga, Cocab, Labana. And euerrich of these 
+hath his owne proper name upon the 4 times of the yeare 
+as we shall say in this Chapter beneth. And Salomon said 
+in explanation of this place. Wherefore euerich planet & 
+euerich thinge before said changeth his name in eich tyme 
+for his thinge, for heere standeth some tree & from thilke 
+tree cometh to us 4 things, & of these 4 things, the 1 is 
+when it buryoneth, the 2 is the flower, the 3 is the fruite, the 
+4 is the seed, when it is in it. Ergo the Sunne is said in the first time 
+hott & moist, in the 2 hot & dry, in the 3 Cold & dry, in the 4 Colde & 
+moist. These be the workings of the Sunne &d the properties of 
+it upon all things. And for a other reason the names of things 
+aboue said be changed in 4 parts of the yeare, ffor euerich 
+tyme hath his Nature & his complexion in himselfe as 
+
+[151r]
+
+we have said of water which is in the first tyme temperate 
+And in the 2 hotte & in the 3 rotten & in the 4 congeled. 
+And so other things of the world euerich by himself. 
+
+To ensample why Raziel put his name to eich thing. In each 
+thing be the 4 lords that haue might in eich thing & euerych 
+in his tyme. And it is said that there be 4 Elements whereof 
+one is fire, which hath might in the first tyme & so other. Wherefore 
+know thou that euerich thing changeth his name as first 
+we say a man: a child. And then a youngling, & then a middle 
+man, & the 4th tyme an old man. And so things chaungeth 
+their names who will clepe them a leader & this is in a man.
+And so understand thou of Mettall, & in all things that wexeth 
+& liueth. 
+
+And Salomon said & all other that it was more iust [=just] that 
+eich thing should haue 7 names then 4, for that all they 
+might descend of 4 bodise, & to them is giuen all the might.
+Sothely they put 4 names to euery thing that it were more easy 
+to worke. These 4 names be assigned upon the city of dauid my 
+ffather & myne, which had many names. Sothly Isaac the wiseman 
+said that the first name was Remusale. And then 
+Jebuysalem, Jeroboam, Jerusalem. And these names this 
+Cyty receiued for 4 Lords that were in it, for euerich put 
+to his proper name  & for this like things of this world receiueth 
+4 names in themself or 7 or more after that god hath ordeyned. 
+And ergo no man marvaile of these names of things in 4 times. 
+
+In 
+the higher heauen that is the first from the ouer partie & it 
+is the 7 from the neather in hit serueth Sabaday. And his 
+angell Capcyel. 
+
+In the first tyme Sabaday is said Cuernes. 
+In the 2 Palycos, In the 3 quyrtypos. In the 4 Panpotes. 
+
+In the 
+6 heauen serueth Zedet & his angell is Satquiel, & the name 
+Jouis. In the first tyme it is amanor. In 2 Sahybor. In 
+the 3 Saym. In the 4 canynyel. 
+
+In the 5 heuen serueth 
+Madyn, & his Angell Balquiel, & the name of Martis in 
+the 1 tyme is said aaryn, in the 2 Duron. In the 3 bearon, 
+In the 4 Pantefos. 
+
+In the 4th heauen serueth hamina 
+& his angell dandanyel. In the first time the name of 
+Solis is said halyom, in the 2 Adocham, In the third Cantopos. 
+In the 4 Pantasus. 
+
+In the 3 heauen serueth 
+Noga & his Angell adzdyel. In the 1 time the name of 
+Veneris is said Aporydicy. In the 2 Calyzo, in the 3 nympatz, 
+in the 4 pontos. 
+
+In the second heauen serueth 
+Cocab, And his angell Satquiel. In the first tyme 
+Mercurius is said armis, in the 2 anyocus. In the 3 Tholos. 
+In the 4 Ancholos. 
+
+In the first heauen serueth Labana 
+& his angell Anael. In the first Luna is said Saluiti, 
+In the 2 Sarico. In the 3 Naspilij. 
+
+[151v]
+
+In the 4th Affryquyn. And know thou that thou shalt name the names 
+of the starrs & of her Angells with their names in their 4 
+tymes & thou shalt profit when thou shalt know anything 
+of them.
+
+Here beginneth the 5 booke
+that treateth of cleanesse.
+
+Dixit Salomon revelatum fuit mihi de isto libro &c. 
+
+Salomon said It was shewed to me of this booke of Raziel & of 
+many angells after that I had this booke & of these 
+wch norished powers & vertues & matter & stength of 
+ye 7 potestates aboue & that by the mandement [mandment: commandment] & 
+obedience of the Creator or maker of the world. And they 
+said thus. Salomon thou hast axed witte & wisedome 
+& fairenes & might in will complete & nempned full 
+great for euermore upon Earths. And know thou that 
+all kings & lesse men that should come after thee & wch 
+should here speake of thee, shall loue thee, & worship thee 
+& should set price of thee & shall prayse thee & keep thou 
+this booke & worke thou with it with reuerence and 
+cleannesse. And Salomon said to the benigne Angell 
+Natanael, which hath might in the ayre, And this evermore 
+was fellowshipped to Salomon. / which be thilke 7 
+bodies which be seene aboue bright, faire, cleane & cleare, 
+wch ceaseth neuer to go, neither the wayes of them be void 
+& they faileth neuer, but euermore dureth goynge their 
+wayes. And it that taryeth more in going his way fulfilleth 
+it in 30 yeares. And then they appeare such as they were 
+before & which went before thus they sawe. And thus it is 
+said that they should be how long god would. And thus 
+I say of an 100 yeares & a 1000 that they neuer be 
+changed neither in quantity nor in colour, nor in might 
+nor in moveing, but we haue found them as the prophetts 
+& other old men founden. An[d] the angell Natanael 
+said to Salomon, the 7 bright bodies which thou seest 
+aboue be put beneath & they in going upward holdeth in 
+ballance or in rule the 4 elemts beneath. And therfore 
+the moueing of them cesseth not for such might the 
+Creator gaue to them. And know thou that the matter of 
+them is simple & pure without corruption & euermore 
+durable. And the state of them is likened to the Lord 
+that formed them, although they obey to him in all 
+things. And Natanael said to Solomon know thou 
+that in the heauens of these 7 bright bodies be angells 
+
+[152r]
+without number mighty in all things. And everiche of them hath his 
+proper mighte & his strength & vertue. And they be unlike among 
+themself as men together or other beasts. & eueriche serueth of 
+his office to the Creator that formed them or made them. 
+And Salomon said to Nathanael wch is the life or the might or 
+the seruice that these angells doth. And Nathanaell said the 
+life of them is of cleannesse of Oryson, & of trustines & the 
+might of them is of suffumigii, holocausti & sacraficii. And the 
+seruice of them is, that when the Creator woll they go from place 
+to place when any cleane man hath prayed [to] the Creator as it 
+beseemeth. And then they do good or Euill as the Creator woll 
+for in them is power, scyence & will complete. And Salomon said 
+which be these 7 bright bodies & how be they named. And of 
+what things serueth euerich. And Nathanael said that same 
+that Raziel said to Adam. The higher of these that goeth 
+slower is said Sabaday. And all the Remes of his heauen be 
+full of yse [ice], snow, & haile, & wrath, rancor, & coldnes, & all the 
+Angells that be there clothed with darknes full derke & the 
+greatnes of them be full high & full long & small & upon the 
+Earthes & upon deuills & upon darknesses & coldnesses & dryness. 
+And this hath power upon winds of this nature & they have 
+power of doing good & euill & the Angell of it is Boel 
+crowned upon all other.
+
+In the second heauen 
+standeth Zedet [Zedek] and all the Remes of hym.
+
+Dixit Salomon Rex filius Regis Dauid &c.
+Salomon the king the Sunn of Dauid the king said, that was king 
+of Jerusalem, of Surye & Damaske of Egypt, Lord of 
+Babylony, Prince of Scyences, couetouse of Cleanesses, 
+ensercher of Priuities, keeper of good true men, auvyder 
+of leasing of poore men, of vertues desirer upon l~re vertues 
+& spedefullnesses of words busyly thinking, & most 
+suttily [subtily] in minde enserchinge. I have enquired & knowne that in 
+words is power, vertue, & effect & of all humour hool [whole] & health 
+& there may be sufficient fulfillinge. And he said I see that 
+the most fame is of wise men & prophetes by words & bookes 
+which they haue lest into testimony of them. And I see that 
+the sonns of Adam, & of Hermes & of Noe [=Noah] & their sonns & many 
+of other prophets haue left bookes by their death by which they 
+should claryfy their fame, & anentes men glory should remayne. 
+And I see that my father king David compowned or made 
+some booke in which bee contayned all orysons which he might 
+knowe & find, which sothely latin men that is Romayns clepeth 
+the saut' [psalter]. Which sith it is of prayers alone & of holy names 
+of the Creator it is named the head of Orisons. In the same 
+booke king Dauid wrote all things what euer he might 
+knowe of Patriarkes & old wise men to the praysing of the Creatour. 
+I sothly king Salomon long studying in holy words 
+
+[152v]
+which vertues & miracles I found to be, while there is 
+fullfilled in eich working trust & will. And I saw the books 
+in which while I studied long I know Adam & hermes & 
+Noe [=Noah] & Moyses & many other most wise men, I know 
+of great privitees & the vertues of his books.
+
+Cum ergo veteres & antiquos Sapientes &c. When go [therefore] I understode 
+old wise men to haue made books how or with what witt or 
+with what art I might know the sciences of all the foresaid 
+I enquired. And there answered some old man of good minde 
+& understanding which was cleped Zebraymayl. And the 
+king said Adam had a maker & Mr that is to wite or Lord 
+maker & Gabriel to Mr. ffurthermore Hermes the 
+discreete & most wise man & Moyses had a Mr & a freind 
+that is to wit Crotum. Aaron sothly had a freind of 
+which go [therefore] is made resistence that a wise man may not be 
+without a Mr. how arrettest yu tho to [thou too] mow [may] be wise wth out 
+Mr But that thou be wise, these I know to be necessary 
+to thee. A wise Mr & discreete, longe, & continuall study 
+many olde bookes of great wise men made, oft & ofter ouer 
+red perfitt & amended, glad & continuall health of thy 
+body, long life without cures [cares?] & trauayles quiete. 
+
+Salomon said to the wise man, is not this possible to be done 
+by a sharter way then that thou hast said aboue. Zebraymayl 
+answered, king, by a lighter & shorter way then 
+this ne unknow thou not to mowe be done. To whom 
+Salomon [said,] how therefore. To whom the wise man [replied,] open thou 
+privily & fully the arke of the Testament noman knowing 
+or understanding. In which all secrets or priuitees & old 
+wisdomes & words of great power & of vertue thou shalt 
+find. By which not only thou shalt know things a passed but 
+those that be present and those that be to come. Salomon 
+answered, for this that thou hast answered to me I giue 
+thancks to that high & blessed Creator which reigneth wthout 
+beginning & liueth without end wch after yt it pleased to him 
+all things with word alone he formed or made & there is 
+not any more noble or mightier then he wthout whom no 
+vertue or power is which giueth wisedome to wise men, 
+he is that is of all things the first, syth he is wthout beginning 
+of all things the last, sith there is none end of him, 
+this is of all things maker of none y made of whom the 
+Reme or reigning is & shallbe of whom all works be good 
+And of whom the will ouer all is free sith there is none 
+that may againe say to him. 
+
+Salomon trowinge 
+
+[153r]
+or trustinge to Zebraymayl made the arke of the testamony [testament] to 
+be brought before him. And he sought all the books of Moysy [=Moses] & 
+of Aaron, of Adam, & Noe [=Noah], & of their sons & of hermes & of other 
+prophets, & all other which he might find of the miracles of Words 
+& the vertues of them. And he sought all the old idolls of heathen 
+men & Images of divers tongs hauing writeings & all things 
+grauen which might be founde by all parts of the world he 
+made in his palace to be gathered together. And he brought 
+forth Mrs of euerych of the 72 on which should expownd to him 
+privy letters or hid y. c. in ebrue [Hebrew], Caldey, Cyriac [Syriac,] greeke written. 
+And to him they should expowne that were hidde. And when the 
+letters were expownded he saw the nure parte to accord with it 
+in vertues of wordes.
+
+Rex ergo Salomon fecit archam nocte quadam apperiri &c.
+Therefore [King] Salomon made the arke some night to be 
+opened, that in the arke with reasons afterward we should be 
+learned. Salomon said after that the soueraigne & the allmighty 
+Creator had infused the grace of his spirit in me. I opened 
+the arke of the Testament in which I found all 
+
+things which 
+long and studiously I had sought, Among which I found the 
+booke which is cleped1 Raziel which the Creator sent to 
+Adam by the angell Raziel when upon the brincks of the floud 
+of paradise weepinge the creator he prayed & of him forgiunes 
+of his sinnes he besought. And I found the booke which the 
+Creator gaue to Moyses in the hill, when he made him 
+partnes of his priuites in which 3 books, that is 3 reasons2 I 
+found.
+
+  
+  1. Cleped: named.
+
+  2. K: Orisons.
+  
+
+The first the prophets clepeth Semiphoras which 
+the Creator gaue to Adam in paradise. The 2 booke is wch 
+the Creator gaue to Adam in paradice in the houre of necessity or 
+neede. The 3 is wch the Creator gaue to Moyses in the hall [sic hill] of 
+Sinay after that he had fullfilled the fasting. & Salomon said 
+I found in the Arke a pott full of Manna & the yard1 of 
+Moyses wch was changed into a Serpent, & eft from a serpent into 
+a yard. And the Tables of the Lawe & gobbetts of the first letters 
+which Moyses wrought* for the synne of the people brake. In 
+the ground sothly 3 of the Arke I founde some golden tables 
+quadrate or 4 cornered in which were 15 preciouse stones 12 
+tribes or lynages of Israel by similitude likened, & in euerich 
+stone were written the holy high names of the Creator of the booke 
+Semyforas [Semiphoras] outdrawen. And I found sund (?) boxe of marble haueing 
+greene colour as Jaspis coloured. 
+
+And in this boxe were 7 figures 
+& in eich figure 7 great & vertuous names of the Creator to Moyses 
+told. And other 7 which the Creator taught Adam in paradise. And 
+this is a secret or privity wch much leyned (? K: leaned) & couered ought worlly [K: worshipfully] to 
+be kept. I founde also about the extremities of the Arke 24 
+rings with names & figures of the Creator written Semiforas with 
+diuers colours written or figured. I my self Salomon haue minde  
+
+[153v]
+to haue had one of thilke rings in which I know to haue 
+found such vertue when I said make to rayne, it 
+reigned, whan I said est of thou hast made to rayne, so 
+make thilke rayne to cease, it ceased. And beside Jerusalem 
+the same reme aswell of tempests as of raynes 
+it did or made. And Salomon said I found Semoforas 
+with wch Moyses made the plagues in Egypt with 
+wch he dryed the red Sea, wth wch he drew out water of 
+the stone, wth wch he knew all the cleanesses of his people 
+with which he ouercame princes & kings & mighty men 
+wth wch what euer he would do he did. And that he wold 
+destroy he destroyed, wth wch what euer els good or of euil 
+he would he fullfilled at his owne will.
+
+  
+  1. yard: staff.
+
+  *. In margin: wroth.
+
+  3. sothly: truly.
+  
+
+Capitulum Explanationis istius nominis Semoforas &c 
+The Capliter [chapter] of Explanation of this name Semiforum &c. it is 
+that angells & deuells & windes & men as well quicke as 
+dead. And all spiritts & all bodies dredeth Semiforas sothly 
+is said the first secret or priuily, & great old & muchy 
+leyned & hid of great vertue & power to gett what 
+euer he woud. Semiforas is a word which ought not 
+to be shewed to all men meither by hit but with great 
+necessity or anguish ought any man to worke. And then 
+with dread of the Creator he ought cleanly & meekely & 
+deuoutly to name it.Also Semiforas is roote & begining & 
+fundament of Orison, ensample of good life, trust of 
+mans body the Orison or prayer of a iust man the Creator 
+dreadinge. Salomon said aboue Sem~ [Semiforas] these be necessary wth 
+meeknes fastinge, wth Orison, trust, wth charity, cleanesse 
+with patience meekenes & constance of a man wth not wch 
+you might worke nothing with wch what euer thou 
+wolt thou shalt get when all vertues in workinge 
+by Sem~ ought to be, netheles these 7 that in meekenes 
+truelly, pacience abstinence, trust, charity, mercy ought in 
+him principally to be had or to abounde.
+
+Si ergo per Semiphoras operaris volumus vz quod sumus &c. 
+If ergo [therefore] wee wod worke by Semiphoras It behoueth that we be 
+bright or cleane of body & in trust stedfast & from 
+falsnes & leasing1 fully departed. It behoueth also to 
+dread the Creator & the creatures of him. Among wch 
+we ought to dread most the Sunne wch giueth to us 
+
+[154r]
+
+light & derknes cold & heat wch is cause of changing of 
+tymes & of temperance of the ayre & of herbs. We ought 
+also to know the beholdinge (?) of the mone & the month wch 
+5 by hit 12 & 5, 13 be accompted as is said Nyssan yar tina~ &c.2 
+And we ought to know the waxeing 
+
+& decreasinge of the 
+moone when by it all creatures as the Sea, floudes & wells, 
+& all the neather bodies waxinge & decreasing taken & bloode 
+in the veynes & marrow in the head & in the bones after that 
+the moone taketh waxeinge & decreasing they be norished in thilke 
+also fusion and [in marg: Mercury] or molting of mettalls ne doubt thou not the 
+vertue of the moone to worke. We ought also to know Sabaday 
+i. Saturnum, by whom hunger & derth & all anguish in londs 
+befalleth. We ought also to know & dread Zedet [Zedek] i. Jouem [Jupiter], by whom 
+honour & health, & righteousnes & all good is had. We should 
+also know & dread Madyn i. Martem [Mars], of whom colours & strifes 
+& hate & battayles & leasing & all euills cometh. We ought also 
+to know & dread hamina i. Solem [the Sun], by whom we haue light and 
+darknes clearnes, by whom tymes as euill unto good & good into euill 
+be transmuted or chaunged. We ought also to know & dread Nogam 
+i. Venerem [Venus], by whom we haue meat & drinke & all necessarys 
+or things that be needfull, by whom peace & loue & dilection 
+among men is made fast & stable. We ought also to know & 
+dread Cocab i.e. Mercur [Mercury], for he is nigher to us than all untake 
+the Moone by whom merchandiss & vendisions or sellings & all 
+secular things be exercised. Therefore behold you tho that be 
+said & most the Spirits aboue said & thus thou shalt profitt 
+& what euer thou shalt axe of the Creator rightfully 
+thou shalt haue.
+
+  
+
+  1. leasing: lying.
+  
+
+  2. Hebrew month names are Nisan, Iyar, Sivan, Tammuz, Av, Elul, Tishri, Cheshvan, Kislev, Tevet,Shvat, and Adar. 
+  
+
+Heere beginneth the 6. booke that 
+treateth of the names of heauens.
+
+  
+
+  I.e. Liber Semiforas. Cp. Halle 14-B-36 fol. 346r ff.
+  ASV-SU.b.93 Occultissimorum Liber pp. 1-44. Cornell 4600 Bd. ms. 150 pp. 1 ff.
+  
+
+dixit Salomon omnes co[mmun]iter horas & malas &c. 
+
+Salomon said all men commonly good houres & euill & good dayes 
+& euill good signes & euill to be they affirmeth & this with many 
+reasons they confirmeth. And I my self Salomon, haue proued 
+the dayes & houres of Madyn [Mars] & Sabaday [Saturn] which I foiund full grevouse 
+for to worke. I haue proued also the hours of Zedet & Noga. 
+And I saw that what euer I would worke of them lightlie I 
+wrought. The hours of Cocab & Labana otherwhile be greuous 
+otherwhile good I haue proued to be. And I saw that in the day & in 
+the houre co~ia, nothing of my will I might fullfill. And know 
+that the spirits aboue said anentis diuers men diuersly be named. 
+Ffor the first in Ebrue, Sabaday in arabicke Zoal, in greeke or grice 
+fenes, in Latin Saturnus is cleped or nempned. I say therefore 
+that the first houre of the day of Sabaday, is said Sabaday. the 2 
+Zedet, the 3 Madyn, the 4 hamina, the 5 Noga, the 6 Cocab, the 7 
+Labana & the hiures of the night ought to be named to thee. 
+And know thou that by the starrs abousaid & dayes & houres 
+
+[154v]
+what euer thou wilt thou shalt understand & thou shalt know 
+the hid & privie wills of men.
+
+Cumque per Semofor operaris voluent &c.  When he would 
+worke by Semiforum first ere he beginn any thinge it 
+behoueth him to name the 7 names of angells, for some angells 
+be upon the 7 heauens. And upon the 7 planets & upon the 7 days 
+of the weeke & upon the 7 mettalls & upon the 7 colours. And 
+upon the 7 words haueinge power. The names of which be 
+these Raphael, gabriel, Samael, Michael, Saq'el, Anael, 
+Capciel. And these be ordeyned after that we ought to name 
+& to in clepe them in the 7 dayes early in this maner.
+
+Nota Orationem.
+
+O Angeli Supradictis sitis meæ quonis quam volo querere auditores & 
+mihi in omnibus auditores. that is to say.
+
+O the angells aboue 
+said, be ye the hearers of my question or axing which I will 
+enquire or axe & to me in all things helpers. 
+
+Thilke 
+sothly wch we ought to name upon the 7 heauens & upon 
+the 7 planets be these. Capciel, Sacq'el, Samael, raphael, 
+anael, Michael, gabriel. And in all things in clepinge 
+these angells thou shalt profitt. When go [therefore] there be 7 heauens 
+that is to witt, Samaym, raaq'n, Saaquin, Maon, Mahon, 
+Zebul, Araboch. And there be 4 parts of the world that is 
+East, West, North & South, which angells in euerich heuen 
+& which in what part serueth say wee.
+
+These be the Angells of the first heauen.
+
+In primo celo, qd vocatur Samaym in 4 partibus &c. In the first 
+heauen that is cleped Samaym in the 4 parts of heaven serueth 
+these. Ffrom the party of the North, Elael, hyaeyel, vralbun, veallum, 
+ballyel, basy, unascayel. From the party of the South be these: 
+duramyel, darbyel, darquyel, hamum, anael, nayymel, alscini, 
+solquiel, zamel, hu Bayel, bactanael, carpaliel. From the party of the 
+East be these, Gabriel, gabrael, odrael, modyel, Raamyel, 
+Janael. From the party of the West be these, abson, soquyel.
+
+Angells of the 2 heauen.
+
+In 2o celo quod vocatur Roaqmya A parte Septentrionis &c. In the 
+second heauen that is cleped Roaqmya, ffrom the partie of the North serueth 
+these Angells. tyel, Jarael, Yenael, Nenael, Nelel, quyan, vefamiel.
+from the partie of the South be these milba, nelya, balyer, calloyel, 
+Lyoly, batriel. from the partie of the East be these, maachyn.
+another lre~ hath Cacmyel, Carioyel, betabaat. from the partie of 
+the West is An~ulus yesaraxye [Yesararye?]. in wch is written the name of 
+mycaceton in many manners expounded.
+
+[155r]
+
+Angells of the 3 heauen.
+
+In 3o Cælo quod vocatur Saaquin a parte Septentrionis &c. In the 
+third heauen that is cleped Saaquin. from the part of the North 
+serueth these. Ponyel, penael, penat, raphael, carynel, dorannel.
+from the part of the South be these Parna, Sadyel, Lyenyel, uastanyel, 
+sanael, Samyel. from the part of the East be these Satquel, 
+quasiddu, Taranyel, taryescorat, amael, hufabria. Another 
+lre~ hath here last hyfaliel.
+
+Angells of the 4th heauen.
+
+In 4to Celo quod dicitur Maon seruiunt isti  A parte Septentionis &c.
+In the 4th heauen that is said Maon serueth these 
+ffrom the party of the North Rahumyel, hayuynyel, bacyel, 
+serapyel, Matyel, Serael. In the part of the South be these Saoryel [Sacryel?], 
+Mahanyel, gadiel, hosael, vaamyel, verascyel. In the part of the East 
+be these Capyel, bralyel, braalyel, raguel, gael, demael, calcas, 
+Atragon. in the part of the West be these. Lacana, astagna, rebquin [? K: nobquin], 
+Sonitas, Yael, Yas, Yaeb, Lael, Yyel.
+
+Angells of the 5 heauen.
+
+In 5o Cælo istis sunt quod dicitur Mahon. 
+[In the fifth heaven, that is said Mahon serveth these:]
+In the part of the north serueth 
+these. hayel, hanyel, veal, quyel, margabyel, Saeprel, manyel.
+In the part of the East be these Lanyfiel. Another lre~ hath 
+barquiel, raquiel, Samyfiel, roaziel, acel, farbieel, vranacha.
+In the part of the west be these Anhael, pabliel, Velael, bortacz, Sa 
+[In marg: **esicit copia] Suncacer, rupa, taly, paly.
+
+Angells of the 6 heauen.
+
+In 6 Cælo quod vocatur Cebul dices a parte 7tentrionis &c. In 
+the 6 heauen that is called Cebul. thou shalt say ffrom the North 
+part Est deus fortis & potens sine fine that is to say God is mighty 
+& strong without end. ffrom the part of the South thou shalt say 
+Deus sanctus paciens & misericors, that is to say, God 
+holy, pacient, & mercyfull. from the part of the East thou 
+shalt say Deus magne excelse & honorate per seculam, 
+that is to say Great God high & worshipped by worlds. ffrom 
+the part of the west thou shalt say Deus sapiens clare & 
+iuste, Deus tuam clementiam & sanctitatem exoro quod questionem 
+meam & opus meum & laborem meum hodie
+
+complete & integre 
+perficere digneris qui vivis & regnas deus per v. s. b. Amen. id Est 
+God wise cleare & rightuouse god thy meeknes & thy holynes 
+I beseech that my question & my worke & my trauell do dayly 
+fully & holy thou vouchsafe to fulfill that liuest & raignest 
+god by all worlds of worlds so mote it be. 
+
+[155v]
+
+Angells 7 Celis.
+
+In 7 Cælo est Semoforas scriptum in lib. vitæ &c. In the 
+7 heauen is Semoforas written in the booke of life. 
+In the name of the meeke & mercifull god of Israel 
+& of paradise & of heauen & of Earth & of the seas & 
+of hills & of all creatures.
+
+finis 6i lib.
+
+Here beginneth the 7th booke that 
+treateth of names & of the vertues of them.
+
+  
+  
+
+  Compare Halle 14-B-36 fol. 246v.
+  
+
+Incipiunt litterae & verba & nomina Semoforum quem Deus &c. 
+
+Here beginneth the letters & words & names of Semoforas [Semiphoras] 
+which god the Creator gaue to Adam in paradise in wch be 
+4 letters wch to the 4 parts of the world, & to the 4 Elements 
+& to the 4 complexions & to the 4 natures of beastes 
+be likend. Such they be יהיהיהיה YHYHYHYH [in Hebrew letters] & by these letters pytiously & deuotly & meekly name thou that thy peticion in 
+all things be fullfilled. Salomon said there be said to be 
+7 Semoforas. And the first is the Semoforas of Adam in which be 
+contayned 4 chapters. The first is when Adam spake with 
+the Creator in paradise. The 2 is when he spake with the 
+Angells. The 3 when he spake with the deuills. The 4th 
+when he spake with men & with foules & fishes & beasts 
+& reptiles & wild beasts. The 5 whwn he spake with seeds 
+& herbs & trees & all waxing things. The 6 when he spake 
+with wynds & with the 4 Elements. The 7 when he spake 
+with the Sunne & the Moone & the starrs. And by these 
+7 vertues of Semoforas what euer he would do he did. 
+And wt euer he wold destroy he destroyed. And this 
+Semoforas Adam had when the Creator inspired grace in to him.
+
+The first Semoforas.
+
+Primus Semoforas est quem Creator Adam formavit &c. The 
+first Semophoras is when the Creator formed Adam & him 
+in paradise putting nempned or named [corrupt Hebrew] [=יהוה]  that is to say 
+Yana1 the natures & vertues of wch aboue we haue declared. 
+If in great necessity or need thou namest this name meekly 
+& deuotely before the Creator grace & helpe ne doubt thou 
+not to finde.
+
+  
+
+  1. יהוה per Halle 14-B-36. OP3.11: IAVA. Scheible reads "Jove."
+  
+
+The second Semoforas.
+
+Semoforum Secundum est quando Adam locutus fuit &c.
+
+ The second 
+Semophoras is when Adam spake with the Angell which 
+brought to him these letters written the ensample of wch is 
+such [corrupt Hebrew].2 that is Yeseraye. And this name thou shalt 
+name when thou wilt speake with angells & they thy 
+
+[156r]
+question & thy worke without doubt shall fullfill.
+
+  
+
+  2. Possibly AShR AHIH, i.e. "Asser Eheie", one of the names of God of 7 letters.
+  
+
+The 3 Semoforas:
+
+Tercium Semoforum est qu' locutus sit cum demonibus &c. The 
+3d Semoforas is whan he [i.e. Adam] spake with deuills & with dead men 
+& of them counsail he enquired & they sufficiently to him 
+answerd & all this he did with these lettres of wch this is the 
+explanacon Adonay Sabaoth, adonay cados, addonay amiora. And 
+these lettres thou shalt name whan thou wilt gather together 
+winds or deuills or spirits.
+
+The 4 Sem'.
+
+Quartum Semoforum est qu' animalia & spiritus &c. The 4th Semoforas is 
+when he bound & loosed beasts & spirits, & that with these 
+7 names. Lagumene1 Lanazirni, Lanagelagyn, Laquiri, Lanagala, 
+Lanatozyn, Layfyalasyn. And when thou wilt bind or loose 
+beasts thou shalt name the names aboue said.
+
+  
+
+  1. (?) Looks like Lagmne with a bar over the last 4 letters. Scheible: Lagumen. K: Lagume.
+  
+
+The 5 Sem'.
+
+Quintum Semoforum est qu' 7 nomina dix &c. The 5 Semoforas is 
+when he said the 7 names with which he bound seeds & trees 
+& these they be. Lyaham, Lyalgana, Lyafar, Viahirab, lelara, 
+lebaron, Laasasalos. And when thou would bind seeds or trees 
+thou shalt name the names abousaid & thou shalt binde.
+
+The 6 Semforum.
+
+Sextum Semoforum est magne virtutis &c. The 6 Sem' is of great 
+vertue & power of which these be the names. Letamynyn, 
+Letaglogen, Letafyryn, babaganarytyn, Letarinitim, Letagelogyn, 
+Letafalazyn. These names thou shalt name when thou 
+wilt that the Elemts & winds fullfill thy will in all things.
+
+The 7 Semoforas.
+
+Septimum Semoforum est magnum & virtuosum &c. The 7 Semoforas 
+is great & virtuous for they be the names of the Creator wch 
+thou oughtest to name in eich thing & in all thy worke 
+inclepe. And they be these. Elyaon, Yacna (Yaena?), adonay, Cados, ebreel, 
+Eloy, Ela, Agyel, ayom, suth, adon, sulela, eloym, deliom, yacy, 
+Elyn, delys, yacy, zazael, paliel, man, myel, enola, dylatan, 
+saday, alma, paxym. Another l're Saena, alym, catynal, 
+vza~, yaraf, calpy, calsas, safua (or safna), nycam, Saday, aglataon, Sya, 
+emanuel, Joth, lalaph, vm, via, tllan, domyfraël, muel, lalialins, 
+alla, phenor, Aglata, tyel, pyel, patriceron, chepheron, Baryon, 
+yael. And these thou shalt name in eich tyme that thou 
+workest upon the 4 elements, And what euer thou wilt do by them 
+it shall be done And what euer thou wilt destroy it shall be 
+destroyed & fordone.
+
+[156v]
+
+Here beginneth Sem[oforas] that Moyses had.
+
+  
+  
+
+  Compare Halle ms. 14-B-36 fol. 247r.
+  
+
+Incipit Semoforum quod Dominus dedit Moysi &c. Here beginnethe 
+Semoforas that our Lord gaue to Moyses [=Moses]. And it is deuided 
+into 7 chapters. Of which the first is whan Moyses 
+ascended the hill & spake with the flame that environed 
+the buske [bush]. And the bush seemed to burne & netheles 
+it burnt not. The 2 when he spake with the Creator 
+in the hill. the 3 was when he deuided the red Sea 
+& passed thorough it. The 4th when the yarde [staff] 
+was changed into a serpent, & the serpent deuoured other. 
+The 5 is in wch be the names that was written in the 
+forehead of Aaron. The 6 is when he made the brasen 
+adder & the calf in brasse with the plagues of Egyptians 
+he smote. the 7 is when he reyned mana in deserte 
+& drew out water of the stone & led out the Childern 
+of Israel, from captivity.
+
+Cap. primum
+
+Hæc sunt nomina quae dixit moyses quae asc. &c. These be the 
+names that Moyses [=Moses] said when he ascended the hill & 
+spake with the flame. Maya, afi, zye, yaremye, vue, 
+bace, sare, binoe, maa, yasame, roy, lily, leoy, yly, yre, 
+cyloy, zalye, lee, or, see, loace, cadeloye, vle, meha, 
+ramechy, ry, hy, fosia, tu, nimi, sehye, ince, yelo, 
+habe, vele, hele, ede, quego, ramyehabe. And when thou 
+namest these names devoutly. Know thou thy worke 
+without doubt to be fullfilled.
+
+Cap. 2um.
+
+Hæc sunt nomina quae dixit Creator &c. These be the names 
+which the creator said to Moyses when he ascended the 
+hill. And spake with him. abgmcan, loaraceram, naodicras, 
+pecarcecays, acaptena, yegin, podayg, sauocicum. These be 
+[the names] with which the Temple of Bozale was founded. 
+These be the names of the prophet whan with the Angells 
+with wch the 4 parties of the world weare sealed with wch 
+thou might do many miracles. And beware lest thou name 
+them but chast & cleane & 3 dayes fasting & wt euer thou 
+wilt do by them thou shalt do trustily.
+
+Cap.um 3um.
+
+Hæc sunt nomina quae Moyses dixit &c. These be the names that 
+Moyses sayd when he deuided the red sea. ena, elaye, sayec, 
+helance, maace, lehahu, lelahu, alialie, quore, azaye, 
+boene, hyeha, ysale, mabeha, araya, arameloena, quoleye, 
+lyeneno, feayne, ye, ye, maleco, habona, nechee, hicero.
+
+[157r]
+And when thou wilt haue grace of any man. These names 
+thou shalt name deuoutly & meekely & thou shalt haue.
+
+Cap. 4m.
+
+Hæc sunt nomina quae dixit Moyses que &c. These be the names 
+that Moyses said when the yard was changed into a serpent 
+of the enchanters & the prophets micracon. with these name 
+incleped en. Roepi, Saconich, patonit, piston, ycimor, hygaron, 
+ygmron, tenigaron, mycon, mycondasnos, castas, laceas, astas, 
+yecon, cyn, tabliust, tabla, nac, zacut. And these forsaid 
+names thou shalt name whan thou wilt fullfill thy question 
+or axeing.
+
+Cap. 5m.
+
+Hæc sunt nomina quae scripta erant in populo Aaron &c. These be 
+the names that were written in the people of Aaron 
+when he spake with the Creator Saday, hayloce, loez, elacy, 
+citonij, hazyhaya, yeynimoysey, accidasbarni, 
+huadonemi, eya, hyeba, vea, vaha, oyaha, eye, oye, ha, hya, haya, 
+zahya, hahyha, eyey, yaia, el, ebehel, va, va, va. keep well 
+these names abousaid for they be holy and vertuous, & these thou 
+shalt name that thou get that thou axest of the Creator.
+
+Cap. 6m.
+
+Hec sunt nomina quae scripta erant in virga Moysy &c. These 
+be the names that were written in the yard of Moyses 
+when he made the brasen serpent & destroyed the golden 
+calfe. when all that druncke in the well hadden a beard. 
+yana, yane, sya, abibhu, vanohya, accenol, tyogas, yena, eloym, 
+ya, vehu, yane, hay, ya, vehu, a hyaemed. And these names 
+conteyne in themselues many vertues, for with them thou shalt 
+destroy euill & all enchantments & presume thou not to 
+name them in the 7 worke.
+
+Cap. 7m.
+
+Hæc sunt nomina quae moyses dixit que plut &c. These be the names 
+that moyses said when manna reyned in desert & drawe 
+out water of the Rocke & led out from Captivity the childern 
+of Israel. Saday, samora, ebon, pheneton, eloy, eneyobceel, 
+messyas, Jahe, yana, or eolyen. Whan thou wolt do any miracles, 
+or if thou were in any anguish. These names thou shalt 
+name & in all things thou shalt feele the helpe of them 
+& the vertue. And when thou hast done this rekearse thou 
+these words by which the names aboue said be expowned. 
+
+Deus vive verax, magne, fortis potens pie, sancte munde, omni bonitate 
+plene benedicte domine benedictum nomen tuum tu completer nraz 
+compleas q~nem tu s~cor fac nos ad finem nostri operis pervenire 
+tu largitor nobis integru complementum nostris operis elargir 
+tu sancte & misericors nobis miserere nomen tuum yeseraye 
+sit per seculam benedictum amen.
+
+ That is to say, God quick 
+very great stronge mighty, meke holy cleane, full of all 
+
+[157v]
+goodnes blessed lord be thy name thou 
+fulfiller fullfill our question thou maker, make us to 
+come to thend of or worke thou granter graunt us 
+hoal fullfilling of or worke thou holy & mercifull 
+haue mercy of us thy name yeseraye be it blessed by 
+worlds. Amen. In the name of the soueraigne 
+allmighty Creator I begine thexplanacion of his name 
+yeseraye that is to say god without begining & wth out 
+ende. Agla [K: Angilae] is the name of a prophet and properly 
+written in gold plate of liuing men. And who euer 
+bereth it upon himself & how long he hath it with 
+him he shall not dread sodaine death.
+
+Here endeth the booke of Raziel 
+of 7 treatises.
+
+ffinis Razielis.
+
+[158r]
+
+Here beginneth names that be necessary 
+to euerich Christen man.
+
+Hæc sunt nomina 4 Creatoris & unumquique est &c These 
+[be] the 4 names of the Creator & euerich is of 4 l~ros & prophets 
+bare them written in prciouse stones. And these be the 
+names. Johac, Jona, Eloy, Yena. And know thou who euer 
+beareth these names written in parchmyn that in hebrue 
+is named genil in gilden letters with him, lyflode & clothing 
+worshipfully lacketh not to him how long he hath them 
+with him.
+
+A name to gett victory.
+
+Hac est nomen cum que Josue fecit &c. This is the name wth 
+wch Josue made the sonne to stand in his place against his 
+proper nature1 wth wch he ouercame gabionitas & 34 kings & 
+this is a great name & vertuous dredfull & gasteleu. 
+Bachianodobalizlior, & thus bachiocoiodobaliz hac & this 
+name giueth vengeance of enemies & who that euer beareth 
+it with him a prison may not hold him, neither in battails 
+he may be ouercomen of any man.
+
+  
+  1. Joshua 10:12-13.
+  
+
+For gladnes & against wrath & Ire.
+
+Hoc est nomen quod dixit Creator Moysy &c. This is a name 
+that the Creator said to Moysis in the mont of Synay. 
+hacedion or hachedion, & this name removeth wrath 
+& sorow & it encreaseth gladnes & loue.
+
+For victory.
+
+Hoc est nomen quod Adam in infernis circuitu &c. This is a name 
+that Adam named in the environ of hell mephenoyphaton, 
+& who euer beareth it upon him any man shall not 
+mowe ouercome him.
+
+Hæc sunt nomina 7 excelsa magna &c. These be the 7 high 
+names great & vertuous whan thou wolt axe any thinge take 
+thou a good houre & a good place: & els be thou not hearty 
+to nempne them & these be the names. Comicecon, Sedelay, 
+tohomos, zesyn, agata, bycol, ycos.It is ended do we thou kings 
+to the lord Jesu Christ father & sonne & holy gohst [sic]. Amen. 
+which liueth & reyneth without ende Amen.
+
+Explicit.
+
+Home
+
+Contents
+
+Prev
+
+raziel
+
+Next
+
+timeline

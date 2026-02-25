@@ -97,5 +97,5 @@ Would you like me to include the actual Python seed-expansion script inside this
 1. Ensure the external network exists: `docker network create fortress-phronesis-net` (skip if already present).
 2. Build the image: `docker compose build`.
 3. Start the container: `docker compose up -d`.
-4. Visit `http://localhost:8085/web/clock_visualizer.html` to view the clock (the container serves the repository at `/app`).
+4. Visit `http://localhost:8086/web/clock_visualizer.html` to view the clock (the container serves the repository at `/app`).
 5. Regenerate the dataset manually (optional): `docker compose run --rm solomonic-clock python src/generate_full_dataset.py`.

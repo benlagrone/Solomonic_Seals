@@ -5,4 +5,5 @@ set -e
 python src/generate_full_dataset.py
 
 PORT="${PORT:-8080}"
-exec python -m http.server "$PORT" --directory /app
+HOST="${HOST:-0.0.0.0}"
+exec python src/webserver.py --host "$HOST" --port "$PORT" --root /app

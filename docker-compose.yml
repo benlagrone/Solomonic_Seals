@@ -8,8 +8,10 @@ services:
     restart: unless-stopped
     environment:
       - PORT=8080
+      - SOLOMONIC_PSALM_SOURCE_MODE=pericope_first
+      - SOLOMONIC_PERICOPE_API_BASE=http://host.docker.internal:8001
     ports:
-      - "8085:8080"
+      - "${SOLOMONIC_HOST_PORT:-8086}:8080"
     networks:
       - fortress-phronesis-net
 
