@@ -77,13 +77,13 @@ Run these from anywhere with network access to local Pericope:
 ```bash
 curl -s http://localhost:8001/v1/book_partial \
   -H 'Content-Type: application/json' \
-  -d '{"author_slug":"david","book":"Psalms","source":"Psalms_Vulgate_Clementine.txt","start_position":1,"end_position":1000}'
+  -d '{"author_slug":"david","book":"Psalms","source":"Psalms_Vulgate_Clementine.txt","start_position":1,"end_position":5000}'
 ```
 
 ```bash
 curl -s http://localhost:8001/v1/book_partial \
   -H 'Content-Type: application/json' \
-  -d '{"author_slug":"david","book":"Psalms","source":"Psalms_DouayRheims_1899.txt","start_position":1,"end_position":1000}'
+  -d '{"author_slug":"david","book":"Psalms","source":"Psalms_DouayRheims_1899.txt","start_position":1,"end_position":5000}'
 ```
 
 ## Automated Backfill In Solomonic_Seals
@@ -96,7 +96,8 @@ python3 scripts/backfill_scripture_mappings_from_latin_pericope.py \
   --translator-base-url http://localhost:8010 \
   --author-slug david \
   --book Psalms \
-  --source Psalms_Vulgate_Clementine.txt
+  --source Psalms_Vulgate_Clementine.txt \
+  --end-position 5000
 ```
 
 Dry run first:
@@ -106,6 +107,7 @@ python3 scripts/backfill_scripture_mappings_from_latin_pericope.py \
   --pericope-base-url http://localhost:8001 \
   --translator-base-url http://localhost:8010 \
   --source Psalms_Vulgate_Clementine.txt \
+  --end-position 5000 \
   --dry-run
 ```
 
@@ -137,7 +139,19 @@ After Pericope text + translator API are available, run backfill then validate:
 python3 scripts/backfill_scripture_mappings_from_latin_pericope.py \
   --pericope-base-url http://localhost:8001 \
   --translator-base-url http://localhost:8010 \
-  --source Psalms_Vulgate_Clementine.txt
+  --source Psalms_Vulgate_Clementine.txt \
+  --end-position 5000
 
 python3 scripts/validate_psalms.py --fail-on-warnings
 ```
+
+## Known Numbering Edge Cases
+
+If a dry-run reports missing chapters for references like Psalm `22`, `69`, or `109`, those are typically Vulgate/Hebrew neighbor shifts.  
+The backfill script now tests nearby chapter candidates automatically (`N`, crosswalk, `N-1`, `N+1`).
+
+If Psalm `116:16` remains unresolved, that indicates the current Latin source file does not include the needed split chapter text (often Vulgate `115` context).  
+In that case, either:
+
+1. Rebuild `Psalms_Vulgate_Clementine.txt` to include that chapter, then rerun backfill.
+2. Keep that single mapping pending and resolve manually with canonical source verification.

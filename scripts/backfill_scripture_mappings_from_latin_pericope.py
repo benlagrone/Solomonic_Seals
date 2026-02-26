@@ -12,6 +12,7 @@ Flow:
 from __future__ import annotations
 
 import argparse
+import csv
 import json
 import re
 import sys
@@ -23,6 +24,7 @@ from urllib.request import Request, urlopen
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_SCRIPTURE_PATH = ROOT / "data" / "scripture_mappings.json"
 DEFAULT_PENTACLE_PATH = ROOT / "data" / "pentacle_psalms.json"
+DEFAULT_NUMBER_MAP_PATH = ROOT / "data" / "psalm_number_map.csv"
 
 
 def parse_args() -> argparse.Namespace:
@@ -75,8 +77,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--end-position",
         type=int,
-        default=1000,
-        help="Pericope end position (default: 1000)",
+        default=5000,
+        help="Pericope end position (default: 5000)",
     )
     parser.add_argument(
         "--timeout",
@@ -104,6 +106,12 @@ def parse_args() -> argparse.Namespace:
         nargs="*",
         type=int,
         help="Optional explicit Vulgate psalm numbers to process.",
+    )
+    parser.add_argument(
+        "--number-map-path",
+        type=Path,
+        default=DEFAULT_NUMBER_MAP_PATH,
+        help="Path to Vulgate/Hebrew crosswalk CSV (default: data/psalm_number_map.csv)",
     )
     return parser.parse_args()
 
@@ -152,14 +160,14 @@ def parse_psalm_text(raw_text: str) -> dict[int, dict[int, str]]:
         if not line:
             continue
 
-        chapter_match = re.match(r"^Chapter\s+(\d+)\s*$", line, re.IGNORECASE)
+        chapter_match = re.match(r"^(?:Chapter|Psalm)\s+(\d+)\b", line, re.IGNORECASE)
         if chapter_match:
             chapter_num = int(chapter_match.group(1))
             lookup.setdefault(chapter_num, {})
             verse_num = None
             continue
 
-        verse_match = re.match(r"^(\d+)\s+(.*)$", line)
+        verse_match = re.match(r"^(\d+)[\.:]?\s+(.*)$", line)
         if chapter_num is not None and verse_match:
             verse_num = int(verse_match.group(1))
             verse_text = verse_match.group(2).strip()
@@ -233,6 +241,24 @@ def build_verse_targets(pentacle_payload: dict[str, Any]) -> dict[int, dict[str,
     return targets
 
 
+def load_number_map(number_map_path: Path) -> dict[int, int]:
+    try:
+        rows = list(csv.DictReader(number_map_path.read_text(encoding="utf-8").splitlines()))
+    except FileNotFoundError:
+        return {}
+
+    mapping: dict[int, int] = {}
+    for row in rows:
+        vul_raw = (row.get("vulgate_number") or "").strip()
+        heb_raw = (row.get("hebrew_reference") or "").strip()
+        if not vul_raw.isdigit():
+            continue
+        if not heb_raw.isdigit():
+            continue
+        mapping[int(vul_raw)] = int(heb_raw)
+    return mapping
+
+
 def fetch_latin_lookup(
     pericope_base_url: str,
     author_slug: str,
@@ -270,13 +296,13 @@ def translate_text(text: str, translator_base_url: str, timeout: float) -> str:
     return translated.strip()
 
 
-def choose_verses_for_psalm(
-    psalm_num: int,
+def choose_verses_for_chapter(
+    chapter_num: int,
     mapping_entry: dict[str, Any],
     target_info: dict[str, Any] | None,
     latin_lookup: dict[int, dict[int, str]],
 ) -> list[int]:
-    available = latin_lookup.get(psalm_num, {})
+    available = latin_lookup.get(chapter_num, {})
     if not available:
         return []
 
@@ -341,6 +367,7 @@ def main() -> int:
         return 1
 
     target_map = build_verse_targets(pentacle_payload)
+    number_map = load_number_map(args.number_map_path.expanduser().resolve())
 
     try:
         latin_lookup = fetch_latin_lookup(
@@ -382,15 +409,50 @@ def main() -> int:
             continue
 
         target_info = target_map.get(psalm_num)
-        verses = choose_verses_for_psalm(psalm_num, entry, target_info, latin_lookup)
-        if not verses:
-            print(f"warn: Psalm {psalm_num} missing from fetched Latin lookup")
+        chapter_candidates = [
+            psalm_num,
+            psalm_num - 1,
+            psalm_num + 1,
+        ]
+        hebrew_fallback = number_map.get(psalm_num)
+        if isinstance(hebrew_fallback, int) and hebrew_fallback > 0:
+            chapter_candidates.append(hebrew_fallback)
+            chapter_candidates.append(hebrew_fallback - 1)
+            chapter_candidates.append(hebrew_fallback + 1)
+        chapter_candidates = [
+            c
+            for c in dict.fromkeys(chapter_candidates)
+            if isinstance(c, int) and c > 0
+        ]
+
+        chosen_chapter: int | None = None
+        verses: list[int] = []
+        for chapter_candidate in chapter_candidates:
+            verses = choose_verses_for_chapter(
+                chapter_candidate, entry, target_info, latin_lookup
+            )
+            if verses:
+                chosen_chapter = chapter_candidate
+                break
+
+        if chosen_chapter is None:
+            print(
+                f"warn: Psalm {psalm_num} missing from fetched Latin lookup "
+                f"(tried chapters {chapter_candidates})"
+            )
             missing_lookup += 1
             continue
 
-        latin_excerpt = latin_excerpt_for_verses(psalm_num, verses, latin_lookup)
+        if chosen_chapter != psalm_num:
+            print(
+                f"info: Psalm {psalm_num} used chapter {chosen_chapter} via crosswalk fallback"
+            )
+
+        latin_excerpt = latin_excerpt_for_verses(chosen_chapter, verses, latin_lookup)
         if not latin_excerpt:
-            print(f"warn: Psalm {psalm_num} verses {verses} had no text")
+            print(
+                f"warn: Psalm {psalm_num} chapter {chosen_chapter} verses {verses} had no text"
+            )
             missing_lookup += 1
             continue
 
