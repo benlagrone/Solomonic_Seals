@@ -5,6 +5,10 @@ This folder contains product, structure, and source-indexing docs for Solomonic 
 Program-level strategy, deployment policy, and release governance are maintained in:
 - [Fortress Phronesis Canonical Docs Index](../../fortress-phronesis/docs/README.md)
 
+## Shared Acceptance + Demo
+
+- [v1.1.3 Acceptance Test + Demo Guide](../../fortress-phronesis/docs/acceptance-demo-guide-v1.1.3.md)
+
 ## Local Documents
 
 - [Roadmap](roadmap.md)
