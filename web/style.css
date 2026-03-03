@@ -157,6 +157,110 @@ svg#clock {
   color: #cbd5f5;
 }
 
+.daily-profile {
+  margin: 0 0 1rem;
+  padding: 0.85rem 0.95rem;
+  background: rgba(30, 41, 59, 0.45);
+  border: 1px solid rgba(147, 197, 253, 0.3);
+  border-radius: 0.8rem;
+  text-align: left;
+}
+
+.profile-heading {
+  margin: 0;
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #93c5fd;
+}
+
+.profile-day {
+  margin: 0.4rem 0 0.3rem;
+  font-weight: 600;
+  color: #f8fafc;
+}
+
+.profile-pentacle {
+  margin: 0 0 0.3rem;
+  font-size: 0.84rem;
+  color: #dbeafe;
+}
+
+.profile-focus {
+  margin: 0 0 0.6rem;
+  font-size: 0.83rem;
+  color: #bfdbfe;
+}
+
+.profile-correspondences {
+  margin: 0;
+  padding-left: 1rem;
+  display: grid;
+  gap: 0.22rem;
+}
+
+.profile-correspondences li {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #cbd5f5;
+}
+
+.profile-correspondences strong {
+  color: #f8fafc;
+  font-weight: 600;
+}
+
+.reading-depth {
+  margin: 0 0 1rem;
+  padding: 0.85rem 0.95rem;
+  background: rgba(17, 24, 39, 0.5);
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  border-radius: 0.8rem;
+}
+
+.depth-heading {
+  margin: 0;
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #e2e8f0;
+}
+
+.depth-controls {
+  margin-top: 0.5rem;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.45rem;
+}
+
+.depth-button {
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  background: rgba(15, 23, 42, 0.75);
+  color: #cbd5f5;
+  border-radius: 999px;
+  padding: 0.35rem 0.4rem;
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition: background 0.18s ease, color 0.18s ease, border-color 0.18s ease;
+}
+
+.depth-button:hover {
+  border-color: rgba(250, 204, 21, 0.55);
+  color: #f8fafc;
+}
+
+.depth-button.active {
+  background: rgba(250, 204, 21, 0.18);
+  border-color: rgba(250, 204, 21, 0.75);
+  color: #fde68a;
+}
+
+.depth-note {
+  margin: 0.55rem 0 0;
+  font-size: 0.76rem;
+  color: #94a3b8;
+}
+
 .psalm-summary {
   margin-bottom: 1rem;
   padding-bottom: 1rem;

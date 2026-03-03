@@ -83,12 +83,22 @@ const drawerElements = {
   guidanceDay: document.querySelector(".guidance-day"),
   guidanceTone: document.querySelector(".guidance-tone"),
   guidanceList: document.querySelector(".guidance-list"),
+  profileDay: document.querySelector(".profile-day"),
+  profilePentacle: document.querySelector(".profile-pentacle"),
+  profileFocus: document.querySelector(".profile-focus"),
+  profileColor: document.querySelector(".profile-color"),
+  profileMetal: document.querySelector(".profile-metal"),
+  profileAngel: document.querySelector(".profile-angel"),
+  depthButtons: Array.from(document.querySelectorAll(".depth-button[data-depth]")),
 };
 let lastPsalmKey = null;
 let lastGuidanceKey = null;
+let lastProfileKey = null;
 let currentPsalmRequestId = 0;
+let readingDepth = "short";
 const psalmTextCache = new Map();
 const PSALM_API_ENDPOINT = "/api/psalm";
+const READING_DEPTHS = new Set(["short", "medium", "long"]);
 const PLANETARY_DAY_GUIDANCE = {
   Sun: {
     tone: "Visibility, confidence, and leadership work are favored.",
@@ -117,6 +127,43 @@ const PLANETARY_DAY_GUIDANCE = {
   Saturn: {
     tone: "Discipline, structure, and enduring work are favored.",
     activities: ["Set limits and simplify commitments.", "Complete long-term maintenance work.", "Focus on serious, patient progress."],
+  },
+};
+const PLANETARY_CORRESPONDENCES = {
+  Sun: {
+    color: "Gold",
+    metal: "Gold",
+    angel: "Michael",
+  },
+  Moon: {
+    color: "Silver",
+    metal: "Silver",
+    angel: "Gabriel",
+  },
+  Mars: {
+    color: "Scarlet",
+    metal: "Iron",
+    angel: "Camael",
+  },
+  Mercury: {
+    color: "Yellow",
+    metal: "Quicksilver",
+    angel: "Raphael",
+  },
+  Jupiter: {
+    color: "Royal Blue",
+    metal: "Tin",
+    angel: "Sachiel",
+  },
+  Venus: {
+    color: "Emerald",
+    metal: "Copper",
+    angel: "Anael",
+  },
+  Saturn: {
+    color: "Black",
+    metal: "Lead",
+    angel: "Cassiel",
   },
 };
 
@@ -327,6 +374,83 @@ function updateDailyGuidance(timeState) {
   });
 }
 
+function updateDailyProfile(timeState) {
+  if (
+    !drawerElements.profileDay ||
+    !drawerElements.profilePentacle ||
+    !drawerElements.profileFocus ||
+    !drawerElements.profileColor ||
+    !drawerElements.profileMetal ||
+    !drawerElements.profileAngel
+  ) {
+    return;
+  }
+
+  const dayText = timeState?.dayLabel?.dayText || "Unknown day";
+  const rulerText = timeState?.dayLabel?.rulerText || "Unknown ruler";
+  const activePentacle = timeState?.active?.pentacle || null;
+  const pentacleId = activePentacle
+    ? `${activePentacle.planet}-${activePentacle.pentacle.index}`
+    : "none";
+  const key = `${dayText}-${rulerText}-${pentacleId}`;
+  if (key === lastProfileKey) {
+    return;
+  }
+  lastProfileKey = key;
+
+  const correspondences = PLANETARY_CORRESPONDENCES[rulerText] || {
+    color: "Unspecified",
+    metal: "Unspecified",
+    angel: "Unspecified",
+  };
+
+  drawerElements.profileDay.textContent = `${dayText} ruled by ${rulerText}`;
+  drawerElements.profilePentacle.textContent = activePentacle
+    ? `Active pentacle: ${activePentacle.planet} #${activePentacle.pentacle.index}`
+    : "Active pentacle: unavailable";
+  drawerElements.profileFocus.textContent = activePentacle?.pentacle?.focus
+    ? `Suggested focus: ${activePentacle.pentacle.focus}`
+    : "Suggested focus: center attention on deliberate, disciplined action.";
+  drawerElements.profileColor.textContent = correspondences.color;
+  drawerElements.profileMetal.textContent = correspondences.metal;
+  drawerElements.profileAngel.textContent = correspondences.angel;
+}
+
+function setReadingDepth(nextDepth) {
+  const normalized = String(nextDepth || "").toLowerCase();
+  if (!READING_DEPTHS.has(normalized) || normalized === readingDepth) {
+    return;
+  }
+  readingDepth = normalized;
+  lastPsalmKey = null;
+}
+
+function setupReadingDepthControls() {
+  if (!drawerElements.depthButtons.length) {
+    return;
+  }
+
+  drawerElements.depthButtons.forEach((button) => {
+    const buttonDepth = String(button.dataset.depth || "").toLowerCase();
+    if (!READING_DEPTHS.has(buttonDepth)) {
+      return;
+    }
+
+    const isActive = buttonDepth === readingDepth;
+    button.classList.toggle("active", isActive);
+    button.setAttribute("aria-pressed", isActive ? "true" : "false");
+    button.addEventListener("click", () => {
+      setReadingDepth(buttonDepth);
+      drawerElements.depthButtons.forEach((candidate) => {
+        const candidateDepth = String(candidate.dataset.depth || "").toLowerCase();
+        const active = candidateDepth === readingDepth;
+        candidate.classList.toggle("active", active);
+        candidate.setAttribute("aria-pressed", active ? "true" : "false");
+      });
+    });
+  });
+}
+
 function computeTimeState(now, layers, derived) {
   const yearLength = isLeapYear(now.getFullYear()) ? 366 : 365;
   const dayIndex = getDayOfYear(now);
@@ -395,10 +519,11 @@ function buildPsalmMap(psalmPayload) {
 }
 
 function updatePsalmDrawer(activePentacle, psalmMap) {
-  let key = null;
+  let pentacleKey = null;
   if (activePentacle) {
-    key = `${activePentacle.planet.toLowerCase()}-${activePentacle.pentacle.index}`;
+    pentacleKey = `${activePentacle.planet.toLowerCase()}-${activePentacle.pentacle.index}`;
   }
+  const key = `${pentacleKey || "none"}|${readingDepth}`;
 
   if (key === lastPsalmKey) {
     return;
@@ -412,7 +537,7 @@ function updatePsalmDrawer(activePentacle, psalmMap) {
 
   drawerElements.list.innerHTML = "";
 
-  if (!activePentacle || !key) {
+  if (!activePentacle || !pentacleKey) {
     drawerElements.planet.textContent = "—";
     drawerElements.focus.textContent = "Select a pentacle to view its verses.";
     const li = document.createElement("li");
@@ -424,7 +549,7 @@ function updatePsalmDrawer(activePentacle, psalmMap) {
   drawerElements.planet.textContent = `Pentacle of ${activePentacle.planet} #${activePentacle.pentacle.index}`;
   drawerElements.focus.textContent = activePentacle.pentacle.focus || "Purpose unavailable";
 
-  const psalms = psalmMap.get(key) || [];
+  const psalms = psalmMap.get(pentacleKey) || [];
   if (!psalms.length) {
     const li = document.createElement("li");
     li.textContent = "No psalms cited for this pentacle in the Key of Solomon notes.";
@@ -434,29 +559,57 @@ function updatePsalmDrawer(activePentacle, psalmMap) {
 
   psalms.forEach((entry) => {
     const li = document.createElement("li");
-    const psalmNumber = entry.number ?? entry.psalm ?? "?";
+    const psalmNumber = Number.parseInt(entry.number ?? entry.psalm, 10);
+    if (Number.isNaN(psalmNumber)) {
+      li.textContent = "Psalm reference missing a numeric chapter value.";
+      drawerElements.list.appendChild(li);
+      return;
+    }
     const verseLabel = entry.verses ? `:${entry.verses}` : "";
     li.textContent = `Psalm ${psalmNumber}${verseLabel}`;
-    if (entry.verses) {
-      const span = document.createElement("span");
-      const label = entry.verses.includes(":") ? "Verses" : "Verse";
-      span.textContent = `${label} ${entry.verses}`;
-      li.appendChild(span);
+
+    const modeLabel = document.createElement("span");
+    if (readingDepth === "long") {
+      modeLabel.textContent = "Reading mode: full chapter";
+    } else if (readingDepth === "medium") {
+      modeLabel.textContent = "Reading mode: 3-5 verses";
+    } else {
+      modeLabel.textContent = "Reading mode: single verse";
     }
+    li.appendChild(modeLabel);
+
     const textBlock = document.createElement("div");
     textBlock.classList.add("psalm-text", "loading");
-    textBlock.textContent = "Loading verse text…";
+    textBlock.textContent = readingDepth === "long" ? "Loading chapter text…" : "Loading verse text…";
     li.appendChild(textBlock);
     drawerElements.list.appendChild(li);
 
-    if (!entry.verses) {
+    if (!entry.verses && readingDepth !== "long") {
       textBlock.classList.remove("loading");
       textBlock.textContent = "Verse reference not provided in source.";
       return;
     }
 
-    const chapter = psalmNumber;
-    const versesToFetch = expandVerseSpecification(entry.verses);
+    if (readingDepth === "long") {
+      retrievePsalmText(psalmNumber).then((chapterText) => {
+        if (currentPsalmRequestId !== requestId) {
+          return;
+        }
+        textBlock.classList.remove("loading");
+        textBlock.textContent = chapterText || "No chapter text returned by scripture service.";
+      }).catch((error) => {
+        console.error("Failed to fetch psalm chapter", error);
+        if (currentPsalmRequestId !== requestId) {
+          return;
+        }
+        textBlock.classList.remove("loading");
+        textBlock.classList.add("error");
+        textBlock.textContent = "Unable to fetch chapter text.";
+      });
+      return;
+    }
+
+    const versesToFetch = selectVersesForDepth(entry.verses, readingDepth);
     if (!versesToFetch.length) {
       textBlock.classList.remove("loading");
       textBlock.textContent = "Unable to parse verse reference.";
@@ -464,13 +617,26 @@ function updatePsalmDrawer(activePentacle, psalmMap) {
       return;
     }
 
-    Promise.all(versesToFetch.map((verse) => retrievePsalmText(chapter, verse))).then((results) => {
+    Promise.allSettled(
+      versesToFetch.map(async (verse) => ({
+        verse,
+        text: await retrievePsalmText(psalmNumber, verse),
+      }))
+    ).then((results) => {
       if (currentPsalmRequestId !== requestId) {
         return;
       }
-      const combined = results.filter(Boolean).join("\n\n");
+      const combined = results
+        .filter((result) => result.status === "fulfilled")
+        .map((result) => result.value)
+        .filter((entryResult) => Boolean(entryResult.text))
+        .map((entryResult) => `Psalm ${psalmNumber}:${entryResult.verse} ${entryResult.text}`)
+        .join("\n\n");
       textBlock.classList.remove("loading");
       textBlock.textContent = combined || "No verse text returned by scripture service.";
+      if (!combined) {
+        textBlock.classList.add("error");
+      }
     }).catch((error) => {
       console.error("Failed to fetch psalm text", error);
       if (currentPsalmRequestId !== requestId) {
@@ -481,6 +647,39 @@ function updatePsalmDrawer(activePentacle, psalmMap) {
       textBlock.textContent = "Unable to fetch verse text.";
     });
   });
+}
+
+function selectVersesForDepth(spec, depth) {
+  const base = expandVerseSpecification(spec);
+  if (!base.length) {
+    return [];
+  }
+
+  if (depth === "short") {
+    return [base[0]];
+  }
+
+  if (depth !== "medium") {
+    return base;
+  }
+
+  const medium = base.slice(0, 5);
+  const firstVerse = Number.parseInt(base[0], 10);
+  if (medium.length < 3 && !Number.isNaN(firstVerse)) {
+    for (let offset = 1; medium.length < 3; offset += 1) {
+      medium.push(String(firstVerse + offset));
+    }
+  }
+
+  const deduped = [];
+  const seen = new Set();
+  medium.forEach((verse) => {
+    if (!seen.has(verse)) {
+      seen.add(verse);
+      deduped.push(verse);
+    }
+  });
+  return deduped.slice(0, 5);
 }
 
 function expandVerseSpecification(spec) {
@@ -548,6 +747,8 @@ async function retrievePsalmText(chapter, verse) {
 }
 
 async function initialiseClock() {
+  setupReadingDepthControls();
+
   try {
     const [clockResponse, psalmResponse] = await Promise.all([
       fetch("../data/solomonic_clock_full.json"),
@@ -619,6 +820,7 @@ function renderClock(data, psalmMap) {
 
     updateCenterLabels(layers.core.name, timeState);
     updateDailyGuidance(timeState);
+    updateDailyProfile(timeState);
     updatePsalmDrawer(timeState.active.pentacle, psalmMap);
 
     requestAnimationFrame(frame);
