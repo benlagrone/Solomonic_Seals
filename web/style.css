@@ -261,6 +261,89 @@ svg#clock {
   color: #94a3b8;
 }
 
+.explainability-panel {
+  margin: 0 0 1rem;
+  padding: 0.85rem 0.95rem;
+  background: rgba(22, 28, 45, 0.6);
+  border: 1px solid rgba(244, 114, 182, 0.25);
+  border-radius: 0.8rem;
+}
+
+.explain-heading {
+  margin: 0;
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #f9a8d4;
+}
+
+.explain-list {
+  margin: 0.55rem 0 0;
+  padding-left: 1.05rem;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.explain-list li {
+  margin: 0;
+  font-size: 0.8rem;
+  line-height: 1.38;
+  color: #e2e8f0;
+}
+
+.explain-citation {
+  margin: 0.65rem 0 0;
+  font-size: 0.76rem;
+  color: #c4b5fd;
+}
+
+.daily-bundle {
+  margin: 0 0 1rem;
+  padding: 0.85rem 0.95rem;
+  background: rgba(21, 33, 24, 0.52);
+  border: 1px solid rgba(74, 222, 128, 0.24);
+  border-radius: 0.8rem;
+}
+
+.bundle-heading {
+  margin: 0;
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #86efac;
+}
+
+.bundle-item {
+  margin: 0.7rem 0 0;
+}
+
+.bundle-item + .bundle-item {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid rgba(148, 163, 184, 0.18);
+}
+
+.bundle-label {
+  margin: 0;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #94a3b8;
+}
+
+.bundle-ref {
+  margin: 0.25rem 0 0.25rem;
+  font-size: 0.83rem;
+  color: #f8fafc;
+}
+
+.bundle-text {
+  margin: 0;
+  font-size: 0.8rem;
+  line-height: 1.38;
+  color: #d1fae5;
+}
+
 .psalm-summary {
   margin-bottom: 1rem;
   padding-bottom: 1rem;

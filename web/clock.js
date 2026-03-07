@@ -90,15 +90,27 @@ const drawerElements = {
   profileMetal: document.querySelector(".profile-metal"),
   profileAngel: document.querySelector(".profile-angel"),
   depthButtons: Array.from(document.querySelectorAll(".depth-button[data-depth]")),
+  explainList: document.querySelector(".explain-list"),
+  explainCitation: document.querySelector(".explain-citation"),
+  bundlePsalmRef: document.querySelector(".bundle-psalm-ref"),
+  bundlePsalmText: document.querySelector(".bundle-psalm-text"),
+  bundleWisdomRef: document.querySelector(".bundle-wisdom-ref"),
+  bundleWisdomText: document.querySelector(".bundle-wisdom-text"),
+  bundleSolomonicRef: document.querySelector(".bundle-solomonic-ref"),
+  bundleSolomonicText: document.querySelector(".bundle-solomonic-text"),
 };
 let lastPsalmKey = null;
 let lastGuidanceKey = null;
 let lastProfileKey = null;
+let lastExplainabilityKey = null;
+let lastBundleKey = null;
 let currentPsalmRequestId = 0;
+let currentBundleRequestId = 0;
 let readingDepth = "short";
 const psalmTextCache = new Map();
 const PSALM_API_ENDPOINT = "/api/psalm";
 const READING_DEPTHS = new Set(["short", "medium", "long"]);
+const CHALDEAN_ORDER = ["Saturn", "Jupiter", "Mars", "Sun", "Venus", "Mercury", "Moon"];
 const PLANETARY_DAY_GUIDANCE = {
   Sun: {
     tone: "Visibility, confidence, and leadership work are favored.",
@@ -165,6 +177,45 @@ const PLANETARY_CORRESPONDENCES = {
     metal: "Lead",
     angel: "Cassiel",
   },
+};
+const WISDOM_CONTENT_BY_RULER = {
+  Sun: {
+    ref: "Proverbs 4:18",
+    text: "The path of the just is as the shining light, that shineth more and more unto the perfect day.",
+  },
+  Moon: {
+    ref: "Ecclesiastes 3:1",
+    text: "To every thing there is a season, and a time to every purpose under the heaven.",
+  },
+  Mars: {
+    ref: "Proverbs 24:10",
+    text: "If thou faint in the day of adversity, thy strength is small.",
+  },
+  Mercury: {
+    ref: "Proverbs 18:21",
+    text: "Death and life are in the power of the tongue.",
+  },
+  Jupiter: {
+    ref: "Proverbs 11:25",
+    text: "The liberal soul shall be made fat: and he that watereth shall be watered also himself.",
+  },
+  Venus: {
+    ref: "Proverbs 15:1",
+    text: "A soft answer turneth away wrath: but grievous words stir up anger.",
+  },
+  Saturn: {
+    ref: "Proverbs 25:28",
+    text: "He that hath no rule over his own spirit is like a city that is broken down, and without walls.",
+  },
+};
+const FALLBACK_DAILY_PSALM_BY_RULER = {
+  Sun: { chapter: 19, verse: 1 },
+  Moon: { chapter: 63, verse: 6 },
+  Mars: { chapter: 144, verse: 1 },
+  Mercury: { chapter: 119, verse: 105 },
+  Jupiter: { chapter: 112, verse: 3 },
+  Venus: { chapter: 45, verse: 2 },
+  Saturn: { chapter: 90, verse: 12 },
 };
 
 function computeRingLayout(items) {
@@ -451,6 +502,204 @@ function setupReadingDepthControls() {
   });
 }
 
+function getPentacleKey(activePentacle) {
+  if (!activePentacle) {
+    return null;
+  }
+  return `${activePentacle.planet.toLowerCase()}-${activePentacle.pentacle.index}`;
+}
+
+function getPlanetaryHourRuler(now, dayRuler) {
+  const startIndex = CHALDEAN_ORDER.indexOf(dayRuler);
+  if (startIndex < 0) {
+    return null;
+  }
+  const hourIndex = now.getHours();
+  return {
+    hourIndex,
+    ruler: CHALDEAN_ORDER[(startIndex + hourIndex) % CHALDEAN_ORDER.length],
+  };
+}
+
+function getPrimaryPsalmEntry(record) {
+  if (!record || !Array.isArray(record.psalms)) {
+    return null;
+  }
+  return record.psalms.find((entry) => {
+    const chapter = Number.parseInt(entry.number ?? entry.psalm, 10);
+    return !Number.isNaN(chapter);
+  }) || null;
+}
+
+function toSnippet(text, maxLength = 220) {
+  const clean = String(text || "").replace(/\s+/g, " ").trim();
+  if (!clean) {
+    return "";
+  }
+  if (clean.length <= maxLength) {
+    return clean;
+  }
+  return `${clean.slice(0, maxLength - 1).trim()}…`;
+}
+
+function updateExplainabilityPanel(now, timeState, referenceMap, psalmMetadata) {
+  if (!drawerElements.explainList || !drawerElements.explainCitation) {
+    return;
+  }
+
+  const dayText = timeState?.dayLabel?.dayText || "Unknown day";
+  const rulerText = timeState?.dayLabel?.rulerText || "Unknown ruler";
+  const activePentacle = timeState?.active?.pentacle || null;
+  const activeSpirit = timeState?.active?.spirit || null;
+  const pentacleKey = getPentacleKey(activePentacle);
+  const hourRule = getPlanetaryHourRuler(now, rulerText);
+  const record = pentacleKey ? referenceMap.get(pentacleKey) : null;
+  const primaryPsalm = getPrimaryPsalmEntry(record);
+
+  const key = [
+    dayText,
+    rulerText,
+    pentacleKey || "none",
+    activeSpirit?.sector || "none",
+    hourRule?.ruler || "none",
+    primaryPsalm?.number ?? primaryPsalm?.psalm ?? "none",
+    primaryPsalm?.verses || "none",
+  ].join("|");
+  if (key === lastExplainabilityKey) {
+    return;
+  }
+  lastExplainabilityKey = key;
+
+  const reasons = [
+    `${dayText} is ruled by ${rulerText}, so ${rulerText}-aligned intentions are prioritized.`,
+  ];
+
+  if (hourRule) {
+    reasons.push(
+      `Planetary hour proxy: local hour ${hourRule.hourIndex + 1} resolves to ${hourRule.ruler} in the Chaldean sequence.`
+    );
+  }
+
+  if (activeSpirit) {
+    reasons.push(
+      `Active spirit sector: ${activeSpirit.zodiac} ${activeSpirit.degrees} (${activeSpirit.spirit}) informs the sign layer.`
+    );
+  }
+
+  if (activePentacle) {
+    reasons.push(
+      `Active pentacle rule: ${activePentacle.planet} #${activePentacle.pentacle.index} (${activePentacle.pentacle.focus}).`
+    );
+  }
+
+  if (primaryPsalm) {
+    const chapter = Number.parseInt(primaryPsalm.number ?? primaryPsalm.psalm, 10);
+    const verseLabel = primaryPsalm.verses ? `:${primaryPsalm.verses}` : "";
+    reasons.push(`Primary scripture citation: Psalm ${chapter}${verseLabel}.`);
+  } else {
+    reasons.push("Primary scripture citation: fallback psalm is used when this pentacle has no direct Psalm note.");
+  }
+
+  drawerElements.explainList.innerHTML = "";
+  reasons.forEach((reason) => {
+    const li = document.createElement("li");
+    li.textContent = reason;
+    drawerElements.explainList.appendChild(li);
+  });
+
+  const sourceLabel = psalmMetadata?.source || "Key of Solomon mapping";
+  if (primaryPsalm) {
+    const chapter = Number.parseInt(primaryPsalm.number ?? primaryPsalm.psalm, 10);
+    const verseLabel = primaryPsalm.verses ? `:${primaryPsalm.verses}` : "";
+    drawerElements.explainCitation.textContent = `Citation source: ${sourceLabel} • Psalm ${chapter}${verseLabel}.`;
+    return;
+  }
+
+  const supplementalSource = record?.supplementalReferences?.[0]?.source_path;
+  drawerElements.explainCitation.textContent = supplementalSource
+    ? `Citation source: ${sourceLabel} • Supplemental note: ${supplementalSource}`
+    : `Citation source: ${sourceLabel}`;
+}
+
+function updateDailyContentBundle(timeState, referenceMap, psalmMetadata) {
+  if (
+    !drawerElements.bundlePsalmRef ||
+    !drawerElements.bundlePsalmText ||
+    !drawerElements.bundleWisdomRef ||
+    !drawerElements.bundleWisdomText ||
+    !drawerElements.bundleSolomonicRef ||
+    !drawerElements.bundleSolomonicText
+  ) {
+    return;
+  }
+
+  const dayText = timeState?.dayLabel?.dayText || "Unknown day";
+  const rulerText = timeState?.dayLabel?.rulerText || "Unknown ruler";
+  const activePentacle = timeState?.active?.pentacle || null;
+  const pentacleKey = getPentacleKey(activePentacle);
+  const record = pentacleKey ? referenceMap.get(pentacleKey) : null;
+  const primaryPsalm = getPrimaryPsalmEntry(record);
+
+  const key = `${dayText}|${rulerText}|${pentacleKey || "none"}|${primaryPsalm?.number ?? primaryPsalm?.psalm ?? "fallback"}|${primaryPsalm?.verses || "none"}`;
+  if (key === lastBundleKey) {
+    return;
+  }
+  lastBundleKey = key;
+
+  const requestId = ++currentBundleRequestId;
+  const wisdom = WISDOM_CONTENT_BY_RULER[rulerText] || {
+    ref: "Proverbs 16:3",
+    text: "Commit thy works unto the LORD, and thy thoughts shall be established.",
+  };
+  drawerElements.bundleWisdomRef.textContent = wisdom.ref;
+  drawerElements.bundleWisdomText.textContent = wisdom.text;
+
+  if (activePentacle) {
+    drawerElements.bundleSolomonicRef.textContent = `Key of Solomon, Book II • ${activePentacle.planet} Pentacle #${activePentacle.pentacle.index}`;
+    drawerElements.bundleSolomonicText.textContent = activePentacle.pentacle.focus
+      ? `Purpose: ${activePentacle.pentacle.focus}.`
+      : "Purpose unavailable for this pentacle.";
+  } else {
+    drawerElements.bundleSolomonicRef.textContent = "Key of Solomon, Book II";
+    drawerElements.bundleSolomonicText.textContent = "No active pentacle focus available.";
+  }
+
+  let chapter = Number.NaN;
+  let verse = null;
+  let citationMode = "mapped";
+  if (primaryPsalm) {
+    chapter = Number.parseInt(primaryPsalm.number ?? primaryPsalm.psalm, 10);
+    verse = expandVerseSpecification(primaryPsalm.verses || "")[0] || null;
+  }
+  if (Number.isNaN(chapter)) {
+    const fallback = FALLBACK_DAILY_PSALM_BY_RULER[rulerText] || { chapter: 1, verse: 1 };
+    chapter = fallback.chapter;
+    verse = String(fallback.verse);
+    citationMode = "fallback";
+  }
+
+  const verseLabel = verse ? `:${verse}` : "";
+  const sourceLabel = psalmMetadata?.source || "Key of Solomon mapping";
+  drawerElements.bundlePsalmRef.textContent = citationMode === "mapped"
+    ? `Psalm ${chapter}${verseLabel} (${sourceLabel})`
+    : `Psalm ${chapter}${verseLabel} (day-ruler fallback)`;
+  drawerElements.bundlePsalmText.textContent = "Loading psalm excerpt…";
+
+  retrievePsalmText(chapter, verse).then((text) => {
+    if (requestId !== currentBundleRequestId) {
+      return;
+    }
+    const snippet = toSnippet(text);
+    drawerElements.bundlePsalmText.textContent = snippet || "No psalm text returned.";
+  }).catch((error) => {
+    console.error("Failed to fetch daily bundle psalm excerpt", error);
+    if (requestId !== currentBundleRequestId) {
+      return;
+    }
+    drawerElements.bundlePsalmText.textContent = "Unable to fetch psalm excerpt.";
+  });
+}
+
 function computeTimeState(now, layers, derived) {
   const yearLength = isLeapYear(now.getFullYear()) ? 366 : 365;
   const dayIndex = getDayOfYear(now);
@@ -501,24 +750,27 @@ function computeTimeState(now, layers, derived) {
   };
 }
 
-function buildPsalmMap(psalmPayload) {
+function buildPentacleReferenceMap(psalmPayload) {
   const map = new Map();
   if (!psalmPayload || !Array.isArray(psalmPayload.pentacles)) {
     return map;
   }
 
-  psalmPayload.pentacles.forEach(({ planet, pentacle, psalms }) => {
+  psalmPayload.pentacles.forEach(({ planet, pentacle, psalms, supplemental_references: supplementalReferences }) => {
     if (!planet || typeof pentacle !== "number") {
       return;
     }
     const key = `${planet.toLowerCase()}-${pentacle}`;
-    map.set(key, Array.isArray(psalms) ? psalms : []);
+    map.set(key, {
+      psalms: Array.isArray(psalms) ? psalms : [],
+      supplementalReferences: Array.isArray(supplementalReferences) ? supplementalReferences : [],
+    });
   });
 
   return map;
 }
 
-function updatePsalmDrawer(activePentacle, psalmMap) {
+function updatePsalmDrawer(activePentacle, referenceMap) {
   let pentacleKey = null;
   if (activePentacle) {
     pentacleKey = `${activePentacle.planet.toLowerCase()}-${activePentacle.pentacle.index}`;
@@ -549,7 +801,8 @@ function updatePsalmDrawer(activePentacle, psalmMap) {
   drawerElements.planet.textContent = `Pentacle of ${activePentacle.planet} #${activePentacle.pentacle.index}`;
   drawerElements.focus.textContent = activePentacle.pentacle.focus || "Purpose unavailable";
 
-  const psalms = psalmMap.get(pentacleKey) || [];
+  const record = referenceMap.get(pentacleKey);
+  const psalms = record?.psalms || [];
   if (!psalms.length) {
     const li = document.createElement("li");
     li.textContent = "No psalms cited for this pentacle in the Key of Solomon notes.";
@@ -764,13 +1017,13 @@ async function initialiseClock() {
     }
 
     const [clockData, psalmData] = await Promise.all([clockResponse.json(), psalmResponse.json()]);
-    const psalmMap = buildPsalmMap(psalmData);
+    const referenceMap = buildPentacleReferenceMap(psalmData);
 
     if (drawerElements.subtitle && psalmData?.metadata?.psalm_numbering) {
       drawerElements.subtitle.textContent = `Live mapping for the active planetary pentacle (${psalmData.metadata.psalm_numbering}).`;
     }
 
-    renderClock(clockData, psalmMap);
+    renderClock(clockData, referenceMap, psalmData?.metadata || {});
   } catch (error) {
     console.error("Failed to initialise clock", error);
     svg
@@ -784,7 +1037,7 @@ async function initialiseClock() {
   }
 }
 
-function renderClock(data, psalmMap) {
+function renderClock(data, referenceMap, psalmMetadata) {
   const { visual_parameters: visual, layers } = data;
   const colors = visual.color_scheme;
   const radii = visual.radius;
@@ -821,7 +1074,9 @@ function renderClock(data, psalmMap) {
     updateCenterLabels(layers.core.name, timeState);
     updateDailyGuidance(timeState);
     updateDailyProfile(timeState);
-    updatePsalmDrawer(timeState.active.pentacle, psalmMap);
+    updateExplainabilityPanel(now, timeState, referenceMap, psalmMetadata);
+    updateDailyContentBundle(timeState, referenceMap, psalmMetadata);
+    updatePsalmDrawer(timeState.active.pentacle, referenceMap);
 
     requestAnimationFrame(frame);
   }
