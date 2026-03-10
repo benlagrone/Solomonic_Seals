@@ -10,9 +10,11 @@ latest generated dataset. Intended for local use and the Docker container.
 from __future__ import annotations
 
 import argparse
+import csv
 import json
 import os
 import re
+from dataclasses import dataclass
 from functools import partial
 from http import HTTPStatus
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
@@ -27,6 +29,7 @@ DEFAULT_EXTERNAL_PSALMS_PATH = Path(
     "/Users/benjaminlagrone/Documents/projects/pericopeai.com/AugustineCorpus/texts/david_texts/Psalms.txt"
 )
 DEFAULT_LOCAL_PSALMS_PATH = REPO_ROOT / "docs" / "source_texts" / "Psalms.txt"
+PSALM_NUMBER_MAP_PATH = REPO_ROOT / "data" / "psalm_number_map.csv"
 DEFAULT_PSALM_SOURCE_MODE = "pericope_first"
 VALID_PSALM_SOURCE_MODES = {
     "pericope_first",
@@ -34,12 +37,246 @@ VALID_PSALM_SOURCE_MODES = {
     "pericope_only",
     "file_only",
 }
+DEFAULT_PSALM_LOOKUP_NUMBERING = "auto"
+VALID_PSALM_LOOKUP_NUMBERINGS = {"auto", "vulgate", "hebrew"}
 
 _PSALM_LOOKUP: dict[int, dict[int, str]] | None = None
 _PSALM_LOOKUP_PATH: Path | None = None
 _PSALM_LOOKUP_MTIME: float | None = None
 _PSALM_LOOKUP_SOURCE: str | None = None
 _PSALM_LOOKUP_MODE: str | None = None
+_PSALM_LOOKUP_NUMBERING: str | None = None
+_PSALM_NUMBER_MAP: dict[int, list["PsalmReferenceSpan"]] | None = None
+_PSALM_NUMBER_MAP_ERROR: str | None = None
+
+
+@dataclass(frozen=True)
+class PsalmReferenceSpan:
+    chapter: int
+    verse_start: int | None = None
+    verse_end: int | None = None
+
+    def label(self) -> str:
+        if self.verse_start is None:
+            return str(self.chapter)
+        if self.verse_end is None or self.verse_end == self.verse_start:
+            return f"{self.chapter}:{self.verse_start}"
+        return f"{self.chapter}:{self.verse_start}-{self.verse_end}"
+
+
+def _resolve_psalm_lookup_numbering() -> str:
+    raw = os.environ.get("SOLOMONIC_PSALM_LOOKUP_NUMBERING", DEFAULT_PSALM_LOOKUP_NUMBERING)
+    mode = raw.strip().lower()
+    if mode in VALID_PSALM_LOOKUP_NUMBERINGS:
+        return mode
+    return DEFAULT_PSALM_LOOKUP_NUMBERING
+
+
+def _infer_psalm_lookup_numbering(
+    lookup: dict[int, dict[int, str]],
+    source_label: str | None,
+) -> str:
+    configured = _resolve_psalm_lookup_numbering()
+    if configured in {"vulgate", "hebrew"}:
+        return configured
+
+    hints = [
+        os.environ.get("SOLOMONIC_PERICOPE_SOURCE", ""),
+        os.environ.get("SOLOMONIC_PSALMS_TEXT_PATH", ""),
+        source_label or "",
+    ]
+    hint_blob = " ".join(hints).lower()
+
+    if any(token in hint_blob for token in ("vulgate", "clementine", "douay", "drb")):
+        return "vulgate"
+    if any(token in hint_blob for token in ("hebrew", "masoretic", "kjv", "nkjv", "esv", "niv")):
+        return "hebrew"
+
+    chapter_116 = lookup.get(116)
+    if chapter_116:
+        verse_count = len(chapter_116)
+        if verse_count >= 15:
+            return "hebrew"
+        if verse_count <= 5:
+            return "vulgate"
+
+    chapter_147 = lookup.get(147)
+    if chapter_147:
+        verse_count = len(chapter_147)
+        if verse_count >= 15:
+            return "hebrew"
+        if verse_count <= 11:
+            return "vulgate"
+
+    # Safe fallback: avoid remapping a Vulgate-aligned source incorrectly.
+    return "vulgate"
+
+
+def _parse_hebrew_reference(raw_reference: str) -> list[PsalmReferenceSpan] | None:
+    ref = raw_reference.strip()
+    if not ref:
+        return None
+
+    chapter_only = re.fullmatch(r"(\d+)", ref)
+    if chapter_only:
+        return [PsalmReferenceSpan(chapter=int(chapter_only.group(1)))]
+
+    chapter_range = re.fullmatch(r"(\d+)-(\d+)", ref)
+    if chapter_range:
+        start = int(chapter_range.group(1))
+        end = int(chapter_range.group(2))
+        if start > end:
+            return None
+        return [PsalmReferenceSpan(chapter=chapter) for chapter in range(start, end + 1)]
+
+    verse_window = re.fullmatch(r"(\d+):(\d+)-(\d+)", ref)
+    if verse_window:
+        chapter = int(verse_window.group(1))
+        start = int(verse_window.group(2))
+        end = int(verse_window.group(3))
+        if start > end:
+            return None
+        return [PsalmReferenceSpan(chapter=chapter, verse_start=start, verse_end=end)]
+
+    single_verse = re.fullmatch(r"(\d+):(\d+)", ref)
+    if single_verse:
+        chapter = int(single_verse.group(1))
+        verse = int(single_verse.group(2))
+        return [PsalmReferenceSpan(chapter=chapter, verse_start=verse, verse_end=verse)]
+
+    return None
+
+
+def _load_psalm_number_map() -> tuple[dict[int, list[PsalmReferenceSpan]] | None, str | None]:
+    global _PSALM_NUMBER_MAP, _PSALM_NUMBER_MAP_ERROR
+
+    if _PSALM_NUMBER_MAP is not None:
+        return _PSALM_NUMBER_MAP, None
+    if _PSALM_NUMBER_MAP_ERROR is not None:
+        return None, _PSALM_NUMBER_MAP_ERROR
+
+    if not PSALM_NUMBER_MAP_PATH.exists():
+        _PSALM_NUMBER_MAP_ERROR = f"Psalm numbering map not found: {PSALM_NUMBER_MAP_PATH}"
+        return None, _PSALM_NUMBER_MAP_ERROR
+
+    parsed_map: dict[int, list[PsalmReferenceSpan]] = {}
+    try:
+        with PSALM_NUMBER_MAP_PATH.open("r", encoding="utf-8", newline="") as handle:
+            reader = csv.DictReader(handle)
+            for line_number, row in enumerate(reader, start=2):
+                try:
+                    vulgate_raw = (row.get("vulgate_number") or "").strip()
+                    hebrew_raw = (row.get("hebrew_reference") or "").strip()
+                    vulgate_number = int(vulgate_raw)
+                except ValueError as exc:
+                    raise ValueError(
+                        f"Invalid vulgate_number at line {line_number}: {row.get('vulgate_number')!r}"
+                    ) from exc
+
+                spans = _parse_hebrew_reference(hebrew_raw)
+                if not spans:
+                    raise ValueError(
+                        f"Invalid hebrew_reference at line {line_number}: {hebrew_raw!r}"
+                    )
+                parsed_map[vulgate_number] = spans
+    except Exception as exc:
+        _PSALM_NUMBER_MAP_ERROR = f"Unable to parse Psalm numbering map: {exc}"
+        return None, _PSALM_NUMBER_MAP_ERROR
+
+    _PSALM_NUMBER_MAP = parsed_map
+    return _PSALM_NUMBER_MAP, None
+
+
+def _resolve_reference_spans(
+    chapter: int,
+    lookup_numbering: str,
+) -> tuple[list[PsalmReferenceSpan] | None, str | None]:
+    if lookup_numbering != "hebrew":
+        return [PsalmReferenceSpan(chapter=chapter)], None
+
+    psalm_map, map_error = _load_psalm_number_map()
+    if psalm_map is None:
+        return None, map_error
+
+    return psalm_map.get(chapter, [PsalmReferenceSpan(chapter=chapter)]), None
+
+
+def _collect_span_verses(
+    chapter_map: dict[int, str],
+    span: PsalmReferenceSpan,
+) -> tuple[list[int] | None, str | None]:
+    ordered_verses = sorted(chapter_map)
+    if not ordered_verses:
+        return None, f"Chapter {span.chapter} has no verses in configured Psalms source."
+
+    if span.verse_start is None:
+        return ordered_verses, None
+
+    start = span.verse_start
+    end = span.verse_end if span.verse_end is not None else start
+    if start > end:
+        return None, f"Invalid verse window for chapter {span.chapter}: {start}-{end}"
+
+    selected = [verse for verse in ordered_verses if start <= verse <= end]
+    if not selected:
+        return None, f"Psalm {span.label()} not found in configured Psalms source."
+
+    return selected, None
+
+
+def _collect_spans_text(
+    lookup: dict[int, dict[int, str]],
+    spans: list[PsalmReferenceSpan],
+) -> tuple[list[tuple[int, int, str]] | None, str | None]:
+    entries: list[tuple[int, int, str]] = []
+    for span in spans:
+        chapter_map = lookup.get(span.chapter)
+        if not chapter_map:
+            return None, f"Chapter {span.chapter} not found in configured Psalms source."
+
+        verses, verse_error = _collect_span_verses(chapter_map, span)
+        if verses is None:
+            return None, verse_error
+
+        for verse in verses:
+            text = chapter_map.get(verse)
+            if text:
+                entries.append((span.chapter, verse, text))
+
+    if not entries:
+        references = ", ".join(span.label() for span in spans)
+        return None, f"Psalm reference {references} not found in configured Psalms source."
+
+    return entries, None
+
+
+def _resolve_mapped_verse(
+    lookup: dict[int, dict[int, str]],
+    spans: list[PsalmReferenceSpan],
+    requested_verse: int,
+) -> tuple[tuple[int, int] | None, str | None]:
+    if requested_verse < 1:
+        return None, f"Invalid verse value: {requested_verse!r}"
+
+    remaining = requested_verse
+    for span in spans:
+        chapter_map = lookup.get(span.chapter)
+        if not chapter_map:
+            return None, f"Chapter {span.chapter} not found in configured Psalms source."
+
+        verses, verse_error = _collect_span_verses(chapter_map, span)
+        if verses is None:
+            return None, verse_error
+
+        if remaining <= len(verses):
+            return (span.chapter, verses[remaining - 1]), None
+        remaining -= len(verses)
+
+    references = ", ".join(span.label() for span in spans)
+    return (
+        None,
+        f"Psalm verse {requested_verse} exceeds available verses for mapped reference {references}.",
+    )
 
 
 def _resolve_psalm_path() -> Path | None:
@@ -214,16 +451,31 @@ def _load_psalm_lookup_from_file(
 
 
 def _load_psalm_lookup() -> tuple[dict[int, dict[int, str]] | None, str | None]:
-    global _PSALM_LOOKUP, _PSALM_LOOKUP_MTIME, _PSALM_LOOKUP_PATH, _PSALM_LOOKUP_SOURCE, _PSALM_LOOKUP_MODE
+    global _PSALM_LOOKUP
+    global _PSALM_LOOKUP_MTIME
+    global _PSALM_LOOKUP_MODE
+    global _PSALM_LOOKUP_NUMBERING
+    global _PSALM_LOOKUP_PATH
+    global _PSALM_LOOKUP_SOURCE
 
     mode = _resolve_psalm_source_mode()
     path = _resolve_psalm_path()
 
     def load_from_pericope() -> tuple[dict[int, dict[int, str]] | None, str | None]:
         nonlocal mode
-        global _PSALM_LOOKUP, _PSALM_LOOKUP_PATH, _PSALM_LOOKUP_MTIME, _PSALM_LOOKUP_SOURCE, _PSALM_LOOKUP_MODE
+        global _PSALM_LOOKUP
+        global _PSALM_LOOKUP_MTIME
+        global _PSALM_LOOKUP_MODE
+        global _PSALM_LOOKUP_NUMBERING
+        global _PSALM_LOOKUP_PATH
+        global _PSALM_LOOKUP_SOURCE
 
         if _PSALM_LOOKUP is not None and _PSALM_LOOKUP_PATH is None and _PSALM_LOOKUP_MODE == mode:
+            if _PSALM_LOOKUP_NUMBERING is None:
+                _PSALM_LOOKUP_NUMBERING = _infer_psalm_lookup_numbering(
+                    _PSALM_LOOKUP,
+                    _PSALM_LOOKUP_SOURCE,
+                )
             return _PSALM_LOOKUP, None
 
         pericope_lookup, pericope_source_or_error = _load_psalm_lookup_from_pericope()
@@ -235,11 +487,20 @@ def _load_psalm_lookup() -> tuple[dict[int, dict[int, str]] | None, str | None]:
         _PSALM_LOOKUP_MTIME = None
         _PSALM_LOOKUP_SOURCE = pericope_source_or_error
         _PSALM_LOOKUP_MODE = mode
+        _PSALM_LOOKUP_NUMBERING = _infer_psalm_lookup_numbering(
+            _PSALM_LOOKUP,
+            _PSALM_LOOKUP_SOURCE,
+        )
         return _PSALM_LOOKUP, None
 
     def load_from_file() -> tuple[dict[int, dict[int, str]] | None, str | None]:
         nonlocal path, mode
-        global _PSALM_LOOKUP, _PSALM_LOOKUP_PATH, _PSALM_LOOKUP_MTIME, _PSALM_LOOKUP_SOURCE, _PSALM_LOOKUP_MODE
+        global _PSALM_LOOKUP
+        global _PSALM_LOOKUP_MTIME
+        global _PSALM_LOOKUP_MODE
+        global _PSALM_LOOKUP_NUMBERING
+        global _PSALM_LOOKUP_PATH
+        global _PSALM_LOOKUP_SOURCE
 
         if path is None:
             return None, "No local Psalms text file found for fallback."
@@ -255,6 +516,11 @@ def _load_psalm_lookup() -> tuple[dict[int, dict[int, str]] | None, str | None]:
             and _PSALM_LOOKUP_MTIME == mtime
             and _PSALM_LOOKUP_MODE == mode
         ):
+            if _PSALM_LOOKUP_NUMBERING is None:
+                _PSALM_LOOKUP_NUMBERING = _infer_psalm_lookup_numbering(
+                    _PSALM_LOOKUP,
+                    _PSALM_LOOKUP_SOURCE,
+                )
             return _PSALM_LOOKUP, None
 
         file_lookup, file_source_or_error, loaded_mtime = _load_psalm_lookup_from_file(path)
@@ -266,6 +532,10 @@ def _load_psalm_lookup() -> tuple[dict[int, dict[int, str]] | None, str | None]:
         _PSALM_LOOKUP_MTIME = loaded_mtime
         _PSALM_LOOKUP_SOURCE = file_source_or_error
         _PSALM_LOOKUP_MODE = mode
+        _PSALM_LOOKUP_NUMBERING = _infer_psalm_lookup_numbering(
+            _PSALM_LOOKUP,
+            _PSALM_LOOKUP_SOURCE,
+        )
         return _PSALM_LOOKUP, None
 
     if mode == "pericope_only":
@@ -386,6 +656,12 @@ class ClockRequestHandler(SimpleHTTPRequestHandler):
                     HTTPStatus.BAD_REQUEST,
                 )
                 return
+            if chapter < 1:
+                self._send_json(
+                    {"error": f"Invalid chapter value: {chapter_raw!r}"},
+                    HTTPStatus.BAD_REQUEST,
+                )
+                return
 
             verse: int | None = None
             if verse_raw not in {None, ""}:
@@ -397,33 +673,68 @@ class ClockRequestHandler(SimpleHTTPRequestHandler):
                         HTTPStatus.BAD_REQUEST,
                     )
                     return
+                if verse < 1:
+                    self._send_json(
+                        {"error": f"Invalid verse value: {verse_raw!r}"},
+                        HTTPStatus.BAD_REQUEST,
+                    )
+                    return
 
             lookup, error = _load_psalm_lookup()
             if lookup is None:
                 self._send_json({"error": error or "Psalms source unavailable."}, HTTPStatus.NOT_FOUND)
                 return
 
-            chapter_map = lookup.get(chapter)
-            if not chapter_map:
+            lookup_numbering = _PSALM_LOOKUP_NUMBERING or _infer_psalm_lookup_numbering(
+                lookup,
+                _PSALM_LOOKUP_SOURCE,
+            )
+            spans, span_error = _resolve_reference_spans(chapter, lookup_numbering)
+            if spans is None:
                 self._send_json(
-                    {"error": f"Chapter {chapter} not found in configured Psalms source."},
-                    HTTPStatus.NOT_FOUND,
+                    {"error": span_error or "Unable to resolve Psalm numbering map."},
+                    HTTPStatus.INTERNAL_SERVER_ERROR,
                 )
                 return
 
+            resolved_reference = ", ".join(span.label() for span in spans)
+            response_meta = {
+                "requested_numbering": "vulgate",
+                "lookup_numbering": lookup_numbering,
+                "resolved_reference": resolved_reference,
+            }
+
             if verse is None:
-                ordered = [chapter_map[v] for v in sorted(chapter_map)]
+                entries, collect_error = _collect_spans_text(lookup, spans)
+                if entries is None:
+                    self._send_json(
+                        {"error": collect_error or f"Chapter {chapter} not found in configured Psalms source."},
+                        HTTPStatus.NOT_FOUND,
+                    )
+                    return
+
+                ordered_text = [text for _chapter, _verse, text in entries]
                 self._send_json(
                     {
                         "chapter": chapter,
-                        "text": "\n".join(ordered),
+                        "text": "\n".join(ordered_text),
                         "source": _PSALM_LOOKUP_SOURCE,
+                        "numbering": response_meta,
                     },
                     HTTPStatus.OK,
                 )
                 return
 
-            verse_text = chapter_map.get(verse)
+            mapped_reference, map_error = _resolve_mapped_verse(lookup, spans, verse)
+            if mapped_reference is None:
+                self._send_json(
+                    {"error": map_error or f"Psalm {chapter}:{verse} not found in configured Psalms source."},
+                    HTTPStatus.NOT_FOUND,
+                )
+                return
+
+            resolved_chapter, resolved_verse = mapped_reference
+            verse_text = lookup.get(resolved_chapter, {}).get(resolved_verse)
             if not verse_text:
                 self._send_json(
                     {"error": f"Psalm {chapter}:{verse} not found in configured Psalms source."},
@@ -437,6 +748,9 @@ class ClockRequestHandler(SimpleHTTPRequestHandler):
                     "verse": verse,
                     "text": verse_text,
                     "source": _PSALM_LOOKUP_SOURCE,
+                    "numbering": response_meta,
+                    "resolved_chapter": resolved_chapter,
+                    "resolved_verse": resolved_verse,
                 },
                 HTTPStatus.OK,
             )
@@ -462,6 +776,7 @@ def parse_args() -> argparse.Namespace:
 def main() -> None:
     args = parse_args()
     source_mode = _resolve_psalm_source_mode()
+    numbering_mode = _resolve_psalm_lookup_numbering()
     handler = partial(ClockRequestHandler, directory=args.root)
     server = ThreadingHTTPServer((args.host, args.port), handler)
     print(f"Serving {args.root} on http://{args.host}:{args.port}")
@@ -469,6 +784,10 @@ def main() -> None:
     print("• Dataset endpoint: /api/clock")
     print("• Local Psalms endpoint: /api/psalm?chapter=91&verse=11")
     print(f"• Psalms source mode: {source_mode} (set SOLOMONIC_PSALM_SOURCE_MODE to override)")
+    print(
+        "• Psalm numbering mode: "
+        f"{numbering_mode} (set SOLOMONIC_PSALM_LOOKUP_NUMBERING=auto|vulgate|hebrew)"
+    )
     try:
         server.serve_forever()
     except KeyboardInterrupt:

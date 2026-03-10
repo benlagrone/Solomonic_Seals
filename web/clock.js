@@ -83,6 +83,7 @@ const drawerElements = {
   guidanceDay: document.querySelector(".guidance-day"),
   guidanceTone: document.querySelector(".guidance-tone"),
   guidanceList: document.querySelector(".guidance-list"),
+  weeklyArcList: document.querySelector(".weekly-arc-list"),
   profileDay: document.querySelector(".profile-day"),
   profilePentacle: document.querySelector(".profile-pentacle"),
   profileFocus: document.querySelector(".profile-focus"),
@@ -101,6 +102,7 @@ const drawerElements = {
 };
 let lastPsalmKey = null;
 let lastGuidanceKey = null;
+let lastWeeklyArcKey = null;
 let lastProfileKey = null;
 let lastExplainabilityKey = null;
 let lastBundleKey = null;
@@ -422,6 +424,94 @@ function updateDailyGuidance(timeState) {
     const li = document.createElement("li");
     li.textContent = activity;
     drawerElements.guidanceList.appendChild(li);
+  });
+}
+
+function buildWeeklyArcEntry(baseDate, offset, derived, referenceMap) {
+  const target = new Date(baseDate);
+  target.setHours(12, 0, 0, 0);
+  target.setDate(target.getDate() + offset);
+
+  const dayLabel = getPlanetaryDayLabel(target);
+  const guidance = PLANETARY_DAY_GUIDANCE[dayLabel.rulerText];
+  const wisdom = WISDOM_CONTENT_BY_RULER[dayLabel.rulerText];
+
+  const weekFraction = derived.planetaryGroupCount ? getWeekFraction(target) : 0;
+  const pentacleIndex = derived.totalPentacles
+    ? Math.floor(weekFraction * derived.totalPentacles) % derived.totalPentacles
+    : -1;
+  const activePentacle = pentacleIndex >= 0 ? derived.flatPentacles[pentacleIndex] : null;
+  const pentacleKey = getPentacleKey(activePentacle);
+  const record = pentacleKey ? referenceMap.get(pentacleKey) : null;
+  const primaryPsalm = getPrimaryPsalmEntry(record);
+
+  const psalmRef = (() => {
+    if (primaryPsalm) {
+      const chapter = Number.parseInt(primaryPsalm.number ?? primaryPsalm.psalm, 10);
+      const verseLabel = primaryPsalm.verses ? `:${primaryPsalm.verses}` : "";
+      return `Psalm ${chapter}${verseLabel}`;
+    }
+    const fallback = FALLBACK_DAILY_PSALM_BY_RULER[dayLabel.rulerText] || { chapter: 1, verse: 1 };
+    return `Psalm ${fallback.chapter}:${fallback.verse}`;
+  })();
+
+  return {
+    isToday: offset === 0,
+    dateLabel: target.toLocaleDateString([], { weekday: "short", month: "short", day: "numeric" }),
+    rulerText: dayLabel.rulerText,
+    pentacleLabel: activePentacle
+      ? `${activePentacle.planet} #${activePentacle.pentacle.index}`
+      : "Unavailable",
+    focus: activePentacle?.pentacle?.focus || "Focus unavailable",
+    tone: guidance?.tone || "Steady, practical action is favored.",
+    psalmRef,
+    wisdomRef: wisdom?.ref || "Proverbs 16:3",
+  };
+}
+
+function updateWeeklyArcPanel(now, derived, referenceMap) {
+  if (!drawerElements.weeklyArcList) {
+    return;
+  }
+
+  const key = `${now.getFullYear()}-${now.getMonth()}-${now.getDate()}`;
+  if (key === lastWeeklyArcKey) {
+    return;
+  }
+  lastWeeklyArcKey = key;
+
+  const entries = Array.from({ length: 7 }, (_, index) =>
+    buildWeeklyArcEntry(now, index, derived, referenceMap)
+  );
+
+  drawerElements.weeklyArcList.innerHTML = "";
+  entries.forEach((entry) => {
+    const li = document.createElement("li");
+    if (entry.isToday) {
+      li.classList.add("today");
+    }
+
+    const dayLine = document.createElement("p");
+    dayLine.classList.add("weekly-arc-day");
+    dayLine.textContent = `${entry.dateLabel} (${entry.rulerText})`;
+    li.appendChild(dayLine);
+
+    const pentacleLine = document.createElement("p");
+    pentacleLine.classList.add("weekly-arc-pentacle");
+    pentacleLine.textContent = `Pentacle ${entry.pentacleLabel}`;
+    li.appendChild(pentacleLine);
+
+    const focusLine = document.createElement("p");
+    focusLine.classList.add("weekly-arc-focus");
+    focusLine.textContent = entry.focus;
+    li.appendChild(focusLine);
+
+    const citationLine = document.createElement("p");
+    citationLine.classList.add("weekly-arc-citation");
+    citationLine.textContent = `${entry.psalmRef} • ${entry.wisdomRef}`;
+    li.appendChild(citationLine);
+
+    drawerElements.weeklyArcList.appendChild(li);
   });
 }
 
@@ -1073,6 +1163,7 @@ function renderClock(data, referenceMap, psalmMetadata) {
 
     updateCenterLabels(layers.core.name, timeState);
     updateDailyGuidance(timeState);
+    updateWeeklyArcPanel(now, derived, referenceMap);
     updateDailyProfile(timeState);
     updateExplainabilityPanel(now, timeState, referenceMap, psalmMetadata);
     updateDailyContentBundle(timeState, referenceMap, psalmMetadata);

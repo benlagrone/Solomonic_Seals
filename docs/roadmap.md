@@ -10,7 +10,17 @@ Goal: build one coherent roadmap for product experience, scripture alignment, an
 - Mystical commentary: curate quotes from grimoires, Sufi cosmology, or Kabbalistic texts and display them when a seal is active.
 - Ritual hooks: list recommended intentions, incense, or planetary hour guidance for practical timing.
 - Symbol imagery: link each seal to sigil artwork or planetary glyphs to show thumbnails on hover.
+- SVG seal rendering: display Solomonic seals directly inside the clock rings via reusable SVG symbols.
 - Historical timeline: annotate the yearly ring with publication dates, festivals, or related milestones.
+
+### SVG Seal Rendering Track (Advise-Only)
+
+1. Build canonical seal assets: normalize each seal to a consistent SVG `viewBox` and naming scheme.
+2. Ship a sprite system: store seals as `<symbol>` entries and render with `<use>` in `web/clock.js`.
+3. Place inside rings: clip seals to pentacle sectors (`clipPath`) and keep linework readable at small sizes.
+4. Active seal focus mode: show a larger center/side-panel seal for the currently active pentacle.
+5. Interaction modes: support `minimal` (small marks) and `study` (full detail + citations), both read-only.
+6. Performance guardrails: reuse symbols, avoid per-frame path regeneration, and animate only opacity/stroke.
 
 ## Workstream B: Daily Experience and Guidance
 
@@ -20,7 +30,7 @@ Goal: build one coherent roadmap for product experience, scripture alignment, an
 - Explainability panel: show why content was selected today (planet/day/hour/sign rule + source citation).
 - Reflection workflow: add one morning intention prompt, one midday practice prompt, and one evening reflection prompt.
 - Weekly arc mode: show 7-day progression instead of isolated day cards.
-- Journal/logbook: save completed readings, notes, and outcomes by date and intent.
+- Advise-only mode lock: keep the experience read-only (no journal/logbook, no user text capture, no entry storage).
 
 Planetary day guidance should drive recommendations:
 
@@ -214,5 +224,5 @@ Suggested schema extension example:
 - Phase 1 (Foundation): complete scripture mapping baseline, numbering normalization, validation tooling, and Pericope-first scripture access.
 - Phase 2 (Experience MVP): ship daily profile card, reading depth toggle, and local long-read support.
 - Phase 3 (Recommendation Engine): planetary/day recommendation engine + explainability panel + daily content bundle.
-- Phase 4 (Expansion): weekly arc, journaling, and first esoteric enrichment attributes in UI.
+- Phase 4 (Expansion): weekly arc, SVG seal rendering in the clock, and first esoteric enrichment attributes in UI (advise-only; no journaling).
 - Phase 5 (Assistant and Advanced UI): intent-aware search/chat, visualization upgrades, and advanced schema adoption.
