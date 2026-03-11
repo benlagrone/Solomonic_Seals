@@ -26,6 +26,8 @@ const svg = d3
   .attr("width", WIDTH)
   .attr("height", HEIGHT);
 
+const sealDefs = svg.append("defs").attr("class", "seal-sprite-defs");
+
 const rootGroup = svg
   .append("g")
   .attr("class", "root")
@@ -37,6 +39,12 @@ const ringGroups = {
   planetary: rootGroup.append("g").attr("class", "ring-planetary"),
   spirit: rootGroup.append("g").attr("class", "ring-spirit"),
 };
+const planetarySealGlyphGroup = ringGroups.planetary
+  .append("g")
+  .attr("class", "planetary-seal-glyphs");
+const activeSealFocusGroup = ringGroups.core
+  .append("g")
+  .attr("class", "active-seal-focus");
 
 const centerGroup = rootGroup.append("g").attr("class", "center-label");
 const centerDayLabel = centerGroup
@@ -84,6 +92,9 @@ const drawerElements = {
   guidanceTone: document.querySelector(".guidance-tone"),
   guidanceList: document.querySelector(".guidance-list"),
   weeklyArcList: document.querySelector(".weekly-arc-list"),
+  weeklyArcPrev: document.querySelector(".weekly-arc-prev"),
+  weeklyArcNext: document.querySelector(".weekly-arc-next"),
+  weeklyArcToday: document.querySelector(".weekly-arc-today"),
   profileDay: document.querySelector(".profile-day"),
   profilePentacle: document.querySelector(".profile-pentacle"),
   profileFocus: document.querySelector(".profile-focus"),
@@ -109,10 +120,14 @@ let lastBundleKey = null;
 let currentPsalmRequestId = 0;
 let currentBundleRequestId = 0;
 let readingDepth = "short";
+let hoveredPlanetaryKey = null;
+let selectedDayOffset = 0;
 const psalmTextCache = new Map();
 const PSALM_API_ENDPOINT = "/api/psalm";
 const READING_DEPTHS = new Set(["short", "medium", "long"]);
 const CHALDEAN_ORDER = ["Saturn", "Jupiter", "Mars", "Sun", "Venus", "Mercury", "Moon"];
+const SEAL_SPRITE_SIZE = 100;
+const SEAL_SPRITE_CENTER = SEAL_SPRITE_SIZE / 2;
 const PLANETARY_DAY_GUIDANCE = {
   Sun: {
     tone: "Visibility, confidence, and leadership work are favored.",
@@ -250,6 +265,241 @@ function drawPlanetaryTooltipText(entry) {
   return `${entry.name} – ${entry.day} (${entry.pentacles.length} seals)`;
 }
 
+function slugifyIdPart(value) {
+  return String(value || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+function buildSealSymbolId(planet, pentacleIndex) {
+  return `seal-${slugifyIdPart(planet)}-${String(pentacleIndex)}`;
+}
+
+function hashString(input) {
+  let hash = 0;
+  const text = String(input || "");
+  for (let index = 0; index < text.length; index += 1) {
+    hash = (hash << 5) - hash + text.charCodeAt(index);
+    hash |= 0;
+  }
+  return Math.abs(hash);
+}
+
+function polarPoint(cx, cy, radius, angle) {
+  return {
+    x: cx + Math.cos(angle) * radius,
+    y: cy + Math.sin(angle) * radius,
+  };
+}
+
+function buildAlternatingPolygonPath(cx, cy, points, outerRadius, innerRadius, rotation = -Math.PI / 2) {
+  const vertices = [];
+  const total = points * 2;
+  for (let index = 0; index < total; index += 1) {
+    const angle = rotation + (Math.PI * index) / points;
+    const radius = index % 2 === 0 ? outerRadius : innerRadius;
+    vertices.push(polarPoint(cx, cy, radius, angle));
+  }
+  return `${vertices.map((point, idx) => `${idx === 0 ? "M" : "L"}${point.x.toFixed(2)},${point.y.toFixed(2)}`).join(" ")} Z`;
+}
+
+function appendSealSymbol(planet, pentacleIndex) {
+  const symbolId = buildSealSymbolId(planet, pentacleIndex);
+  if (!sealDefs.select(`#${symbolId}`).empty()) {
+    return symbolId;
+  }
+
+  const seed = hashString(`${planet}:${pentacleIndex}`);
+  const spokeCount = 6 + (seed % 4);
+  const starPoints = 5 + (seed % 3);
+  const knotPoints = 7 + (seed % 4);
+  const rotation = ((seed % 360) * Math.PI) / 180;
+  const initial = String(planet || "?").slice(0, 1).toUpperCase();
+
+  const symbol = sealDefs
+    .append("symbol")
+    .attr("id", symbolId)
+    .attr("viewBox", `0 0 ${SEAL_SPRITE_SIZE} ${SEAL_SPRITE_SIZE}`)
+    .attr("overflow", "visible");
+
+  symbol
+    .append("circle")
+    .attr("class", "seal-outer")
+    .attr("cx", SEAL_SPRITE_CENTER)
+    .attr("cy", SEAL_SPRITE_CENTER)
+    .attr("r", 43.5);
+
+  symbol
+    .append("circle")
+    .attr("class", "seal-inner")
+    .attr("cx", SEAL_SPRITE_CENTER)
+    .attr("cy", SEAL_SPRITE_CENTER)
+    .attr("r", 32);
+
+  for (let index = 0; index < spokeCount; index += 1) {
+    const angle = rotation + (Math.PI * 2 * index) / spokeCount;
+    const inner = polarPoint(SEAL_SPRITE_CENTER, SEAL_SPRITE_CENTER, 14, angle);
+    const outer = polarPoint(SEAL_SPRITE_CENTER, SEAL_SPRITE_CENTER, 42, angle);
+    symbol
+      .append("line")
+      .attr("class", "seal-line")
+      .attr("x1", inner.x)
+      .attr("y1", inner.y)
+      .attr("x2", outer.x)
+      .attr("y2", outer.y);
+  }
+
+  symbol
+    .append("path")
+    .attr("class", "seal-star")
+    .attr("d", buildAlternatingPolygonPath(SEAL_SPRITE_CENTER, SEAL_SPRITE_CENTER, starPoints, 27, 11, rotation));
+
+  symbol
+    .append("path")
+    .attr("class", "seal-knot")
+    .attr("d", buildAlternatingPolygonPath(SEAL_SPRITE_CENTER, SEAL_SPRITE_CENTER, knotPoints, 18, 8, rotation / 2));
+
+  symbol
+    .append("text")
+    .attr("class", "seal-initial")
+    .attr("x", SEAL_SPRITE_CENTER)
+    .attr("y", 23)
+    .attr("text-anchor", "middle")
+    .text(initial);
+
+  symbol
+    .append("text")
+    .attr("class", "seal-index")
+    .attr("x", SEAL_SPRITE_CENTER)
+    .attr("y", 86)
+    .attr("text-anchor", "middle")
+    .text(String(pentacleIndex));
+
+  return symbolId;
+}
+
+function ensureSealSymbols(flatPentacles) {
+  (flatPentacles || []).forEach((entry, index) => {
+    const planet = entry?.planet || "unknown";
+    const pentacleIndex = Number.isFinite(entry?.pentacle?.index)
+      ? entry.pentacle.index
+      : index + 1;
+    appendSealSymbol(planet, pentacleIndex);
+  });
+}
+
+function buildPlanetarySealGlyphData(groups, outerRadius) {
+  const ringData = computeRingLayout(groups || []);
+  const innerRadius = Math.max(0, outerRadius - RING_THICKNESS.planetary);
+  const centroidArc = d3
+    .arc()
+    .innerRadius(innerRadius + 6)
+    .outerRadius(outerRadius - 6);
+  const glyphs = [];
+
+  ringData.forEach((group) => {
+    const pentacles = Array.isArray(group.pentacles) ? group.pentacles : [];
+    const count = pentacles.length;
+    if (!count) {
+      return;
+    }
+
+    const segmentSpan = group.endAngle - group.startAngle;
+    pentacles.forEach((pentacle, index) => {
+      const sectionStart = group.startAngle + (segmentSpan * index) / count;
+      const sectionEnd = group.startAngle + (segmentSpan * (index + 1)) / count;
+      const [x, y] = centroidArc.centroid({
+        startAngle: sectionStart,
+        endAngle: sectionEnd,
+      });
+      const radius = Math.hypot(x, y);
+      const sectionArcLength = radius * Math.max(0.02, sectionEnd - sectionStart);
+      const size = Math.max(13, Math.min(28, sectionArcLength * 0.58));
+      const pentacleIndex = Number.isFinite(pentacle?.index) ? pentacle.index : index + 1;
+      const groupKey = slugifyIdPart(group.name || "");
+
+      glyphs.push({
+        key: `${String(group.name || "").toLowerCase()}-${pentacleIndex}`,
+        planet: group.name || "Unknown",
+        groupKey,
+        pentacleIndex,
+        focus: pentacle?.focus || "",
+        x,
+        y,
+        size,
+        symbolId: appendSealSymbol(group.name || "unknown", pentacleIndex),
+      });
+    });
+  });
+
+  return glyphs;
+}
+
+function drawPlanetarySealGlyphs(groups, outerRadius) {
+  const glyphs = buildPlanetarySealGlyphData(groups, outerRadius);
+  const selection = planetarySealGlyphGroup
+    .selectAll("use.ring-seal-glyph")
+    .data(glyphs, (entry) => entry.key)
+    .join("use")
+    .attr("class", "ring-seal-glyph")
+    .attr("href", (entry) => `#${entry.symbolId}`)
+    .attr("x", (entry) => entry.x - entry.size / 2)
+    .attr("y", (entry) => entry.y - entry.size / 2)
+    .attr("width", (entry) => entry.size)
+    .attr("height", (entry) => entry.size);
+
+  updatePlanetarySealGlyphVisibility();
+
+  bindTooltip(
+    selection,
+    (entry) => `Seal of ${entry.planet} #${entry.pentacleIndex}${entry.focus ? ` — ${entry.focus}` : ""}`
+  );
+}
+
+function updatePlanetarySealGlyphVisibility() {
+  planetarySealGlyphGroup
+    .selectAll("use.ring-seal-glyph")
+    .classed("visible", (entry) => Boolean(hoveredPlanetaryKey) && entry.groupKey === hoveredPlanetaryKey);
+}
+
+function updateActivePlanetarySealGlyph(activePentacle) {
+  const activeKey = getPentacleKey(activePentacle);
+  planetarySealGlyphGroup
+    .selectAll("use.ring-seal-glyph")
+    .classed("active", (entry) => Boolean(activeKey) && entry.key === activeKey);
+}
+
+function updateActiveSealFocus(activePentacle) {
+  const focusData = activePentacle ? [activePentacle] : [];
+  const selection = activeSealFocusGroup
+    .selectAll("g.active-seal-preview")
+    .data(focusData, (entry) => getPentacleKey(entry));
+
+  const entered = selection
+    .enter()
+    .append("g")
+    .attr("class", "active-seal-preview")
+    .attr("transform", "translate(0, 0)");
+
+  entered.append("circle").attr("class", "active-seal-focus-halo").attr("r", 86);
+  entered
+    .append("use")
+    .attr("class", "active-seal-focus-use")
+    .attr("x", -82)
+    .attr("y", -82)
+    .attr("width", 164)
+    .attr("height", 164);
+  entered.append("circle").attr("class", "active-seal-focus-ring").attr("r", 80);
+
+  selection
+    .merge(entered)
+    .select("use.active-seal-focus-use")
+    .attr("href", (entry) => `#${buildSealSymbolId(entry.planet, entry.pentacle.index)}`);
+
+  selection.exit().remove();
+}
+
 function positionTooltip(event) {
   const [x, y] = d3.pointer(event, clockWrapper.node());
   tooltip.style("left", `${x}px`).style("top", `${y}px`);
@@ -293,6 +543,19 @@ function drawArcRing(layerName, items, outerRadius, color, tooltipFormatter) {
 
   if (tooltipFormatter) {
     bindTooltip(selection, tooltipFormatter);
+  }
+
+  if (layerName === "planetary") {
+    selection
+      .attr("data-planetary-key", (entry) => slugifyIdPart(entry?.name || ""))
+      .on("mouseenter.seal-hover", (_event, entry) => {
+        hoveredPlanetaryKey = slugifyIdPart(entry?.name || "");
+        updatePlanetarySealGlyphVisibility();
+      })
+      .on("mouseleave.seal-hover", () => {
+        hoveredPlanetaryKey = null;
+        updatePlanetarySealGlyphVisibility();
+      });
   }
 
   return data;
@@ -470,49 +733,52 @@ function buildWeeklyArcEntry(baseDate, offset, derived, referenceMap) {
 }
 
 function updateWeeklyArcPanel(now, derived, referenceMap) {
-  if (!drawerElements.weeklyArcList) {
+  if (
+    !drawerElements.weeklyArcList ||
+    !drawerElements.weeklyArcPrev ||
+    !drawerElements.weeklyArcNext ||
+    !drawerElements.weeklyArcToday
+  ) {
     return;
   }
 
-  const key = `${now.getFullYear()}-${now.getMonth()}-${now.getDate()}`;
+  const key = `${now.getFullYear()}-${now.getMonth()}-${now.getDate()}|${selectedDayOffset}`;
   if (key === lastWeeklyArcKey) {
     return;
   }
   lastWeeklyArcKey = key;
 
-  const entries = Array.from({ length: 7 }, (_, index) =>
-    buildWeeklyArcEntry(now, index, derived, referenceMap)
-  );
+  drawerElements.weeklyArcToday.disabled = selectedDayOffset === 0;
+
+  const entry = buildWeeklyArcEntry(now, selectedDayOffset, derived, referenceMap);
 
   drawerElements.weeklyArcList.innerHTML = "";
-  entries.forEach((entry) => {
-    const li = document.createElement("li");
-    if (entry.isToday) {
-      li.classList.add("today");
-    }
+  const li = document.createElement("li");
+  if (entry.isToday) {
+    li.classList.add("today");
+  }
 
-    const dayLine = document.createElement("p");
-    dayLine.classList.add("weekly-arc-day");
-    dayLine.textContent = `${entry.dateLabel} (${entry.rulerText})`;
-    li.appendChild(dayLine);
+  const dayLine = document.createElement("p");
+  dayLine.classList.add("weekly-arc-day");
+  dayLine.textContent = `${entry.dateLabel} (${entry.rulerText})${entry.isToday ? " • Today" : ""}`;
+  li.appendChild(dayLine);
 
-    const pentacleLine = document.createElement("p");
-    pentacleLine.classList.add("weekly-arc-pentacle");
-    pentacleLine.textContent = `Pentacle ${entry.pentacleLabel}`;
-    li.appendChild(pentacleLine);
+  const pentacleLine = document.createElement("p");
+  pentacleLine.classList.add("weekly-arc-pentacle");
+  pentacleLine.textContent = `Pentacle ${entry.pentacleLabel}`;
+  li.appendChild(pentacleLine);
 
-    const focusLine = document.createElement("p");
-    focusLine.classList.add("weekly-arc-focus");
-    focusLine.textContent = entry.focus;
-    li.appendChild(focusLine);
+  const focusLine = document.createElement("p");
+  focusLine.classList.add("weekly-arc-focus");
+  focusLine.textContent = entry.focus;
+  li.appendChild(focusLine);
 
-    const citationLine = document.createElement("p");
-    citationLine.classList.add("weekly-arc-citation");
-    citationLine.textContent = `${entry.psalmRef} • ${entry.wisdomRef}`;
-    li.appendChild(citationLine);
+  const citationLine = document.createElement("p");
+  citationLine.classList.add("weekly-arc-citation");
+  citationLine.textContent = `${entry.psalmRef} • ${entry.wisdomRef}`;
+  li.appendChild(citationLine);
 
-    drawerElements.weeklyArcList.appendChild(li);
-  });
+  drawerElements.weeklyArcList.appendChild(li);
 }
 
 function updateDailyProfile(timeState) {
@@ -589,6 +855,48 @@ function setupReadingDepthControls() {
         candidate.setAttribute("aria-pressed", active ? "true" : "false");
       });
     });
+  });
+}
+
+function setSelectedDayOffset(nextOffset) {
+  const normalized = Number.parseInt(nextOffset, 10);
+  if (Number.isNaN(normalized) || normalized === selectedDayOffset) {
+    return;
+  }
+  selectedDayOffset = normalized;
+  lastWeeklyArcKey = null;
+}
+
+function shiftSelectedDay(delta) {
+  const step = Number.parseInt(delta, 10);
+  if (Number.isNaN(step) || step === 0) {
+    return;
+  }
+  setSelectedDayOffset(selectedDayOffset + step);
+}
+
+function withSelectedDayOffset(now) {
+  if (!selectedDayOffset) {
+    return now;
+  }
+  const shifted = new Date(now);
+  shifted.setDate(shifted.getDate() + selectedDayOffset);
+  return shifted;
+}
+
+function setupWeeklyArcControls() {
+  if (!drawerElements.weeklyArcPrev || !drawerElements.weeklyArcNext || !drawerElements.weeklyArcToday) {
+    return;
+  }
+
+  drawerElements.weeklyArcPrev.addEventListener("click", () => {
+    shiftSelectedDay(-1);
+  });
+  drawerElements.weeklyArcNext.addEventListener("click", () => {
+    shiftSelectedDay(1);
+  });
+  drawerElements.weeklyArcToday.addEventListener("click", () => {
+    setSelectedDayOffset(0);
   });
 }
 
@@ -1091,6 +1399,7 @@ async function retrievePsalmText(chapter, verse) {
 
 async function initialiseClock() {
   setupReadingDepthControls();
+  setupWeeklyArcControls();
 
   try {
     const [clockResponse, psalmResponse] = await Promise.all([
@@ -1144,10 +1453,13 @@ function renderClock(data, referenceMap, psalmMetadata) {
   };
   derived.flatPentacles = flattenPentacles(layers.planetary.groups);
   derived.totalPentacles = derived.flatPentacles.length;
+  ensureSealSymbols(derived.flatPentacles);
+  drawPlanetarySealGlyphs(layers.planetary.groups, radii.planetary);
 
   function frame() {
     const now = new Date();
-    const timeState = computeTimeState(now, layers, derived);
+    const displayNow = withSelectedDayOffset(now);
+    const timeState = computeTimeState(displayNow, layers, derived);
 
     const spiritRotation = fractionToRotation(timeState.fractions.spirit, derived.spiritCount);
     const planetaryRotation = fractionToRotation(timeState.fractions.planetary, derived.planetaryGroupCount);
@@ -1160,12 +1472,14 @@ function renderClock(data, referenceMap, psalmMetadata) {
     highlightLayer("spirit", timeState.indices.spirit);
     highlightLayer("planetary", timeState.indices.planetary);
     highlightLayer("celestial", timeState.indices.celestial);
+    updateActivePlanetarySealGlyph(timeState.active.pentacle);
+    updateActiveSealFocus(timeState.active.pentacle);
 
     updateCenterLabels(layers.core.name, timeState);
     updateDailyGuidance(timeState);
     updateWeeklyArcPanel(now, derived, referenceMap);
     updateDailyProfile(timeState);
-    updateExplainabilityPanel(now, timeState, referenceMap, psalmMetadata);
+    updateExplainabilityPanel(displayNow, timeState, referenceMap, psalmMetadata);
     updateDailyContentBundle(timeState, referenceMap, psalmMetadata);
     updatePsalmDrawer(timeState.active.pentacle, referenceMap);
 

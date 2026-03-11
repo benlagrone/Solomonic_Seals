@@ -63,6 +63,96 @@ svg#clock {
   filter: drop-shadow(0 0 14px rgba(255, 255, 255, 0.35));
 }
 
+.ring-seal-glyph {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.22s ease, filter 0.22s ease;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.ring-seal-glyph.visible {
+  opacity: 0.85;
+}
+
+.ring-seal-glyph.visible.active {
+  opacity: 1;
+  filter: drop-shadow(0 0 9px rgba(250, 204, 21, 0.8));
+}
+
+.seal-outer,
+.seal-inner,
+.seal-star,
+.seal-knot,
+.seal-line {
+  fill: none;
+  stroke: rgba(248, 250, 252, 0.9);
+  vector-effect: non-scaling-stroke;
+}
+
+.seal-outer {
+  stroke-width: 2.2;
+}
+
+.seal-inner {
+  stroke-width: 1.6;
+  opacity: 0.8;
+}
+
+.seal-star {
+  stroke-width: 1.7;
+}
+
+.seal-knot {
+  stroke-width: 1.2;
+  opacity: 0.78;
+}
+
+.seal-line {
+  stroke-width: 1;
+  opacity: 0.66;
+}
+
+.seal-initial,
+.seal-index {
+  fill: rgba(248, 250, 252, 0.92);
+  font-family: "Times New Roman", serif;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  paint-order: stroke;
+  stroke: rgba(12, 19, 33, 0.8);
+  stroke-width: 0.8;
+}
+
+.seal-initial {
+  font-size: 11px;
+}
+
+.seal-index {
+  font-size: 10px;
+}
+
+.active-seal-focus {
+  pointer-events: none;
+}
+
+.active-seal-focus-halo {
+  fill: rgba(15, 23, 42, 0.68);
+  stroke: rgba(250, 204, 21, 0.3);
+  stroke-width: 1.2;
+}
+
+.active-seal-focus-ring {
+  fill: none;
+  stroke: rgba(250, 204, 21, 0.72);
+  stroke-width: 1.4;
+}
+
+.active-seal-focus-use {
+  opacity: 0.97;
+  filter: drop-shadow(0 0 10px rgba(250, 204, 21, 0.32));
+}
+
 .caption {
   margin-top: 1.25rem;
   font-size: 0.9rem;
@@ -173,12 +263,44 @@ svg#clock {
   color: #fbbf24;
 }
 
+.weekly-arc-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.45rem;
+}
+
+.weekly-arc-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.weekly-arc-button {
+  border: 1px solid rgba(251, 191, 36, 0.35);
+  background: rgba(15, 23, 42, 0.62);
+  color: #fde68a;
+  border-radius: 999px;
+  padding: 0.22rem 0.48rem;
+  font-size: 0.72rem;
+  line-height: 1.1;
+  cursor: pointer;
+}
+
+.weekly-arc-button:hover {
+  border-color: rgba(251, 191, 36, 0.7);
+  background: rgba(251, 191, 36, 0.12);
+}
+
+.weekly-arc-button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
 .weekly-arc-list {
   list-style: none;
   margin: 0.6rem 0 0;
   padding: 0;
-  display: grid;
-  gap: 0.45rem;
 }
 
 .weekly-arc-list li {

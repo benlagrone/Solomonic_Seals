@@ -22,6 +22,11 @@ Goal: build one coherent roadmap for product experience, scripture alignment, an
 5. Interaction modes: support `minimal` (small marks) and `study` (full detail + citations), both read-only.
 6. Performance guardrails: reuse symbols, avoid per-frame path regeneration, and animate only opacity/stroke.
 
+Status update (March 10, 2026):
+- Implemented initial read-only SVG seal sprite rendering in `web/clock.js` (`<symbol>` + `<use>` pattern).
+- Implemented in-ring planetary seal marks and active core focus seal preview in `web/clock.js`/`web/style.css`.
+- Remaining for this track: canonical hand-traced assets and optional `clipPath` study-mode polish.
+
 ## Workstream B: Daily Experience and Guidance
 
 - Daily profile card: show day ruler, active pentacle, correspondences (color, metal, angel), and suggested focus.
@@ -30,7 +35,59 @@ Goal: build one coherent roadmap for product experience, scripture alignment, an
 - Explainability panel: show why content was selected today (planet/day/hour/sign rule + source citation).
 - Reflection workflow: add one morning intention prompt, one midday practice prompt, and one evening reflection prompt.
 - Weekly arc mode: show 7-day progression instead of isolated day cards.
-- Advise-only mode lock: keep the experience read-only (no journal/logbook, no user text capture, no entry storage).
+- Phase-gated memory: start read-only, then add optional vow selection and closeout tracking once the guidance engine is stable.
+- Consult the Clock panel: offer guided prompts such as decision, communication, travel, negotiation, and clarity instead of starting from blank chat.
+- Opportunity timeline: show the next 24 hours of planetary-hour windows so users can compare `now` versus `later`.
+- Election windows: rank the next favorable action windows so the clock can answer `when should I act?`, not only `what is happening now?`.
+- Presentation modes: support `Observatory`, `Wisdom`, and `Strategic` views over the same clock state.
+- Daily Oracle page: generate a dated counsel artifact from the current clock state so each day has a stable, shareable reading.
+- Hourly mini-oracle: generate short timing notes for the current and upcoming planetary hours.
+
+### Guidance Engine Expansion Track
+
+1. Structure guidance as an engine, not a paragraph:
+   - `context layer`: planetary day, planetary hour, sign, degree band, active pentacle, spirit, and optional lunar state.
+   - `domain layer`: score domains such as work, relationships, money, travel, health, home, study, and conflict/protection.
+   - `output layer`: emit `theme`, `do`, `avoid`, `watch_for`, and `vow` fields so every reading is actionable and repeatable.
+2. Add decision strength mechanics:
+   - `confidence`: increase when signals align (for example, Venus day + Venus hour + Taurus segment).
+   - `severity`: indicate whether the user should act decisively, proceed lightly, or simply observe.
+   - `if/then triggers`: convert abstract tone into concrete rules such as delayed sending, checklist checks, or timing constraints.
+   - `alignment summary`: standardize the top-line verdict as `strong`, `mixed`, or `weak`.
+3. Add guidance modes over the same engine:
+   - `Brief`: three concise bullets.
+   - `Operational`: checklist, controls, and failure modes.
+   - `Devotional`: psalm, short petition, and one embodied act.
+   - `Strategic`: what to signal, what to conceal, and what to secure, framed as ethical power-awareness rather than manipulation.
+4. Add framing controls:
+   - `decision amplifier`: let the user choose `conservative`, `balanced`, `opportunistic`, or `strategic`.
+   - preserve the same clock state while shifting how strongly the system favors caution, timing, leverage, or documentation.
+5. Detect internal contradictions:
+   - score supportive alignments and cross-signal tensions such as Venus harmony vs. Mercury logistics.
+   - surface a `conflict warning` when the day, hour, sign, or pentacle point in different directions.
+   - convert that warning into one concrete modification, not just a vague caution.
+6. Add election-timing outputs:
+   - score the next 24 hours for action categories such as travel, negotiation, communication, creative work, relationship repair, financial decisions, and study.
+   - combine `planetary_hour_weight`, `planetary_day_weight`, `pentacle_theme_weight`, and `zodiac_segment_weight` into a simple ranking model.
+   - emit a practical verdict of `act`, `delay`, or `prepare` plus the next better window when relevant.
+7. Add micro-ritual outputs:
+   - produce a `today_alignment_action` that can be completed in roughly two minutes.
+   - keep the action behaviorally concrete: send one message, review one route, organize one area, or verify one document.
+8. Add follow-through loops:
+   - let the user pick a `today_vow`,
+   - surface a later `closeout` state (`done`, `not_done`, `deferred`),
+   - record decision, outcome, and emotional tone so the system can spot repeated patterns.
+9. Recenter the UI around guidance:
+   - make `Today's guidance` the visual center of the clock experience,
+   - rotate a concise `Daily Counsel` summary in the center so the current moment has an immediate takeaway,
+   - keep provenance, psalms, and rationale in the side panel,
+   - add a `Why this?` drill-down that exposes contributing signals without forcing it open.
+10. Keep implementation low-drama:
+   - normalize data into `time_state`, `entities`, `guidance_rules`, and `psalm_map`,
+   - use simple scoring to pick the top 1-3 domains,
+   - reuse the same scoring layer for election windows, current guidance, and forecast bars,
+   - ship local-first vow/closeout storage with `localStorage` before any database work.
+   - treat the clock as a constrained counsel system, not an open-ended horoscope generator.
 
 Planetary day guidance should drive recommendations:
 
@@ -56,6 +113,7 @@ Planetary day guidance should drive recommendations:
 2. Log Psalm references from grimoires and record dual numbering (Hebrew vs. Vulgate).
 3. Tag Proverbs/wisdom references by pentacle or spirit focus (courage, eloquence, reconciliation, etc.).
 4. Add optional cross-book commentary for thematic expansion.
+5. Distinguish `primary` citations from clearly labeled `derived` correspondences when the source tradition is silent.
 
 ### Data Model
 
@@ -94,7 +152,7 @@ Canonical verse mapping object:
 
 Store empty objects where references are pending so validation catches missing coverage.
 
-When a pentacle has no Psalm citation in source tradition, capture a non-Psalm or grimoire citation under `supplemental_references` in `data/pentacle_psalms.json` instead of forcing a synthetic Psalm.
+When a pentacle has no Psalm citation in source tradition, preserve the missing primary slot and attach either a non-Psalm/grimoire citation under `supplemental_references` or a clearly labeled `derived_correspondence` keyed by theme, planet, or virtue. Do not present a derived mapping as canonical.
 
 ### Verse Source Tracker (Current State)
 
@@ -186,6 +244,7 @@ Suggested visualization upgrades:
 - Animated planetary-hour ring showing current hour lord vs. day ruler.
 - Hermetic compass mode (elements/directions + royal stars).
 - Astrological chart integration for decan verification.
+- Energy forecast ring: add a subtle outer gradient keyed to alignment score (`green` constructive, `amber` caution, `red` friction, `blue` contemplative).
 
 Suggested schema extension example:
 
@@ -217,12 +276,97 @@ Suggested schema extension example:
 - Intent-to-reading map: link intents (health, wealth, power, protection, clarity) to indexed sections with citations.
 - Ritual flow template: standardize reading -> prayer -> action -> reflection.
 - Search utilities: add CLI or lightweight web search powered by `data/source_texts_index.json`.
-- Solomon chatbot: conversational interface grounded in indexed texts with cited excerpts and ritual suggestions.
+- Ask the Clock: constrained question mode for decisions such as sending, negotiating, traveling, or responding.
+- Counsel response contract: every answer returns `signal_strength`, `why`, `action`, and `modification_tip` grounded in current clock state.
+- Query evaluation inputs: planetary day/hour, sign-degree, active pentacle theme, and conflict/alignment score.
+- Daily Counsel mode: produce three concise tiers for `personal conduct`, `work/strategic`, and `hidden risk`.
+- Strategic counsel mode: expose leverage, documentation, signaling, and concealment guidance with explicit non-harm boundaries.
+- Council of Voices: allow the same clock-grounded question to be answered by multiple personas without changing the underlying state model.
+- Constrained LLM layer: if chat is added, require source-grounded reasoning, current-state references, and at least one actionable step; avoid generic freeform chat.
+
+### Pericope Counsel Integration Track
+
+1. Treat the clock as a shared context engine:
+   - the clock produces runtime state such as `planetary_day`, `planetary_hour`, `zodiac_segment`, `spirit`, `active_pentacle`, and `pentacle_theme`.
+   - Pericope consumes that state as live environmental context rather than asking each persona to infer it.
+2. Add FastAPI clock endpoints:
+   - `GET /clock/context`: return the current clock state plus a compact guidance summary.
+   - `GET /clock/guidance`: return structured counsel blocks for the current moment.
+   - `GET /clock/forecast?hours=24`: return upcoming alignment windows and caution periods.
+3. Inject clock context into chat orchestration:
+   - update the chat prompt builder so current clock state is included automatically when `Include Clock Guidance` is enabled.
+   - expose a `get_current_clock_state()` tool so the LLM can request fresh state explicitly instead of relying only on static prompt text.
+4. Add persona overlays on the same clock:
+   - preserve existing Pericope personas and add a `Solomon` persona focused on judgment, order, diplomacy, and kingship.
+   - keep the base clock interpretation consistent while allowing Augustine, Freud, Solomon, or future personas to explain the same state through different lenses.
+5. Standardize decision-answer templates:
+   - every decision response should emit `signal_strength`, `relevant_influences`, `recommendation`, and `caution`.
+   - use the template for questions about negotiation, travel, confrontation, timing, or repair so the system feels reasoned rather than chatty.
+6. Add frontend context plumbing:
+   - create a React `ClockContextProvider` that fetches `/clock/context` and injects it into counsel requests.
+   - add an `Include Clock Guidance` toggle in chat, guided consultation buttons, and a `Daily Counsel` feed at the top of the Pericope home screen.
+   - make `Why this guidance?` a collapsible reasoning panel fed by the same structured explanation data used by the API.
+7. Add adaptive memory:
+   - store `decision`, `outcome`, `emotional_tone`, `timestamp`, and `clock_state` together.
+   - let future counsel reference prior outcomes when similar pentacles, hours, or planetary combinations recur.
+8. Keep the mental model clear:
+   - Solomonic Clock = visual state engine.
+   - Pericope = interpretive counsel layer.
+   - combined system = interactive decision framework with provenance, memory, and persona-guided reasoning.
+
+### Election Timing Track
+
+1. Add an election-window engine:
+   - compute the next favorable windows for action types such as travel, negotiation, communication, creative work, relationship repair, financial decisions, and contemplation.
+   - prioritize near-term usefulness over astrological complexity; the goal is timing advice that feels clear and actionable.
+2. Add an election endpoint:
+   - `GET /clock/election?type=communication`: return ranked windows, signal strength, and a `act` / `delay` / `prepare` recommendation.
+   - keep the response format small enough for both sidebar UI and chat tool use.
+3. Share one scoring model:
+   - combine planetary day, planetary hour, pentacle theme, and zodiac segment into a transparent weighted score.
+   - expose the strongest contributing factors so users can see why one hour outranks another.
+4. Add interface treatments:
+   - show an `Upcoming Favorable Windows` panel near guidance with top windows for a few common action types.
+   - let the forecast bar highlight the next strong election window rather than only listing raw hour names.
+5. Wire election timing into chat:
+   - when a user asks whether to send, negotiate, travel, or wait, let Pericope query the election endpoint before answering.
+   - include the next better window directly in the response so counsel can say `prepare now, act at 20:00`.
+6. Add optional retention hooks:
+   - support opportunity alerts such as `next strong negotiation window in 2 hours`.
+   - keep alerts secondary to the core engine so timing advice works even without notifications.
+
+### Oracle Publishing Track
+
+1. Promote clock state into a canonical context object:
+   - serialize the active day, hour, zodiac segment, spirit, pentacle, and pentacle theme as a reusable `cosmic_weather` payload.
+   - use that payload consistently across oracle generation, chat context, scheduled jobs, and page rendering.
+2. Add oracle generation endpoints:
+   - `POST /pericope/oracle`: accept `clock_context` plus a `mode` such as `wisdom`, `strategic`, or `devotional`.
+   - support scheduled backend generation so daily or hourly counsel can be created without a live user request.
+3. Standardize oracle output:
+   - emit `theme`, `favorable_actions`, `caution`, and `symbolic_influence` as first-class fields.
+   - attach optional `psalm`, `themes`, `persona`, and provenance metadata so each oracle can be rendered, cited, and reused.
+4. Persist generated counsel:
+   - store dated records in an `oracle_daily` table keyed by date and clock state.
+   - store shorter `oracle_hourly` records for planetary-hour timing notes and forecast windows.
+5. Publish oracle pages automatically:
+   - expose stable dated routes such as `/oracle/2026-03-10`.
+   - use the same stored oracle for the site, chat bootstrap context, and optional feed distribution.
+6. Feed the chat system from stored counsel:
+   - when a user asks broad daily questions, preload the current daily oracle before answering.
+   - keep freeform chat aligned with the same counsel already shown by the clock and site.
+7. Add guided decision tooling on top of the oracle baseline:
+   - support decision categories such as message, negotiation, travel, project start, and relationship repair.
+   - combine the stored oracle, live clock state, and persona overlay so the answer is both consistent and situational.
+8. Use oracle generation as a content engine:
+   - automatically produce daily counsel pages and hourly mini-oracles that can also function as blog, landing-page, or feed content.
+   - optionally publish election-window highlights alongside the daily oracle so the page answers both `what` and `when`.
+   - keep the content structured so SEO, archive navigation, and internal linking remain straightforward.
 
 ## Delivery Phases
 
-- Phase 1 (Foundation): complete scripture mapping baseline, numbering normalization, validation tooling, and Pericope-first scripture access.
-- Phase 2 (Experience MVP): ship daily profile card, reading depth toggle, and local long-read support.
-- Phase 3 (Recommendation Engine): planetary/day recommendation engine + explainability panel + daily content bundle.
-- Phase 4 (Expansion): weekly arc, SVG seal rendering in the clock, and first esoteric enrichment attributes in UI (advise-only; no journaling).
-- Phase 5 (Assistant and Advanced UI): intent-aware search/chat, visualization upgrades, and advanced schema adoption.
+- Phase 1 (Foundation): complete scripture mapping baseline, numbering normalization, validation tooling, derived-correspondence scaffolding, and Pericope-first scripture access.
+- Phase 2 (Experience MVP): ship daily profile card, reading depth toggle, explainability baseline, and local long-read support.
+- Phase 3 (Guidance Engine): add structured context/domain/output scoring, confidence and severity, planetary hour inputs, conflict detection, election-window scoring, and mode-aware presentation.
+- Phase 4 (Follow-Through): add weekly arc, vow selection, closeout logging, micro-ritual actions, centered guidance cards, `Why this guidance?` reasoning, light local personalization, stored daily/hourly oracle records, and `act/delay/prepare` recommendations.
+- Phase 5 (Assistant and Advanced UI): ship Ask-the-Clock counsel flows, Pericope clock-context injection, 24-hour opportunity timeline, election-window panels and alerts, oracle publishing routes, energy forecast visualization, Council-of-Voices persona views, and advanced schema adoption across guidance and enrichment layers.

@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Solomonic Clock of Spheres</title>
-    <link rel="stylesheet" href="style.css?v=20260309-1" />
+    <link rel="stylesheet" href="style.css?v=20260310-4" />
   </head>
   <body>
     <div class="layout">
@@ -31,7 +31,18 @@
             <ul class="guidance-list"></ul>
           </section>
           <section class="weekly-arc" aria-label="Weekly arc">
-            <p class="weekly-arc-heading">Weekly Arc (Advise Mode)</p>
+            <div class="weekly-arc-top">
+              <p class="weekly-arc-heading">Weekly Arc (Advise Mode)</p>
+              <div class="weekly-arc-controls" role="group" aria-label="Weekly day carousel">
+                <button type="button" class="weekly-arc-button weekly-arc-prev" aria-label="Previous day">
+                  &#8592;
+                </button>
+                <button type="button" class="weekly-arc-button weekly-arc-next" aria-label="Next day">
+                  &#8594;
+                </button>
+                <button type="button" class="weekly-arc-button weekly-arc-today">Today</button>
+              </div>
+            </div>
             <ul class="weekly-arc-list"></ul>
           </section>
           <section class="daily-profile" aria-label="Today's profile">
@@ -92,6 +103,6 @@
       </aside>
     </div>
     <script src="https://d3js.org/d3.v7.min.js"></script>
-    <script src="clock.js?v=20260309-1"></script>
+    <script src="clock.js?v=20260310-4"></script>
   </body>
 </html>
