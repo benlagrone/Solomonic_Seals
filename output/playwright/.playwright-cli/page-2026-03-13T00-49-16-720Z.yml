@@ -1,0 +1,214 @@
+- generic [ref=e2]:
+  - main [ref=e3]:
+    - heading "Solomonic Clock of Spheres" [level=1] [ref=e4]
+    - navigation "Clock lenses" [ref=e5]:
+      - button "Base" [ref=e6] [cursor=pointer]
+      - button "Scripture" [ref=e7] [cursor=pointer]
+      - button "Ritual" [ref=e8] [cursor=pointer]
+      - button "Esoteric" [active] [pressed] [ref=e9] [cursor=pointer]
+      - button "History" [ref=e10] [cursor=pointer]
+    - paragraph [ref=e11]: Esoteric lens pulls symbolic correspondences forward without replacing the base guidance.
+    - generic [ref=e12]:
+      - generic:
+        - paragraph: Esoteric Lens
+        - paragraph: Sachiel • Tin
+        - paragraph: Leraje rules the active sector in Gemini 5–10.
+      - img [ref=e13]:
+        - generic:
+          - generic:
+            - generic: S
+            - generic: "1"
+          - generic:
+            - generic: S
+            - generic: "2"
+          - generic:
+            - generic: S
+            - generic: "3"
+          - generic:
+            - generic: S
+            - generic: "4"
+          - generic:
+            - generic: S
+            - generic: "5"
+          - generic:
+            - generic: S
+            - generic: "6"
+          - generic:
+            - generic: S
+            - generic: "7"
+          - generic:
+            - generic: J
+            - generic: "1"
+          - generic:
+            - generic: J
+            - generic: "2"
+          - generic:
+            - generic: J
+            - generic: "3"
+          - generic:
+            - generic: J
+            - generic: "4"
+          - generic:
+            - generic: J
+            - generic: "5"
+          - generic:
+            - generic: J
+            - generic: "6"
+          - generic:
+            - generic: J
+            - generic: "7"
+          - generic:
+            - generic: M
+            - generic: "1"
+          - generic:
+            - generic: M
+            - generic: "2"
+          - generic:
+            - generic: M
+            - generic: "3"
+          - generic:
+            - generic: M
+            - generic: "4"
+          - generic:
+            - generic: M
+            - generic: "5"
+          - generic:
+            - generic: S
+            - generic: "1"
+          - generic:
+            - generic: S
+            - generic: "2"
+          - generic:
+            - generic: S
+            - generic: "3"
+          - generic:
+            - generic: S
+            - generic: "4"
+          - generic:
+            - generic: S
+            - generic: "5"
+          - generic:
+            - generic: S
+            - generic: "6"
+          - generic:
+            - generic: V
+            - generic: "1"
+          - generic:
+            - generic: V
+            - generic: "2"
+          - generic:
+            - generic: V
+            - generic: "3"
+          - generic:
+            - generic: V
+            - generic: "4"
+          - generic:
+            - generic: V
+            - generic: "5"
+          - generic:
+            - generic: M
+            - generic: "1"
+          - generic:
+            - generic: M
+            - generic: "2"
+          - generic:
+            - generic: M
+            - generic: "3"
+          - generic:
+            - generic: M
+            - generic: "4"
+          - generic:
+            - generic: M
+            - generic: "5"
+          - generic:
+            - generic: M
+            - generic: "6"
+          - generic:
+            - generic: M
+            - generic: "7"
+          - generic:
+            - generic: M
+            - generic: "8"
+          - generic:
+            - generic: M
+            - generic: "1"
+          - generic:
+            - generic: M
+            - generic: "2"
+          - generic:
+            - generic: M
+            - generic: "3"
+          - generic:
+            - generic: M
+            - generic: "4"
+          - generic:
+            - generic: M
+            - generic: "5"
+          - generic:
+            - generic: M
+            - generic: "6"
+        - generic [ref=e14]:
+          - generic [ref=e15]:
+            - generic:
+              - generic:
+                - generic:
+                  - generic:
+                    - generic: P
+                    - generic: S
+                    - generic: A
+                    - generic: L
+                    - generic: M
+                  - generic:
+                    - generic: ☿
+                    - generic: ✶
+                    - generic: ✶
+                    - generic: ✶
+                  - generic: ☿
+                  - generic: P
+          - generic:
+            - generic:
+              - generic: LERAJE • MARQUIS • SECTOR 14
+              - generic: GEMINI 5–10 • ANGEL SACHIEL • METAL TIN
+            - generic:
+              - generic: MERCURY 1
+            - generic:
+              - generic:
+                - generic: LERAJE • MARQUIS
+              - generic:
+                - generic: SACHIEL • TIN
+              - generic:
+                - generic: ROYAL BLUE • MERCURY 1
+            - generic: Esoteric Band
+          - generic:
+            - generic:
+              - generic: Mon, Mar
+            - generic:
+              - generic: Tue, Mar
+            - generic:
+              - generic: Wed, Mar
+            - generic:
+              - generic: Thu, Mar
+            - generic:
+              - generic: Fri, Mar
+            - generic:
+              - generic: Sat, Mar
+            - generic:
+              - generic: Sun, Mar
+          - generic:
+            - generic:
+              - generic: Correspondence Ring
+          - generic [ref=e109]:
+            - generic: Thursday – Jupiter • 07:49 PM
+            - generic: Sachiel • Tin
+            - generic: Gemini 5–10 • Leraje (Marquis)
+            - generic: "Royal Blue • Mercury #1"
+    - paragraph [ref=e110]:
+      - text: Generated from
+      - code [ref=e111]: data/solomonic_clock_full.json
+      - text: . Hover outer sectors for detailed spirit info.
+  - complementary "Psalm references" [ref=e112]:
+    - generic [ref=e114]:
+      - generic [ref=e115]:
+        - heading "Esoteric Lens" [level=2] [ref=e119]
+        - paragraph [ref=e117]: Pentacle correspondences, symbolic profile, and hidden structural logic are foregrounded.
+      - button "Show Details" [ref=e118] [cursor=pointer]

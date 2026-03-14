@@ -36,11 +36,161 @@ body {
   color: #facc15;
 }
 
+.lens-bar {
+  display: inline-flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.55rem;
+  margin: 0 auto 0.8rem;
+}
+
+.lens-button {
+  border: 1px solid rgba(148, 163, 184, 0.32);
+  background: rgba(15, 23, 42, 0.68);
+  color: #cbd5f5;
+  border-radius: 999px;
+  padding: 0.45rem 0.85rem;
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: border-color 0.18s ease, background 0.18s ease, color 0.18s ease, transform 0.18s ease;
+}
+
+.lens-button:hover {
+  border-color: rgba(250, 204, 21, 0.58);
+  color: #f8fafc;
+  transform: translateY(-1px);
+}
+
+.lens-button.active {
+  border-color: rgba(250, 204, 21, 0.78);
+  background: rgba(250, 204, 21, 0.14);
+  color: #fde68a;
+  box-shadow: 0 0 16px rgba(250, 204, 21, 0.12);
+}
+
+.lens-status {
+  max-width: 46rem;
+  margin: 0 auto 1.15rem;
+  color: #a5b4fc;
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+
 .clock-wrapper {
   position: relative;
   display: flex;
   justify-content: center;
   align-items: center;
+}
+
+.clock-surface-panel {
+  position: absolute;
+  left: 50%;
+  top: 1.25rem;
+  transform: translateX(-50%);
+  width: min(26rem, calc(100% - 3rem));
+  padding: 0.8rem 1rem 0.9rem;
+  border-radius: 1rem;
+  border: 1px solid rgba(250, 204, 21, 0.22);
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.82), rgba(15, 23, 42, 0.58));
+  backdrop-filter: blur(8px);
+  box-shadow: 0 12px 28px rgba(2, 6, 23, 0.28);
+  text-align: center;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.surface-lens-label,
+.surface-lens-title,
+.surface-lens-body {
+  margin: 0;
+}
+
+.surface-lens-label {
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #facc15;
+}
+
+.surface-lens-title {
+  margin-top: 0.28rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #f8fafc;
+}
+
+.surface-lens-body {
+  margin-top: 0.28rem;
+  font-size: 0.82rem;
+  line-height: 1.42;
+  color: #cbd5f5;
+}
+
+.surface-rule[hidden] {
+  display: none !important;
+}
+
+.surface-rule {
+  margin-top: 0.7rem;
+  padding-top: 0.65rem;
+  border-top: 1px solid rgba(250, 204, 21, 0.16);
+  text-align: left;
+}
+
+.surface-rule-meta {
+  display: flex;
+  justify-content: center;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.55rem;
+}
+
+.surface-rule-chip {
+  margin: 0;
+  padding: 0.22rem 0.55rem;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  background: rgba(15, 23, 42, 0.52);
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #cbd5f5;
+}
+
+.surface-rule-chip strong {
+  color: #fde68a;
+  margin-left: 0.35rem;
+}
+
+.surface-rule-list {
+  margin: 0;
+  display: grid;
+  gap: 0.45rem;
+}
+
+.surface-rule-row {
+  display: grid;
+  grid-template-columns: 4.5rem 1fr;
+  gap: 0.5rem;
+  align-items: start;
+}
+
+.surface-rule-row dt {
+  margin: 0;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #facc15;
+}
+
+.surface-rule-row dd {
+  margin: 0;
+  font-size: 0.8rem;
+  line-height: 1.38;
+  color: #e2e8f0;
 }
 
 svg#clock {
@@ -49,7 +199,364 @@ svg#clock {
   box-shadow: 0 0 40px rgba(250, 204, 21, 0.15);
 }
 
+svg#clock .ring-core,
+svg#clock .ring-celestial,
+svg#clock .life-wheel-overlay,
+svg#clock .ring-planetary,
+svg#clock .ring-spirit,
+svg#clock .planetary-seal-glyphs,
+svg#clock .active-seal-focus,
+svg#clock .center-mode-control,
+svg#clock .scripture-overlay,
+svg#clock .ritual-overlay,
+svg#clock .esoteric-overlay,
+svg#clock .center-label,
+svg#clock .history-preview,
+svg#clock .lens-focus-overlay {
+  transition: opacity 0.22s ease, filter 0.22s ease;
+}
+
+svg#clock .life-wheel-overlay {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+svg[data-lens="scripture"] .life-wheel-overlay,
+svg[data-lens="ritual"] .life-wheel-overlay,
+svg[data-lens="esoteric"] .life-wheel-overlay {
+  opacity: 0.44;
+}
+
+svg[data-lens="history"] .life-wheel-overlay {
+  opacity: 0.72;
+}
+
+svg#clock .scripture-overlay {
+  opacity: 0;
+  pointer-events: none;
+}
+
+svg[data-lens="scripture"] .scripture-overlay {
+  opacity: 1;
+  filter: drop-shadow(0 0 10px rgba(250, 204, 21, 0.12));
+}
+
+svg#clock .ritual-overlay {
+  opacity: 0;
+  pointer-events: none;
+}
+
+svg[data-lens="ritual"] .ritual-overlay {
+  opacity: 1;
+  filter: drop-shadow(0 0 10px rgba(96, 165, 250, 0.14));
+}
+
+svg#clock .esoteric-overlay {
+  opacity: 0;
+  pointer-events: none;
+}
+
+svg[data-lens="esoteric"] .esoteric-overlay {
+  opacity: 1;
+  filter: drop-shadow(0 0 10px rgba(196, 181, 253, 0.14));
+}
+
+svg#clock .history-preview {
+  opacity: 0;
+  pointer-events: none;
+}
+
+svg#clock .lens-focus-overlay {
+  opacity: 0.96;
+  pointer-events: none;
+}
+
+svg[data-lens="history"] .history-preview {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.history-node-label {
+  font-family: "Times New Roman", serif;
+  pointer-events: none;
+}
+
+.scripture-overlay-text,
+.scripture-overlay-caption,
+.ritual-overlay-text,
+.ritual-overlay-caption,
+.esoteric-overlay-text,
+.esoteric-overlay-caption {
+  font-family: "Times New Roman", serif;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  pointer-events: none;
+}
+
+.scripture-overlay-text {
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.scripture-overlay-caption {
+  font-size: 10px;
+  fill: #fde68a;
+  paint-order: stroke;
+  stroke: rgba(15, 23, 42, 0.92);
+  stroke-width: 2;
+}
+
+.ritual-overlay-text {
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.ritual-overlay-caption {
+  font-size: 10px;
+  fill: #dbeafe;
+  paint-order: stroke;
+  stroke: rgba(15, 23, 42, 0.92);
+  stroke-width: 2;
+}
+
+.ritual-overlay-caption--secondary {
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  fill: #bfdbfe;
+}
+
+.ritual-overlay-tick {
+  stroke-linecap: round;
+}
+
+.ritual-overlay-tick--minor {
+  stroke: rgba(191, 219, 254, 0.34);
+  stroke-width: 1.2;
+}
+
+.ritual-overlay-tick--next {
+  stroke: rgba(191, 219, 254, 0.72);
+  stroke-width: 1.8;
+}
+
+.ritual-overlay-tick--current {
+  stroke: rgba(219, 234, 254, 0.96);
+  stroke-width: 2.2;
+}
+
+.ritual-overlay-hour-dot--current {
+  fill: #dbeafe;
+  stroke: rgba(15, 23, 42, 0.92);
+  stroke-width: 1.2;
+}
+
+.ritual-overlay-hour-dot--next {
+  fill: #bfdbfe;
+  stroke: rgba(15, 23, 42, 0.9);
+  stroke-width: 1.05;
+}
+
+.esoteric-overlay-text {
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.esoteric-overlay-caption {
+  font-size: 10px;
+  fill: #e9d5ff;
+  paint-order: stroke;
+  stroke: rgba(15, 23, 42, 0.92);
+  stroke-width: 2;
+}
+
+.esoteric-overlay-caption--beacon {
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  fill: #ddd6fe;
+}
+
+.esoteric-overlay-beacon-line {
+  stroke-linecap: round;
+}
+
+.esoteric-overlay-beacon-dot {
+  filter: drop-shadow(0 0 8px rgba(196, 181, 253, 0.22));
+}
+
+.esoteric-overlay-badge-pill,
+.esoteric-overlay-badge-text {
+  pointer-events: none;
+}
+
+.esoteric-overlay-badge-text {
+  font-family: "Times New Roman", serif;
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.lens-annotation-pill,
+.lens-annotation-text {
+  pointer-events: none;
+}
+
+.life-wheel-track,
+.life-wheel-fill,
+.life-wheel-weakness-dot,
+.life-wheel-label-name,
+.life-wheel-label-score {
+  transition: opacity 0.22s ease, filter 0.22s ease, stroke-width 0.22s ease, fill 0.22s ease;
+}
+
+.life-wheel-segment.is-focused .life-wheel-track,
+.life-wheel-segment.is-focused .life-wheel-fill {
+  filter: drop-shadow(0 0 10px rgba(250, 204, 21, 0.12));
+}
+
+.life-wheel-segment.is-weakest .life-wheel-track {
+  stroke-dasharray: 4 5;
+}
+
+.life-wheel-label-name,
+.life-wheel-label-score {
+  font-family: "Times New Roman", serif;
+  pointer-events: none;
+}
+
+.life-wheel-label-name {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.life-wheel-label-score {
+  font-size: 9px;
+}
+
+.lens-annotation-text {
+  font-family: "Times New Roman", serif;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+}
+
+.lens-focus-label {
+  font-family: "Times New Roman", serif;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  paint-order: stroke;
+  stroke: rgba(15, 23, 42, 0.92);
+  stroke-width: 2.5;
+}
+
+svg[data-lens="scripture"] .ring-celestial,
+svg[data-lens="scripture"] .ring-spirit {
+  opacity: 0.34;
+}
+
+svg[data-lens="scripture"] .ring-core,
+svg[data-lens="scripture"] .active-seal-focus,
+svg[data-lens="scripture"] .center-label {
+  filter: drop-shadow(0 0 12px rgba(250, 204, 21, 0.16));
+}
+
+svg[data-lens="ritual"] .ring-celestial {
+  opacity: 0.38;
+}
+
+svg[data-lens="ritual"] .ring-planetary,
+svg[data-lens="ritual"] .ring-spirit,
+svg[data-lens="ritual"] .center-label {
+  filter: drop-shadow(0 0 10px rgba(96, 165, 250, 0.12));
+}
+
+svg[data-lens="esoteric"] .ring-core {
+  opacity: 0.6;
+}
+
+svg[data-lens="esoteric"] .ring-celestial,
+svg[data-lens="esoteric"] .ring-spirit,
+svg[data-lens="esoteric"] .ring-planetary {
+  filter: drop-shadow(0 0 10px rgba(196, 181, 253, 0.14));
+}
+
+svg[data-lens="history"] .ring-core,
+svg[data-lens="history"] .active-seal-focus {
+  opacity: 0.42;
+}
+
+svg[data-lens="history"] .ring-celestial,
+svg[data-lens="history"] .ring-planetary {
+  filter: drop-shadow(0 0 10px rgba(74, 222, 128, 0.12));
+}
+
+svg[data-lens="history"] .center-label {
+  opacity: 0.88;
+}
+
+svg[data-mode="practice"] .life-wheel-overlay {
+  opacity: 1;
+  filter: drop-shadow(0 0 12px rgba(52, 211, 153, 0.16));
+}
+
+svg[data-mode="reflection"] .ring-core,
+svg[data-mode="reflection"] .active-seal-focus {
+  filter: drop-shadow(0 0 12px rgba(129, 140, 248, 0.18));
+}
+
+svg[data-mode="mentor"] .ring-core,
+svg[data-mode="mentor"] .active-seal-focus,
+svg[data-mode="mentor"] .center-label {
+  filter: drop-shadow(0 0 12px rgba(196, 181, 253, 0.16));
+}
+
+svg[data-mode="forecast"] .history-preview,
+svg[data-mode="timeline"] .history-preview {
+  opacity: 1;
+  pointer-events: auto;
+}
+
 .center-label text {
+  pointer-events: none;
+}
+
+.ring-core {
+  pointer-events: none;
+}
+
+.center-mode-control {
+  isolation: isolate;
+}
+
+.center-mode-wedge,
+.center-mode-hit,
+.center-mode-label {
+  transition: opacity 0.18s ease, filter 0.18s ease, stroke-width 0.18s ease, fill 0.18s ease;
+}
+
+.center-mode-wedge {
+  cursor: default;
+  pointer-events: none;
+}
+
+.center-mode-hit {
+  pointer-events: all;
+  cursor: pointer;
+}
+
+.center-mode-segment.is-active .center-mode-wedge {
+  filter: drop-shadow(0 0 10px rgba(250, 204, 21, 0.14));
+}
+
+.center-mode-segment.is-inactive .center-mode-wedge {
+  opacity: 0.86;
+}
+
+.center-mode-label {
+  font-family: "Times New Roman", serif;
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   pointer-events: none;
 }
 
@@ -132,6 +639,55 @@ svg#clock {
   font-size: 10px;
 }
 
+.dynamic-pentacle-ring,
+.dynamic-pentacle-shape {
+  fill: none;
+  stroke-width: 1.6;
+  vector-effect: non-scaling-stroke;
+}
+
+.dynamic-pentacle-ring--outer {
+  opacity: 0.95;
+}
+
+.dynamic-pentacle-ring--text {
+  opacity: 0.8;
+}
+
+.dynamic-pentacle-ring--inner {
+  opacity: 0.72;
+}
+
+.dynamic-pentacle-scripture-glyph,
+.dynamic-pentacle-symbol,
+.dynamic-pentacle-planet-glyph,
+.dynamic-pentacle-virtue {
+  font-family: "Times New Roman", serif;
+  pointer-events: none;
+}
+
+.dynamic-pentacle-scripture-glyph {
+  font-size: 7px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+}
+
+.dynamic-pentacle-symbol {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.dynamic-pentacle-planet-glyph {
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.dynamic-pentacle-virtue {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
 .active-seal-focus {
   pointer-events: none;
 }
@@ -144,13 +700,11 @@ svg#clock {
 
 .active-seal-focus-ring {
   fill: none;
-  stroke: rgba(250, 204, 21, 0.72);
   stroke-width: 1.4;
 }
 
-.active-seal-focus-use {
-  opacity: 0.97;
-  filter: drop-shadow(0 0 10px rgba(250, 204, 21, 0.32));
+.active-seal-dynamic {
+  filter: drop-shadow(0 0 10px rgba(250, 204, 21, 0.18));
 }
 
 .caption {
@@ -190,6 +744,21 @@ svg#clock {
   top: 1.5rem;
   max-height: calc(100vh - 3rem);
   overflow-y: auto;
+  transition: width 0.2s ease, padding 0.2s ease, opacity 0.2s ease, border-color 0.2s ease;
+}
+
+.drawer.is-collapsed {
+  width: min(230px, 90vw);
+  padding-bottom: 1rem;
+  opacity: 0.88;
+  border-color: rgba(148, 163, 184, 0.16);
+}
+
+.drawer-header-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
 }
 
 .drawer-header h2 {
@@ -203,6 +772,88 @@ svg#clock {
   margin: 0.25rem 0 1rem;
   font-size: 0.85rem;
   color: #94a3b8;
+}
+
+.drawer-toggle {
+  border: 1px solid rgba(148, 163, 184, 0.26);
+  background: rgba(15, 23, 42, 0.7);
+  color: #cbd5f5;
+  border-radius: 999px;
+  padding: 0.42rem 0.72rem;
+  font-size: 0.72rem;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: border-color 0.18s ease, background 0.18s ease, color 0.18s ease;
+}
+
+.drawer-toggle:hover {
+  border-color: rgba(250, 204, 21, 0.5);
+  color: #f8fafc;
+  background: rgba(250, 204, 21, 0.08);
+}
+
+.drawer-section[hidden],
+.drawer-section.is-hidden {
+  display: none !important;
+}
+
+.rule-of-life {
+  margin: 0 0 1rem;
+  padding: 0.85rem 0.95rem;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  border-radius: 1rem;
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.78), rgba(15, 23, 42, 0.46));
+}
+
+.rule-heading {
+  margin: 0 0 0.55rem;
+  font-size: 0.76rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #facc15;
+}
+
+.rule-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin: 0 0 0.65rem;
+  color: #cbd5f5;
+  font-size: 0.86rem;
+}
+
+.rule-meta p {
+  margin: 0;
+}
+
+.rule-meta strong {
+  color: #f8fafc;
+}
+
+.rule-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.55rem;
+}
+
+.rule-list li {
+  display: grid;
+  gap: 0.18rem;
+}
+
+.rule-list strong {
+  font-size: 0.73rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #facc15;
+}
+
+.rule-list span {
+  color: #e2e8f0;
+  line-height: 1.42;
 }
 
 .daily-guidance {

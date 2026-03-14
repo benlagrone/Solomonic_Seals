@@ -1,0 +1,109 @@
+{
+  "metadata": {
+    "version": "1.0",
+    "system": "Dynamic Pentacle Renderer"
+  },
+  "planetStyles": {
+    "saturn": {
+      "centerShape": "circle_grid",
+      "color": "#64748b",
+      "glyph": "\u2644",
+      "symbols": ["\u263f", "\u2644", "\u2736", "\u2736"],
+      "virtue": "Temperance"
+    },
+    "jupiter": {
+      "centerShape": "square",
+      "color": "#4169e1",
+      "glyph": "\u2643",
+      "symbols": ["\u2643", "\u2736", "\u2736", "\u2736"],
+      "virtue": "Justice"
+    },
+    "mars": {
+      "centerShape": "hexagram",
+      "color": "#dc2626",
+      "glyph": "\u2642",
+      "symbols": ["\u2642", "\u2720", "\u2720", "\u2736"],
+      "virtue": "Fortitude"
+    },
+    "sun": {
+      "centerShape": "cross",
+      "color": "#facc15",
+      "glyph": "\u2609",
+      "symbols": ["\u2609", "\u2736", "\u2736", "\u2736"],
+      "virtue": "Hope"
+    },
+    "venus": {
+      "centerShape": "pentagram",
+      "color": "#10b981",
+      "glyph": "\u2640",
+      "symbols": ["\u2640", "\u2736", "\u2736", "\u2736"],
+      "virtue": "Love"
+    },
+    "mercury": {
+      "centerShape": "circle_grid",
+      "color": "#a855f7",
+      "glyph": "\u263f",
+      "symbols": ["\u263f", "\u2736", "\u2736", "\u2736"],
+      "virtue": "Prudence"
+    },
+    "moon": {
+      "centerShape": "crescent",
+      "color": "#cbd5e1",
+      "glyph": "\u263e",
+      "symbols": ["\u263e", "\u2736", "\u2736", "\u2736"],
+      "virtue": "Faith"
+    }
+  },
+  "pentacles": {
+    "saturn_1": { "planet": "Saturn", "index": 1, "name": "Pentacle of Saturn #1", "purpose": "Banish harmful forces", "virtue": "Temperance", "rings": 3 },
+    "saturn_2": { "planet": "Saturn", "index": 2, "name": "Pentacle of Saturn #2", "purpose": "Endurance under trial", "virtue": "Temperance", "rings": 3 },
+    "saturn_3": { "planet": "Saturn", "index": 3, "name": "Pentacle of Saturn #3", "purpose": "Invisibility before foes", "virtue": "Temperance", "rings": 3 },
+    "saturn_4": { "planet": "Saturn", "index": 4, "name": "Pentacle of Saturn #4", "purpose": "Defense against illness", "virtue": "Temperance", "rings": 3 },
+    "saturn_5": { "planet": "Saturn", "index": 5, "name": "Pentacle of Saturn #5", "purpose": "Discover hidden things", "virtue": "Temperance", "rings": 3 },
+    "saturn_6": { "planet": "Saturn", "index": 6, "name": "Pentacle of Saturn #6", "purpose": "Patience and restraint", "virtue": "Temperance", "rings": 3 },
+    "saturn_7": { "planet": "Saturn", "index": 7, "name": "Pentacle of Saturn #7", "purpose": "Binding destructive powers", "virtue": "Temperance", "rings": 3 },
+
+    "jupiter_1": { "planet": "Jupiter", "index": 1, "name": "Pentacle of Jupiter #1", "purpose": "Gain favor of rulers", "virtue": "Justice", "rings": 3 },
+    "jupiter_2": { "planet": "Jupiter", "index": 2, "name": "Pentacle of Jupiter #2", "purpose": "Growth of fortune", "virtue": "Justice", "rings": 3 },
+    "jupiter_3": { "planet": "Jupiter", "index": 3, "name": "Pentacle of Jupiter #3", "purpose": "Peace and reconciliation", "virtue": "Justice", "rings": 3 },
+    "jupiter_4": { "planet": "Jupiter", "index": 4, "name": "Pentacle of Jupiter #4", "purpose": "Divine grace and goodwill", "virtue": "Justice", "rings": 3 },
+    "jupiter_5": { "planet": "Jupiter", "index": 5, "name": "Pentacle of Jupiter #5", "purpose": "Longevity and reputation", "virtue": "Justice", "rings": 3 },
+    "jupiter_6": { "planet": "Jupiter", "index": 6, "name": "Pentacle of Jupiter #6", "purpose": "Victory in disputes", "virtue": "Justice", "rings": 3 },
+    "jupiter_7": { "planet": "Jupiter", "index": 7, "name": "Pentacle of Jupiter #7", "purpose": "Righteous rulership", "virtue": "Justice", "rings": 3 },
+
+    "mars_1": { "planet": "Mars", "index": 1, "name": "Pentacle of Mars #1", "purpose": "Victory in conflict", "virtue": "Fortitude", "rings": 3 },
+    "mars_2": { "planet": "Mars", "index": 2, "name": "Pentacle of Mars #2", "purpose": "Overcome anger", "virtue": "Fortitude", "rings": 3 },
+    "mars_3": { "planet": "Mars", "index": 3, "name": "Pentacle of Mars #3", "purpose": "Destroy malice", "virtue": "Fortitude", "rings": 3 },
+    "mars_4": { "planet": "Mars", "index": 4, "name": "Pentacle of Mars #4", "purpose": "Protection from harm", "virtue": "Fortitude", "rings": 3 },
+    "mars_5": { "planet": "Mars", "index": 5, "name": "Pentacle of Mars #5", "purpose": "Strength of purpose", "virtue": "Fortitude", "rings": 3 },
+
+    "sun_1": { "planet": "Sun", "index": 1, "name": "Pentacle of Sun #1", "purpose": "Success and illumination", "virtue": "Hope", "rings": 3 },
+    "sun_2": { "planet": "Sun", "index": 2, "name": "Pentacle of Sun #2", "purpose": "Restoration of vitality", "virtue": "Hope", "rings": 3 },
+    "sun_3": { "planet": "Sun", "index": 3, "name": "Pentacle of Sun #3", "purpose": "Clarity of understanding", "virtue": "Hope", "rings": 3 },
+    "sun_4": { "planet": "Sun", "index": 4, "name": "Pentacle of Sun #4", "purpose": "Favor before leaders", "virtue": "Hope", "rings": 3 },
+    "sun_5": { "planet": "Sun", "index": 5, "name": "Pentacle of Sun #5", "purpose": "Revelation of truth", "virtue": "Hope", "rings": 3 },
+    "sun_6": { "planet": "Sun", "index": 6, "name": "Pentacle of Sun #6", "purpose": "Blessing and joy", "virtue": "Hope", "rings": 3 },
+
+    "venus_1": { "planet": "Venus", "index": 1, "name": "Pentacle of Venus #1", "purpose": "Unity and affection", "virtue": "Love", "rings": 3 },
+    "venus_2": { "planet": "Venus", "index": 2, "name": "Pentacle of Venus #2", "purpose": "Forgiveness and peace", "virtue": "Love", "rings": 3 },
+    "venus_3": { "planet": "Venus", "index": 3, "name": "Pentacle of Venus #3", "purpose": "Artistic inspiration", "virtue": "Love", "rings": 3 },
+    "venus_4": { "planet": "Venus", "index": 4, "name": "Pentacle of Venus #4", "purpose": "Joy and delight", "virtue": "Love", "rings": 3 },
+    "venus_5": { "planet": "Venus", "index": 5, "name": "Pentacle of Venus #5", "purpose": "Charm and eloquence", "virtue": "Love", "rings": 3 },
+
+    "mercury_1": { "planet": "Mercury", "index": 1, "name": "Pentacle of Mercury #1", "purpose": "Increase of knowledge", "virtue": "Prudence", "rings": 3 },
+    "mercury_2": { "planet": "Mercury", "index": 2, "name": "Pentacle of Mercury #2", "purpose": "Retention of learning", "virtue": "Prudence", "rings": 3 },
+    "mercury_3": { "planet": "Mercury", "index": 3, "name": "Pentacle of Mercury #3", "purpose": "Understanding mysteries", "virtue": "Prudence", "rings": 3 },
+    "mercury_4": { "planet": "Mercury", "index": 4, "name": "Pentacle of Mercury #4", "purpose": "Eloquent speech", "virtue": "Prudence", "rings": 3 },
+    "mercury_5": { "planet": "Mercury", "index": 5, "name": "Pentacle of Mercury #5", "purpose": "Negotiation success", "virtue": "Prudence", "rings": 3 },
+    "mercury_6": { "planet": "Mercury", "index": 6, "name": "Pentacle of Mercury #6", "purpose": "Discovery of secrets", "virtue": "Prudence", "rings": 3 },
+    "mercury_7": { "planet": "Mercury", "index": 7, "name": "Pentacle of Mercury #7", "purpose": "Safe travel", "virtue": "Prudence", "rings": 3 },
+    "mercury_8": { "planet": "Mercury", "index": 8, "name": "Pentacle of Mercury #8", "purpose": "Prosperity in trade", "virtue": "Prudence", "rings": 3 },
+
+    "moon_1": { "planet": "Moon", "index": 1, "name": "Pentacle of Moon #1", "purpose": "Prophetic dreams", "virtue": "Faith", "rings": 3 },
+    "moon_2": { "planet": "Moon", "index": 2, "name": "Pentacle of Moon #2", "purpose": "Fertility and safe birth", "virtue": "Faith", "rings": 3 },
+    "moon_3": { "planet": "Moon", "index": 3, "name": "Pentacle of Moon #3", "purpose": "Emotional cleansing", "virtue": "Faith", "rings": 3 },
+    "moon_4": { "planet": "Moon", "index": 4, "name": "Pentacle of Moon #4", "purpose": "Protection for travelers", "virtue": "Faith", "rings": 3 },
+    "moon_5": { "planet": "Moon", "index": 5, "name": "Pentacle of Moon #5", "purpose": "Guidance through darkness", "virtue": "Faith", "rings": 3 },
+    "moon_6": { "planet": "Moon", "index": 6, "name": "Pentacle of Moon #6", "purpose": "Manifestation of hidden things", "virtue": "Faith", "rings": 3 }
+  }
+}

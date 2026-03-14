@@ -1,0 +1,313 @@
+- generic [ref=e2]:
+  - main [ref=e3]:
+    - heading "Solomonic Clock of Spheres" [level=1] [ref=e4]
+    - navigation "Clock lenses" [ref=e5]:
+      - button "Base" [pressed] [ref=e6] [cursor=pointer]
+      - button "Scripture" [ref=e7] [cursor=pointer]
+      - button "Ritual" [ref=e8] [cursor=pointer]
+      - button "Esoteric" [ref=e9] [cursor=pointer]
+      - button "History" [ref=e10] [cursor=pointer]
+    - paragraph [ref=e11]: Base lens keeps the clock primary and now surfaces both current guidance and life-balance state.
+    - generic [ref=e12]:
+      - generic:
+        - paragraph: Daily Guidance • Practice Mode
+        - paragraph: Rule of Life
+        - paragraph: Venus leans toward mind through prudence. Repair contemplation before the day closes.
+        - region "Rule of life":
+          - generic:
+            - paragraph:
+              - text: Virtue
+              - strong: Prudence
+            - paragraph:
+              - text: Domain
+              - strong: Mind
+          - generic:
+            - generic:
+              - term: Morning
+              - definition: Read one demanding paragraph before messages or feeds. Begin with gentleness.
+            - generic:
+              - term: Midday
+              - definition: Return to silence where distraction has ruled the day. Let discovery of secrets govern the hard moment.
+            - generic:
+              - term: Evening
+              - definition: Write one sentence about what became clearer today.
+      - img [ref=e13]:
+        - generic:
+          - generic:
+            - generic: S
+            - generic: "1"
+          - generic:
+            - generic: S
+            - generic: "2"
+          - generic:
+            - generic: S
+            - generic: "3"
+          - generic:
+            - generic: S
+            - generic: "4"
+          - generic:
+            - generic: S
+            - generic: "5"
+          - generic:
+            - generic: S
+            - generic: "6"
+          - generic:
+            - generic: S
+            - generic: "7"
+          - generic:
+            - generic: J
+            - generic: "1"
+          - generic:
+            - generic: J
+            - generic: "2"
+          - generic:
+            - generic: J
+            - generic: "3"
+          - generic:
+            - generic: J
+            - generic: "4"
+          - generic:
+            - generic: J
+            - generic: "5"
+          - generic:
+            - generic: J
+            - generic: "6"
+          - generic:
+            - generic: J
+            - generic: "7"
+          - generic:
+            - generic: M
+            - generic: "1"
+          - generic:
+            - generic: M
+            - generic: "2"
+          - generic:
+            - generic: M
+            - generic: "3"
+          - generic:
+            - generic: M
+            - generic: "4"
+          - generic:
+            - generic: M
+            - generic: "5"
+          - generic:
+            - generic: S
+            - generic: "1"
+          - generic:
+            - generic: S
+            - generic: "2"
+          - generic:
+            - generic: S
+            - generic: "3"
+          - generic:
+            - generic: S
+            - generic: "4"
+          - generic:
+            - generic: S
+            - generic: "5"
+          - generic:
+            - generic: S
+            - generic: "6"
+          - generic:
+            - generic: V
+            - generic: "1"
+          - generic:
+            - generic: V
+            - generic: "2"
+          - generic:
+            - generic: V
+            - generic: "3"
+          - generic:
+            - generic: V
+            - generic: "4"
+          - generic:
+            - generic: V
+            - generic: "5"
+          - generic:
+            - generic: M
+            - generic: "1"
+          - generic:
+            - generic: M
+            - generic: "2"
+          - generic:
+            - generic: M
+            - generic: "3"
+          - generic:
+            - generic: M
+            - generic: "4"
+          - generic:
+            - generic: M
+            - generic: "5"
+          - generic:
+            - generic: M
+            - generic: "6"
+          - generic:
+            - generic: M
+            - generic: "7"
+          - generic:
+            - generic: M
+            - generic: "8"
+          - generic:
+            - generic: M
+            - generic: "1"
+          - generic:
+            - generic: M
+            - generic: "2"
+          - generic:
+            - generic: M
+            - generic: "3"
+          - generic:
+            - generic: M
+            - generic: "4"
+          - generic:
+            - generic: M
+            - generic: "5"
+          - generic:
+            - generic: M
+            - generic: "6"
+        - generic [ref=e14]:
+          - generic:
+            - generic:
+              - generic:
+                - generic:
+                  - generic:
+                    - generic: P
+                    - generic: S
+                    - generic: A
+                    - generic: L
+                    - generic: M
+                  - generic:
+                    - generic: ☿
+                    - generic: ✶
+                    - generic: ✶
+                    - generic: ✶
+                  - generic: ☿
+                  - generic: P
+          - generic [ref=e26]:
+            - generic [ref=e49]:
+              - generic: Mind
+              - generic: 68%
+            - generic [ref=e50]:
+              - generic: Body
+              - generic: 52%
+            - generic [ref=e51]:
+              - generic: Relations
+              - generic: 41%
+            - generic [ref=e52]:
+              - generic: Steward
+              - generic: 63%
+            - generic [ref=e53]:
+              - generic: Vocation
+              - generic: 72%
+            - generic [ref=e54]:
+              - generic: Home
+              - generic: 55%
+            - generic [ref=e55]:
+              - generic: Contempl.
+              - generic: 30%
+          - generic:
+            - generic:
+              - generic: Tue, Mar
+            - generic:
+              - generic: Wed, Mar
+            - generic:
+              - generic: Thu, Mar
+            - generic:
+              - generic: Fri, Mar
+            - generic:
+              - generic: Sat, Mar
+            - generic:
+              - generic: Sun, Mar
+            - generic:
+              - generic: Mon, Mar
+          - generic [ref=e138]:
+            - generic [ref=e139] [cursor=pointer]:
+              - 'button "Guidance: Keep the current day, pentacle, and spirit reading centered." [ref=e140]'
+              - generic: Guide
+            - generic [ref=e141] [cursor=pointer]:
+              - 'button "Practice: Surface the current life-domain action and make the wheel primary." [ref=e142]'
+              - generic: Do
+            - generic [ref=e143] [cursor=pointer]:
+              - 'button "Mentor: Render the center through a wisdom voice anchored to today’s ruler." [ref=e144]'
+              - generic: Mentor
+            - generic [ref=e145] [cursor=pointer]:
+              - 'button "Forecast: Preview the next hour and tomorrow’s dominant movement." [ref=e146]'
+              - generic: Next
+            - generic [ref=e147] [cursor=pointer]:
+              - 'button "Timeline: Pull recent and upcoming arc markers around the outer band." [ref=e148]'
+              - generic: Past
+            - generic [ref=e149] [cursor=pointer]:
+              - 'button "Reflection: Turn the center toward examination and self-review." [ref=e150]'
+              - generic: Reflect
+          - generic [ref=e151]:
+            - generic: Friday – Venus • 04:51 PM
+            - generic: Rule of Life
+            - generic: Mind • Prudence
+            - generic: Repair contemplation before the day closes.
+      - generic: Practice • Surface the current life-domain action and make the wheel primary.
+    - paragraph [ref=e152]:
+      - text: Generated from
+      - code [ref=e153]: data/solomonic_clock_full.json
+      - text: . Hover outer sectors for detailed spirit info.
+  - complementary "Psalm references" [ref=e154]:
+    - generic [ref=e156]:
+      - generic [ref=e157]:
+        - heading "Daily Guidance" [level=2] [ref=e158]
+        - paragraph [ref=e159]: Live mapping for the active planetary pentacle (Vulgate numbering as in Mathers edition).
+      - button "Hide Details" [expanded] [active] [ref=e161] [cursor=pointer]
+    - generic [ref=e162]:
+      - region "Today's planetary guidance" [ref=e163]:
+        - paragraph [ref=e164]: Today's Planetary Guidance
+        - paragraph [ref=e165]: Friday (Venus)
+        - paragraph [ref=e166]: Harmony, creativity, and relationship work are favored.
+        - list [ref=e167]:
+          - listitem [ref=e168]: Repair social friction with diplomacy.
+          - listitem [ref=e169]: Make time for art or design.
+          - listitem [ref=e170]: Strengthen key partnerships.
+      - region "Today's rule of life" [ref=e171]:
+        - paragraph [ref=e172]: Today's Rule of Life
+        - generic [ref=e173]:
+          - paragraph [ref=e174]:
+            - text: Virtue
+            - strong [ref=e175]: Prudence
+          - paragraph [ref=e176]:
+            - text: Domain
+            - strong [ref=e177]: Mind
+        - list [ref=e178]:
+          - listitem [ref=e179]:
+            - strong [ref=e180]: Morning
+            - generic [ref=e181]: Read one demanding paragraph before messages or feeds. Begin with gentleness.
+          - listitem [ref=e182]:
+            - strong [ref=e183]: Midday
+            - generic [ref=e184]: Return to silence where distraction has ruled the day. Let discovery of secrets govern the hard moment.
+          - listitem [ref=e185]:
+            - strong [ref=e186]: Evening
+            - generic [ref=e187]: Write one sentence about what became clearer today.
+      - region "Weekly arc" [ref=e188]:
+        - generic [ref=e189]:
+          - paragraph [ref=e190]: Weekly Arc (Advise Mode)
+          - group "Weekly day carousel" [ref=e191]:
+            - button "Previous day" [ref=e192] [cursor=pointer]: ←
+            - button "Next day" [ref=e193] [cursor=pointer]: →
+            - button "Today" [disabled] [ref=e194]
+        - list [ref=e195]:
+          - listitem [ref=e196]:
+            - paragraph [ref=e197]: Fri, Mar 13 (Venus) • Today
+            - paragraph [ref=e198]: "Pentacle Mercury #5"
+            - paragraph [ref=e199]: Negotiation success
+            - paragraph [ref=e200]: Psalm 45:2 • Proverbs 15:1
+      - region "Today's profile" [ref=e201]:
+        - paragraph [ref=e202]: Daily Profile
+        - paragraph [ref=e203]: Friday ruled by Venus
+        - paragraph [ref=e204]: "Active pentacle: Mercury #6"
+        - paragraph [ref=e205]: "Suggested focus: Discovery of secrets"
+        - list [ref=e206]:
+          - listitem [ref=e207]:
+            - text: "Color:"
+            - strong [ref=e208]: Emerald
+          - listitem [ref=e209]:
+            - text: "Metal:"
+            - strong [ref=e210]: Copper
+          - listitem [ref=e211]:
+            - text: "Angel:"
+            - strong [ref=e212]: Anael

@@ -4,13 +4,59 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Solomonic Clock of Spheres</title>
-    <link rel="stylesheet" href="style.css?v=20260310-4" />
+    <link rel="icon" href='data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="12" fill="%23020617"/><circle cx="32" cy="32" r="20" fill="none" stroke="%23facc15" stroke-width="4"/><circle cx="32" cy="32" r="6" fill="%23facc15"/></svg>' />
+    <link rel="stylesheet" href="style.css?v=20260313-9" />
   </head>
   <body>
     <div class="layout">
       <main class="page">
         <h1 class="title">Solomonic Clock of Spheres</h1>
+        <nav class="lens-bar" aria-label="Clock lenses">
+          <button type="button" class="lens-button active" data-lens="base" aria-pressed="true">
+            Base
+          </button>
+          <button type="button" class="lens-button" data-lens="scripture" aria-pressed="false">
+            Scripture
+          </button>
+          <button type="button" class="lens-button" data-lens="ritual" aria-pressed="false">
+            Ritual
+          </button>
+          <button type="button" class="lens-button" data-lens="esoteric" aria-pressed="false">
+            Esoteric
+          </button>
+          <button type="button" class="lens-button" data-lens="history" aria-pressed="false">
+            History
+          </button>
+        </nav>
+        <p class="lens-status" aria-live="polite">
+          Base lens keeps the clock primary and surfaces the current daily guidance.
+        </p>
         <section class="clock-wrapper">
+          <div class="clock-surface-panel" aria-live="polite">
+            <p class="surface-lens-label">Base Lens</p>
+            <p class="surface-lens-title">Current Guidance</p>
+            <p class="surface-lens-body">The clock remains primary. Guidance is summarized here on the instrument surface.</p>
+            <section class="surface-rule" hidden aria-label="Rule of life">
+              <div class="surface-rule-meta">
+                <p class="surface-rule-chip">Virtue <strong class="surface-rule-virtue">—</strong></p>
+                <p class="surface-rule-chip">Domain <strong class="surface-rule-domain">—</strong></p>
+              </div>
+              <dl class="surface-rule-list">
+                <div class="surface-rule-row">
+                  <dt>Morning</dt>
+                  <dd class="surface-rule-morning">—</dd>
+                </div>
+                <div class="surface-rule-row">
+                  <dt>Midday</dt>
+                  <dd class="surface-rule-midday">—</dd>
+                </div>
+                <div class="surface-rule-row">
+                  <dt>Evening</dt>
+                  <dd class="surface-rule-evening">—</dd>
+                </div>
+              </dl>
+            </section>
+          </div>
           <svg id="clock" width="800" height="800" viewBox="0 0 800 800"></svg>
         </section>
         <p class="caption">
@@ -20,17 +66,36 @@
       </main>
       <aside class="drawer" aria-label="Psalm references">
         <header class="drawer-header">
-          <h2>Psalm Correspondences</h2>
-          <p class="drawer-subtitle">Live mapping for the active planetary pentacle.</p>
+          <div class="drawer-header-top">
+            <div>
+              <h2>Psalm Correspondences</h2>
+              <p class="drawer-subtitle">Live mapping for the active planetary pentacle.</p>
+            </div>
+            <button type="button" class="drawer-toggle" aria-expanded="true" aria-controls="drawer-body">
+              Hide Details
+            </button>
+          </div>
         </header>
-        <div class="drawer-body">
-          <section class="daily-guidance" aria-label="Today's planetary guidance">
+        <div class="drawer-body" id="drawer-body">
+          <section class="daily-guidance drawer-section" data-lenses="base ritual" aria-label="Today's planetary guidance">
             <p class="guidance-heading">Today's Planetary Guidance</p>
             <p class="guidance-day">—</p>
             <p class="guidance-tone">—</p>
             <ul class="guidance-list"></ul>
           </section>
-          <section class="weekly-arc" aria-label="Weekly arc">
+          <section class="rule-of-life drawer-section" data-lenses="base scripture ritual esoteric history" aria-label="Today's rule of life" hidden>
+            <p class="rule-heading">Today's Rule of Life</p>
+            <div class="rule-meta">
+              <p>Virtue <strong class="rule-virtue">—</strong></p>
+              <p>Domain <strong class="rule-domain">—</strong></p>
+            </div>
+            <ul class="rule-list">
+              <li><strong>Morning</strong><span class="rule-morning">—</span></li>
+              <li><strong>Midday</strong><span class="rule-midday">—</span></li>
+              <li><strong>Evening</strong><span class="rule-evening">—</span></li>
+            </ul>
+          </section>
+          <section class="weekly-arc drawer-section" data-lenses="base ritual history" aria-label="Weekly arc">
             <div class="weekly-arc-top">
               <p class="weekly-arc-heading">Weekly Arc (Advise Mode)</p>
               <div class="weekly-arc-controls" role="group" aria-label="Weekly day carousel">
@@ -45,7 +110,7 @@
             </div>
             <ul class="weekly-arc-list"></ul>
           </section>
-          <section class="daily-profile" aria-label="Today's profile">
+          <section class="daily-profile drawer-section" data-lenses="base ritual esoteric" aria-label="Today's profile">
             <p class="profile-heading">Daily Profile</p>
             <p class="profile-day">—</p>
             <p class="profile-pentacle">—</p>
@@ -56,7 +121,7 @@
               <li>Angel: <strong class="profile-angel">—</strong></li>
             </ul>
           </section>
-          <section class="reading-depth" aria-label="Reading depth">
+          <section class="reading-depth drawer-section" data-lenses="scripture" aria-label="Reading depth">
             <p class="depth-heading">Reading Depth</p>
             <div class="depth-controls" role="group" aria-label="Reading depth selection">
               <button type="button" class="depth-button active" data-depth="short" aria-pressed="true">
@@ -71,12 +136,12 @@
             </div>
             <p class="depth-note">Short: 1 verse • Medium: 3-5 verses • Long: full chapter</p>
           </section>
-          <section class="explainability-panel" aria-label="Selection explainability">
+          <section class="explainability-panel drawer-section" data-lenses="scripture esoteric" aria-label="Selection explainability">
             <p class="explain-heading">Why This Was Selected</p>
             <ul class="explain-list"></ul>
             <p class="explain-citation">—</p>
           </section>
-          <section class="daily-bundle" aria-label="Daily content bundle">
+          <section class="daily-bundle drawer-section" data-lenses="scripture ritual esoteric" aria-label="Daily content bundle">
             <p class="bundle-heading">Daily Content Bundle</p>
             <article class="bundle-item">
               <p class="bundle-label">Psalm</p>
@@ -94,15 +159,17 @@
               <p class="bundle-text bundle-solomonic-text">—</p>
             </article>
           </section>
-          <div class="psalm-summary">
-            <p class="psalm-planet">—</p>
-            <p class="psalm-focus">Select a pentacle to view its verses.</p>
-          </div>
-          <ul class="psalm-list"></ul>
+          <section class="psalm-panel drawer-section" data-lenses="scripture ritual esoteric" aria-label="Psalm correspondences">
+            <div class="psalm-summary">
+              <p class="psalm-planet">—</p>
+              <p class="psalm-focus">Select a pentacle to view its verses.</p>
+            </div>
+            <ul class="psalm-list"></ul>
+          </section>
         </div>
       </aside>
     </div>
     <script src="https://d3js.org/d3.v7.min.js"></script>
-    <script src="clock.js?v=20260310-4"></script>
+    <script src="clock.js?v=20260313-9"></script>
   </body>
 </html>

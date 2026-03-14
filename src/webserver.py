@@ -11,10 +11,12 @@ from __future__ import annotations
 
 import argparse
 import csv
+import hmac
 import json
 import os
 import re
 from dataclasses import dataclass
+from datetime import datetime
 from functools import partial
 from http import HTTPStatus
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
@@ -22,9 +24,13 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import parse_qs, urlparse
 from urllib.request import Request, urlopen
+from zoneinfo import ZoneInfo
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 DATA_PATH = REPO_ROOT / "data" / "solomonic_clock_full.json"
+PENTACLE_PSALMS_PATH = REPO_ROOT / "data" / "pentacle_psalms.json"
+SCRIPTURE_MAPPINGS_PATH = REPO_ROOT / "data" / "scripture_mappings.json"
+LIFE_DOMAINS_PATH = REPO_ROOT / "data" / "life_domains.json"
 DEFAULT_EXTERNAL_PSALMS_PATH = Path(
     "/Users/benjaminlagrone/Documents/projects/pericopeai.com/AugustineCorpus/texts/david_texts/Psalms.txt"
 )
@@ -48,6 +54,128 @@ _PSALM_LOOKUP_MODE: str | None = None
 _PSALM_LOOKUP_NUMBERING: str | None = None
 _PSALM_NUMBER_MAP: dict[int, list["PsalmReferenceSpan"]] | None = None
 _PSALM_NUMBER_MAP_ERROR: str | None = None
+GUIDED_PROMPTS_API_KEY_ENV = "SOLOMONIC_GUIDED_PROMPTS_API_KEY"
+GUIDED_PROMPTS_AUTH_HEADER = "X-Solomonic-Clock-Key"
+
+MS_PER_DAY = 1000 * 60 * 60 * 24
+CHALDEAN_ORDER = ["Saturn", "Jupiter", "Mars", "Sun", "Venus", "Mercury", "Moon"]
+PLANETARY_DAY_GUIDANCE = {
+    "Sun": {
+        "tone": "Visibility, confidence, and leadership work are favored.",
+        "activities": [
+            "Present your work publicly.",
+            "Make decisions that set direction.",
+            "Focus on vitality and renewal.",
+        ],
+    },
+    "Moon": {
+        "tone": "Reflection, receptivity, and home-centered work are favored.",
+        "activities": [
+            "Journal dreams and emotional patterns.",
+            "Cleanse your space and routines.",
+            "Prioritize family and restoration.",
+        ],
+    },
+    "Mars": {
+        "tone": "Bold action, protection, and difficult tasks are favored.",
+        "activities": [
+            "Handle conflict directly and clearly.",
+            "Do hard tasks first.",
+            "Set and defend boundaries.",
+        ],
+    },
+    "Mercury": {
+        "tone": "Communication, study, and planning are favored.",
+        "activities": [
+            "Write, research, and organize ideas.",
+            "Schedule key conversations.",
+            "Review contracts and details.",
+        ],
+    },
+    "Jupiter": {
+        "tone": "Growth, opportunity, and wise leadership are favored.",
+        "activities": [
+            "Plan expansion and long-range goals.",
+            "Teach, mentor, or advise.",
+            "Act on strategic opportunities.",
+        ],
+    },
+    "Venus": {
+        "tone": "Harmony, creativity, and relationship work are favored.",
+        "activities": [
+            "Repair social friction with diplomacy.",
+            "Make time for art or design.",
+            "Strengthen key partnerships.",
+        ],
+    },
+    "Saturn": {
+        "tone": "Discipline, structure, and enduring work are favored.",
+        "activities": [
+            "Set limits and simplify commitments.",
+            "Complete long-term maintenance work.",
+            "Focus on serious, patient progress.",
+        ],
+    },
+}
+PLANETARY_CORRESPONDENCES = {
+    "Sun": {"color": "Gold", "metal": "Gold", "angel": "Michael"},
+    "Moon": {"color": "Silver", "metal": "Silver", "angel": "Gabriel"},
+    "Mars": {"color": "Scarlet", "metal": "Iron", "angel": "Camael"},
+    "Mercury": {"color": "Yellow", "metal": "Quicksilver", "angel": "Raphael"},
+    "Jupiter": {"color": "Royal Blue", "metal": "Tin", "angel": "Sachiel"},
+    "Venus": {"color": "Emerald", "metal": "Copper", "angel": "Anael"},
+    "Saturn": {"color": "Black", "metal": "Lead", "angel": "Cassiel"},
+}
+WISDOM_CONTENT_BY_RULER = {
+    "Sun": {
+        "ref": "Proverbs 4:18",
+        "text": "The path of the just is as the shining light, that shineth more and more unto the perfect day.",
+    },
+    "Moon": {
+        "ref": "Ecclesiastes 3:1",
+        "text": "To every thing there is a season, and a time to every purpose under the heaven.",
+    },
+    "Mars": {
+        "ref": "Proverbs 24:10",
+        "text": "If thou faint in the day of adversity, thy strength is small.",
+    },
+    "Mercury": {
+        "ref": "Proverbs 18:21",
+        "text": "Death and life are in the power of the tongue.",
+    },
+    "Jupiter": {
+        "ref": "Proverbs 11:25",
+        "text": "The liberal soul shall be made fat: and he that watereth shall be watered also himself.",
+    },
+    "Venus": {
+        "ref": "Proverbs 15:1",
+        "text": "A soft answer turneth away wrath: but grievous words stir up anger.",
+    },
+    "Saturn": {
+        "ref": "Proverbs 25:28",
+        "text": "He that hath no rule over his own spirit is like a city that is broken down, and without walls.",
+    },
+}
+FALLBACK_DAILY_PSALM_BY_RULER = {
+    "Sun": {"chapter": 19, "verse": 1},
+    "Moon": {"chapter": 63, "verse": 6},
+    "Mars": {"chapter": 144, "verse": 1},
+    "Mercury": {"chapter": 119, "verse": 105},
+    "Jupiter": {"chapter": 112, "verse": 3},
+    "Venus": {"chapter": 45, "verse": 2},
+    "Saturn": {"chapter": 90, "verse": 12},
+}
+PLANETARY_DAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+PLANETARY_RULERS = ["Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn"]
+LIFE_DOMAIN_FOCUS_KEYWORDS = [
+    (re.compile(r"\b(study|learn|understand|message|speech|word|reason|clarity|think|mind)\b", re.I), "mind"),
+    (re.compile(r"\b(body|health|sleep|rest|strength|travel|journey|road|movement|discipline)\b", re.I), "body"),
+    (re.compile(r"\b(relationship|repair|peace|conflict|anger|friend|partner|love|reconcile)\b", re.I), "relationships"),
+    (re.compile(r"\b(money|wealth|trade|resource|budget|steward|provision|prosper)\b", re.I), "stewardship"),
+    (re.compile(r"\b(work|task|career|labor|courage|purpose|calling|vocation|lead)\b", re.I), "vocation"),
+    (re.compile(r"\b(home|house|household|order|routine|maintenance|boundary)\b", re.I), "household"),
+    (re.compile(r"\b(prayer|silence|reflect|contemplate|faith|spirit|mercy|devotion)\b", re.I), "contemplation"),
+]
 
 
 @dataclass(frozen=True)
@@ -580,6 +708,795 @@ def _load_psalm_lookup() -> tuple[dict[int, dict[int, str]] | None, str | None]:
     return None, f"Unable to load Psalms for source mode '{mode}'."
 
 
+def _read_json_file(path: Path) -> tuple[dict[str, Any] | None, str | None]:
+    if not path.exists():
+        return None, f"Required JSON file not found: {path}"
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        return None, f"Invalid JSON in {path.name}: {exc}"
+    if not isinstance(payload, dict):
+        return None, f"Expected top-level object in {path.name}"
+    return payload, None
+
+
+def _to_snippet(text: str, max_length: int = 220) -> str:
+    clean = re.sub(r"\s+", " ", str(text or "")).strip()
+    if not clean:
+        return ""
+    if len(clean) <= max_length:
+        return clean
+    return f"{clean[: max_length - 1].rstrip()}…"
+
+
+def _flatten_pentacles(groups: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    flattened: list[dict[str, Any]] = []
+    for group_index, group in enumerate(groups):
+        for pentacle_index, pentacle in enumerate(group.get("pentacles") or []):
+            flattened.append(
+                {
+                    "groupIndex": group_index,
+                    "pentacleIndex": pentacle_index,
+                    "planet": group.get("name"),
+                    "pentacle": pentacle,
+                    "group": group,
+                }
+            )
+    return flattened
+
+
+def _is_leap_year(year: int) -> bool:
+    return (year % 4 == 0 and year % 100 != 0) or year % 400 == 0
+
+
+def _get_day_of_year(now: datetime) -> int:
+    start_of_year = datetime(now.year, 1, 1, tzinfo=now.tzinfo)
+    return int((now - start_of_year).total_seconds() // 86400)
+
+
+def _get_day_progress(now: datetime) -> float:
+    start_of_day = datetime(now.year, now.month, now.day, tzinfo=now.tzinfo)
+    return (now - start_of_day).total_seconds() / 86400
+
+
+def _get_week_fraction(now: datetime) -> float:
+    hours_into_day = now.hour + (now.minute + (now.second + now.microsecond / 1_000_000) / 60) / 60
+    return ((now.weekday() + 1) % 7 + hours_into_day / 24) / 7 % 1
+
+
+def _get_planetary_day_label(now: datetime) -> dict[str, str]:
+    index = int(now.strftime("%w"))
+    return {
+        "dayText": PLANETARY_DAY_NAMES[index],
+        "rulerText": PLANETARY_RULERS[index],
+    }
+
+
+def _get_pentacle_key(active_pentacle: dict[str, Any] | None) -> str | None:
+    if not active_pentacle:
+        return None
+    planet = active_pentacle.get("planet")
+    pentacle = active_pentacle.get("pentacle") or {}
+    index = pentacle.get("index")
+    if not planet or index is None:
+        return None
+    return f"{str(planet).lower()}-{index}"
+
+
+def _get_planetary_hour_ruler(now: datetime, day_ruler: str) -> dict[str, Any] | None:
+    try:
+        start_index = CHALDEAN_ORDER.index(day_ruler)
+    except ValueError:
+        return None
+    hour_index = now.hour
+    return {
+        "hourIndex": hour_index,
+        "ruler": CHALDEAN_ORDER[(start_index + hour_index) % len(CHALDEAN_ORDER)],
+    }
+
+
+def _build_pentacle_reference_map(payload: dict[str, Any]) -> dict[str, dict[str, Any]]:
+    references: dict[str, dict[str, Any]] = {}
+    for record in payload.get("pentacles") or []:
+        planet = record.get("planet")
+        pentacle = record.get("pentacle")
+        if not planet or not isinstance(pentacle, int):
+            continue
+        references[f"{str(planet).lower()}-{pentacle}"] = {
+            "psalms": list(record.get("psalms") or []),
+            "supplementalReferences": list(record.get("supplemental_references") or []),
+        }
+    return references
+
+
+def _get_primary_psalm_entry(record: dict[str, Any] | None) -> dict[str, Any] | None:
+    if not record:
+        return None
+    for entry in record.get("psalms") or []:
+        try:
+            chapter = int(entry.get("number", entry.get("psalm")))
+        except (TypeError, ValueError):
+            continue
+        if chapter > 0:
+            return entry
+    return None
+
+
+def _format_psalm_reference(entry: dict[str, Any] | None) -> str | None:
+    if not entry:
+        return None
+    try:
+        chapter = int(entry.get("number", entry.get("psalm")))
+    except (TypeError, ValueError):
+        return None
+    verse_label = f":{entry['verses']}" if entry.get("verses") else ""
+    return f"Psalm {chapter}{verse_label}"
+
+
+def _expand_verse_specification(spec: str) -> list[str]:
+    clean = str(spec or "").strip()
+    if not clean:
+        return []
+
+    verses: list[str] = []
+    for part in clean.split(","):
+        piece = part.strip()
+        if not piece:
+            continue
+        match = re.fullmatch(r"(\d+)\s*-\s*(\d+)", piece)
+        if match:
+            start = int(match.group(1))
+            end = int(match.group(2))
+            if start <= end:
+                verses.extend(str(value) for value in range(start, end + 1))
+                continue
+        verses.append(piece)
+    return verses
+
+
+def _load_scripture_excerpt(chapter: int, verse: str | None = None) -> str:
+    scripture_payload, _ = _read_json_file(SCRIPTURE_MAPPINGS_PATH)
+    if scripture_payload:
+        entry = (scripture_payload.get("psalms") or {}).get(str(chapter))
+        if isinstance(entry, dict):
+            excerpt = str(entry.get("translation_excerpt") or entry.get("latin_excerpt") or "").strip()
+            if excerpt:
+                return _to_snippet(excerpt)
+
+    lookup, _ = _load_psalm_lookup()
+    if lookup is None:
+        return "Psalm excerpt unavailable."
+
+    chapter_map = lookup.get(chapter)
+    if not chapter_map:
+        return "Psalm excerpt unavailable."
+
+    if verse:
+        try:
+            resolved = int(verse)
+        except ValueError:
+            resolved = None
+        if resolved is not None:
+            text = chapter_map.get(resolved)
+            if text:
+                return _to_snippet(text)
+
+    ordered = [text for _, text in sorted(chapter_map.items())]
+    if not ordered:
+        return "Psalm excerpt unavailable."
+    return _to_snippet(" ".join(ordered))
+
+
+def _resolve_life_focus_domain(
+    time_state: dict[str, Any],
+    life_config: dict[str, Any],
+) -> str:
+    active = time_state.get("active") or {}
+    pentacle = (active.get("pentacle") or {}).get("pentacle") or {}
+    planetary = active.get("planetary") or {}
+    spirit = active.get("spirit") or {}
+
+    focus_text = " ".join(
+        [
+            str(pentacle.get("focus") or ""),
+            " ".join(planetary.get("themes") or []),
+            str(spirit.get("spirit") or ""),
+            str(spirit.get("zodiac") or ""),
+        ]
+    ).strip()
+
+    for pattern, domain_id in LIFE_DOMAIN_FOCUS_KEYWORDS:
+        if pattern.search(focus_text):
+            return domain_id
+
+    ruler_text = ((time_state.get("dayLabel") or {}).get("rulerText")) or ""
+    planet_focus = (life_config.get("planetFocus") or {}).get(ruler_text)
+    if planet_focus:
+        return str(planet_focus)
+
+    domains = life_config.get("domains") or []
+    if domains:
+        return str(domains[0].get("id") or "mind")
+    return "mind"
+
+
+def _get_life_wheel_state(time_state: dict[str, Any], life_config: dict[str, Any]) -> dict[str, Any] | None:
+    domains = life_config.get("domains")
+    if not isinstance(domains, list) or not domains:
+        return None
+
+    resolved_domains: list[dict[str, Any]] = []
+    for domain in domains:
+        resolved_domains.append(
+            {
+                **domain,
+                "score": max(0, min(100, int(domain.get("seedScore") or 0))),
+            }
+        )
+
+    focused_id = _resolve_life_focus_domain(time_state, life_config)
+    weakest = min(resolved_domains, key=lambda item: item.get("score", 0))
+    focused = next((domain for domain in resolved_domains if domain.get("id") == focused_id), resolved_domains[0])
+    return {"domains": resolved_domains, "focusedDomain": focused, "weakestDomain": weakest}
+
+
+def _build_weekly_arc_entry(
+    base_datetime: datetime,
+    offset: int,
+    layers: dict[str, Any],
+    derived: dict[str, Any],
+    reference_map: dict[str, dict[str, Any]],
+) -> dict[str, Any]:
+    target = base_datetime.replace(hour=12, minute=0, second=0, microsecond=0)
+    from datetime import timedelta
+
+    target = target + timedelta(days=offset)
+    day_label = _get_planetary_day_label(target)
+    guidance = PLANETARY_DAY_GUIDANCE.get(day_label["rulerText"], {})
+    wisdom = WISDOM_CONTENT_BY_RULER.get(day_label["rulerText"], {})
+    week_fraction = _get_week_fraction(target) if derived["planetaryGroupCount"] else 0
+    pentacle_index = int(week_fraction * derived["totalPentacles"]) % derived["totalPentacles"] if derived["totalPentacles"] else -1
+    active_pentacle = derived["flatPentacles"][pentacle_index] if pentacle_index >= 0 else None
+    pentacle_key = _get_pentacle_key(active_pentacle)
+    record = reference_map.get(pentacle_key) if pentacle_key else None
+    primary_psalm = _get_primary_psalm_entry(record)
+
+    if primary_psalm:
+        try:
+            chapter = int(primary_psalm.get("number", primary_psalm.get("psalm")))
+        except (TypeError, ValueError):
+            chapter = None
+        verse_label = f":{primary_psalm['verses']}" if primary_psalm.get("verses") else ""
+        psalm_ref = f"Psalm {chapter}{verse_label}" if chapter else "Psalm"
+    else:
+        fallback = FALLBACK_DAILY_PSALM_BY_RULER.get(day_label["rulerText"], {"chapter": 1, "verse": 1})
+        psalm_ref = f"Psalm {fallback['chapter']}:{fallback['verse']}"
+
+    return {
+        "isToday": offset == 0,
+        "dateLabel": target.strftime("%a, %b %-d") if os.name != "nt" else target.strftime("%a, %b %#d"),
+        "rulerText": day_label["rulerText"],
+        "pentacleLabel": (
+            f"{active_pentacle['planet']} #{active_pentacle['pentacle']['index']}" if active_pentacle else "Unavailable"
+        ),
+        "focus": (active_pentacle or {}).get("pentacle", {}).get("focus", "Focus unavailable"),
+        "tone": guidance.get("tone", "Steady, practical action is favored."),
+        "psalmRef": psalm_ref,
+        "wisdomRef": wisdom.get("ref", "Proverbs 16:3"),
+    }
+
+
+def _compute_time_state(now: datetime, layers: dict[str, Any], derived: dict[str, Any]) -> dict[str, Any]:
+    year_length = 366 if _is_leap_year(now.year) else 365
+    day_index = _get_day_of_year(now)
+    day_progress = _get_day_progress(now)
+    year_fraction = (day_index + day_progress) / year_length
+    spirit_fraction = year_fraction % 1 if derived["spiritCount"] else 0
+    week_fraction = _get_week_fraction(now) if derived["planetaryGroupCount"] else 0
+    years_since_epoch = now.year - 2000 + year_fraction
+    celestial_fraction = ((years_since_epoch % 9) / 9) if derived["celestialCount"] else 0
+
+    spirit_index = int(spirit_fraction * derived["spiritCount"]) % derived["spiritCount"] if derived["spiritCount"] else -1
+    planetary_index = (
+        int(week_fraction * derived["planetaryGroupCount"]) % derived["planetaryGroupCount"]
+        if derived["planetaryGroupCount"]
+        else -1
+    )
+    celestial_index = (
+        int(celestial_fraction * derived["celestialCount"]) % derived["celestialCount"]
+        if derived["celestialCount"]
+        else -1
+    )
+    pentacle_index = int(week_fraction * derived["totalPentacles"]) % derived["totalPentacles"] if derived["totalPentacles"] else -1
+
+    return {
+        "fractions": {
+            "spirit": spirit_fraction,
+            "planetary": week_fraction,
+            "celestial": celestial_fraction,
+        },
+        "indices": {
+            "spirit": spirit_index,
+            "planetary": planetary_index,
+            "celestial": celestial_index,
+            "pentacle": pentacle_index,
+        },
+        "active": {
+            "spirit": layers["spirit"]["sectors"][spirit_index] if spirit_index >= 0 else None,
+            "planetary": layers["planetary"]["groups"][planetary_index] if planetary_index >= 0 else None,
+            "celestial": layers["celestial"]["seals"][celestial_index] if celestial_index >= 0 else None,
+            "pentacle": derived["flatPentacles"][pentacle_index] if pentacle_index >= 0 else None,
+        },
+        "clockText": now.strftime("%I:%M %p").lstrip("0"),
+        "dayLabel": _get_planetary_day_label(now),
+    }
+
+
+def _build_guided_prompts(
+    daily_guidance: dict[str, Any],
+    weekly_arc: dict[str, Any],
+    daily_profile: dict[str, Any],
+    why_selected: dict[str, Any],
+    content_bundle: dict[str, Any],
+    limit: int,
+) -> list[dict[str, str]]:
+    prompts: list[dict[str, str]] = []
+    seen_texts: set[str] = set()
+
+    def clean_fragment(text: Any) -> str:
+        return " ".join(str(text or "").split()).strip().rstrip(".")
+
+    def lower_lead(text: Any) -> str:
+        clean = clean_fragment(text)
+        if not clean:
+            return ""
+        return clean[:1].lower() + clean[1:]
+
+    def first_person_activity(text: Any) -> str:
+        clean = lower_lead(text)
+        if not clean:
+            return ""
+        clean = re.sub(r"\byour\b", "my", clean, flags=re.I)
+        clean = re.sub(r"\byourself\b", "myself", clean, flags=re.I)
+        return clean
+
+    def bare_reference(text: Any) -> str:
+        return re.sub(r"\s+\(.*\)\s*$", "", clean_fragment(text))
+
+    def stable_seed(*parts: Any) -> int:
+        blob = "|".join(clean_fragment(part) for part in parts if clean_fragment(part))
+        return sum((index + 1) * ord(char) for index, char in enumerate(blob))
+
+    def pick_variant(category: str, options: list[str]) -> str:
+        if not options:
+            return ""
+        seed = stable_seed(
+            daily_guidance.get("day"),
+            weekly_arc.get("focus"),
+            daily_profile.get("focus"),
+            daily_profile.get("life_domain_focus"),
+            daily_profile.get("weakest_domain"),
+            (content_bundle.get("wisdom") or {}).get("ref"),
+            category,
+        )
+        return options[seed % len(options)]
+
+    def add_prompt(prefix: str, text: str, source: str, kind: str) -> None:
+        clean = " ".join(str(text or "").split()).strip()
+        if not clean or clean in seen_texts:
+            return
+        seen_texts.add(clean)
+        slug = re.sub(r"[^a-z0-9]+", "-", clean.lower()).strip("-")[:64] or "prompt"
+        prompts.append({"id": f"{prefix}-{slug}", "text": clean, "source": source, "kind": kind})
+
+    activities = list(daily_guidance.get("activities") or [])
+    weekly_focus = clean_fragment(weekly_arc.get("focus"))
+    weekly_tone = clean_fragment(weekly_arc.get("tone"))
+    profile_focus = clean_fragment(str(daily_profile.get("focus") or "").replace("Suggested focus: ", ""))
+    life_focus = clean_fragment(daily_profile.get("life_domain_focus"))
+    weakest_domain = clean_fragment(daily_profile.get("weakest_domain"))
+    angel = clean_fragment(daily_profile.get("angel"))
+    color = clean_fragment(daily_profile.get("color"))
+    metal = clean_fragment(daily_profile.get("metal"))
+    hour_ruler = clean_fragment(daily_profile.get("hour_ruler"))
+    active_pentacle = clean_fragment(daily_profile.get("active_pentacle"))
+    spirit = clean_fragment(daily_profile.get("spirit"))
+    zodiac_sector = clean_fragment(daily_profile.get("zodiac_sector"))
+    wisdom_ref = bare_reference((content_bundle.get("wisdom") or {}).get("ref"))
+    psalm_ref = bare_reference((content_bundle.get("psalm") or {}).get("ref"))
+    solomonic_ref = bare_reference((content_bundle.get("solomonic") or {}).get("ref"))
+    reasons = [clean_fragment(reason) for reason in (why_selected.get("reasons") or []) if clean_fragment(reason)]
+    ruler_text = ""
+    day_label = clean_fragment(daily_guidance.get("day"))
+    match = re.search(r"\(([^)]+)\)", day_label)
+    if match:
+        ruler_text = clean_fragment(match.group(1))
+
+    if activities:
+        first_activity = first_person_activity(activities[0])
+        add_prompt(
+            "today-guidance",
+            pick_variant(
+                "practical-1",
+                [
+                    f"What would it look like to {first_activity} well today?",
+                    f"Where should I begin if I need to {first_activity} today?",
+                    f"How can I {first_activity} without losing the day's center?",
+                ],
+            ),
+            "daily_guidance",
+            "practical",
+        )
+
+    if life_focus and weakest_domain:
+        add_prompt(
+            "life-domain",
+            pick_variant(
+                "life-domain",
+                [
+                    f"How should I apply today's guidance to {life_focus} while strengthening {weakest_domain}?",
+                    f"What practice would help my {weakest_domain} without neglecting {life_focus} today?",
+                    f"Where does today's focus belong in my {life_focus}: action, restraint, or repair?",
+                ],
+            ),
+            "daily_profile",
+            "life_domain",
+        )
+
+    if weekly_focus:
+        weekly_prompt_options = [
+            f"What does {lower_lead(weekly_focus)} require in practical terms today?",
+            f"Where is the real opportunity inside today's theme of {lower_lead(weekly_focus)}?",
+        ]
+        if ruler_text:
+            weekly_prompt_options.insert(
+                0,
+                f"How does today's {ruler_text} tone change the way I should approach {lower_lead(weekly_focus)}?",
+            )
+        elif weekly_tone:
+            weekly_prompt_options.insert(
+                0,
+                f"How should I approach {lower_lead(weekly_focus)} if {lower_lead(weekly_tone)}?",
+            )
+        add_prompt(
+            "weekly-arc",
+            pick_variant("weekly-arc", weekly_prompt_options),
+            "weekly_arc",
+            "strategy",
+        )
+
+    if psalm_ref and wisdom_ref:
+        add_prompt(
+            "scripture-pair",
+            pick_variant(
+                "scripture-pair",
+                [
+                    f"How do {psalm_ref} and {wisdom_ref} interpret today's focus together?",
+                    f"What in {wisdom_ref} sharpens the meaning of {lower_lead(profile_focus or weekly_focus)} today?",
+                    f"How should I read {psalm_ref} beside {wisdom_ref} before I act today?",
+                ],
+            ),
+            "content_bundle",
+            "scripture",
+        )
+    elif wisdom_ref:
+        add_prompt(
+            "scripture-wisdom",
+            pick_variant(
+                "scripture-wisdom",
+                [
+                    f"How should I apply {wisdom_ref} to today's focus?",
+                    f"What does {wisdom_ref} correct or clarify about today?",
+                ],
+            ),
+            "content_bundle",
+            "scripture",
+        )
+
+    explainability_options = []
+    if profile_focus:
+        explainability_options.extend(
+            [
+                f"What does the clock see in this moment that makes {lower_lead(profile_focus)} the right focus?",
+                f"Why do today's signals converge on {lower_lead(profile_focus)} right now?",
+            ]
+        )
+    if active_pentacle and spirit:
+        explainability_options.append(
+            f"How do {active_pentacle} and {spirit} reinforce each other in the present moment?"
+        )
+    elif active_pentacle:
+        explainability_options.append(
+            f"What does {active_pentacle} add to the meaning of today's guidance?"
+        )
+    if hour_ruler and ruler_text:
+        explainability_options.append(
+            f"How should I read a {ruler_text} day passing through a {hour_ruler} hour?"
+        )
+    if reasons:
+        explainability_options.append("Which part of the clock's selection logic matters most right now?")
+    if explainability_options:
+        add_prompt(
+            "why-selected",
+            pick_variant("why-selected", explainability_options),
+            "why_selected",
+            "explainability",
+        )
+
+    correspondence_options = []
+    if angel and profile_focus:
+        correspondence_options.append(f"How might {angel} frame today's work of {lower_lead(profile_focus)}?")
+    if color and metal and weekly_focus:
+        correspondence_options.append(
+            f"What do today's {color.lower()} and {metal.lower()} correspondences suggest about {lower_lead(weekly_focus)}?"
+        )
+    if solomonic_ref and profile_focus:
+        correspondence_options.append(
+            f"How does {solomonic_ref} deepen today's focus on {lower_lead(profile_focus)}?"
+        )
+    if zodiac_sector and spirit:
+        correspondence_options.append(
+            f"What does the {zodiac_sector} sector of {spirit} imply about today's posture?"
+        )
+    if correspondence_options:
+        add_prompt(
+            "correspondence",
+            pick_variant("correspondence", correspondence_options),
+            "content_bundle",
+            "symbolic",
+        )
+
+    if len(prompts) < limit and len(activities) > 1:
+        second_activity = first_person_activity(activities[1])
+        add_prompt(
+            "today-guidance",
+            pick_variant(
+                "practical-2",
+                [
+                    f"What does it look like to {second_activity} with judgment today?",
+                    f"How can I {second_activity} without scattering my attention today?",
+                    f"What is the simplest faithful way to {second_activity} today?",
+                ],
+            ),
+            "daily_guidance",
+            "practical",
+        )
+
+    return prompts[:limit]
+
+
+def _build_guided_prompts_payload(request_payload: dict[str, Any]) -> tuple[dict[str, Any] | None, str | None, HTTPStatus]:
+    dataset, error = _read_json_file(DATA_PATH)
+    if dataset is None:
+        return None, error, HTTPStatus.INTERNAL_SERVER_ERROR
+
+    psalm_payload, error = _read_json_file(PENTACLE_PSALMS_PATH)
+    if psalm_payload is None:
+        return None, error, HTTPStatus.INTERNAL_SERVER_ERROR
+
+    life_config, error = _read_json_file(LIFE_DOMAINS_PATH)
+    if life_config is None:
+        return None, error, HTTPStatus.INTERNAL_SERVER_ERROR
+
+    timezone_name = str(request_payload.get("timezone") or "UTC").strip() or "UTC"
+    try:
+        zone = ZoneInfo(timezone_name)
+    except Exception:
+        return None, f"Invalid timezone: {timezone_name!r}", HTTPStatus.BAD_REQUEST
+
+    as_of_raw = request_payload.get("as_of")
+    if as_of_raw in {None, ""}:
+        as_of = datetime.now(zone)
+    else:
+        try:
+            parsed = datetime.fromisoformat(str(as_of_raw).replace("Z", "+00:00"))
+        except ValueError:
+            return None, f"Invalid as_of value: {as_of_raw!r}", HTTPStatus.BAD_REQUEST
+        as_of = parsed.replace(tzinfo=zone) if parsed.tzinfo is None else parsed.astimezone(zone)
+
+    try:
+        limit = int(request_payload.get("limit", 4))
+    except (TypeError, ValueError):
+        return None, "Invalid limit value; expected integer 1..6.", HTTPStatus.BAD_REQUEST
+    limit = max(1, min(6, limit))
+
+    layers = dataset.get("layers")
+    if not isinstance(layers, dict):
+        return None, "Clock dataset is missing layers.", HTTPStatus.INTERNAL_SERVER_ERROR
+
+    derived = {
+        "flatPentacles": _flatten_pentacles((layers.get("planetary") or {}).get("groups") or []),
+        "spiritCount": int((layers.get("spirit") or {}).get("count") or 0),
+        "planetaryGroupCount": len((layers.get("planetary") or {}).get("groups") or []),
+        "celestialCount": int((layers.get("celestial") or {}).get("count") or 0),
+    }
+    derived["totalPentacles"] = len(derived["flatPentacles"])
+    time_state = _compute_time_state(as_of, layers, derived)
+    reference_map = _build_pentacle_reference_map(psalm_payload)
+    life_state = _get_life_wheel_state(time_state, life_config)
+
+    day_label = time_state["dayLabel"]
+    ruler_text = day_label["rulerText"]
+    day_text = day_label["dayText"]
+    active = time_state["active"]
+    active_pentacle = active.get("pentacle")
+    active_spirit = active.get("spirit")
+    pentacle_key = _get_pentacle_key(active_pentacle)
+    pentacle_record = reference_map.get(pentacle_key) if pentacle_key else None
+    primary_psalm = _get_primary_psalm_entry(pentacle_record)
+    readable_psalm = _format_psalm_reference(primary_psalm)
+    wisdom = WISDOM_CONTENT_BY_RULER.get(ruler_text, {})
+    correspondences = PLANETARY_CORRESPONDENCES.get(ruler_text, {})
+    hour_rule = _get_planetary_hour_ruler(as_of, ruler_text)
+
+    daily_guidance = {
+        "day": f"{day_text} ({ruler_text})",
+        "tone": PLANETARY_DAY_GUIDANCE.get(ruler_text, {}).get(
+            "tone",
+            "Use this day for steady, intentional progress with focused attention.",
+        ),
+        "activities": PLANETARY_DAY_GUIDANCE.get(ruler_text, {}).get(
+            "activities",
+            ["Review priorities.", "Do one high-value task deeply.", "End with reflection."],
+        ),
+    }
+
+    weekly_arc = _build_weekly_arc_entry(as_of, 0, layers, derived, reference_map)
+    daily_profile = {
+        "day_label": f"{day_text} ruled by {ruler_text}",
+        "active_pentacle": (
+            f"{active_pentacle['planet']} #{active_pentacle['pentacle']['index']}"
+            if active_pentacle
+            else "Unavailable"
+        ),
+        "focus": (
+            active_pentacle.get("pentacle", {}).get("focus")
+            if active_pentacle
+            else "center attention on deliberate, disciplined action"
+        ),
+        "day_tone": daily_guidance["tone"],
+        "color": correspondences.get("color", "Unspecified"),
+        "metal": correspondences.get("metal", "Unspecified"),
+        "angel": correspondences.get("angel", "Unspecified"),
+    }
+    if hour_rule:
+        daily_profile["hour_ruler"] = hour_rule["ruler"]
+        daily_profile["hour_index"] = hour_rule["hourIndex"] + 1
+    if active_spirit:
+        daily_profile["spirit"] = active_spirit.get("spirit")
+        daily_profile["zodiac_sector"] = f"{active_spirit['zodiac']} {active_spirit['degrees']}"
+    if life_state:
+        daily_profile["life_domain_focus"] = life_state["focusedDomain"].get("name")
+        daily_profile["weakest_domain"] = life_state["weakestDomain"].get("name")
+
+    reasons = [f"{day_text} is ruled by {ruler_text}, so {ruler_text}-aligned intentions are prioritized."]
+    if hour_rule:
+        reasons.append(
+            f"Planetary hour proxy: local hour {hour_rule['hourIndex'] + 1} resolves to {hour_rule['ruler']} in the Chaldean sequence."
+        )
+    if active_spirit:
+        reasons.append(
+            f"Active spirit sector: {active_spirit['zodiac']} {active_spirit['degrees']} ({active_spirit['spirit']}) informs the sign layer."
+        )
+    if active_pentacle:
+        reasons.append(
+            f"Active pentacle rule: {active_pentacle['planet']} #{active_pentacle['pentacle']['index']} ({active_pentacle['pentacle']['focus']})."
+        )
+    if primary_psalm:
+        reasons.append(f"Primary scripture citation: {readable_psalm}.")
+    else:
+        reasons.append("Primary scripture citation: fallback psalm is used when this pentacle has no direct Psalm note.")
+
+    citation_source = str((psalm_payload.get("metadata") or {}).get("source") or "Key of Solomon mapping")
+    why_selected = {
+        "reasons": reasons,
+        "citation": f"Citation source: {citation_source}",
+    }
+
+    if primary_psalm:
+        try:
+            chapter = int(primary_psalm.get("number", primary_psalm.get("psalm")))
+        except (TypeError, ValueError):
+            chapter = None
+        verse = _expand_verse_specification(str(primary_psalm.get("verses") or ""))[0] if primary_psalm.get("verses") else None
+        citation_mode = "mapped"
+    else:
+        fallback = FALLBACK_DAILY_PSALM_BY_RULER.get(ruler_text, {"chapter": 1, "verse": 1})
+        chapter = int(fallback["chapter"])
+        verse = str(fallback["verse"])
+        citation_mode = "fallback"
+
+    psalm_ref = f"Psalm {chapter}:{verse}" if verse else f"Psalm {chapter}"
+    psalm_text = _load_scripture_excerpt(chapter, verse) if chapter else "Psalm excerpt unavailable."
+    psalm_ref_label = (
+        f"{psalm_ref} ({citation_source})" if citation_mode == "mapped" else f"{psalm_ref} (day-ruler fallback)"
+    )
+    content_bundle = {
+        "psalm": {"ref": psalm_ref_label, "text": psalm_text},
+        "wisdom": {
+            "ref": wisdom.get("ref", "Proverbs 16:3"),
+            "text": wisdom.get(
+                "text",
+                "Commit thy works unto the LORD, and thy thoughts shall be established.",
+            ),
+        },
+        "solomonic": {
+            "ref": (
+                f"Key of Solomon, Book II • {active_pentacle['planet']} Pentacle #{active_pentacle['pentacle']['index']}"
+                if active_pentacle
+                else "Key of Solomon, Book II"
+            ),
+            "text": (
+                f"Purpose: {active_pentacle['pentacle']['focus']}."
+                if active_pentacle and active_pentacle.get("pentacle", {}).get("focus")
+                else "No active pentacle focus available."
+            ),
+        },
+    }
+
+    guided_prompts = _build_guided_prompts(
+        daily_guidance,
+        weekly_arc,
+        daily_profile,
+        why_selected,
+        content_bundle,
+        limit,
+    )
+
+    payload = {
+        "as_of": as_of.isoformat(),
+        "timezone": timezone_name,
+        "daily_guidance": daily_guidance,
+        "weekly_arc": {
+            "date_label": weekly_arc["dateLabel"],
+            "ruler": weekly_arc["rulerText"],
+            "is_today": weekly_arc["isToday"],
+            "pentacle": weekly_arc["pentacleLabel"],
+            "focus": weekly_arc["focus"],
+            "tone": weekly_arc["tone"],
+            "psalm_ref": weekly_arc["psalmRef"],
+            "wisdom_ref": weekly_arc["wisdomRef"],
+        },
+        "daily_profile": daily_profile,
+        "why_selected": why_selected,
+        "content_bundle": content_bundle,
+        "guided_prompts": guided_prompts,
+        "source": {
+            "service": "solomonic_clock",
+            "derived_from": [
+                "daily_guidance",
+                "weekly_arc",
+                "daily_profile",
+                "explainability",
+                "content_bundle",
+            ],
+        },
+    }
+
+    if request_payload.get("persona_hint"):
+        payload["persona_hint"] = request_payload.get("persona_hint")
+    if request_payload.get("mode"):
+        payload["mode"] = request_payload.get("mode")
+
+    return payload, None, HTTPStatus.OK
+
+
+def _get_guided_prompts_expected_key() -> str:
+    return str(os.environ.get(GUIDED_PROMPTS_API_KEY_ENV) or "").strip()
+
+
+def _extract_guided_prompts_supplied_key(headers: Any) -> str:
+    direct_key = str(headers.get(GUIDED_PROMPTS_AUTH_HEADER, "") or "").strip()
+    if direct_key:
+        return direct_key
+
+    authorization = str(headers.get("Authorization", "") or "").strip()
+    match = re.match(r"Bearer\s+(.+)$", authorization, re.I)
+    if match:
+        return match.group(1).strip()
+    return ""
+
+
 class ClockRequestHandler(SimpleHTTPRequestHandler):
     """Serve static files and expose /api/clock with the JSON dataset."""
 
@@ -593,6 +1510,70 @@ class ClockRequestHandler(SimpleHTTPRequestHandler):
         self.send_header("Content-Length", str(len(body)))
         self.end_headers()
         self.wfile.write(body)
+
+    def _authorize_guided_prompts_request(self) -> tuple[bool, HTTPStatus, str | None]:
+        expected_key = _get_guided_prompts_expected_key()
+        if not expected_key:
+            return (
+                False,
+                HTTPStatus.SERVICE_UNAVAILABLE,
+                f"Guided prompts API is not configured. Set {GUIDED_PROMPTS_API_KEY_ENV}.",
+            )
+
+        supplied_key = _extract_guided_prompts_supplied_key(self.headers)
+        if not supplied_key:
+            return (
+                False,
+                HTTPStatus.UNAUTHORIZED,
+                f"Missing guided prompts API key. Supply {GUIDED_PROMPTS_AUTH_HEADER} or Authorization: Bearer <token>.",
+            )
+
+        if not hmac.compare_digest(supplied_key, expected_key):
+            return False, HTTPStatus.FORBIDDEN, "Invalid guided prompts API key."
+
+        return True, HTTPStatus.OK, None
+
+    def do_POST(self) -> None:  # noqa: N802
+        parsed_url = urlparse(self.path)
+        request_path = parsed_url.path.rstrip("/")
+
+        if request_path != "/api/pericope/guided-prompts":
+            self.send_error(HTTPStatus.NOT_FOUND, "Unknown API route")
+            return
+
+        allowed, status, error = self._authorize_guided_prompts_request()
+        if not allowed:
+            self._send_json({"error": error or "Unauthorized."}, status)
+            return
+
+        try:
+            content_length = int(self.headers.get("Content-Length", "0"))
+        except ValueError:
+            self._send_json({"error": "Invalid Content-Length header."}, HTTPStatus.BAD_REQUEST)
+            return
+
+        try:
+            raw_body = self.rfile.read(content_length) if content_length > 0 else b"{}"
+        except Exception as exc:  # pragma: no cover - socket read failure
+            self._send_json({"error": f"Unable to read request body: {exc}"}, HTTPStatus.BAD_REQUEST)
+            return
+
+        try:
+            payload = json.loads(raw_body.decode("utf-8") or "{}")
+        except json.JSONDecodeError as exc:
+            self._send_json({"error": f"Invalid JSON body: {exc}"}, HTTPStatus.BAD_REQUEST)
+            return
+
+        if not isinstance(payload, dict):
+            self._send_json({"error": "JSON body must be an object."}, HTTPStatus.BAD_REQUEST)
+            return
+
+        response_payload, error, status = _build_guided_prompts_payload(payload)
+        if response_payload is None:
+            self._send_json({"error": error or "Unable to build guided prompts payload."}, status)
+            return
+
+        self._send_json(response_payload, status)
 
     def do_GET(self) -> None:  # noqa: N802  (HTTPRequestHandler overrides camelCase)
         parsed_url = urlparse(self.path)

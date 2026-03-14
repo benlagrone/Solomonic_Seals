@@ -1,0 +1,5 @@
+[     269ms] [ERROR] Failed to load resource: the server responded with a status of 404 (File not found) @ http://127.0.0.1:8086/favicon.ico:0
+[     269ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://127.0.0.1:8086/api/psalm?chapter=22&verse=14:0
+[     269ms] [ERROR] Failed to fetch daily bundle psalm excerpt Error: HTTP 404
+    at retrievePsalmText (http://127.0.0.1:8086/web/clock.js?v=20260312-3:2446:11) @ http://127.0.0.1:8086/web/clock.js?v=20260312-3:2151
+[     270ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://127.0.0.1:8086/api/psalm?chapter=22&verse=14:0

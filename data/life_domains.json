@@ -1,0 +1,70 @@
+{
+  "storageKey": "solomonic-life-wheel-v1",
+  "domains": [
+    {
+      "id": "mind",
+      "name": "Mind",
+      "virtue": "Prudence",
+      "color": "#60a5fa",
+      "seedScore": 68,
+      "description": "Learning, judgment, and mental clarity."
+    },
+    {
+      "id": "body",
+      "name": "Body",
+      "virtue": "Temperance",
+      "color": "#34d399",
+      "seedScore": 52,
+      "description": "Health, discipline, and physical steadiness."
+    },
+    {
+      "id": "relationships",
+      "name": "Relationships",
+      "virtue": "Love",
+      "color": "#f472b6",
+      "seedScore": 41,
+      "description": "Peace, repair, and right relation with others."
+    },
+    {
+      "id": "stewardship",
+      "name": "Stewardship",
+      "virtue": "Justice",
+      "color": "#fbbf24",
+      "seedScore": 63,
+      "description": "Money, resources, and responsible order."
+    },
+    {
+      "id": "vocation",
+      "name": "Vocation",
+      "virtue": "Fortitude",
+      "color": "#93c5fd",
+      "seedScore": 72,
+      "description": "Work, courage, and outward responsibility."
+    },
+    {
+      "id": "household",
+      "name": "Household",
+      "virtue": "Discipline",
+      "color": "#c084fc",
+      "seedScore": 55,
+      "description": "Home, order, and durable routine."
+    },
+    {
+      "id": "contemplation",
+      "name": "Contemplation",
+      "virtue": "Faith",
+      "color": "#818cf8",
+      "seedScore": 30,
+      "description": "Prayer, silence, and reflective attention."
+    }
+  ],
+  "planetFocus": {
+    "Sun": "vocation",
+    "Moon": "contemplation",
+    "Mars": "body",
+    "Mercury": "mind",
+    "Jupiter": "stewardship",
+    "Venus": "relationships",
+    "Saturn": "household"
+  }
+}
