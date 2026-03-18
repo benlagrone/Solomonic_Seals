@@ -7,7 +7,7 @@ Structured data and visualization scaffolding for the Solomonic Clock — a symb
 1. (Optional) Create a virtual environment: `python3 -m venv .venv && source .venv/bin/activate`
 2. Generate/refresh the dataset: `python src/generate_full_dataset.py`
 3. Launch the bundled dev server (defaults to port 8080): `python src/webserver.py`
-4. Open `http://localhost:8080/web/clock_visualizer.html` in your browser. The entire repo is served, and `GET /api/clock` returns the latest JSON (`data/solomonic_clock_full.json`).
+4. Open `http://localhost:8080/` for the public landing page or `http://localhost:8080/clock` for the live instrument. `GET /api/clock` returns the latest JSON (`data/solomonic_clock_full.json`).
 
 Environment variables:
 
@@ -17,8 +17,9 @@ Environment variables:
 ## Docker
 
 1. Ensure the shared network exists once: `docker network create fortress-phronesis-net`
-2. Build and start: `docker compose up -d`
-3. Visit `http://localhost:8086/web/clock_visualizer.html`
+2. Copy `.env.example` to `.env` if you need a guided-prompts key or want to override the Pericope corpus base.
+3. Build and start: `docker compose up -d`
+4. Visit `http://localhost:8086/web/clock_visualizer.html`
 
 Optional host port override:
 
@@ -28,10 +29,34 @@ SOLOMONIC_HOST_PORT=8090 docker compose up -d
 
 The container rebuilds the dataset on each start and runs the same lightweight server (`src/webserver.py`), exposing `/api/clock` and serving static assets from `/app`.
 
+Clock-specific envs:
+
+- `SOLOMONIC_GUIDED_PROMPTS_API_KEY` — shared secret for the guided-prompts endpoint
+- `SOLOMONIC_PSALM_SOURCE_MODE` — default `pericope_first`
+- `SOLOMONIC_PERICOPE_API_BASE` — defaults to `http://host.docker.internal:8001` in the standalone compose file; the control-plane stack uses the internal corpus DNS name instead
+- `SOLOMONIC_SITE_URL` — optional canonical site URL for sitemap/canonical metadata (defaults to the incoming request host)
+
 To regenerate the dataset manually inside the container:
 
 ```bash
 docker compose run --rm solomonic-clock python src/generate_full_dataset.py
+```
+
+## Production
+
+Production deployment for `truevineos.cloud` is documented in [docs/production_domain_setup.md](docs/production_domain_setup.md).
+
+Artifacts included in this repo:
+- `docker-compose.prod.yml` for the loopback-bound app container
+- `.env.prod.example` for production envs
+- `deploy/nginx/truevineos.cloud.http-only.conf` for first bootstrap
+- `deploy/nginx/truevineos.cloud.conf` for final TLS proxying
+
+Recommended production flow:
+
+```bash
+cp .env.prod.example .env.prod
+docker compose --env-file .env.prod -f docker-compose.prod.yml up -d --build
 ```
 
 ## Repository Layout

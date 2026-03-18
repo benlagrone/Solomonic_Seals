@@ -1,3 +1,6 @@
+.env
+.env.prod
+._*
 .rag/
 
 scripts/

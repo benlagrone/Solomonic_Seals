@@ -24,6 +24,7 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import parse_qs, urlparse
 from urllib.request import Request, urlopen
+from xml.sax.saxutils import escape as xml_escape
 from zoneinfo import ZoneInfo
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -31,10 +32,15 @@ DATA_PATH = REPO_ROOT / "data" / "solomonic_clock_full.json"
 PENTACLE_PSALMS_PATH = REPO_ROOT / "data" / "pentacle_psalms.json"
 SCRIPTURE_MAPPINGS_PATH = REPO_ROOT / "data" / "scripture_mappings.json"
 LIFE_DOMAINS_PATH = REPO_ROOT / "data" / "life_domains.json"
+LOCAL_SOURCE_TEXTS_DIR = REPO_ROOT / "docs" / "source_texts"
+DEFAULT_AUGUSTINE_CORPUS_ROOT = Path(
+    "/Users/benjaminlagrone/Documents/projects/pericopeai.com/AugustineCorpus"
+)
+DEFAULT_AUGUSTINE_AUTHOR_INDEX_PATH = DEFAULT_AUGUSTINE_CORPUS_ROOT / "author_index.json"
 DEFAULT_EXTERNAL_PSALMS_PATH = Path(
     "/Users/benjaminlagrone/Documents/projects/pericopeai.com/AugustineCorpus/texts/david_texts/Psalms.txt"
 )
-DEFAULT_LOCAL_PSALMS_PATH = REPO_ROOT / "docs" / "source_texts" / "Psalms.txt"
+DEFAULT_LOCAL_PSALMS_PATH = LOCAL_SOURCE_TEXTS_DIR / "Psalms.txt"
 PSALM_NUMBER_MAP_PATH = REPO_ROOT / "data" / "psalm_number_map.csv"
 DEFAULT_PSALM_SOURCE_MODE = "pericope_first"
 VALID_PSALM_SOURCE_MODES = {
@@ -45,6 +51,20 @@ VALID_PSALM_SOURCE_MODES = {
 }
 DEFAULT_PSALM_LOOKUP_NUMBERING = "auto"
 VALID_PSALM_LOOKUP_NUMBERINGS = {"auto", "vulgate", "hebrew"}
+SCRIPTURE_CHAPTER_LINE_RE = re.compile(r"(?im)^\s*chapter\s+(\d+)\b")
+SCRIPTURE_VERSE_LINE_RE = re.compile(r"(?m)^\s*(\d+)\s+")
+BOOK_PARTIAL_API_PATH = "/api/pericope/book-partial"
+KEY_OF_SOLOMON_SOURCE = "key_of_solomon_esotericarchives.txt"
+KEY_OF_SOLOMON_BOOK = "Key of Solomon, Book II"
+PENTACLE_ORDINAL_WORDS = {
+    1: "first",
+    2: "second",
+    3: "third",
+    4: "fourth",
+    5: "fifth",
+    6: "sixth",
+    7: "seventh",
+}
 
 _PSALM_LOOKUP: dict[int, dict[int, str]] | None = None
 _PSALM_LOOKUP_PATH: Path | None = None
@@ -54,8 +74,26 @@ _PSALM_LOOKUP_MODE: str | None = None
 _PSALM_LOOKUP_NUMBERING: str | None = None
 _PSALM_NUMBER_MAP: dict[int, list["PsalmReferenceSpan"]] | None = None
 _PSALM_NUMBER_MAP_ERROR: str | None = None
+_AUTHOR_TEXTS_DIR_CACHE: dict[str, Path] | None = None
 GUIDED_PROMPTS_API_KEY_ENV = "SOLOMONIC_GUIDED_PROMPTS_API_KEY"
 GUIDED_PROMPTS_AUTH_HEADER = "X-Solomonic-Clock-Key"
+DEFAULT_SITE_URL = "https://truevineos.cloud"
+SITE_URL_ENV = "SOLOMONIC_SITE_URL"
+PUBLIC_PAGE_TEMPLATES = {
+    "/": (REPO_ROOT / "web" / "index.html", "/"),
+    "/clock": (REPO_ROOT / "web" / "clock_visualizer.html", "/clock"),
+    "/how-to-use": (REPO_ROOT / "web" / "how_to_use.html", "/how-to-use"),
+    "/web/index.html": (REPO_ROOT / "web" / "index.html", "/"),
+    "/web/clock_visualizer.html": (REPO_ROOT / "web" / "clock_visualizer.html", "/clock"),
+    "/web/how_to_use.html": (REPO_ROOT / "web" / "how_to_use.html", "/how-to-use"),
+}
+SITEMAP_PAGE_SOURCES = {
+    "/": REPO_ROOT / "web" / "index.html",
+    "/clock": REPO_ROOT / "web" / "clock_visualizer.html",
+    "/how-to-use": REPO_ROOT / "web" / "how_to_use.html",
+}
+NOINDEX_PREFIXES = ("/api/", "/data/", "/docs/", "/src/", "/deploy/", "/output/", "/.playwright-cli/")
+NOINDEX_PATHS = {"/web/index.html", "/web/clock_visualizer.html", "/web/how_to_use.html"}
 
 MS_PER_DAY = 1000 * 60 * 60 * 24
 CHALDEAN_ORDER = ["Saturn", "Jupiter", "Mars", "Sun", "Venus", "Mercury", "Moon"]
@@ -190,6 +228,17 @@ class PsalmReferenceSpan:
         if self.verse_end is None or self.verse_end == self.verse_start:
             return f"{self.chapter}:{self.verse_start}"
         return f"{self.chapter}:{self.verse_start}-{self.verse_end}"
+
+
+@dataclass(frozen=True)
+class BookPartialTarget:
+    author_slug: str
+    book: str
+    source: str
+    start_position: int
+    end_position: int
+    chapter: str | None = None
+    reference: str | None = None
 
 
 def _resolve_psalm_lookup_numbering() -> str:
@@ -462,6 +511,496 @@ def _resolve_pericope_book_partial_urls() -> list[str]:
     return deduped
 
 
+def _load_external_author_text_dirs() -> dict[str, Path]:
+    global _AUTHOR_TEXTS_DIR_CACHE
+
+    if _AUTHOR_TEXTS_DIR_CACHE is not None:
+        return _AUTHOR_TEXTS_DIR_CACHE
+
+    author_index_path = Path(
+        os.environ.get("SOLOMONIC_AUGUSTINE_AUTHOR_INDEX_PATH", DEFAULT_AUGUSTINE_AUTHOR_INDEX_PATH)
+    ).expanduser()
+    mapped: dict[str, Path] = {}
+
+    try:
+        raw = json.loads(author_index_path.read_text(encoding="utf-8"))
+    except Exception:
+        _AUTHOR_TEXTS_DIR_CACHE = mapped
+        return mapped
+
+    if not isinstance(raw, list):
+        _AUTHOR_TEXTS_DIR_CACHE = mapped
+        return mapped
+
+    for entry in raw:
+        if not isinstance(entry, dict):
+            continue
+        slug = str(entry.get("slug") or "").strip().lower()
+        texts_dir = str(entry.get("texts_dir") or "").strip()
+        if not slug or not texts_dir:
+            continue
+        path = Path(texts_dir).expanduser()
+        if not path.is_absolute():
+            path = author_index_path.parent / path
+        mapped[slug] = path
+
+    _AUTHOR_TEXTS_DIR_CACHE = mapped
+    return mapped
+
+
+def _resolve_text_candidate_paths(author_slug: str, source: str) -> list[Path]:
+    safe_source = os.path.basename(str(source or "").strip())
+    if not safe_source:
+        return []
+
+    candidates: list[Path] = []
+    author_text_dirs = _load_external_author_text_dirs()
+    author_dir = author_text_dirs.get(str(author_slug or "").strip().lower())
+    if author_dir:
+        candidates.append(author_dir / safe_source)
+
+    if safe_source == "Psalms.txt":
+        candidates.append(DEFAULT_EXTERNAL_PSALMS_PATH)
+        candidates.append(DEFAULT_LOCAL_PSALMS_PATH)
+
+    candidates.append(LOCAL_SOURCE_TEXTS_DIR / safe_source)
+
+    deduped: list[Path] = []
+    seen: set[str] = set()
+    for candidate in candidates:
+        key = str(candidate)
+        if key in seen:
+            continue
+        seen.add(key)
+        deduped.append(candidate)
+    return deduped
+
+
+def _load_source_text(author_slug: str, source: str) -> tuple[str | None, Path | None, str | None]:
+    for candidate in _resolve_text_candidate_paths(author_slug, source):
+        if not candidate.exists():
+            continue
+        try:
+            return candidate.read_text(encoding="utf-8", errors="replace"), candidate, None
+        except OSError as exc:
+            return None, candidate, f"Unable to read source text {candidate}: {exc}"
+
+    return None, None, f"Source text not found for {author_slug}:{source}."
+
+
+def _split_into_positions(content: str) -> list[tuple[int, str]]:
+    paragraphs: list[tuple[int, str]] = []
+    position = 0
+    for block in content.split("\n\n"):
+        text = block.strip()
+        if not text:
+            continue
+        position += 1
+        paragraphs.append((position, text))
+    return paragraphs
+
+
+def _extract_reference_fields(
+    text: str,
+    current_chapter: str | None,
+) -> tuple[str | None, int | None, int | None]:
+    chapter = current_chapter
+    chapter_matches = SCRIPTURE_CHAPTER_LINE_RE.findall(text)
+    if chapter_matches:
+        chapter = chapter_matches[-1]
+
+    verse_numbers = [int(num) for num in SCRIPTURE_VERSE_LINE_RE.findall(text)]
+    if verse_numbers:
+        verse_start = min(verse_numbers)
+        verse_end = max(verse_numbers)
+    else:
+        verse_start = None
+        verse_end = None
+
+    return chapter, verse_start, verse_end
+
+
+def _build_reference_label(
+    book: str,
+    chapter: str | None,
+    verse_start: int | None,
+    verse_end: int | None,
+) -> str:
+    if chapter and verse_start is not None:
+        if verse_end is not None and verse_end != verse_start:
+            return f"{book} {chapter}:{verse_start}-{verse_end}"
+        return f"{book} {chapter}:{verse_start}"
+    if chapter:
+        return f"{book} {chapter}"
+    return book
+
+
+def _split_into_position_entries(content: str) -> list[dict[str, Any]]:
+    entries: list[dict[str, Any]] = []
+    current_chapter: str | None = None
+
+    for position, text in _split_into_positions(content):
+        chapter, verse_start, verse_end = _extract_reference_fields(text, current_chapter)
+        current_chapter = chapter or current_chapter
+        entries.append(
+            {
+                "position": position,
+                "text": text,
+                "chapter": current_chapter,
+                "verse_start": verse_start,
+                "verse_end": verse_end,
+            }
+        )
+
+    return entries
+
+
+def _coalesce_chapter(entries: list[dict[str, Any]]) -> str | None:
+    chapters = [str(entry.get("chapter")) for entry in entries if entry.get("chapter")]
+    if not chapters:
+        return None
+    if len(set(chapters)) == 1:
+        return chapters[0]
+    return f"{chapters[0]}-{chapters[-1]}"
+
+
+def _build_local_book_partial_payload(
+    target: BookPartialTarget,
+) -> tuple[dict[str, Any] | None, str | None]:
+    raw_text, source_path, error = _load_source_text(target.author_slug, target.source)
+    if raw_text is None:
+        return None, error or "Source text unavailable."
+
+    entries = _split_into_position_entries(raw_text)
+    if not entries:
+        return None, f"Book content not available for {target.source}."
+
+    start = min(max(1, target.start_position), len(entries))
+    end = min(max(start, target.end_position), len(entries))
+    selected = [entry for entry in entries if start <= entry["position"] <= end]
+    if not selected:
+        return None, f"Position range {start}-{end} produced no content for {target.source}."
+
+    chapter = target.chapter or _coalesce_chapter(selected)
+    verse_starts = [int(entry["verse_start"]) for entry in selected if entry.get("verse_start") is not None]
+    verse_ends = [int(entry["verse_end"]) for entry in selected if entry.get("verse_end") is not None]
+    verse_start = min(verse_starts) if verse_starts else None
+    verse_end = max(verse_ends) if verse_ends else None
+
+    return (
+        {
+            "author_slug": target.author_slug,
+            "book": target.book,
+            "source": target.source,
+            "chapter": chapter or "Unknown Chapter",
+            "start_position": start,
+            "end_position": end,
+            "verse_start": verse_start,
+            "verse_end": verse_end,
+            "reference": target.reference or _build_reference_label(target.book, chapter, verse_start, verse_end),
+            "content": "\n\n".join(entry["text"] for entry in selected),
+            "source_path": str(source_path) if source_path else None,
+            "resolved_via": "local_fallback",
+        },
+        None,
+    )
+
+
+def _fetch_book_partial_from_pericope(
+    target: BookPartialTarget,
+) -> tuple[dict[str, Any] | None, str | None]:
+    payload = {
+        "author_slug": target.author_slug,
+        "book": target.book,
+        "source": target.source,
+        "chapter": target.chapter,
+        "start_position": target.start_position,
+        "end_position": target.end_position,
+    }
+
+    errors: list[str] = []
+    for url in _resolve_pericope_book_partial_urls():
+        try:
+            request = Request(
+                url,
+                data=json.dumps(payload).encode("utf-8"),
+                headers={"Content-Type": "application/json"},
+                method="POST",
+            )
+            with urlopen(request, timeout=20) as response:
+                body = response.read()
+            decoded = json.loads(body.decode("utf-8"))
+            if not isinstance(decoded, dict):
+                errors.append(f"{url}: invalid JSON payload")
+                continue
+
+            content = decoded.get("content")
+            if not isinstance(content, str) or not content.strip():
+                errors.append(f"{url}: missing content")
+                continue
+
+            result = dict(decoded)
+            result.setdefault("author_slug", target.author_slug)
+            result.setdefault("book", target.book)
+            result.setdefault("source", target.source)
+            result.setdefault("chapter", target.chapter or "Unknown Chapter")
+            result.setdefault("start_position", target.start_position)
+            result.setdefault("end_position", target.end_position)
+            result.setdefault("reference", target.reference or target.book)
+            result["resolved_via"] = "pericope"
+            return result, None
+        except Exception as exc:  # pragma: no cover - depends on runtime network/service state
+            errors.append(f"{url}: {exc}")
+
+    if not errors:
+        return None, "Pericope book_partial unavailable."
+    return None, "Unable to reach Pericope book_partial. Tried: " + " | ".join(errors[:3])
+
+
+def _parse_scripture_reference(
+    reference: str,
+) -> tuple[str | None, int | None, str | None]:
+    match = re.fullmatch(r"\s*(.+?)\s+(\d+)(?::([\d,\-\s]+))?\s*", str(reference or ""))
+    if not match:
+        return None, None, None
+
+    book = match.group(1).strip()
+    chapter = int(match.group(2))
+    verse_spec = match.group(3).strip() if match.group(3) else None
+    return book, chapter, verse_spec
+
+
+def _resolve_scripture_book_partial_target(
+    *,
+    author_slug: str,
+    book: str,
+    source: str,
+    chapter: int,
+    reference: str | None,
+) -> tuple[BookPartialTarget | None, str | None, HTTPStatus]:
+    raw_text, _source_path, error = _load_source_text(author_slug, source)
+    if raw_text is None:
+        return None, error or "Source text unavailable.", HTTPStatus.NOT_FOUND
+
+    entries = _split_into_position_entries(raw_text)
+    chapter_entries = [entry for entry in entries if entry.get("chapter") == str(chapter)]
+    if not chapter_entries:
+        return None, f"{book} chapter {chapter} not found in {source}.", HTTPStatus.NOT_FOUND
+
+    return (
+        BookPartialTarget(
+            author_slug=author_slug,
+            book=book,
+            source=source,
+            start_position=chapter_entries[0]["position"],
+            end_position=chapter_entries[-1]["position"],
+            chapter=str(chapter),
+            reference=reference or f"{book} {chapter}",
+        ),
+        None,
+        HTTPStatus.OK,
+    )
+
+
+def _resolve_psalm_book_partial_target(
+    payload: dict[str, Any],
+) -> tuple[BookPartialTarget | None, str | None, HTTPStatus]:
+    chapter_raw = payload.get("chapter")
+    reference = str(payload.get("reference") or "").strip() or None
+
+    if chapter_raw in {None, ""} and reference:
+        _book, parsed_chapter, _verse_spec = _parse_scripture_reference(reference.replace("Psalm ", "Psalms ", 1))
+        chapter_raw = parsed_chapter
+
+    try:
+        chapter = int(chapter_raw)
+    except (TypeError, ValueError):
+        return None, "Missing or invalid Psalm chapter.", HTTPStatus.BAD_REQUEST
+
+    if chapter < 1:
+        return None, "Missing or invalid Psalm chapter.", HTTPStatus.BAD_REQUEST
+
+    return _resolve_scripture_book_partial_target(
+        author_slug=os.environ.get("SOLOMONIC_PERICOPE_AUTHOR_SLUG", "david"),
+        book=os.environ.get("SOLOMONIC_PERICOPE_BOOK", "Psalms"),
+        source=os.environ.get("SOLOMONIC_PERICOPE_SOURCE", "Psalms.txt"),
+        chapter=chapter,
+        reference=reference or f"Psalm {chapter}",
+    )
+
+
+def _resolve_wisdom_book_partial_target(
+    payload: dict[str, Any],
+) -> tuple[BookPartialTarget | None, str | None, HTTPStatus]:
+    reference = str(payload.get("reference") or "").strip()
+    book, chapter, _verse_spec = _parse_scripture_reference(reference)
+    if not book or chapter is None:
+        return None, "Missing or invalid wisdom reference.", HTTPStatus.BAD_REQUEST
+
+    source_map = {
+        "proverbs": ("Proverbs", "Proverbs.txt"),
+        "ecclesiastes": ("Ecclesiastes", "Ecclesiastes.txt"),
+        "song of solomon": ("Song of Solomon", "Song_of_Solomon.txt"),
+    }
+    resolved = source_map.get(book.lower())
+    if not resolved:
+        return None, f"Unsupported wisdom book: {book}.", HTTPStatus.BAD_REQUEST
+
+    book_name, source = resolved
+    return _resolve_scripture_book_partial_target(
+        author_slug="solomon",
+        book=book_name,
+        source=source,
+        chapter=chapter,
+        reference=reference,
+    )
+
+
+def _resolve_solomonic_book_partial_target(
+    payload: dict[str, Any],
+) -> tuple[BookPartialTarget | None, str | None, HTTPStatus]:
+    planet = str(payload.get("planet") or "").strip()
+    pentacle_raw = payload.get("pentacle")
+    reference = str(payload.get("reference") or "").strip() or None
+
+    if not planet:
+        return None, "Missing Solomonic planet.", HTTPStatus.BAD_REQUEST
+
+    try:
+        pentacle = int(pentacle_raw)
+    except (TypeError, ValueError):
+        return None, "Missing Solomonic pentacle index.", HTTPStatus.BAD_REQUEST
+
+    ordinal = PENTACLE_ORDINAL_WORDS.get(pentacle)
+    if not ordinal:
+        return None, f"Unsupported Solomonic pentacle index: {pentacle}.", HTTPStatus.BAD_REQUEST
+
+    raw_text, _source_path, error = _load_source_text("solomon_expanded", KEY_OF_SOLOMON_SOURCE)
+    if raw_text is None:
+        return None, error or "Solomonic source text unavailable.", HTTPStatus.NOT_FOUND
+
+    entries = _split_into_position_entries(raw_text)
+    heading_pattern = re.compile(
+        rf"Figure\s+\d+\.--\s+The\s+{ordinal}\s+pentacle of {re.escape(planet)}\.--",
+        re.IGNORECASE,
+    )
+    next_heading_pattern = re.compile(r"Figure\s+\d+\.--\s+The\s+\w+\s+pentacle of ", re.IGNORECASE)
+
+    start_entry: dict[str, Any] | None = None
+    end_entry: dict[str, Any] | None = None
+    started = False
+    for entry in entries:
+        text = str(entry.get("text") or "")
+        if not started and heading_pattern.search(text):
+            start_entry = entry
+            end_entry = entry
+            started = True
+            continue
+        if started and next_heading_pattern.search(text):
+            break
+        if started:
+            end_entry = entry
+
+    if start_entry is None or end_entry is None:
+        return (
+            None,
+            f"Unable to locate {planet} pentacle #{pentacle} in {KEY_OF_SOLOMON_SOURCE}.",
+            HTTPStatus.NOT_FOUND,
+        )
+
+    return (
+        BookPartialTarget(
+            author_slug="solomon_expanded",
+            book=KEY_OF_SOLOMON_BOOK,
+            source=KEY_OF_SOLOMON_SOURCE,
+            start_position=start_entry["position"],
+            end_position=end_entry["position"],
+            reference=reference or f"{KEY_OF_SOLOMON_BOOK} • {planet} Pentacle #{pentacle}",
+        ),
+        None,
+        HTTPStatus.OK,
+    )
+
+
+def _build_psalm_lookup_chapter_payload(
+    chapter: int,
+    reference: str | None,
+) -> tuple[dict[str, Any] | None, str | None]:
+    lookup, error = _load_psalm_lookup()
+    if lookup is None:
+        return None, error or "Psalms source unavailable."
+
+    chapter_map = lookup.get(chapter)
+    if not chapter_map:
+        return None, f"Psalm {chapter} not found in configured Psalms source."
+
+    ordered = [text for _verse, text in sorted(chapter_map.items())]
+    if not ordered:
+        return None, f"Psalm {chapter} not found in configured Psalms source."
+
+    return (
+        {
+            "author_slug": os.environ.get("SOLOMONIC_PERICOPE_AUTHOR_SLUG", "david"),
+            "book": os.environ.get("SOLOMONIC_PERICOPE_BOOK", "Psalms"),
+            "source": os.environ.get("SOLOMONIC_PERICOPE_SOURCE", "Psalms.txt"),
+            "chapter": str(chapter),
+            "reference": reference or f"Psalm {chapter}",
+            "content": "\n".join(ordered),
+            "resolved_via": "psalm_lookup_fallback",
+        },
+        None,
+    )
+
+
+def _build_book_partial_payload(
+    payload: dict[str, Any],
+) -> tuple[dict[str, Any] | None, str | None, HTTPStatus]:
+    kind = str(payload.get("kind") or "").strip().lower()
+    requested_reference = str(payload.get("reference") or "").strip() or None
+
+    resolver_map = {
+        "psalm": _resolve_psalm_book_partial_target,
+        "wisdom": _resolve_wisdom_book_partial_target,
+        "solomonic": _resolve_solomonic_book_partial_target,
+    }
+    resolver = resolver_map.get(kind)
+    if resolver is None:
+        return None, f"Unsupported book_partial kind: {kind or 'unknown'}.", HTTPStatus.BAD_REQUEST
+
+    target, error, status = resolver(payload)
+    if target is None:
+        if kind == "psalm":
+            chapter_raw = payload.get("chapter")
+            try:
+                chapter = int(chapter_raw)
+            except (TypeError, ValueError):
+                chapter = -1
+            if chapter > 0:
+                fallback_payload, fallback_error = _build_psalm_lookup_chapter_payload(chapter, requested_reference)
+                if fallback_payload is not None:
+                    fallback_payload["requested_reference"] = requested_reference
+                    fallback_payload["kind"] = kind
+                    return fallback_payload, None, HTTPStatus.OK
+                error = fallback_error or error
+        return None, error or "Unable to resolve book_partial target.", status
+
+    remote_payload, remote_error = _fetch_book_partial_from_pericope(target)
+    if remote_payload is not None:
+        remote_payload["requested_reference"] = requested_reference
+        remote_payload["kind"] = kind
+        return remote_payload, None, HTTPStatus.OK
+
+    local_payload, local_error = _build_local_book_partial_payload(target)
+    if local_payload is not None:
+        if remote_error:
+            local_payload["resolution_warning"] = remote_error
+        local_payload["requested_reference"] = requested_reference
+        local_payload["kind"] = kind
+        return local_payload, None, HTTPStatus.OK
+
+    return None, local_error or remote_error or "Unable to expand requested text.", HTTPStatus.NOT_FOUND
+
+
 def _env_int(name: str, default: int) -> int:
     raw = os.environ.get(name)
     if raw is None:
@@ -729,6 +1268,24 @@ def _to_snippet(text: str, max_length: int = 220) -> str:
     return f"{clean[: max_length - 1].rstrip()}…"
 
 
+def _strip_translation_meta(text: str) -> str:
+    clean = str(text or "").strip()
+    if not clean:
+        return ""
+
+    clean = re.sub(r"\n{2,}English translation:\s*\n+", "\n", clean, flags=re.I)
+    clean = re.sub(
+        r"\n{2,}(\((?:Note|Please note|Translation maintained|Translation of the Bible)[\s\S]*\)|"
+        r"(?:I have translated[\s\S]*|While trying to maintain[\s\S]*|This translation[\s\S]*|"
+        r"In a literal translation[\s\S]*|The number\s+\"?\d+\"?\s+may indicate[\s\S]*|"
+        r"A more natural rendering could[\s\S]*|The correct English sentence should be[\s\S]*))$",
+        "",
+        clean,
+        flags=re.I,
+    )
+    return clean.strip()
+
+
 def _flatten_pentacles(groups: list[dict[str, Any]]) -> list[dict[str, Any]]:
     flattened: list[dict[str, Any]] = []
     for group_index, group in enumerate(groups):
@@ -859,7 +1416,9 @@ def _load_scripture_excerpt(chapter: int, verse: str | None = None) -> str:
     if scripture_payload:
         entry = (scripture_payload.get("psalms") or {}).get(str(chapter))
         if isinstance(entry, dict):
-            excerpt = str(entry.get("translation_excerpt") or entry.get("latin_excerpt") or "").strip()
+            excerpt = _strip_translation_meta(
+                str(entry.get("translation_excerpt") or entry.get("latin_excerpt") or "").strip()
+            )
             if excerpt:
                 return _to_snippet(excerpt)
 
@@ -1387,10 +1946,8 @@ def _build_guided_prompts_payload(request_payload: dict[str, Any]) -> tuple[dict
     else:
         reasons.append("Primary scripture citation: fallback psalm is used when this pentacle has no direct Psalm note.")
 
-    citation_source = str((psalm_payload.get("metadata") or {}).get("source") or "Key of Solomon mapping")
     why_selected = {
         "reasons": reasons,
-        "citation": f"Citation source: {citation_source}",
     }
 
     if primary_psalm:
@@ -1399,20 +1956,15 @@ def _build_guided_prompts_payload(request_payload: dict[str, Any]) -> tuple[dict
         except (TypeError, ValueError):
             chapter = None
         verse = _expand_verse_specification(str(primary_psalm.get("verses") or ""))[0] if primary_psalm.get("verses") else None
-        citation_mode = "mapped"
     else:
         fallback = FALLBACK_DAILY_PSALM_BY_RULER.get(ruler_text, {"chapter": 1, "verse": 1})
         chapter = int(fallback["chapter"])
         verse = str(fallback["verse"])
-        citation_mode = "fallback"
 
     psalm_ref = f"Psalm {chapter}:{verse}" if verse else f"Psalm {chapter}"
     psalm_text = _load_scripture_excerpt(chapter, verse) if chapter else "Psalm excerpt unavailable."
-    psalm_ref_label = (
-        f"{psalm_ref} ({citation_source})" if citation_mode == "mapped" else f"{psalm_ref} (day-ruler fallback)"
-    )
     content_bundle = {
-        "psalm": {"ref": psalm_ref_label, "text": psalm_text},
+        "psalm": {"ref": psalm_ref, "text": psalm_text},
         "wisdom": {
             "ref": wisdom.get("ref", "Proverbs 16:3"),
             "text": wisdom.get(
@@ -1503,13 +2055,117 @@ class ClockRequestHandler(SimpleHTTPRequestHandler):
     def __init__(self, *args: Any, directory: str | None = None, **kwargs: Any) -> None:
         super().__init__(*args, directory=directory, **kwargs)
 
-    def _send_json(self, payload: dict[str, Any], status: HTTPStatus) -> None:
+    def end_headers(self) -> None:
+        request_path = urlparse(getattr(self, "path", "")).path
+        normalized_path = "/" if request_path in {"", "/"} else request_path.rstrip("/")
+        if normalized_path in NOINDEX_PATHS or normalized_path.startswith(NOINDEX_PREFIXES):
+            self.send_header("X-Robots-Tag", "noindex, nofollow")
+        super().end_headers()
+
+    def list_directory(self, path: str):  # type: ignore[override]
+        self.send_error(HTTPStatus.NOT_FOUND, "Directory listing is not available.")
+        return None
+
+    def _send_json(self, payload: dict[str, Any], status: HTTPStatus, send_body: bool = True) -> None:
         body = json.dumps(payload, indent=2, ensure_ascii=False).encode("utf-8")
         self.send_response(status)
         self.send_header("Content-Type", "application/json; charset=utf-8")
         self.send_header("Content-Length", str(len(body)))
         self.end_headers()
-        self.wfile.write(body)
+        if send_body:
+            self.wfile.write(body)
+
+    def _send_text(
+        self,
+        body: str,
+        status: HTTPStatus,
+        content_type: str,
+        send_body: bool = True,
+    ) -> None:
+        encoded = body.encode("utf-8")
+        self.send_response(status)
+        self.send_header("Content-Type", f"{content_type}; charset=utf-8")
+        self.send_header("Content-Length", str(len(encoded)))
+        self.end_headers()
+        if send_body:
+            self.wfile.write(encoded)
+
+    def _resolve_site_url(self) -> str:
+        configured = os.environ.get(SITE_URL_ENV, "").strip()
+        if configured:
+            return configured.rstrip("/")
+
+        forwarded_proto = (self.headers.get("X-Forwarded-Proto") or "").split(",")[0].strip()
+        forwarded_host = (self.headers.get("X-Forwarded-Host") or "").split(",")[0].strip()
+        host = (self.headers.get("Host") or "").split(",")[0].strip()
+        proto = forwarded_proto or "http"
+        authority = forwarded_host or host
+        if authority:
+            return f"{proto}://{authority}"
+        return DEFAULT_SITE_URL
+
+    def _build_absolute_url(self, path: str) -> str:
+        origin = self._resolve_site_url()
+        if path == "/":
+            return origin
+        return f"{origin}{path}"
+
+    def _render_public_template(self, template_path: Path, canonical_path: str) -> str:
+        html = template_path.read_text(encoding="utf-8")
+        replacements = {
+            "__SITE_URL__": self._resolve_site_url(),
+            "__CANONICAL_URL__": self._build_absolute_url(canonical_path),
+            "__SITEMAP_URL__": self._build_absolute_url("/sitemap.xml"),
+        }
+        for token, value in replacements.items():
+            html = html.replace(token, value)
+        return html
+
+    def _send_public_page(self, template_path: Path, canonical_path: str, send_body: bool = True) -> None:
+        if not template_path.exists():
+            self.send_error(HTTPStatus.NOT_FOUND, f"{template_path.name} not found")
+            return
+        self._send_text(
+            self._render_public_template(template_path, canonical_path),
+            HTTPStatus.OK,
+            "text/html",
+            send_body=send_body,
+        )
+
+    def _build_robots_txt(self) -> str:
+        sitemap_url = self._build_absolute_url("/sitemap.xml")
+        lines = [
+            "User-agent: *",
+            "Allow: /",
+            "Disallow: /api/",
+            "Disallow: /data/",
+            "Disallow: /docs/",
+            "Disallow: /src/",
+            "Disallow: /deploy/",
+            "Disallow: /output/",
+            "Disallow: /.playwright-cli/",
+            "Disallow: /web/index.html",
+            "Disallow: /web/clock_visualizer.html",
+            "Disallow: /web/how_to_use.html",
+            "",
+            f"Sitemap: {sitemap_url}",
+        ]
+        return "\n".join(lines)
+
+    def _build_sitemap_xml(self) -> str:
+        rows = ['<?xml version="1.0" encoding="UTF-8"?>', '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
+        for path, source_path in SITEMAP_PAGE_SOURCES.items():
+            loc = xml_escape(self._build_absolute_url(path))
+            try:
+                lastmod = datetime.fromtimestamp(source_path.stat().st_mtime).astimezone().date().isoformat()
+            except FileNotFoundError:
+                lastmod = datetime.now().astimezone().date().isoformat()
+            rows.append("  <url>")
+            rows.append(f"    <loc>{loc}</loc>")
+            rows.append(f"    <lastmod>{lastmod}</lastmod>")
+            rows.append("  </url>")
+        rows.append("</urlset>")
+        return "\n".join(rows)
 
     def _authorize_guided_prompts_request(self) -> tuple[bool, HTTPStatus, str | None]:
         expected_key = _get_guided_prompts_expected_key()
@@ -1537,14 +2193,15 @@ class ClockRequestHandler(SimpleHTTPRequestHandler):
         parsed_url = urlparse(self.path)
         request_path = parsed_url.path.rstrip("/")
 
-        if request_path != "/api/pericope/guided-prompts":
+        if request_path not in {"/api/pericope/guided-prompts", BOOK_PARTIAL_API_PATH}:
             self.send_error(HTTPStatus.NOT_FOUND, "Unknown API route")
             return
 
-        allowed, status, error = self._authorize_guided_prompts_request()
-        if not allowed:
-            self._send_json({"error": error or "Unauthorized."}, status)
-            return
+        if request_path == "/api/pericope/guided-prompts":
+            allowed, status, error = self._authorize_guided_prompts_request()
+            if not allowed:
+                self._send_json({"error": error or "Unauthorized."}, status)
+                return
 
         try:
             content_length = int(self.headers.get("Content-Length", "0"))
@@ -1568,56 +2225,67 @@ class ClockRequestHandler(SimpleHTTPRequestHandler):
             self._send_json({"error": "JSON body must be an object."}, HTTPStatus.BAD_REQUEST)
             return
 
-        response_payload, error, status = _build_guided_prompts_payload(payload)
+        if request_path == BOOK_PARTIAL_API_PATH:
+            response_payload, error, status = _build_book_partial_payload(payload)
+        else:
+            response_payload, error, status = _build_guided_prompts_payload(payload)
+
         if response_payload is None:
-            self._send_json({"error": error or "Unable to build guided prompts payload."}, status)
+            fallback_error = (
+                "Unable to expand requested text."
+                if request_path == BOOK_PARTIAL_API_PATH
+                else "Unable to build guided prompts payload."
+            )
+            self._send_json({"error": error or fallback_error}, status)
             return
 
         self._send_json(response_payload, status)
 
-    def do_GET(self) -> None:  # noqa: N802  (HTTPRequestHandler overrides camelCase)
-        parsed_url = urlparse(self.path)
+    def _handle_request(self, parsed_url, send_body: bool) -> bool:
         request_path = parsed_url.path
+        normalized_path = "/" if request_path in {"", "/"} else request_path.rstrip("/")
 
-        if request_path in {"", "/"}:
-            clock_path = REPO_ROOT / "web" / "clock_visualizer.html"
-            if not clock_path.exists():
-                self.send_error(HTTPStatus.NOT_FOUND, "clock_visualizer.html not found")
-                return
+        if normalized_path == "/robots.txt":
+            self._send_text(self._build_robots_txt(), HTTPStatus.OK, "text/plain", send_body=send_body)
+            return True
 
-            html = clock_path.read_text(encoding="utf-8")
-            injection = '<base href="/web/">'
-            if "<head>" in html and injection not in html:
-                html = html.replace("<head>", f"<head>\n    {injection}", 1)
+        if normalized_path == "/sitemap.xml":
+            self._send_text(
+                self._build_sitemap_xml(),
+                HTTPStatus.OK,
+                "application/xml",
+                send_body=send_body,
+            )
+            return True
 
-            body = html.encode("utf-8")
-            self.send_response(HTTPStatus.OK)
-            self.send_header("Content-Type", "text/html; charset=utf-8")
-            self.send_header("Content-Length", str(len(body)))
-            self.end_headers()
-            self.wfile.write(body)
-            return
+        public_page = PUBLIC_PAGE_TEMPLATES.get(normalized_path)
+        if public_page is not None:
+            template_path, canonical_path = public_page
+            self._send_public_page(template_path, canonical_path, send_body=send_body)
+            return True
 
-        if request_path.rstrip("/") == "/api/clock":
+        if normalized_path == "/api/clock":
             if not DATA_PATH.exists():
                 message = (
                     "Dataset not found. Run `python src/generate_full_dataset.py` first."
                 )
-                self._send_json({"error": message}, HTTPStatus.NOT_FOUND)
-                return
+                self._send_json({"error": message}, HTTPStatus.NOT_FOUND, send_body=send_body)
+                return True
 
             try:
                 data = json.loads(DATA_PATH.read_text(encoding="utf-8"))
             except json.JSONDecodeError as exc:  # pragma: no cover - only hit on corruption
                 self._send_json(
-                    {"error": f"Dataset is invalid JSON: {exc}"}, HTTPStatus.INTERNAL_SERVER_ERROR
+                    {"error": f"Dataset is invalid JSON: {exc}"},
+                    HTTPStatus.INTERNAL_SERVER_ERROR,
+                    send_body=send_body,
                 )
-                return
+                return True
 
-            self._send_json(data, HTTPStatus.OK)
-            return
+            self._send_json(data, HTTPStatus.OK, send_body=send_body)
+            return True
 
-        if request_path.rstrip("/") == "/api/psalm":
+        if normalized_path == "/api/psalm":
             query = parse_qs(parsed_url.query)
             chapter_raw = (query.get("chapter") or [None])[0]
             verse_raw = (query.get("verse") or [None])[0]
@@ -1626,8 +2294,9 @@ class ClockRequestHandler(SimpleHTTPRequestHandler):
                 self._send_json(
                     {"error": "Missing required query parameter: chapter"},
                     HTTPStatus.BAD_REQUEST,
+                    send_body=send_body,
                 )
-                return
+                return True
 
             try:
                 chapter = int(chapter_raw)
@@ -1635,14 +2304,16 @@ class ClockRequestHandler(SimpleHTTPRequestHandler):
                 self._send_json(
                     {"error": f"Invalid chapter value: {chapter_raw!r}"},
                     HTTPStatus.BAD_REQUEST,
+                    send_body=send_body,
                 )
-                return
+                return True
             if chapter < 1:
                 self._send_json(
                     {"error": f"Invalid chapter value: {chapter_raw!r}"},
                     HTTPStatus.BAD_REQUEST,
+                    send_body=send_body,
                 )
-                return
+                return True
 
             verse: int | None = None
             if verse_raw not in {None, ""}:
@@ -1652,19 +2323,25 @@ class ClockRequestHandler(SimpleHTTPRequestHandler):
                     self._send_json(
                         {"error": f"Invalid verse value: {verse_raw!r}"},
                         HTTPStatus.BAD_REQUEST,
+                        send_body=send_body,
                     )
-                    return
+                    return True
                 if verse < 1:
                     self._send_json(
                         {"error": f"Invalid verse value: {verse_raw!r}"},
                         HTTPStatus.BAD_REQUEST,
+                        send_body=send_body,
                     )
-                    return
+                    return True
 
             lookup, error = _load_psalm_lookup()
             if lookup is None:
-                self._send_json({"error": error or "Psalms source unavailable."}, HTTPStatus.NOT_FOUND)
-                return
+                self._send_json(
+                    {"error": error or "Psalms source unavailable."},
+                    HTTPStatus.NOT_FOUND,
+                    send_body=send_body,
+                )
+                return True
 
             lookup_numbering = _PSALM_LOOKUP_NUMBERING or _infer_psalm_lookup_numbering(
                 lookup,
@@ -1675,8 +2352,9 @@ class ClockRequestHandler(SimpleHTTPRequestHandler):
                 self._send_json(
                     {"error": span_error or "Unable to resolve Psalm numbering map."},
                     HTTPStatus.INTERNAL_SERVER_ERROR,
+                    send_body=send_body,
                 )
-                return
+                return True
 
             resolved_reference = ", ".join(span.label() for span in spans)
             response_meta = {
@@ -1691,8 +2369,9 @@ class ClockRequestHandler(SimpleHTTPRequestHandler):
                     self._send_json(
                         {"error": collect_error or f"Chapter {chapter} not found in configured Psalms source."},
                         HTTPStatus.NOT_FOUND,
+                        send_body=send_body,
                     )
-                    return
+                    return True
 
                 ordered_text = [text for _chapter, _verse, text in entries]
                 self._send_json(
@@ -1703,16 +2382,18 @@ class ClockRequestHandler(SimpleHTTPRequestHandler):
                         "numbering": response_meta,
                     },
                     HTTPStatus.OK,
+                    send_body=send_body,
                 )
-                return
+                return True
 
             mapped_reference, map_error = _resolve_mapped_verse(lookup, spans, verse)
             if mapped_reference is None:
                 self._send_json(
                     {"error": map_error or f"Psalm {chapter}:{verse} not found in configured Psalms source."},
                     HTTPStatus.NOT_FOUND,
+                    send_body=send_body,
                 )
-                return
+                return True
 
             resolved_chapter, resolved_verse = mapped_reference
             verse_text = lookup.get(resolved_chapter, {}).get(resolved_verse)
@@ -1720,8 +2401,9 @@ class ClockRequestHandler(SimpleHTTPRequestHandler):
                 self._send_json(
                     {"error": f"Psalm {chapter}:{verse} not found in configured Psalms source."},
                     HTTPStatus.NOT_FOUND,
+                    send_body=send_body,
                 )
-                return
+                return True
 
             self._send_json(
                 {
@@ -1734,10 +2416,25 @@ class ClockRequestHandler(SimpleHTTPRequestHandler):
                     "resolved_verse": resolved_verse,
                 },
                 HTTPStatus.OK,
+                send_body=send_body,
             )
+            return True
+
+        return False
+
+    def do_GET(self) -> None:  # noqa: N802  (HTTPRequestHandler overrides camelCase)
+        parsed_url = urlparse(self.path)
+        if self._handle_request(parsed_url, send_body=True):
             return
 
         super().do_GET()
+
+    def do_HEAD(self) -> None:  # noqa: N802
+        parsed_url = urlparse(self.path)
+        if self._handle_request(parsed_url, send_body=False):
+            return
+
+        super().do_HEAD()
 
 
 def parse_args() -> argparse.Namespace:

@@ -1,0 +1,34 @@
+services:
+  solomonic-clock:
+    build:
+      context: .
+    image: solomonic-clock:prod
+    container_name: truevineos-clock
+    restart: unless-stopped
+    environment:
+      PORT: 8080
+      HOST: 0.0.0.0
+      SOLOMONIC_PSALM_SOURCE_MODE: ${SOLOMONIC_PSALM_SOURCE_MODE:-pericope_first}
+      SOLOMONIC_PERICOPE_API_BASE: ${SOLOMONIC_PERICOPE_API_BASE:-http://augustine-corpus-live:8001}
+      SOLOMONIC_GUIDED_PROMPTS_API_KEY: ${SOLOMONIC_GUIDED_PROMPTS_API_KEY:-}
+    ports:
+      - "127.0.0.1:${SOLOMONIC_HOST_PORT:-8086}:8080"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "from urllib.request import urlopen; urlopen('http://127.0.0.1:8080/api/clock', timeout=5).read(1)"
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 20s
+    networks:
+      - shared-backplane
+
+networks:
+  shared-backplane:
+    external: true
+    name: ${SOLOMONIC_SHARED_NETWORK:-fortress-phronesis-net}

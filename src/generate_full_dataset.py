@@ -189,7 +189,7 @@ def build_spirit_sectors() -> list[dict[str, str | int]]:
 def build_dataset() -> dict[str, object]:
     spirit_sectors = build_spirit_sectors()
     return {
-        "title": "Solomonic Clock of Spheres",
+        "title": "True Vine OS",
         "generated_at": datetime.utcnow().isoformat(timespec="seconds") + "Z",
         "visual_parameters": VISUAL_PARAMETERS,
         "layers": {

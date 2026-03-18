@@ -17,6 +17,7 @@ Program-level strategy, deployment policy, and release governance are maintained
 - [Intent Reading Map](intent_reading_map.md)
 - [Product One Pager](product_one_pager.md)
 - [Marketing Name Candidates](marketing_name_candidates.md)
+- [Production Domain Setup](production_domain_setup.md)
 - [MVP Mobile App Roadmap](mvp_mobile_app_roadmap.md)
 - [Solomonic Calendar Expansion Guide](solomonic_calendar_expansion_guide.md)
 - [Source Texts Indexing Plan](source_texts_indexing_plan.md)

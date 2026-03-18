@@ -1,10 +1,23 @@
 # Marketing Name Candidates
 
-Date: March 10, 2026
+Date: March 14, 2026
 
-Positioning direction: wisdom guide (not journal-first branding).
+Positioning direction: biblical wisdom guide and Life OS, not journal-first branding.
 
-## Shortlist
+## Selected Brand
+
+- Platform name: `TrueVineOS`
+- Short brand: `TrueVine`
+- Positioning line: biblical wisdom guide and Life OS
+
+## Current Domain Targets
+
+1. `truevineos.com`
+2. `truevineos.app`
+3. `truevine.app`
+4. `gettruevine.com`
+
+## Prior Shortlist
 
 1. WisdomOrbit (`wisdomorbit.app`)
 2. SageCompass (`sagecompass.app`)
@@ -15,12 +28,6 @@ Positioning direction: wisdom guide (not journal-first branding).
 7. Daily Counsel (`dailycounsel.app`)
 8. Guided Spheres (`guidedspheres.com`)
 
-## Recommended Top 3
-
-1. WisdomOrbit
-2. SageCompass
-3. SphereWise
-
 ## Note
 
-Domain strings listed above are candidate targets for registrar availability checks before brand lock.
+Domain strings listed above are candidate targets for registrar availability checks before final registrar purchase and brand lock.

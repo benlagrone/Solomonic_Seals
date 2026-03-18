@@ -134,13 +134,15 @@ const drawerElements = {
   profileAngel: document.querySelector(".profile-angel"),
   depthButtons: Array.from(document.querySelectorAll(".depth-button[data-depth]")),
   explainList: document.querySelector(".explain-list"),
-  explainCitation: document.querySelector(".explain-citation"),
   bundlePsalmRef: document.querySelector(".bundle-psalm-ref"),
   bundlePsalmText: document.querySelector(".bundle-psalm-text"),
+  bundlePsalmExpand: document.querySelector(".bundle-psalm-expand"),
   bundleWisdomRef: document.querySelector(".bundle-wisdom-ref"),
   bundleWisdomText: document.querySelector(".bundle-wisdom-text"),
+  bundleWisdomExpand: document.querySelector(".bundle-wisdom-expand"),
   bundleSolomonicRef: document.querySelector(".bundle-solomonic-ref"),
   bundleSolomonicText: document.querySelector(".bundle-solomonic-text"),
+  bundleSolomonicExpand: document.querySelector(".bundle-solomonic-expand"),
   surfaceLensLabel: document.querySelector(".surface-lens-label"),
   surfaceLensTitle: document.querySelector(".surface-lens-title"),
   surfaceLensBody: document.querySelector(".surface-lens-body"),
@@ -150,12 +152,29 @@ const drawerElements = {
   surfaceRuleMorning: document.querySelector(".surface-rule-morning"),
   surfaceRuleMidday: document.querySelector(".surface-rule-midday"),
   surfaceRuleEvening: document.querySelector(".surface-rule-evening"),
+  surfaceRuleScripture: document.querySelector(".surface-rule-scripture"),
+  surfaceRuleScriptureRef: document.querySelector(".surface-rule-scripture-ref"),
+  surfaceRuleScriptureText: document.querySelector(".surface-rule-scripture-text"),
   ruleSection: document.querySelector(".rule-of-life"),
   ruleVirtue: document.querySelector(".rule-virtue"),
   ruleDomain: document.querySelector(".rule-domain"),
   ruleMorning: document.querySelector(".rule-morning"),
   ruleMidday: document.querySelector(".rule-midday"),
   ruleEvening: document.querySelector(".rule-evening"),
+  ruleScripture: document.querySelector(".rule-scripture"),
+  ruleScriptureRef: document.querySelector(".rule-scripture-ref"),
+  ruleScriptureText: document.querySelector(".rule-scripture-text"),
+  actionAdopt: document.querySelector(".action-adopt"),
+  actionComplete: document.querySelector(".action-complete"),
+  actionReflect: document.querySelector(".action-reflect"),
+  actionPericopeGuided: document.querySelector(".action-pericope-guided"),
+  actionPericopeFreeform: document.querySelector(".action-pericope-freeform"),
+  actionCopy: document.querySelector(".action-copy"),
+  actionStatus: document.querySelector(".action-loop-status"),
+  reflectionSection: document.querySelector(".reflection-capture"),
+  reflectionInput: document.querySelector(".reflection-input"),
+  reflectionSave: document.querySelector(".reflection-save"),
+  reflectionClear: document.querySelector(".reflection-clear"),
 };
 let lastPsalmKey = null;
 let lastGuidanceKey = null;
@@ -168,20 +187,35 @@ let lastLifeWheelKey = null;
 let lastRuleOfLifeKey = null;
 let currentPsalmRequestId = 0;
 let currentBundleRequestId = 0;
-let readingDepth = "short";
+let currentRulePsalmRequestId = 0;
+let readingDepth = "medium";
 let hoveredPlanetaryKey = null;
 let selectedDayOffset = 0;
 let baseDrawerSubtitleText = "Live mapping for the active planetary pentacle.";
+let currentActionLoopContext = null;
+let actionNotice = null;
+let modeBeforeHistoryLens = null;
+let historyLensOwnsMode = false;
+const DAILY_ACTION_STORAGE_KEY = "truevineos-daily-actions-v1";
 const uiState = {
   lens: "base",
   mode: "guidance",
   focusedRing: null,
   drawerOpen: false,
+  reflectionOpen: false,
 };
 const psalmTextCache = new Map();
+const psalmTextMetaCache = new Map();
+const bundleExpansionCache = new Map();
+const bundleExpansionState = {
+  psalm: null,
+  wisdom: null,
+  solomonic: null,
+};
 const bundledPsalmMap = new Map();
 const PSALM_API_ENDPOINT = "/api/psalm";
-const ENABLE_REMOTE_SCRIPTURE_FETCH = false;
+const BOOK_PARTIAL_API_ENDPOINT = "/api/pericope/book-partial";
+const ENABLE_REMOTE_SCRIPTURE_FETCH = true;
 const RULE_OF_LIFE_LIBRARY = {
   mind: {
     morning: "Read one demanding paragraph before messages or feeds.",
@@ -269,8 +303,8 @@ const LENS_DEFINITIONS = {
   },
   history: {
     title: "History Lens",
-    subtitle: () => "Weekly arc is used as the current historical preview until Providence views are added.",
-    status: "History lens shifts attention toward temporal continuity, recent arc, and future timeline layers.",
+    subtitle: () => "Timeline mode is foregrounded here. Click the outer history markers or use the arc controls to move across days.",
+    status: "History lens shifts attention toward temporal continuity and lets you step backward and forward through the weekly arc.",
     focusRing: "history",
     focusLabel: "History Arc",
     focusColor: "#4ade80",
@@ -493,6 +527,12 @@ function setMode(nextMode) {
     return;
   }
   uiState.mode = normalizedMode;
+  if (uiState.lens === "history") {
+    historyLensOwnsMode = normalizedMode === "timeline";
+  }
+  if (normalizedMode === "reflection") {
+    uiState.reflectionOpen = true;
+  }
   applyLensState();
 }
 
@@ -509,8 +549,35 @@ function applyDrawerState() {
 
 function setLens(nextLens) {
   const normalizedLens = String(nextLens || "").toLowerCase();
-  if (!AVAILABLE_LENSES.has(normalizedLens) || normalizedLens === uiState.lens) {
+  if (!AVAILABLE_LENSES.has(normalizedLens)) {
     return;
+  }
+  if (normalizedLens === uiState.lens) {
+    if (normalizedLens === "history" && uiState.mode !== "timeline") {
+      modeBeforeHistoryLens = uiState.mode;
+      uiState.mode = "timeline";
+      historyLensOwnsMode = true;
+      applyLensState();
+    }
+    return;
+  }
+
+  const previousLens = uiState.lens;
+  if (normalizedLens === "history") {
+    if (previousLens !== "history" && uiState.mode !== "timeline") {
+      modeBeforeHistoryLens = uiState.mode;
+      historyLensOwnsMode = true;
+    } else {
+      modeBeforeHistoryLens = null;
+      historyLensOwnsMode = false;
+    }
+    uiState.mode = "timeline";
+  } else if (previousLens === "history") {
+    if (historyLensOwnsMode && uiState.mode === "timeline" && modeBeforeHistoryLens) {
+      uiState.mode = modeBeforeHistoryLens;
+    }
+    modeBeforeHistoryLens = null;
+    historyLensOwnsMode = false;
   }
 
   uiState.lens = normalizedLens;
@@ -691,6 +758,379 @@ function setupDrawerToggle() {
   });
 
   applyDrawerState();
+}
+
+function copyTextToClipboard(text) {
+  if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
+    return navigator.clipboard.writeText(text);
+  }
+  return Promise.reject(new Error("Clipboard API unavailable"));
+}
+
+function setActionNotice(text) {
+  actionNotice = {
+    text,
+    expiresAt: Date.now() + 2400,
+  };
+}
+
+function getPericopeChatBaseUrl() {
+  if (typeof window !== "undefined") {
+    const params = new URLSearchParams(window.location.search || "");
+    const queryOverride = params.get("pericope_chat_url");
+    if (queryOverride) {
+      return queryOverride;
+    }
+  }
+
+  const explicitUrl = document.body?.dataset?.pericopeChatUrl;
+  if (explicitUrl) {
+    return explicitUrl;
+  }
+
+  if (typeof window !== "undefined") {
+    const host = String(window.location.hostname || "").toLowerCase();
+    if (host === "pericopeai.com" || host.endsWith(".pericopeai.com")) {
+      return `${window.location.origin}/chat`;
+    }
+  }
+
+  return "https://pericopeai.com/chat";
+}
+
+function base64UrlEncodeUtf8(text) {
+  if (typeof window === "undefined" || typeof window.btoa !== "function") {
+    return "";
+  }
+
+  const bytes = new TextEncoder().encode(String(text || ""));
+  let binary = "";
+  const chunkSize = 0x8000;
+
+  for (let index = 0; index < bytes.length; index += chunkSize) {
+    binary += String.fromCharCode(...bytes.subarray(index, index + chunkSize));
+  }
+
+  return window.btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
+}
+
+function pruneEmptyFields(value) {
+  if (Array.isArray(value)) {
+    return value
+      .map((entry) => pruneEmptyFields(entry))
+      .filter((entry) => {
+        if (entry === null || entry === undefined) {
+          return false;
+        }
+        if (typeof entry === "string") {
+          return Boolean(entry.trim());
+        }
+        if (Array.isArray(entry)) {
+          return entry.length > 0;
+        }
+        if (typeof entry === "object") {
+          return Object.keys(entry).length > 0;
+        }
+        return true;
+      });
+  }
+
+  if (value && typeof value === "object") {
+    return Object.fromEntries(
+      Object.entries(value)
+        .map(([key, entry]) => [key, pruneEmptyFields(entry)])
+        .filter(([, entry]) => {
+          if (entry === null || entry === undefined) {
+            return false;
+          }
+          if (typeof entry === "string") {
+            return Boolean(entry.trim());
+          }
+          if (Array.isArray(entry)) {
+            return entry.length > 0;
+          }
+          if (typeof entry === "object") {
+            return Object.keys(entry).length > 0;
+          }
+          return true;
+        })
+    );
+  }
+
+  return value;
+}
+
+function getActionLoopReflectionText(context) {
+  const draft = String(drawerElements.reflectionInput?.value || context?.entry?.reflection || "").trim();
+  return draft;
+}
+
+function shouldLaunchReflectionPrompt(context, reflectionText) {
+  return Boolean(reflectionText) && (uiState.reflectionOpen || uiState.mode === "reflection" || Boolean(context?.entry?.reflection));
+}
+
+function buildPericopeGuidedMessage(context, reflectionText) {
+  if (shouldLaunchReflectionPrompt(context, reflectionText)) {
+    if (context?.ruleOfLife) {
+      return `Help me examine today's ${context.ruleOfLife.domain.toLowerCase()} through ${context.ruleOfLife.virtue.toLowerCase()} in light of this reflection.`;
+    }
+    return "Help me examine today's guidance in light of this reflection.";
+  }
+
+  return context?.guidedPrompt || "How should I practice today's guidance?";
+}
+
+function buildPericopeFreeformMessage(context, reflectionText) {
+  if (reflectionText) {
+    return `I'm reviewing this day and want to talk it through: ${reflectionText}`;
+  }
+  return "";
+}
+
+function buildPericopePromptId(context, reflectionText) {
+  const promptType = shouldLaunchReflectionPrompt(context, reflectionText) ? "reflection" : "practice";
+  const domain = context?.ruleOfLife?.domain || context?.lifeDomainFocus || context?.dayText || "guidance";
+  const virtue = context?.ruleOfLife?.virtue || context?.rulerText || "daily";
+  return [promptType, domain, virtue].map(slugifyIdPart).filter(Boolean).join("-") || "solomonic-clock-guidance";
+}
+
+function buildPericopeClockContext(context, reflectionText, mode) {
+  const normalizedMode = mode === "freeform" ? "freeform" : "guided";
+  return pruneEmptyFields({
+    as_of: context?.asOf || new Date().toISOString(),
+    timezone: context?.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC",
+    lens: uiState.lens,
+    mode: normalizedMode,
+    daily_guidance: {
+      day: context?.dayDisplay,
+      tone: context?.guidanceTone,
+      activities: context?.guidanceActivities || [],
+    },
+    weekly_arc: {
+      date: context?.weeklyEntry?.dateLabel,
+      focus: context?.weeklyEntry?.focus,
+      day_offset: selectedDayOffset,
+      ruler: context?.weeklyEntry?.rulerText,
+      pentacle: context?.weeklyEntry?.pentacleLabel,
+      psalm_ref: context?.weeklyEntry?.psalmRef,
+      wisdom_ref: context?.weeklyEntry?.wisdomRef,
+      is_today: context?.weeklyEntry?.isToday,
+    },
+    daily_profile: {
+      focus: context?.activeFocus,
+      active_pentacle: context?.activePentacleLabel,
+      life_domain_focus: context?.lifeDomainFocus,
+      weakest_domain: context?.weakestDomain,
+      weakest_domain_score: context?.weakestDomainScore,
+    },
+    rule_of_life: context?.ruleOfLife
+      ? {
+        virtue: context.ruleOfLife.virtue,
+        domain: context.ruleOfLife.domain,
+        morning: context.ruleOfLife.morning,
+        midday: context.ruleOfLife.midday,
+        evening: context.ruleOfLife.evening,
+        scripture_ref: context.ruleOfLife.psalmRef || context.ruleOfLife.anchor,
+      }
+      : null,
+    content_bundle: {
+      psalm: {
+        ref: context?.psalmRef,
+      },
+      wisdom: {
+        ref: context?.wisdomRef,
+      },
+      solomonic: {
+        ref: context?.solomonicRef,
+      },
+    },
+    reflection: reflectionText,
+  });
+}
+
+function buildPericopeLaunchUrl(context, mode = "guided") {
+  if (!context) {
+    return "";
+  }
+
+  const normalizedMode = mode === "freeform" ? "freeform" : "guided";
+  const reflectionText = getActionLoopReflectionText(context);
+  const message = normalizedMode === "guided"
+    ? buildPericopeGuidedMessage(context, reflectionText)
+    : buildPericopeFreeformMessage(context, reflectionText);
+  const promptId = normalizedMode === "guided"
+    ? buildPericopePromptId(context, reflectionText)
+    : "";
+  const fullContext = buildPericopeClockContext(context, reflectionText, normalizedMode);
+  const launchContext = normalizedMode === "guided"
+    ? fullContext
+    : pruneEmptyFields({
+      as_of: fullContext.as_of,
+      timezone: fullContext.timezone,
+      mode: fullContext.mode,
+      daily_guidance: {
+        day: fullContext.daily_guidance?.day,
+      },
+      daily_profile: {
+        life_domain_focus: fullContext.daily_profile?.life_domain_focus,
+      },
+      reflection: fullContext.reflection,
+    });
+  const encodedContext = base64UrlEncodeUtf8(JSON.stringify(launchContext));
+  const params = new URLSearchParams({
+    mode: normalizedMode,
+    source: "solomonic_clock",
+  });
+  if (message) {
+    params.set("message", message);
+  }
+
+  if (promptId) {
+    params.set("prompt_id", promptId);
+  }
+  if (encodedContext) {
+    params.set("ctx", encodedContext);
+  }
+
+  return `${getPericopeChatBaseUrl()}?${params.toString()}`;
+}
+
+function launchPericopeChat(context, mode = "guided") {
+  const url = buildPericopeLaunchUrl(context, mode);
+  if (!url || typeof window === "undefined") {
+    return false;
+  }
+
+  const launched = window.open(url, "_blank", "noopener");
+  if (launched) {
+    launched.opener = null;
+    return true;
+  }
+
+  window.location.assign(url);
+  return true;
+}
+
+function setupActionLoopControls() {
+  if (
+    !drawerElements.actionAdopt ||
+    !drawerElements.actionComplete ||
+    !drawerElements.actionReflect ||
+    !drawerElements.actionPericopeGuided ||
+    !drawerElements.actionPericopeFreeform ||
+    !drawerElements.reflectionInput ||
+    !drawerElements.reflectionSave ||
+    !drawerElements.reflectionClear
+  ) {
+    return;
+  }
+
+  drawerElements.actionAdopt.addEventListener("click", () => {
+    const context = currentActionLoopContext;
+    if (!context) {
+      return;
+    }
+    patchDailyActionEntry(context.dateKey, {
+      adoptedAt: new Date().toISOString(),
+      guidedPrompt: context.guidedPrompt,
+      label: context.label,
+    });
+    setActionNotice(`Practice adopted for ${context.label}.`);
+    setMode("practice");
+  });
+
+  drawerElements.actionComplete.addEventListener("click", () => {
+    const context = currentActionLoopContext;
+    if (!context) {
+      return;
+    }
+    patchDailyActionEntry(context.dateKey, {
+      completedAt: new Date().toISOString(),
+      guidedPrompt: context.guidedPrompt,
+      label: context.label,
+    });
+    setActionNotice(`Marked complete: ${context.label}.`);
+  });
+
+  drawerElements.actionReflect.addEventListener("click", () => {
+    uiState.reflectionOpen = !uiState.reflectionOpen;
+    if (uiState.reflectionOpen) {
+      setMode("reflection");
+      requestAnimationFrame(() => {
+        drawerElements.reflectionInput?.focus();
+      });
+    }
+  });
+
+  drawerElements.actionPericopeGuided.addEventListener("click", () => {
+    const context = currentActionLoopContext;
+    if (!context) {
+      return;
+    }
+
+    const reflectionText = getActionLoopReflectionText(context);
+    const usingReflection = shouldLaunchReflectionPrompt(context, reflectionText);
+    const launched = launchPericopeChat(context, "guided");
+    if (launched) {
+      setActionNotice(usingReflection
+        ? "Opening guided chat with your reflection..."
+        : "Opening guided chat with today's guidance...");
+    }
+  });
+
+  drawerElements.actionPericopeFreeform.addEventListener("click", () => {
+    const context = currentActionLoopContext;
+    if (!context) {
+      return;
+    }
+    const launched = launchPericopeChat(context, "freeform");
+    if (launched) {
+      setActionNotice("Opening freeform chat in Pericope...");
+    }
+  });
+
+  drawerElements.actionCopy?.addEventListener("click", async () => {
+    const context = currentActionLoopContext;
+    if (!context) {
+      return;
+    }
+    const promptText = buildPericopeGuidedMessage(context, getActionLoopReflectionText(context));
+    try {
+      await copyTextToClipboard(promptText);
+      setActionNotice("Question copied for Pericope.");
+    } catch (_error) {
+      setActionNotice("Clipboard unavailable. Use Ask Pericope instead.");
+    }
+  });
+
+  drawerElements.reflectionSave.addEventListener("click", () => {
+    const context = currentActionLoopContext;
+    if (!context) {
+      return;
+    }
+    patchDailyActionEntry(context.dateKey, {
+      reflection: String(drawerElements.reflectionInput.value || "").trim(),
+      reflectionUpdatedAt: new Date().toISOString(),
+      guidedPrompt: context.guidedPrompt,
+      label: context.label,
+    });
+    uiState.reflectionOpen = false;
+    setActionNotice(`Reflection saved for ${context.dateKey}.`);
+  });
+
+  drawerElements.reflectionClear.addEventListener("click", () => {
+    const context = currentActionLoopContext;
+    if (!context) {
+      drawerElements.reflectionInput.value = "";
+      return;
+    }
+    drawerElements.reflectionInput.value = "";
+    patchDailyActionEntry(context.dateKey, {
+      reflection: "",
+      reflectionUpdatedAt: new Date().toISOString(),
+    });
+    setActionNotice(`Reflection cleared for ${context.dateKey}.`);
+  });
 }
 
 function computeRingLayout(items) {
@@ -1690,6 +2130,66 @@ function getLifeDomainShortLabel(domainId, fallbackName) {
   }[domainId] || fallbackName || domainId;
 }
 
+function formatDateStorageKey(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function loadDailyActionState() {
+  if (typeof window === "undefined" || !window.localStorage) {
+    return {};
+  }
+
+  try {
+    const raw = window.localStorage.getItem(DAILY_ACTION_STORAGE_KEY);
+    if (!raw) {
+      return {};
+    }
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === "object" ? parsed : {};
+  } catch (_error) {
+    return {};
+  }
+}
+
+function saveDailyActionState(state) {
+  if (typeof window === "undefined" || !window.localStorage) {
+    return;
+  }
+
+  try {
+    window.localStorage.setItem(DAILY_ACTION_STORAGE_KEY, JSON.stringify(state));
+  } catch (_error) {
+    // Ignore storage failures in standalone mode.
+  }
+}
+
+function getDailyActionEntry(dateKey) {
+  const state = loadDailyActionState();
+  const entry = state[dateKey];
+  return entry && typeof entry === "object" ? entry : {};
+}
+
+function patchDailyActionEntry(dateKey, patch) {
+  const state = loadDailyActionState();
+  const current = state[dateKey] && typeof state[dateKey] === "object" ? state[dateKey] : {};
+  state[dateKey] = { ...current, ...patch };
+  saveDailyActionState(state);
+  return state[dateKey];
+}
+
+function buildGuidedPromptFromContext(ruleOfLife, timeState) {
+  if (ruleOfLife) {
+    return `How should I practice ${ruleOfLife.virtue.toLowerCase()} in ${ruleOfLife.domain.toLowerCase()} today?`;
+  }
+
+  const rulerText = timeState?.dayLabel?.rulerText || "the day";
+  const activeFocus = timeState?.active?.pentacle?.pentacle?.focus || "the present focus";
+  return `How should I respond to ${activeFocus.toLowerCase()} under ${rulerText} today?`;
+}
+
 function resolveLifeWheelFocusDomain(timeState, lifeConfig) {
   const focusText = [
     timeState?.active?.pentacle?.pentacle?.focus || "",
@@ -1926,9 +2426,24 @@ function updateHistoryPreview(now, derived, referenceMap, outerRadius) {
     .attr("font-size", (entry) => (entry.offset === 0 ? 11 : 10))
     .text((entry) => entry.shortLabel);
 
+  selection
+    .attr("tabindex", 0)
+    .attr("role", "button")
+    .attr("aria-label", (entry) => `View ${entry.dateLabel}: ${entry.focus}`)
+    .style("cursor", "pointer")
+    .on("click", (_event, entry) => {
+      setSelectedDayOffset(selectedDayOffset + entry.offset);
+    })
+    .on("keydown", (event, entry) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        setSelectedDayOffset(selectedDayOffset + entry.offset);
+      }
+    });
+
   bindTooltip(
     selection,
-    (entry) => `${entry.dateLabel} • ${entry.rulerText} • ${entry.focus}`
+    (entry) => `${entry.dateLabel} • ${entry.rulerText} • ${entry.focus} • Click to focus this day`
   );
 }
 
@@ -2429,6 +2944,7 @@ function setReadingDepth(nextDepth) {
   }
   readingDepth = normalized;
   lastPsalmKey = null;
+  lastBundleKey = null;
 }
 
 function setupReadingDepthControls() {
@@ -2499,6 +3015,181 @@ function setupWeeklyArcControls() {
   });
 }
 
+function getBundleCardElements(kind) {
+  switch (kind) {
+    case "psalm":
+      return {
+        ref: drawerElements.bundlePsalmRef,
+        text: drawerElements.bundlePsalmText,
+        button: drawerElements.bundlePsalmExpand,
+      };
+    case "wisdom":
+      return {
+        ref: drawerElements.bundleWisdomRef,
+        text: drawerElements.bundleWisdomText,
+        button: drawerElements.bundleWisdomExpand,
+      };
+    case "solomonic":
+      return {
+        ref: drawerElements.bundleSolomonicRef,
+        text: drawerElements.bundleSolomonicText,
+        button: drawerElements.bundleSolomonicExpand,
+      };
+    default:
+      return null;
+  }
+}
+
+function parseScriptureReference(reference) {
+  const match = String(reference || "").trim().match(/^(.+?)\s+(\d+)(?::([\d,\-\s]+))?$/);
+  if (!match) {
+    return null;
+  }
+
+  return {
+    book: match[1].trim(),
+    chapter: Number.parseInt(match[2], 10),
+    verseSpec: match[3] ? match[3].trim() : "",
+  };
+}
+
+function configureBundleExpansion(kind, { reference, text, request }) {
+  const elements = getBundleCardElements(kind);
+  if (!elements) {
+    return;
+  }
+
+  bundleExpansionState[kind] = request
+    ? {
+      request,
+      previewRef: reference,
+      previewText: text,
+      expanded: false,
+      expandedText: "",
+    }
+    : null;
+
+  if (!elements.button) {
+    return;
+  }
+
+  elements.button.hidden = !request;
+  elements.button.disabled = !request;
+  elements.button.textContent = request ? "Read Full Passage" : "Expansion Unavailable";
+}
+
+function updateBundlePreviewState(kind, { reference, text }) {
+  const state = bundleExpansionState[kind];
+  if (!state) {
+    return;
+  }
+
+  if (reference) {
+    state.previewRef = reference;
+  }
+  if (typeof text === "string") {
+    state.previewText = text;
+  }
+}
+
+function restoreBundlePreview(kind) {
+  const elements = getBundleCardElements(kind);
+  const state = bundleExpansionState[kind];
+  if (!elements || !state) {
+    return;
+  }
+
+  if (elements.ref) {
+    elements.ref.textContent = state.previewRef;
+  }
+  if (elements.text) {
+    elements.text.classList.remove("loading", "error");
+    elements.text.textContent = state.previewText;
+  }
+  if (elements.button) {
+    elements.button.disabled = false;
+    elements.button.textContent = "Read Full Passage";
+  }
+
+  state.expanded = false;
+}
+
+async function toggleBundleExpansion(kind) {
+  const elements = getBundleCardElements(kind);
+  const state = bundleExpansionState[kind];
+  if (!elements?.text || !elements.button || !state?.request) {
+    return;
+  }
+
+  if (state.expanded) {
+    restoreBundlePreview(kind);
+    return;
+  }
+
+  const requestState = state;
+  const cacheKey = JSON.stringify(requestState.request);
+
+  elements.button.disabled = true;
+  elements.text.classList.remove("error");
+  elements.text.classList.add("loading");
+  elements.text.textContent = "Loading expanded passage…";
+
+  try {
+    let payload = bundleExpansionCache.get(cacheKey);
+    if (!payload) {
+      const response = await fetch(BOOK_PARTIAL_API_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(requestState.request),
+      });
+      const responsePayload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(responsePayload?.error || `HTTP ${response.status}`);
+      }
+      payload = responsePayload;
+      bundleExpansionCache.set(cacheKey, payload);
+    }
+
+    if (bundleExpansionState[kind] !== requestState) {
+      return;
+    }
+
+    requestState.expanded = true;
+    requestState.expandedText = String(payload?.content || "").trim() || "No expanded text returned.";
+    elements.text.classList.remove("loading", "error");
+    elements.text.textContent = requestState.expandedText;
+    elements.button.textContent = "Show Summary";
+    elements.button.disabled = false;
+  } catch (error) {
+    console.error(`Failed to expand ${kind} bundle text`, error);
+    if (bundleExpansionState[kind] !== requestState) {
+      return;
+    }
+
+    requestState.expanded = false;
+    elements.text.classList.remove("loading");
+    elements.text.classList.add("error");
+    elements.text.textContent = `${requestState.previewText}\n\nUnable to load expanded passage.`;
+    elements.button.textContent = "Retry Expansion";
+    elements.button.disabled = false;
+  }
+}
+
+function setupBundleExpansionControls() {
+  [
+    ["psalm", drawerElements.bundlePsalmExpand],
+    ["wisdom", drawerElements.bundleWisdomExpand],
+    ["solomonic", drawerElements.bundleSolomonicExpand],
+  ].forEach(([kind, button]) => {
+    if (!button) {
+      return;
+    }
+    button.addEventListener("click", () => {
+      toggleBundleExpansion(kind);
+    });
+  });
+}
+
 function getPentacleKey(activePentacle) {
   if (!activePentacle) {
     return null;
@@ -2565,6 +3256,85 @@ function toSnippet(text, maxLength = 220) {
   return `${clean.slice(0, maxLength - 1).trim()}…`;
 }
 
+function normalizePsalmText(text) {
+  const clean = String(text || "")
+    .replace(/\(\s*Note:[\s\S]*$/i, "")
+    .trim();
+  return clean;
+}
+
+function canonicalizePsalmText(text) {
+  return normalizePsalmText(text)
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function parsePsalmChapterVerseMap(text) {
+  const verseMap = new Map();
+  const lines = String(text || "").split(/\r?\n/);
+  let currentVerse = null;
+  let currentParts = [];
+
+  const flushCurrentVerse = () => {
+    if (currentVerse === null) {
+      return;
+    }
+
+    const normalized = currentParts
+      .join(" ")
+      .replace(/\s+/g, " ")
+      .trim();
+    if (normalized) {
+      verseMap.set(String(currentVerse), normalized);
+    }
+  };
+
+  lines.forEach((rawLine) => {
+    const line = String(rawLine || "").trim();
+    if (!line || /^chapter\s+\d+\b/i.test(line)) {
+      return;
+    }
+
+    const verseMatch = line.match(/^(\d+)\s+(.*)$/);
+    if (verseMatch) {
+      flushCurrentVerse();
+      currentVerse = verseMatch[1];
+      currentParts = [verseMatch[2].trim()];
+      return;
+    }
+
+    if (currentVerse !== null) {
+      currentParts.push(line);
+    }
+  });
+
+  flushCurrentVerse();
+  return verseMap;
+}
+
+function buildPsalmPassageFromVerseMap(chapter, verseMap, versesToFetch, depth) {
+  const seenTexts = new Set();
+  const lines = [];
+
+  versesToFetch.forEach((verse) => {
+    const text = canonicalizePsalmText(verseMap.get(String(verse)));
+    if (!text || seenTexts.has(text)) {
+      return;
+    }
+    seenTexts.add(text);
+    lines.push(depth === "short" ? text : `Psalm ${chapter}:${verse} ${text}`);
+  });
+
+  return lines.join("\n\n");
+}
+
+function formatPsalmPreviewText(text, maxLength = 220) {
+  const clean = normalizePsalmText(text)
+    .replace(/\s+/g, " ")
+    .trim();
+  return toSnippet(clean, maxLength);
+}
+
 function withTerminalPunctuation(text) {
   const clean = String(text || "").trim();
   if (!clean) {
@@ -2592,13 +3362,20 @@ function buildRuleOfLife(timeState, referenceMap, now, derived, lifeState) {
   const activePentacle = timeState?.active?.pentacle || null;
   const pentacleKey = getPentacleKey(activePentacle);
   const pentacleRecord = pentacleKey ? referenceMap.get(pentacleKey) : null;
-  const readablePsalm = formatReadablePsalmReference(getPrimaryPsalmEntry(pentacleRecord));
+  const primaryPsalm = getPrimaryPsalmEntry(pentacleRecord);
+  const readablePsalm = formatReadablePsalmReference(primaryPsalm);
   const focusTemplates = RULE_OF_LIFE_LIBRARY[focused.id] || RULE_OF_LIFE_LIBRARY.mind;
   const weakestTemplates = RULE_OF_LIFE_LIBRARY[weakest?.id] || focusTemplates;
   const tone = RULE_OF_LIFE_DAY_TONES[dayLabel?.rulerText] || "with steadiness";
   const pentacleFocus = activePentacle?.pentacle?.focus
     ? sentenceCase(activePentacle.pentacle.focus.toLowerCase())
     : "";
+  const psalmChapter = primaryPsalm
+    ? Number.parseInt(primaryPsalm.number ?? primaryPsalm.psalm, 10)
+    : Number.NaN;
+  const psalmVerse = primaryPsalm
+    ? expandVerseSpecification(primaryPsalm.verses || "")[0] || null
+    : null;
   const repairLine = weakest
     ? `Repair ${weakest.name.toLowerCase()} before the day closes.`
     : "Keep the whole wheel in view before the day closes.";
@@ -2625,6 +3402,56 @@ function buildRuleOfLife(timeState, referenceMap, now, derived, lifeState) {
     evening: withTerminalPunctuation(evening),
     repairNote: repairLine,
     anchor: readablePsalm || (activePentacle?.pentacle?.focus ? sentenceCase(activePentacle.pentacle.focus) : ""),
+    psalmRef: readablePsalm,
+    psalmChapter: Number.isNaN(psalmChapter) ? null : psalmChapter,
+    psalmVerse,
+  };
+}
+
+function buildActionLoopContext(timeState, referenceMap, now, derived, lifeState) {
+  const ruleOfLife = buildRuleOfLife(timeState, referenceMap, now, derived, lifeState);
+  const dateKey = formatDateStorageKey(now);
+  const guidedPrompt = buildGuidedPromptFromContext(ruleOfLife, timeState);
+  const dayLabel = timeState?.dayLabel || null;
+  const guidance = dayLabel ? PLANETARY_DAY_GUIDANCE[dayLabel.rulerText] : null;
+  const weeklyEntry = buildWeeklyArcEntry(now, 0, derived, referenceMap);
+  const activePentacle = timeState?.active?.pentacle || null;
+  const pentacleKey = getPentacleKey(activePentacle);
+  const pentacleRecord = pentacleKey ? referenceMap.get(pentacleKey) : null;
+  const readablePsalm = formatReadablePsalmReference(getPrimaryPsalmEntry(pentacleRecord));
+  const wisdom = dayLabel ? WISDOM_CONTENT_BY_RULER[dayLabel.rulerText] : null;
+  const dayText = dayLabel?.dayText || "Today";
+  const rulerText = dayLabel?.rulerText || "Guidance";
+  const label = ruleOfLife
+    ? `${ruleOfLife.domain} • ${ruleOfLife.virtue}`
+    : `${dayText} • ${rulerText}`;
+
+  return {
+    dateKey,
+    label,
+    guidedPrompt,
+    ruleOfLife,
+    entry: getDailyActionEntry(dateKey),
+    asOf: now.toISOString(),
+    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC",
+    dayText,
+    rulerText,
+    dayDisplay: `${dayText} (${rulerText})`,
+    guidanceTone: guidance?.tone || weeklyEntry.tone,
+    guidanceActivities: guidance?.activities || [],
+    weeklyEntry,
+    activeFocus: activePentacle?.pentacle?.focus || weeklyEntry.focus || "Focus unavailable",
+    activePentacleLabel: activePentacle
+      ? `${activePentacle.planet} Pentacle #${activePentacle.pentacle.index}`
+      : "Unavailable",
+    psalmRef: readablePsalm || weeklyEntry.psalmRef,
+    wisdomRef: wisdom?.ref || weeklyEntry.wisdomRef,
+    solomonicRef: activePentacle
+      ? `Key of Solomon, Book II • ${activePentacle.planet} Pentacle #${activePentacle.pentacle.index}`
+      : "Key of Solomon, Book II",
+    lifeDomainFocus: lifeState?.focusedDomain?.name || ruleOfLife?.domain || null,
+    weakestDomain: lifeState?.weakestDomain?.name || ruleOfLife?.weakestDomain || null,
+    weakestDomainScore: lifeState?.weakestDomain?.score ?? ruleOfLife?.weakestScore ?? null,
   };
 }
 
@@ -2638,7 +3465,7 @@ function updateRuleOfLifePanels(rule) {
   }
   lastRuleOfLifeKey = key;
 
-  const showRule = Boolean(rule);
+  const showRule = Boolean(rule) && uiState.mode === "practice";
 
   if (drawerElements.surfaceRule) {
     drawerElements.surfaceRule.hidden = !showRule;
@@ -2648,6 +3475,7 @@ function updateRuleOfLifePanels(rule) {
   }
 
   if (!showRule) {
+    updateRuleScripturePreview(null);
     return;
   }
 
@@ -2682,6 +3510,199 @@ function updateRuleOfLifePanels(rule) {
   if (drawerElements.ruleEvening) {
     drawerElements.ruleEvening.textContent = rule.evening;
   }
+
+  updateRuleScripturePreview(rule);
+}
+
+function setRuleScripturePreview(target, reference, text, { loading = false, error = false } = {}) {
+  if (!target?.container || !target?.ref || !target?.text) {
+    return;
+  }
+
+  target.container.hidden = false;
+  target.ref.textContent = reference;
+  target.text.textContent = text;
+  target.text.classList.toggle("loading", loading);
+  target.text.classList.toggle("error", error);
+}
+
+function clearRuleScripturePreview(target) {
+  if (!target?.container || !target?.ref || !target?.text) {
+    return;
+  }
+
+  target.container.hidden = true;
+  target.ref.textContent = "—";
+  target.text.textContent = "—";
+  target.text.classList.remove("loading", "error");
+}
+
+function updateRuleScripturePreview(rule) {
+  const previewTargets = [
+    {
+      container: drawerElements.surfaceRuleScripture,
+      ref: drawerElements.surfaceRuleScriptureRef,
+      text: drawerElements.surfaceRuleScriptureText,
+      maxLength: 190,
+    },
+    {
+      container: drawerElements.ruleScripture,
+      ref: drawerElements.ruleScriptureRef,
+      text: drawerElements.ruleScriptureText,
+      maxLength: 340,
+    },
+  ];
+
+  if (!rule?.psalmRef || !rule?.psalmChapter) {
+    currentRulePsalmRequestId += 1;
+    previewTargets.forEach(clearRuleScripturePreview);
+    return;
+  }
+
+  const requestId = ++currentRulePsalmRequestId;
+  previewTargets.forEach((target) => {
+    setRuleScripturePreview(target, rule.psalmRef, "Loading psalm excerpt…", { loading: true });
+  });
+
+  retrievePsalmText(rule.psalmChapter, rule.psalmVerse).then((text) => {
+    if (requestId !== currentRulePsalmRequestId) {
+      return;
+    }
+
+    previewTargets.forEach((target) => {
+      const preview = formatPsalmPreviewText(text, target.maxLength);
+      setRuleScripturePreview(target, rule.psalmRef, preview || "No psalm text returned.");
+    });
+  }).catch((error) => {
+    console.error("Failed to fetch rule-of-life psalm excerpt", error);
+    if (requestId !== currentRulePsalmRequestId) {
+      return;
+    }
+
+    previewTargets.forEach((target) => {
+      setRuleScripturePreview(target, rule.psalmRef, "Unable to fetch psalm excerpt.", { error: true });
+    });
+  });
+}
+
+async function retrievePsalmPassage(chapter, verseSpec, depth = readingDepth) {
+  if (depth === "long" || !verseSpec) {
+    return normalizePsalmText(await retrievePsalmText(chapter));
+  }
+
+  const versesToFetch = selectVersesForDepth(verseSpec, depth);
+  if (!versesToFetch.length) {
+    return normalizePsalmText(await retrievePsalmText(chapter));
+  }
+
+  if (depth === "medium") {
+    try {
+      const chapterText = await retrievePsalmText(chapter);
+      const verseMap = parsePsalmChapterVerseMap(chapterText);
+      const passageFromChapter = buildPsalmPassageFromVerseMap(chapter, verseMap, versesToFetch, depth);
+      if (passageFromChapter) {
+        return passageFromChapter;
+      }
+    } catch (_error) {
+      // Fall through to individual verse fetches when chapter parsing fails.
+    }
+  }
+
+  const results = await Promise.allSettled(
+    versesToFetch.map(async (verse) => ({
+      verse,
+      text: await retrievePsalmText(chapter, verse),
+    }))
+  );
+
+  const seenTexts = new Set();
+  const combined = results
+    .filter((result) => result.status === "fulfilled")
+    .map((result) => result.value)
+    .map((entry) => ({
+      verse: entry.verse,
+      text: normalizePsalmText(entry.text),
+      dedupeKey: canonicalizePsalmText(entry.text),
+    }))
+    .filter((entry) => Boolean(entry.text))
+    .filter((entry) => {
+      if (!entry.dedupeKey || seenTexts.has(entry.dedupeKey)) {
+        return false;
+      }
+      seenTexts.add(entry.dedupeKey);
+      return true;
+    })
+    .map((entry) => (
+      depth === "short"
+        ? entry.text
+        : `Psalm ${chapter}:${entry.verse} ${entry.text}`
+    ))
+    .join("\n\n");
+
+  return combined || normalizePsalmText(await retrievePsalmText(chapter));
+}
+
+function updateActionLoop(context) {
+  if (
+    !drawerElements.actionAdopt ||
+    !drawerElements.actionComplete ||
+    !drawerElements.actionReflect ||
+    !drawerElements.actionPericopeGuided ||
+    !drawerElements.actionPericopeFreeform ||
+    !drawerElements.actionStatus ||
+    !drawerElements.reflectionSection ||
+    !drawerElements.reflectionInput
+  ) {
+    return;
+  }
+
+  const entry = context?.entry || {};
+  const adopted = Boolean(entry.adoptedAt);
+  const completed = Boolean(entry.completedAt);
+  const reflection = String(entry.reflection || "");
+  const reflectionText = getActionLoopReflectionText(context);
+  const rule = context?.ruleOfLife || null;
+  const reflectionLaunchReady = shouldLaunchReflectionPrompt(context, reflectionText);
+
+  drawerElements.actionAdopt.textContent = adopted ? "Practice Chosen" : "Adopt Today’s Practice";
+  drawerElements.actionComplete.textContent = completed ? "Completed Today" : "Mark Complete";
+  drawerElements.actionPericopeGuided.textContent = reflectionLaunchReady ? "Bring Reflection To Pericope" : "Start Guided Chat";
+  drawerElements.actionPericopeFreeform.textContent = reflection ? "Ask Freely About This Day" : "Ask Freely";
+  if (drawerElements.actionCopy) {
+    drawerElements.actionCopy.textContent = "Copy Guided Prompt";
+  }
+  drawerElements.actionAdopt.disabled = adopted;
+  drawerElements.actionComplete.disabled = !adopted || completed;
+  drawerElements.actionReflect.setAttribute("aria-pressed", uiState.reflectionOpen ? "true" : "false");
+  drawerElements.reflectionSection.hidden = !(uiState.reflectionOpen || uiState.mode === "reflection");
+
+  if (document.activeElement !== drawerElements.reflectionInput) {
+    drawerElements.reflectionInput.value = reflection;
+  }
+
+  if (actionNotice && actionNotice.expiresAt > Date.now()) {
+    drawerElements.actionStatus.textContent = actionNotice.text;
+    return;
+  }
+  actionNotice = null;
+
+  if (completed) {
+    drawerElements.actionStatus.textContent = reflection
+      ? `Completed: ${context.label}. Bring the reflection to Pericope when you want counsel.`
+      : `Completed: ${context.label}. Add an evening note or ask Pericope to close the loop.`;
+    return;
+  }
+
+  if (adopted) {
+    drawerElements.actionStatus.textContent = rule
+      ? `Active practice: ${rule.morning} Ask Pericope if you want help applying it.`
+      : `A daily practice is active for ${context.dateKey}.`;
+    return;
+  }
+
+  drawerElements.actionStatus.textContent = rule
+    ? `Suggested next step: ${rule.morning} Ask Pericope to deepen it.`
+    : "Choose one concrete practice to make the day actionable, or ask Pericope for guidance.";
 }
 
 function getModePresentation(timeState, referenceMap, now, derived, lifeState) {
@@ -2938,7 +3959,7 @@ function updateLensAnnotations(timeState, referenceMap, now, radii) {
 }
 
 function updateExplainabilityPanel(now, timeState, referenceMap, psalmMetadata) {
-  if (!drawerElements.explainList || !drawerElements.explainCitation) {
+  if (!drawerElements.explainList) {
     return;
   }
 
@@ -3001,19 +4022,6 @@ function updateExplainabilityPanel(now, timeState, referenceMap, psalmMetadata) 
     li.textContent = reason;
     drawerElements.explainList.appendChild(li);
   });
-
-  const sourceLabel = psalmMetadata?.source || "Key of Solomon mapping";
-  if (primaryPsalm) {
-    const chapter = Number.parseInt(primaryPsalm.number ?? primaryPsalm.psalm, 10);
-    const verseLabel = primaryPsalm.verses ? `:${primaryPsalm.verses}` : "";
-    drawerElements.explainCitation.textContent = `Citation source: ${sourceLabel} • Psalm ${chapter}${verseLabel}.`;
-    return;
-  }
-
-  const supplementalSource = record?.supplementalReferences?.[0]?.source_path;
-  drawerElements.explainCitation.textContent = supplementalSource
-    ? `Citation source: ${sourceLabel} • Supplemental note: ${supplementalSource}`
-    : `Citation source: ${sourceLabel}`;
 }
 
 function updateDailyContentBundle(timeState, referenceMap, psalmMetadata) {
@@ -3035,7 +4043,7 @@ function updateDailyContentBundle(timeState, referenceMap, psalmMetadata) {
   const record = pentacleKey ? referenceMap.get(pentacleKey) : null;
   const primaryPsalm = getPrimaryPsalmEntry(record);
 
-  const key = `${dayText}|${rulerText}|${pentacleKey || "none"}|${primaryPsalm?.number ?? primaryPsalm?.psalm ?? "fallback"}|${primaryPsalm?.verses || "none"}`;
+  const key = `${dayText}|${rulerText}|${pentacleKey || "none"}|${primaryPsalm?.number ?? primaryPsalm?.psalm ?? "fallback"}|${primaryPsalm?.verses || "none"}|${readingDepth}`;
   if (key === lastBundleKey) {
     return;
   }
@@ -3048,20 +4056,39 @@ function updateDailyContentBundle(timeState, referenceMap, psalmMetadata) {
   };
   drawerElements.bundleWisdomRef.textContent = wisdom.ref;
   drawerElements.bundleWisdomText.textContent = wisdom.text;
+  configureBundleExpansion("wisdom", {
+    reference: wisdom.ref,
+    text: wisdom.text,
+    request: parseScriptureReference(wisdom.ref) ? { kind: "wisdom", reference: wisdom.ref } : null,
+  });
 
+  const solomonicReference = activePentacle
+    ? `Key of Solomon, Book II • ${activePentacle.planet} Pentacle #${activePentacle.pentacle.index}`
+    : "Key of Solomon, Book II";
   if (activePentacle) {
-    drawerElements.bundleSolomonicRef.textContent = `Key of Solomon, Book II • ${activePentacle.planet} Pentacle #${activePentacle.pentacle.index}`;
+    drawerElements.bundleSolomonicRef.textContent = solomonicReference;
     drawerElements.bundleSolomonicText.textContent = activePentacle.pentacle.focus
       ? `Purpose: ${activePentacle.pentacle.focus}.`
       : "Purpose unavailable for this pentacle.";
   } else {
-    drawerElements.bundleSolomonicRef.textContent = "Key of Solomon, Book II";
+    drawerElements.bundleSolomonicRef.textContent = solomonicReference;
     drawerElements.bundleSolomonicText.textContent = "No active pentacle focus available.";
   }
+  configureBundleExpansion("solomonic", {
+    reference: solomonicReference,
+    text: drawerElements.bundleSolomonicText.textContent,
+    request: activePentacle
+      ? {
+        kind: "solomonic",
+        planet: activePentacle.planet,
+        pentacle: activePentacle.pentacle.index,
+        reference: solomonicReference,
+      }
+      : null,
+  });
 
   let chapter = Number.NaN;
   let verse = null;
-  let citationMode = "mapped";
   if (primaryPsalm) {
     chapter = Number.parseInt(primaryPsalm.number ?? primaryPsalm.psalm, 10);
     verse = expandVerseSpecification(primaryPsalm.verses || "")[0] || null;
@@ -3070,28 +4097,61 @@ function updateDailyContentBundle(timeState, referenceMap, psalmMetadata) {
     const fallback = FALLBACK_DAILY_PSALM_BY_RULER[rulerText] || { chapter: 1, verse: 1 };
     chapter = fallback.chapter;
     verse = String(fallback.verse);
-    citationMode = "fallback";
   }
 
-  const verseLabel = verse ? `:${verse}` : "";
-  const sourceLabel = psalmMetadata?.source || "Key of Solomon mapping";
-  drawerElements.bundlePsalmRef.textContent = citationMode === "mapped"
-    ? `Psalm ${chapter}${verseLabel} (${sourceLabel})`
-    : `Psalm ${chapter}${verseLabel} (day-ruler fallback)`;
-  drawerElements.bundlePsalmText.textContent = "Loading psalm excerpt…";
+  const verseLabel = primaryPsalm?.verses ? `:${primaryPsalm.verses}` : (verse ? `:${verse}` : "");
+  const bundleVerseSpec = primaryPsalm?.verses || verse || "";
+  const citedPsalmReference = `Psalm ${chapter}${verseLabel}`;
+  const displayPsalmReference = readingDepth === "long"
+    ? `Psalm ${chapter} • Full chapter`
+    : citedPsalmReference;
+  const loadingPsalmText = readingDepth === "long"
+    ? "Loading chapter text…"
+    : readingDepth === "medium"
+      ? "Loading extended reading…"
+      : "Loading verse text…";
+  drawerElements.bundlePsalmRef.textContent = displayPsalmReference;
+  setTranslationBadge(drawerElements.bundlePsalmRef, "");
+  drawerElements.bundlePsalmText.classList.remove("error", "loading");
+  drawerElements.bundlePsalmText.classList.add("loading");
+  drawerElements.bundlePsalmText.textContent = loadingPsalmText;
+  configureBundleExpansion("psalm", {
+    reference: displayPsalmReference,
+    text: loadingPsalmText,
+    request: {
+      kind: "psalm",
+      chapter,
+      reference: citedPsalmReference,
+    },
+  });
 
-  retrievePsalmText(chapter, verse).then((text) => {
+  retrievePsalmPassage(chapter, bundleVerseSpec, readingDepth).then((text) => {
     if (requestId !== currentBundleRequestId) {
       return;
     }
-    const snippet = toSnippet(text);
-    drawerElements.bundlePsalmText.textContent = snippet || "No psalm text returned.";
+    const nextText = text || "No psalm text returned.";
+    setTranslationBadge(
+      drawerElements.bundlePsalmRef,
+      getPsalmPassageTranslationNote(chapter, bundleVerseSpec, readingDepth)
+    );
+    updateBundlePreviewState("psalm", { text: nextText });
+    if (!bundleExpansionState.psalm?.expanded) {
+      drawerElements.bundlePsalmText.classList.remove("loading", "error");
+      drawerElements.bundlePsalmText.textContent = nextText;
+    }
   }).catch((error) => {
     console.error("Failed to fetch daily bundle psalm excerpt", error);
     if (requestId !== currentBundleRequestId) {
       return;
     }
-    drawerElements.bundlePsalmText.textContent = "Unable to fetch psalm excerpt.";
+    const errorText = "Unable to fetch psalm excerpt.";
+    setTranslationBadge(drawerElements.bundlePsalmRef, "");
+    updateBundlePreviewState("psalm", { text: errorText });
+    if (!bundleExpansionState.psalm?.expanded) {
+      drawerElements.bundlePsalmText.classList.remove("loading");
+      drawerElements.bundlePsalmText.classList.add("error");
+      drawerElements.bundlePsalmText.textContent = errorText;
+    }
   });
 }
 
@@ -3186,14 +4246,111 @@ function buildBundledPsalmMap(scripturePayload) {
   return bundledPsalmMap;
 }
 
-function getBundledPsalmText(chapter) {
+function splitBundledTranslationExcerpt(text) {
+  const clean = String(text || "")
+    .replace(/\n{2,}English translation:\s*\n+/i, "\n")
+    .trim();
+  if (!clean) {
+    return { displayText: "", noteText: "" };
+  }
+
+  const commentaryMatch = clean.match(
+    /\n{2,}(\((?:Note|Please note|Translation maintained|Translation of the Bible)[\s\S]*\)|(?:I have translated[\s\S]*|While trying to maintain[\s\S]*|This translation[\s\S]*|In a literal translation[\s\S]*|The number\s+"?\d+"?\s+may indicate[\s\S]*|A more natural rendering could[\s\S]*|The correct English sentence should be[\s\S]*))$/i
+  );
+
+  if (!commentaryMatch || commentaryMatch.index === undefined) {
+    return { displayText: clean, noteText: "" };
+  }
+
+  const displayText = clean.slice(0, commentaryMatch.index).trim();
+  const noteText = commentaryMatch[1]
+    .replace(/^\(/, "")
+    .replace(/\)$/, "")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  return { displayText, noteText };
+}
+
+function getBundledPsalmExcerpt(chapter) {
   const entry = bundledPsalmMap.get(String(chapter));
   if (!entry) {
     return null;
   }
 
   const excerpt = String(entry.translation_excerpt || entry.latin_excerpt || "").trim();
-  return excerpt || null;
+  if (!excerpt) {
+    return null;
+  }
+
+  return splitBundledTranslationExcerpt(excerpt);
+}
+
+function getBundledPsalmText(chapter) {
+  return getBundledPsalmExcerpt(chapter)?.displayText || null;
+}
+
+function getBundledPsalmNote(chapter) {
+  return getBundledPsalmExcerpt(chapter)?.noteText || "";
+}
+
+function getPsalmTextMeta(chapter, verse = null) {
+  return psalmTextMetaCache.get(`${chapter}:${verse ?? ""}`) || null;
+}
+
+function getPsalmPassageTranslationNote(chapter, verseSpec, depth = readingDepth) {
+  if (depth === "long" || !verseSpec) {
+    return getPsalmTextMeta(chapter)?.translationNote || "";
+  }
+
+  const versesToFetch = selectVersesForDepth(verseSpec, depth);
+  for (const verse of versesToFetch) {
+    const note = getPsalmTextMeta(chapter, verse)?.translationNote;
+    if (note) {
+      return note;
+    }
+  }
+
+  return getPsalmTextMeta(chapter)?.translationNote || "";
+}
+
+function setTranslationBadge(container, noteText) {
+  if (!container) {
+    return;
+  }
+
+  const existing = container.querySelector(".translation-badge");
+  const cleanNote = String(noteText || "").replace(/\s+/g, " ").trim();
+  if (!cleanNote) {
+    if (existing) {
+      existing.remove();
+    }
+    return;
+  }
+
+  let badge = existing;
+  if (!badge) {
+    badge = document.createElement("span");
+    badge.className = "translation-badge";
+    badge.textContent = "Literal";
+    badge.tabIndex = 0;
+    container.append(" ");
+    container.appendChild(badge);
+  }
+
+  badge.title = cleanNote;
+  badge.setAttribute("aria-label", cleanNote);
+}
+
+function getPsalmFallbackText(chapter, verse) {
+  const bundledText = getBundledPsalmText(chapter);
+  if (bundledText) {
+    return bundledText;
+  }
+
+  return verse
+    ? `Psalm ${chapter}:${verse} is not bundled in this standalone clock yet.`
+    : `Psalm ${chapter} is not bundled in this standalone clock yet.`;
 }
 
 function updatePsalmDrawer(activePentacle, referenceMap) {
@@ -3259,61 +4416,21 @@ function updatePsalmDrawer(activePentacle, referenceMap) {
 
     const textBlock = document.createElement("div");
     textBlock.classList.add("psalm-text", "loading");
-    textBlock.textContent = readingDepth === "long" ? "Loading chapter text…" : "Loading verse text…";
+    textBlock.textContent = readingDepth === "long"
+      ? "Loading chapter text…"
+      : readingDepth === "medium"
+        ? "Loading extended reading…"
+        : "Loading verse text…";
     li.appendChild(textBlock);
     drawerElements.list.appendChild(li);
 
-    if (!entry.verses && readingDepth !== "long") {
-      textBlock.classList.remove("loading");
-      textBlock.textContent = "Verse reference not provided in source.";
-      return;
-    }
-
-    if (readingDepth === "long") {
-      retrievePsalmText(psalmNumber).then((chapterText) => {
-        if (currentPsalmRequestId !== requestId) {
-          return;
-        }
-        textBlock.classList.remove("loading");
-        textBlock.textContent = chapterText || "No chapter text returned by scripture service.";
-      }).catch((error) => {
-        console.error("Failed to fetch psalm chapter", error);
-        if (currentPsalmRequestId !== requestId) {
-          return;
-        }
-        textBlock.classList.remove("loading");
-        textBlock.classList.add("error");
-        textBlock.textContent = "Unable to fetch chapter text.";
-      });
-      return;
-    }
-
-    const versesToFetch = selectVersesForDepth(entry.verses, readingDepth);
-    if (!versesToFetch.length) {
-      textBlock.classList.remove("loading");
-      textBlock.textContent = "Unable to parse verse reference.";
-      textBlock.classList.add("error");
-      return;
-    }
-
-    Promise.allSettled(
-      versesToFetch.map(async (verse) => ({
-        verse,
-        text: await retrievePsalmText(psalmNumber, verse),
-      }))
-    ).then((results) => {
+    retrievePsalmPassage(psalmNumber, entry.verses || "", readingDepth).then((text) => {
       if (currentPsalmRequestId !== requestId) {
         return;
       }
-      const combined = results
-        .filter((result) => result.status === "fulfilled")
-        .map((result) => result.value)
-        .filter((entryResult) => Boolean(entryResult.text))
-        .map((entryResult) => `Psalm ${psalmNumber}:${entryResult.verse} ${entryResult.text}`)
-        .join("\n\n");
       textBlock.classList.remove("loading");
-      textBlock.textContent = combined || "No verse text returned by scripture service.";
-      if (!combined) {
+      textBlock.textContent = text || "No verse text returned by scripture service.";
+      if (!text) {
         textBlock.classList.add("error");
       }
     }).catch((error) => {
@@ -3323,7 +4440,7 @@ function updatePsalmDrawer(activePentacle, referenceMap) {
       }
       textBlock.classList.remove("loading");
       textBlock.classList.add("error");
-      textBlock.textContent = "Unable to fetch verse text.";
+      textBlock.textContent = "Unable to fetch psalm text.";
     });
   });
 }
@@ -3405,44 +4522,55 @@ async function retrievePsalmText(chapter, verse) {
     return psalmTextCache.get(key);
   }
 
-  const bundledText = getBundledPsalmText(chapter);
-  if (bundledText) {
-    psalmTextCache.set(key, bundledText);
-    return bundledText;
-  }
-
   if (!ENABLE_REMOTE_SCRIPTURE_FETCH) {
-    const fallbackText = verse
-      ? `Psalm ${chapter}:${verse} is not bundled in this standalone clock yet.`
-      : `Psalm ${chapter} is not bundled in this standalone clock yet.`;
+    const fallbackText = getPsalmFallbackText(chapter, verse);
     psalmTextCache.set(key, fallbackText);
+    psalmTextMetaCache.set(key, {
+      source: getBundledPsalmText(chapter) ? "bundled" : "fallback",
+      translationNote: getBundledPsalmNote(chapter),
+    });
     return fallbackText;
   }
 
-  const params = new URLSearchParams({ chapter: String(chapter) });
-  if (verse) {
-    params.set("verse", String(verse));
+  try {
+    const params = new URLSearchParams({ chapter: String(chapter) });
+    if (verse) {
+      params.set("verse", String(verse));
+    }
+    const response = await fetch(`${PSALM_API_ENDPOINT}?${params.toString()}`);
+
+    if (response.ok) {
+      const data = await response.json();
+
+      const verseText = (
+        data.text ||
+        (Array.isArray(data.verses) ? data.verses.map((entry) => entry.text).join("\n") : "")
+      ).trim();
+      if (verseText) {
+        psalmTextCache.set(key, verseText);
+        psalmTextMetaCache.set(key, { source: "api", translationNote: "" });
+        return verseText;
+      }
+    }
+  } catch (_error) {
+    // Fall through to bundled excerpts when the local psalm endpoint is unavailable.
   }
-  const response = await fetch(`${PSALM_API_ENDPOINT}?${params.toString()}`);
 
-  if (!response.ok) {
-    throw new Error(`HTTP ${response.status}`);
-  }
-
-  const data = await response.json();
-
-  const verseText = (
-    data.text ||
-    (Array.isArray(data.verses) ? data.verses.map((entry) => entry.text).join("\n") : "")
-  ).trim();
-  psalmTextCache.set(key, verseText);
-  return verseText;
+  const fallbackText = getPsalmFallbackText(chapter, verse);
+  psalmTextCache.set(key, fallbackText);
+  psalmTextMetaCache.set(key, {
+    source: getBundledPsalmText(chapter) ? "bundled" : "fallback",
+    translationNote: getBundledPsalmNote(chapter),
+  });
+  return fallbackText;
 }
 
 async function initialiseClock() {
   setupLensControls();
   setupDrawerToggle();
+  setupActionLoopControls();
   setupReadingDepthControls();
+  setupBundleExpansionControls();
   setupWeeklyArcControls();
 
   try {
@@ -3499,7 +4627,7 @@ async function initialiseClock() {
       .attr("text-anchor", "middle")
       .attr("fill", "#ef4444")
       .attr("font-size", "20px")
-      .text("Unable to load Solomonic clock data");
+      .text("Unable to load True Vine OS data");
   }
 }
 
@@ -3552,6 +4680,8 @@ function renderClock(data, referenceMap, psalmMetadata, pentacleData, lifeDomain
 
     updateCenterLabels(layers.core.name, timeState, referenceMap, now, derived, lifeState);
     updateSurfacePanel(timeState, referenceMap, now, derived, lifeState);
+    currentActionLoopContext = buildActionLoopContext(timeState, referenceMap, displayNow, derived, lifeState);
+    updateActionLoop(currentActionLoopContext);
     updateDailyGuidance(timeState);
     updateWeeklyArcPanel(now, derived, referenceMap);
     updateDailyProfile(timeState);

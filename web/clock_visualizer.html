@@ -3,14 +3,60 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Solomonic Clock of Spheres</title>
+    <title>Solomonic Clock and Daily Counsel | True Vine OS</title>
+    <meta
+      name="description"
+      content="Open the live True Vine OS clock to read daily counsel, Scripture anchors, Psalm correspondences, and a practical rule of life."
+    />
+    <meta name="robots" content="index,follow" />
+    <link rel="canonical" href="__CANONICAL_URL__" />
+    <meta property="og:site_name" content="True Vine OS" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Solomonic Clock and Daily Counsel | True Vine OS" />
+    <meta
+      property="og:description"
+      content="A live daily clock for Scripture-first guidance, correspondences, and reflective practice."
+    />
+    <meta property="og:url" content="__CANONICAL_URL__" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Solomonic Clock and Daily Counsel | True Vine OS" />
+    <meta
+      name="twitter:description"
+      content="Open the live clock for daily counsel, Psalm correspondences, and a rule of life."
+    />
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-138HFD1QQP"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() {dataLayer.push(arguments);}
+      gtag("js", new Date());
+      gtag("config", "G-138HFD1QQP");
+    </script>
     <link rel="icon" href='data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="12" fill="%23020617"/><circle cx="32" cy="32" r="20" fill="none" stroke="%23facc15" stroke-width="4"/><circle cx="32" cy="32" r="6" fill="%23facc15"/></svg>' />
-    <link rel="stylesheet" href="style.css?v=20260313-9" />
+    <link rel="stylesheet" href="/web/style.css?v=20260318-1" />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "True Vine OS",
+        "url": "__CANONICAL_URL__",
+        "applicationCategory": "LifestyleApplication",
+        "operatingSystem": "Web",
+        "description": "A live daily clock for Scripture-first counsel, source-faithful correspondences, and reflective practice."
+      }
+    </script>
   </head>
-  <body>
+  <body data-pericope-chat-url="https://pericopeai.com/chat">
     <div class="layout">
       <main class="page">
-        <h1 class="title">Solomonic Clock of Spheres</h1>
+        <nav class="page-actions" aria-label="Page links">
+          <a class="page-link" href="/">Overview</a>
+          <a class="page-link" href="/how-to-use">How It Works</a>
+        </nav>
+        <h1 class="title">True Vine OS</h1>
+        <p class="page-intro">
+          Read the day through Scripture-first counsel, daily practice, and the live clock. Start here if
+          you want the instrument surface, the rule of life, and Psalm correspondences in one place.
+        </p>
         <nav class="lens-bar" aria-label="Clock lenses">
           <button type="button" class="lens-button active" data-lens="base" aria-pressed="true">
             Base
@@ -55,14 +101,40 @@
                   <dd class="surface-rule-evening">—</dd>
                 </div>
               </dl>
+              <div class="surface-rule-scripture" hidden>
+                <p class="surface-rule-scripture-label">Scripture For The Close</p>
+                <p class="surface-rule-scripture-ref">—</p>
+                <p class="surface-rule-scripture-text">—</p>
+              </div>
             </section>
           </div>
           <svg id="clock" width="800" height="800" viewBox="0 0 800 800"></svg>
         </section>
-        <p class="caption">
-          Generated from <code>data/solomonic_clock_full.json</code>. Hover outer sectors for
-          detailed spirit info.
-        </p>
+        <section class="action-loop" aria-label="Daily action loop">
+          <div class="action-loop-bar">
+            <button type="button" class="action-button action-adopt">Adopt Today&apos;s Practice</button>
+            <button type="button" class="action-button action-complete">Mark Complete</button>
+            <button type="button" class="action-button action-reflect">Reflect Tonight</button>
+            <button type="button" class="action-button action-button--accent action-pericope-guided">Start Guided Chat</button>
+            <button type="button" class="action-button action-pericope-freeform">Ask Freely</button>
+            <button type="button" class="action-button action-copy">Copy Guided Prompt</button>
+          </div>
+          <p class="action-loop-status" aria-live="polite">Choose one concrete practice to make the day actionable.</p>
+          <section class="reflection-capture" hidden aria-label="Reflection capture">
+            <label class="reflection-label" for="reflection-input">Evening Reflection</label>
+            <textarea
+              id="reflection-input"
+              class="reflection-input"
+              rows="4"
+              placeholder="What happened today? What held? What failed? What needs repair tomorrow?"
+            ></textarea>
+            <div class="reflection-actions">
+              <button type="button" class="action-button action-button--accent reflection-save">Save Reflection</button>
+              <button type="button" class="action-button reflection-clear">Clear</button>
+            </div>
+          </section>
+        </section>
+        <p class="page-legacy-line">Formerly Solomonic Clock of Spheres</p>
       </main>
       <aside class="drawer" aria-label="Psalm references">
         <header class="drawer-header">
@@ -94,6 +166,11 @@
               <li><strong>Midday</strong><span class="rule-midday">—</span></li>
               <li><strong>Evening</strong><span class="rule-evening">—</span></li>
             </ul>
+            <div class="rule-scripture" hidden>
+              <p class="rule-scripture-label">Scripture For The Close</p>
+              <p class="rule-scripture-ref">—</p>
+              <p class="rule-scripture-text">—</p>
+            </div>
           </section>
           <section class="weekly-arc drawer-section" data-lenses="base ritual history" aria-label="Weekly arc">
             <div class="weekly-arc-top">
@@ -124,22 +201,21 @@
           <section class="reading-depth drawer-section" data-lenses="scripture" aria-label="Reading depth">
             <p class="depth-heading">Reading Depth</p>
             <div class="depth-controls" role="group" aria-label="Reading depth selection">
-              <button type="button" class="depth-button active" data-depth="short" aria-pressed="true">
+              <button type="button" class="depth-button" data-depth="short" aria-pressed="false">
                 Short
               </button>
-              <button type="button" class="depth-button" data-depth="medium" aria-pressed="false">
+              <button type="button" class="depth-button active" data-depth="medium" aria-pressed="true">
                 Medium
               </button>
               <button type="button" class="depth-button" data-depth="long" aria-pressed="false">
                 Long
               </button>
             </div>
-            <p class="depth-note">Short: 1 verse • Medium: 3-5 verses • Long: full chapter</p>
+            <p class="depth-note">Short: 1 verse • Medium: 3-5 verses • Long: full chapter. This also expands the Psalm reading below.</p>
           </section>
           <section class="explainability-panel drawer-section" data-lenses="scripture esoteric" aria-label="Selection explainability">
             <p class="explain-heading">Why This Was Selected</p>
             <ul class="explain-list"></ul>
-            <p class="explain-citation">—</p>
           </section>
           <section class="daily-bundle drawer-section" data-lenses="scripture ritual esoteric" aria-label="Daily content bundle">
             <p class="bundle-heading">Daily Content Bundle</p>
@@ -147,16 +223,31 @@
               <p class="bundle-label">Psalm</p>
               <p class="bundle-ref bundle-psalm-ref">—</p>
               <p class="bundle-text bundle-psalm-text">—</p>
+              <div class="bundle-actions">
+                <button type="button" class="bundle-expand bundle-psalm-expand" data-bundle-kind="psalm">
+                  Read Full Passage
+                </button>
+              </div>
             </article>
             <article class="bundle-item">
               <p class="bundle-label">Wisdom</p>
               <p class="bundle-ref bundle-wisdom-ref">—</p>
               <p class="bundle-text bundle-wisdom-text">—</p>
+              <div class="bundle-actions">
+                <button type="button" class="bundle-expand bundle-wisdom-expand" data-bundle-kind="wisdom">
+                  Read Full Passage
+                </button>
+              </div>
             </article>
             <article class="bundle-item">
               <p class="bundle-label">Solomonic</p>
               <p class="bundle-ref bundle-solomonic-ref">—</p>
               <p class="bundle-text bundle-solomonic-text">—</p>
+              <div class="bundle-actions">
+                <button type="button" class="bundle-expand bundle-solomonic-expand" data-bundle-kind="solomonic">
+                  Read Full Passage
+                </button>
+              </div>
             </article>
           </section>
           <section class="psalm-panel drawer-section" data-lenses="scripture ritual esoteric" aria-label="Psalm correspondences">
@@ -170,6 +261,6 @@
       </aside>
     </div>
     <script src="https://d3js.org/d3.v7.min.js"></script>
-    <script src="clock.js?v=20260313-9"></script>
+    <script src="/web/clock.js?v=20260318-2"></script>
   </body>
 </html>
