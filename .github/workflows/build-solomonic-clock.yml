@@ -18,8 +18,8 @@ jobs:
   build_publish:
     runs-on: ubuntu-latest
     env:
-      IMAGE_REF: ghcr.io/benlagrone/solomonic-clock:sha-${{ github.sha }}
-      LATEST_REF: ghcr.io/benlagrone/solomonic-clock:latest
+      IMAGE_REF: ghcr.io/benlagrone/solomonic-seals:sha-${{ github.sha }}
+      LATEST_REF: ghcr.io/benlagrone/solomonic-seals:latest
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
@@ -67,12 +67,7 @@ jobs:
 
       - name: Login To GHCR
         shell: bash
-        env:
-          GHCR_PUSH_TOKEN: ${{ secrets.GHCR_PUSH_TOKEN }}
-        run: |
-          set -euo pipefail
-          token="${GHCR_PUSH_TOKEN:-${{ secrets.GITHUB_TOKEN }}}"
-          echo "$token" | docker login ghcr.io -u benlagrone --password-stdin
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
 
       - name: Tag And Push Image
         shell: bash

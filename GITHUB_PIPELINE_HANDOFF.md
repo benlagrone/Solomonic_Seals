@@ -7,8 +7,8 @@ This project now follows the same controlled image deployment model as the other
 1. Push to `main` in `Solomonic_Seals`.
 2. GitHub Actions runs `.github/workflows/build-solomonic-clock.yml`.
 3. The workflow validates the dataset, builds the container, smokes `http://127.0.0.1:18086/api/clock`, and pushes:
-   - `ghcr.io/benlagrone/solomonic-clock:sha-<commit>`
-   - `ghcr.io/benlagrone/solomonic-clock:latest`
+   - `ghcr.io/benlagrone/solomonic-seals:sha-<commit>`
+   - `ghcr.io/benlagrone/solomonic-seals:latest`
 4. On successful `main` pushes, the build workflow dispatches the fortress deploy workflow.
 5. Fortress deploys only the `solomonic-clock` service inside the existing Pericope compose stack on Contabo.
 
@@ -41,8 +41,6 @@ Only the deploy source changes from local `build:` to a pinned GHCR image overri
 
 - `FORTRESS_WORKFLOW_TOKEN`
   - fine-grained token that can dispatch fortress workflows
-- `GHCR_PUSH_TOKEN`
-  - PAT with package write access used to publish `ghcr.io/benlagrone/solomonic-clock`
 
 ### In `fortress-phronesis` environment `prod`
 
