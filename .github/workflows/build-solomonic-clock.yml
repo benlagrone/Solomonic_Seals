@@ -1,0 +1,157 @@
+name: Build Solomonic Clock Image
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: solomonic-clock-build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build_publish:
+    runs-on: ubuntu-latest
+    env:
+      IMAGE_REF: ghcr.io/benlagrone/solomonic-clock:sha-${{ github.sha }}
+      LATEST_REF: ghcr.io/benlagrone/solomonic-clock:latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Validate Dataset Build
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m compileall src
+          python3 src/generate_full_dataset.py
+          python3 src/validate_json.py
+
+      - name: Build Container For Smoke
+        run: docker build -t solomonic-clock:ci .
+
+      - name: Container Smoke
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker run -d --rm --name solomonic-clock-smoke -p 127.0.0.1:18086:8080 solomonic-clock:ci
+          trap 'docker rm -f solomonic-clock-smoke >/dev/null 2>&1 || true' EXIT
+
+          for attempt in $(seq 1 20); do
+            if curl -fsS http://127.0.0.1:18086/api/clock >/tmp/solomonic-clock-smoke.json 2>/dev/null; then
+              break
+            fi
+            sleep 2
+          done
+
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          payload = json.loads(Path('/tmp/solomonic-clock-smoke.json').read_text(encoding='utf-8'))
+          assert payload.get('title') == 'True Vine OS'
+          assert 'layers' in payload
+          PY
+
+          curl -fsSI http://127.0.0.1:18086/
+
+      - name: Login To GHCR
+        shell: bash
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+      - name: Tag And Push Image
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker tag solomonic-clock:ci "$IMAGE_REF"
+          docker tag solomonic-clock:ci "$LATEST_REF"
+          docker push "$IMAGE_REF"
+          docker push "$LATEST_REF"
+
+      - name: Write Build Metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PYMETA'
+          import json
+          import os
+          import subprocess
+
+          image_ref = os.environ['IMAGE_REF']
+          try:
+              digest = subprocess.check_output(
+                  ['docker', 'image', 'inspect', image_ref, '--format', '{{index .RepoDigests 0}}'],
+                  text=True,
+                  stderr=subprocess.DEVNULL,
+              ).strip()
+          except Exception:
+              digest = ''
+
+          with open('build-metadata.json', 'w', encoding='utf-8') as fh:
+              json.dump(
+                  {
+                      'commit_sha': os.environ['GITHUB_SHA'],
+                      'image_tag': image_ref,
+                      'image_digest': digest,
+                  },
+                  fh,
+                  indent=2,
+              )
+          PYMETA
+
+      - name: Upload Build Metadata
+        uses: actions/upload-artifact@v4
+        with:
+          name: solomonic-clock-build-${{ github.sha }}
+          path: build-metadata.json
+
+      - name: Trigger Fortress Deploy
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        shell: bash
+        env:
+          FORTRESS_WORKFLOW_TOKEN: ${{ secrets.FORTRESS_WORKFLOW_TOKEN }}
+        run: |
+          set -euo pipefail
+          curl -fsS -X POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${FORTRESS_WORKFLOW_TOKEN}" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            https://api.github.com/repos/benlagrone/fortress-phronesis/actions/workflows/deploy-solomonic-clock.yml/dispatches \
+            -d "{\"ref\":\"main\",\"inputs\":{\"source_sha\":\"${GITHUB_SHA}\",\"environment\":\"prod\"}}"
+
+      - name: Build Summary
+        shell: bash
+        run: |
+          set -euo pipefail
+          DIGEST="$(python3 - <<'PYDIGEST'
+          import json
+          with open('build-metadata.json', 'r', encoding='utf-8') as fh:
+              data = json.load(fh)
+          print(data.get('image_digest', ''))
+          PYDIGEST
+          )"
+
+          {
+            echo "## Solomonic Clock Build"
+            echo ""
+            echo "- Commit: \`${GITHUB_SHA}\`"
+            echo "- Image tag: \`${IMAGE_REF}\`"
+            if [ -n "$DIGEST" ]; then
+              echo "- Image digest: \`${DIGEST}\`"
+            fi
+            if [ "${GITHUB_EVENT_NAME}" = "push" ] && [ "${GITHUB_REF}" = "refs/heads/main" ]; then
+              echo "- Deploy: fortress deployment was dispatched automatically for this SHA."
+            else
+              echo "- Deploy: automatic deployment is only triggered for pushes to \`main\`."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
