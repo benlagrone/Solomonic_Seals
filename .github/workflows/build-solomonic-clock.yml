@@ -67,7 +67,12 @@ jobs:
 
       - name: Login To GHCR
         shell: bash
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+        env:
+          GHCR_PUSH_TOKEN: ${{ secrets.GHCR_PUSH_TOKEN }}
+        run: |
+          set -euo pipefail
+          token="${GHCR_PUSH_TOKEN:-${{ secrets.GITHUB_TOKEN }}}"
+          echo "$token" | docker login ghcr.io -u benlagrone --password-stdin
 
       - name: Tag And Push Image
         shell: bash

@@ -41,6 +41,8 @@ Only the deploy source changes from local `build:` to a pinned GHCR image overri
 
 - `FORTRESS_WORKFLOW_TOKEN`
   - fine-grained token that can dispatch fortress workflows
+- `GHCR_PUSH_TOKEN`
+  - PAT with package write access used to publish `ghcr.io/benlagrone/solomonic-clock`
 
 ### In `fortress-phronesis` environment `prod`
 
