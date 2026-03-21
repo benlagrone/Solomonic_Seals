@@ -239,6 +239,157 @@ body {
   margin-top: 0.75rem;
 }
 
+.history-current {
+  display: grid;
+  gap: 0.75rem;
+  padding: 1rem;
+  border-radius: 1rem;
+  border: 1px solid rgba(74, 222, 128, 0.18);
+  background: rgba(15, 23, 42, 0.52);
+}
+
+.history-current-day,
+.history-current-summary,
+.history-current-reflection,
+.history-current-launches,
+.history-log-label,
+.history-log-note {
+  margin: 0;
+}
+
+.history-current-day {
+  color: #f8fafc;
+  font-weight: 600;
+}
+
+.history-current-summary,
+.history-current-reflection,
+.history-current-launches,
+.history-log-note {
+  color: #dbe4f0;
+  line-height: 1.55;
+}
+
+.history-current-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.history-meta-pill {
+  padding: 0.26rem 0.58rem;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  background: rgba(15, 23, 42, 0.86);
+  color: #cbd5f5;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+}
+
+.history-meta-pill.is-recorded {
+  color: #f8fafc;
+}
+
+.history-meta-pill.is-complete {
+  border-color: rgba(74, 222, 128, 0.44);
+  color: #bbf7d0;
+}
+
+.history-meta-pill.is-adopted {
+  border-color: rgba(250, 204, 21, 0.44);
+  color: #fde68a;
+}
+
+.history-meta-pill.is-reflected {
+  border-color: rgba(167, 139, 250, 0.44);
+  color: #ddd6fe;
+}
+
+.history-meta-pill.is-launch {
+  border-color: rgba(96, 165, 250, 0.4);
+  color: #bfdbfe;
+}
+
+.history-log-top {
+  margin-top: 1rem;
+  display: grid;
+  gap: 0.2rem;
+}
+
+.history-log-label {
+  font-size: 0.78rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #86efac;
+}
+
+.history-log-list {
+  list-style: none;
+  padding: 0;
+  margin: 0.85rem 0 0;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.history-log-item,
+.history-log-empty {
+  margin: 0;
+}
+
+.history-log-button {
+  width: 100%;
+  text-align: left;
+  padding: 0.9rem 1rem;
+  border-radius: 1rem;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  background: rgba(2, 6, 23, 0.44);
+  color: inherit;
+  cursor: pointer;
+  transition: border-color 0.18s ease, background 0.18s ease, transform 0.18s ease;
+}
+
+.history-log-button:hover {
+  border-color: rgba(74, 222, 128, 0.4);
+  background: rgba(15, 23, 42, 0.72);
+  transform: translateY(-1px);
+}
+
+.history-log-button-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.7rem;
+  align-items: baseline;
+}
+
+.history-log-day {
+  color: #f8fafc;
+  font-weight: 600;
+}
+
+.history-log-state {
+  color: #93c5fd;
+  font-size: 0.74rem;
+  line-height: 1.35;
+  text-align: right;
+}
+
+.history-log-summary {
+  margin: 0.45rem 0 0;
+  color: #dbe4f0;
+  line-height: 1.5;
+}
+
+.history-log-empty {
+  padding: 0.9rem 1rem;
+  border-radius: 1rem;
+  border: 1px dashed rgba(148, 163, 184, 0.18);
+  color: #93a8c5;
+  background: rgba(15, 23, 42, 0.34);
+}
+
 .clock-surface-panel {
   position: absolute;
   left: 50%;
@@ -480,6 +631,10 @@ svg[data-lens="history"] .history-preview {
 
 .history-node-label {
   font-family: "Times New Roman", serif;
+  pointer-events: none;
+}
+
+.history-node-ring {
   pointer-events: none;
 }
 
@@ -1846,6 +2001,9 @@ svg[data-mode="timeline"] .history-preview {
 
 .bundle-actions {
   margin-top: 0.55rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
 }
 
 .bundle-expand {
@@ -1871,6 +2029,33 @@ svg[data-mode="timeline"] .history-preview {
 }
 
 .bundle-expand:disabled {
+  cursor: default;
+  opacity: 0.45;
+}
+
+.bundle-discuss {
+  appearance: none;
+  border: 1px solid rgba(250, 204, 21, 0.28);
+  background: rgba(46, 38, 7, 0.58);
+  color: #fde68a;
+  border-radius: 999px;
+  padding: 0.36rem 0.8rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: border-color 150ms ease, color 150ms ease, background 150ms ease, opacity 150ms ease;
+}
+
+.bundle-discuss:hover,
+.bundle-discuss:focus-visible {
+  border-color: rgba(250, 204, 21, 0.56);
+  color: #fef3c7;
+  background: rgba(66, 50, 8, 0.82);
+  outline: none;
+}
+
+.bundle-discuss:disabled {
   cursor: default;
   opacity: 0.45;
 }

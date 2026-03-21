@@ -9,4 +9,5 @@ venv/
 *.log
 docs/**/*.tmp
 output/
+.playwright-cli/
 progress.md
