@@ -32,7 +32,7 @@
       gtag("config", "G-138HFD1QQP");
     </script>
     <link rel="icon" href='data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="12" fill="%23020617"/><circle cx="32" cy="32" r="20" fill="none" stroke="%23facc15" stroke-width="4"/><circle cx="32" cy="32" r="6" fill="%23facc15"/></svg>' />
-    <link rel="stylesheet" href="/web/style.css?v=20260320-1" />
+    <link rel="stylesheet" href="/web/style.css?v=20260321-1" />
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
@@ -46,6 +46,33 @@
     </script>
   </head>
   <body data-pericope-chat-url="https://pericopeai.com/chat">
+    <section class="daily-opening-overlay" hidden aria-label="Daily opening">
+      <div class="daily-opening-backdrop"></div>
+      <div class="daily-opening-card" role="dialog" aria-modal="true" aria-labelledby="daily-opening-day">
+        <p class="daily-opening-kicker">Daily Opening</p>
+        <h2 class="daily-opening-day" id="daily-opening-day">Today</h2>
+        <p class="daily-opening-focus">—</p>
+        <p class="daily-opening-summary">—</p>
+        <div class="daily-opening-anchor">
+          <p class="daily-opening-anchor-label">Scripture Anchor</p>
+          <p class="daily-opening-anchor-ref">—</p>
+        </div>
+        <label class="daily-opening-intention-label" for="daily-opening-intention">
+          Intention for today
+        </label>
+        <textarea
+          id="daily-opening-intention"
+          class="daily-opening-intention"
+          rows="3"
+          placeholder="Name the one virtue, repair, or practice you want to carry through this day."
+        ></textarea>
+        <div class="daily-opening-actions">
+          <button type="button" class="action-button daily-opening-suggested">Use Suggested Words</button>
+          <button type="button" class="action-button daily-opening-skip">Skip For Now</button>
+          <button type="button" class="action-button action-button--accent daily-opening-begin">Begin The Day</button>
+        </div>
+      </div>
+    </section>
     <div class="layout">
       <main class="page">
         <nav class="page-actions" aria-label="Page links">
@@ -112,6 +139,7 @@
         </section>
         <section class="action-loop" aria-label="Daily action loop">
           <div class="action-loop-bar">
+            <button type="button" class="action-button action-daily-opening">Daily Opening</button>
             <button type="button" class="action-button action-adopt">Adopt Today&apos;s Practice</button>
             <button type="button" class="action-button action-complete">Mark Complete</button>
             <button type="button" class="action-button action-reflect">Reflect Tonight</button>
@@ -285,6 +313,6 @@
       </aside>
     </div>
     <script src="https://d3js.org/d3.v7.min.js"></script>
-    <script src="/web/clock.js?v=20260320-1"></script>
+    <script src="/web/clock.js?v=20260321-1"></script>
   </body>
 </html>

@@ -11,8 +11,11 @@ services:
       SOLOMONIC_PSALM_SOURCE_MODE: ${SOLOMONIC_PSALM_SOURCE_MODE:-pericope_first}
       SOLOMONIC_PERICOPE_API_BASE: ${SOLOMONIC_PERICOPE_API_BASE:-http://augustine-corpus-live:8001}
       SOLOMONIC_GUIDED_PROMPTS_API_KEY: ${SOLOMONIC_GUIDED_PROMPTS_API_KEY:-}
+      SOLOMONIC_HISTORY_STORE_PATH: ${SOLOMONIC_HISTORY_STORE_PATH:-/var/lib/solomonic-clock/history_store.json}
     ports:
       - "127.0.0.1:${SOLOMONIC_HOST_PORT:-8086}:8080"
+    volumes:
+      - solomonic-clock-history:/var/lib/solomonic-clock
     extra_hosts:
       - "host.docker.internal:host-gateway"
     healthcheck:
@@ -32,3 +35,6 @@ networks:
   shared-backplane:
     external: true
     name: ${SOLOMONIC_SHARED_NETWORK:-fortress-phronesis-net}
+
+volumes:
+  solomonic-clock-history:

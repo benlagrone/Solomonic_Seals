@@ -11,10 +11,12 @@ from __future__ import annotations
 
 import argparse
 import csv
+import hashlib
 import hmac
 import json
 import os
 import re
+import threading
 from dataclasses import dataclass
 from datetime import datetime
 from functools import partial
@@ -77,6 +79,15 @@ _PSALM_NUMBER_MAP_ERROR: str | None = None
 _AUTHOR_TEXTS_DIR_CACHE: dict[str, Path] | None = None
 GUIDED_PROMPTS_API_KEY_ENV = "SOLOMONIC_GUIDED_PROMPTS_API_KEY"
 GUIDED_PROMPTS_AUTH_HEADER = "X-Solomonic-Clock-Key"
+HISTORY_SYNC_API_PATH = "/api/history/sync"
+HISTORY_CLIENT_HEADER = "X-TrueVine-History-Client"
+HISTORY_KEY_HEADER = "X-TrueVine-History-Key"
+HISTORY_STORE_PATH_ENV = "SOLOMONIC_HISTORY_STORE_PATH"
+DEFAULT_HISTORY_STORE_PATH = Path("/var/lib/solomonic-clock/history_store.json")
+MAX_HISTORY_ENTRIES_PER_CLIENT = 400
+MAX_HISTORY_REFLECTION_LENGTH = 4000
+MAX_HISTORY_LAUNCHES_PER_ENTRY = 12
+_HISTORY_STORE_LOCK = threading.Lock()
 DEFAULT_SITE_URL = "https://truevineos.cloud"
 SITE_URL_ENV = "SOLOMONIC_SITE_URL"
 PUBLIC_PAGE_TEMPLATES = {
@@ -1259,6 +1270,202 @@ def _read_json_file(path: Path) -> tuple[dict[str, Any] | None, str | None]:
     return payload, None
 
 
+def _resolve_history_store_path() -> Path:
+    configured = os.environ.get(HISTORY_STORE_PATH_ENV, "").strip()
+    if configured:
+        return Path(configured)
+    return DEFAULT_HISTORY_STORE_PATH
+
+
+def _ensure_parent_dir(path: Path) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+
+
+def _read_history_store() -> dict[str, Any]:
+    path = _resolve_history_store_path()
+    if not path.exists():
+        return {"clients": {}}
+
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except Exception:
+        return {"clients": {}}
+
+    if not isinstance(payload, dict):
+        return {"clients": {}}
+    clients = payload.get("clients")
+    if not isinstance(clients, dict):
+        return {"clients": {}}
+    return {"clients": clients}
+
+
+def _write_history_store(payload: dict[str, Any]) -> None:
+    path = _resolve_history_store_path()
+    _ensure_parent_dir(path)
+    temp_path = path.with_suffix(f"{path.suffix}.tmp")
+    temp_path.write_text(json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8")
+    temp_path.replace(path)
+
+
+def _hash_history_key(secret: str) -> str:
+    return hashlib.sha256(secret.encode("utf-8")).hexdigest()
+
+
+def _is_valid_history_client_id(client_id: str) -> bool:
+    return bool(re.fullmatch(r"[A-Za-z0-9_-]{16,120}", client_id))
+
+
+def _normalize_history_launch(entry: Any) -> dict[str, Any] | None:
+    if not isinstance(entry, dict):
+        return None
+
+    payload = {
+        "launchedAt": _to_snippet(str(entry.get("launchedAt", "")).strip(), 64),
+        "mode": _to_snippet(str(entry.get("mode", "")).strip(), 24),
+        "promptId": _to_snippet(str(entry.get("promptId", "")).strip(), 120),
+        "message": _to_snippet(str(entry.get("message", "")).strip(), 280),
+        "bundleKind": _to_snippet(str(entry.get("bundleKind", "")).strip(), 40),
+        "bundleRef": _to_snippet(str(entry.get("bundleRef", "")).strip(), 140),
+        "reflectionIncluded": bool(entry.get("reflectionIncluded")),
+        "source": _to_snippet(str(entry.get("source", "")).strip(), 60),
+    }
+    return {key: value for key, value in payload.items() if value not in {"", None, False}}
+
+
+def _normalize_history_entry(entry: Any) -> dict[str, Any]:
+    if not isinstance(entry, dict):
+        return {}
+
+    launches = []
+    for launch in entry.get("launches") or []:
+        normalized = _normalize_history_launch(launch)
+        if normalized is not None:
+            launches.append(normalized)
+    launches = launches[-MAX_HISTORY_LAUNCHES_PER_ENTRY:]
+
+    rule_of_life = entry.get("ruleOfLife")
+    normalized_rule = None
+    if isinstance(rule_of_life, dict):
+        normalized_rule = {
+            key: _to_snippet(str(rule_of_life.get(key, "")).strip(), 400 if key in {"morning", "midday", "evening", "summary"} else 160)
+            for key in ("virtue", "domain", "morning", "midday", "evening", "summary", "repairNote", "scriptureRef")
+        }
+        normalized_rule = {key: value for key, value in normalized_rule.items() if value}
+
+    payload = {
+        "adoptedAt": _to_snippet(str(entry.get("adoptedAt", "")).strip(), 64),
+        "completedAt": _to_snippet(str(entry.get("completedAt", "")).strip(), 64),
+        "openingCompletedAt": _to_snippet(str(entry.get("openingCompletedAt", "")).strip(), 64),
+        "openingIntention": _to_snippet(str(entry.get("openingIntention", "")).strip(), 280),
+        "openingScriptureRef": _to_snippet(str(entry.get("openingScriptureRef", "")).strip(), 120),
+        "reflection": str(entry.get("reflection", "")).strip()[:MAX_HISTORY_REFLECTION_LENGTH],
+        "reflectionUpdatedAt": _to_snippet(str(entry.get("reflectionUpdatedAt", "")).strip(), 64),
+        "updatedAt": _to_snippet(str(entry.get("updatedAt", "")).strip(), 64),
+        "guidedPrompt": _to_snippet(str(entry.get("guidedPrompt", "")).strip(), 280),
+        "label": _to_snippet(str(entry.get("label", "")).strip(), 160),
+        "dayDisplay": _to_snippet(str(entry.get("dayDisplay", "")).strip(), 120),
+        "rulerText": _to_snippet(str(entry.get("rulerText", "")).strip(), 32),
+        "activeFocus": _to_snippet(str(entry.get("activeFocus", "")).strip(), 180),
+        "activePentacleLabel": _to_snippet(str(entry.get("activePentacleLabel", "")).strip(), 120),
+        "psalmRef": _to_snippet(str(entry.get("psalmRef", "")).strip(), 80),
+        "wisdomRef": _to_snippet(str(entry.get("wisdomRef", "")).strip(), 80),
+        "solomonicRef": _to_snippet(str(entry.get("solomonicRef", "")).strip(), 180),
+        "lifeDomainFocus": _to_snippet(str(entry.get("lifeDomainFocus", "")).strip(), 80),
+        "weakestDomain": _to_snippet(str(entry.get("weakestDomain", "")).strip(), 80),
+        "weakestDomainScore": entry.get("weakestDomainScore"),
+        "ruleOfLife": normalized_rule,
+        "launches": launches,
+        "lastLaunchAt": _to_snippet(str(entry.get("lastLaunchAt", "")).strip(), 64),
+    }
+    cleaned = {
+        key: value
+        for key, value in payload.items()
+        if value not in ("", None) and value != [] and value != {}
+    }
+    score = cleaned.get("weakestDomainScore")
+    if score is not None:
+        try:
+            cleaned["weakestDomainScore"] = max(0, min(100, int(score)))
+        except Exception:
+            cleaned.pop("weakestDomainScore", None)
+    return cleaned
+
+
+def _normalize_history_state(state: Any) -> dict[str, dict[str, Any]]:
+    if not isinstance(state, dict):
+        return {}
+
+    normalized: dict[str, dict[str, Any]] = {}
+    for date_key, entry in state.items():
+        if not isinstance(date_key, str) or not re.fullmatch(r"\d{4}-\d{2}-\d{2}", date_key):
+            continue
+        normalized[date_key] = _normalize_history_entry(entry)
+
+    sorted_items = sorted(normalized.items(), key=lambda item: item[0], reverse=True)[:MAX_HISTORY_ENTRIES_PER_CLIENT]
+    return dict(sorted(sorted_items, key=lambda item: item[0]))
+
+
+def _history_entry_timestamp(entry: dict[str, Any]) -> str:
+    for key in ("updatedAt", "lastLaunchAt", "reflectionUpdatedAt", "completedAt", "adoptedAt"):
+        value = str(entry.get(key, "")).strip()
+        if value:
+            return value
+    return ""
+
+
+def _merge_history_states(server_state: dict[str, Any], client_state: dict[str, Any]) -> dict[str, dict[str, Any]]:
+    left = _normalize_history_state(server_state)
+    right = _normalize_history_state(client_state)
+    merged = dict(left)
+
+    for date_key, client_entry in right.items():
+        server_entry = merged.get(date_key, {})
+        if _history_entry_timestamp(client_entry) >= _history_entry_timestamp(server_entry):
+            combined = dict(server_entry)
+            combined.update(client_entry)
+        else:
+            combined = dict(client_entry)
+            combined.update(server_entry)
+
+        seen_launches: set[tuple[str, str, str]] = set()
+        launches: list[dict[str, Any]] = []
+        for launch_list in (server_entry.get("launches") or [], client_entry.get("launches") or []):
+            if not isinstance(launch_list, list):
+                continue
+            for source in launch_list:
+                if not isinstance(source, dict):
+                    continue
+                launch_key = (
+                    str(source.get("launchedAt", "")),
+                    str(source.get("mode", "")),
+                    str(source.get("promptId", "")),
+                )
+                if launch_key in seen_launches:
+                    continue
+                seen_launches.add(launch_key)
+                launches.append(source)
+        if launches:
+            launches.sort(key=lambda entry: str(entry.get("launchedAt", "")))
+            combined["launches"] = launches[-MAX_HISTORY_LAUNCHES_PER_ENTRY:]
+            combined["lastLaunchAt"] = str(combined["launches"][-1].get("launchedAt", ""))
+
+        merged[date_key] = _normalize_history_entry(combined)
+
+    return _normalize_history_state(merged)
+
+
+def _authorize_history_client(headers: Any) -> tuple[bool, HTTPStatus, str | None, str | None]:
+    client_id = str(headers.get(HISTORY_CLIENT_HEADER, "")).strip()
+    client_key = str(headers.get(HISTORY_KEY_HEADER, "")).strip()
+
+    if not _is_valid_history_client_id(client_id):
+        return False, HTTPStatus.BAD_REQUEST, None, f"Invalid or missing {HISTORY_CLIENT_HEADER}."
+    if len(client_key) < 24:
+        return False, HTTPStatus.UNAUTHORIZED, None, f"Invalid or missing {HISTORY_KEY_HEADER}."
+
+    return True, HTTPStatus.OK, client_id, client_key
+
+
 def _to_snippet(text: str, max_length: int = 220) -> str:
     clean = re.sub(r"\s+", " ", str(text or "")).strip()
     if not clean:
@@ -2033,6 +2240,82 @@ def _build_guided_prompts_payload(request_payload: dict[str, Any]) -> tuple[dict
     return payload, None, HTTPStatus.OK
 
 
+def _build_history_sync_get_payload(headers: Any) -> tuple[dict[str, Any] | None, str | None, HTTPStatus]:
+    allowed, status, client_id, error = _authorize_history_client(headers)
+    if not allowed or client_id is None:
+        return None, error or "Unauthorized.", status
+
+    client_key = str(headers.get(HISTORY_KEY_HEADER, "")).strip()
+    with _HISTORY_STORE_LOCK:
+        store = _read_history_store()
+        client_record = store.get("clients", {}).get(client_id)
+        if client_record is None:
+            return {
+                "service": "solomonic_clock",
+                "client_id": client_id,
+                "state": {},
+                "stored_entries": 0,
+                "synced_at": datetime.utcnow().isoformat() + "Z",
+            }, None, HTTPStatus.OK
+
+        if not hmac.compare_digest(str(client_record.get("key_hash", "")), _hash_history_key(client_key)):
+            return None, "Invalid history key.", HTTPStatus.FORBIDDEN
+
+        state = _normalize_history_state(client_record.get("state") or {})
+        return {
+            "service": "solomonic_clock",
+            "client_id": client_id,
+            "state": state,
+            "stored_entries": len(state),
+            "synced_at": str(client_record.get("updated_at") or datetime.utcnow().isoformat() + "Z"),
+        }, None, HTTPStatus.OK
+
+
+def _build_history_sync_post_payload(
+    headers: Any,
+    request_payload: dict[str, Any],
+) -> tuple[dict[str, Any] | None, str | None, HTTPStatus]:
+    allowed, status, client_id, error = _authorize_history_client(headers)
+    if not allowed or client_id is None:
+        return None, error or "Unauthorized.", status
+
+    client_key = str(headers.get(HISTORY_KEY_HEADER, "")).strip()
+    client_state = _normalize_history_state(request_payload.get("state") or {})
+    now_iso = datetime.utcnow().isoformat() + "Z"
+
+    with _HISTORY_STORE_LOCK:
+        store = _read_history_store()
+        clients = store.setdefault("clients", {})
+        client_record = clients.get(client_id)
+        key_hash = _hash_history_key(client_key)
+
+        if client_record is None:
+            merged_state = client_state
+            clients[client_id] = {
+                "key_hash": key_hash,
+                "created_at": now_iso,
+                "updated_at": now_iso,
+                "state": merged_state,
+            }
+        else:
+            if not hmac.compare_digest(str(client_record.get("key_hash", "")), key_hash):
+                return None, "Invalid history key.", HTTPStatus.FORBIDDEN
+
+            merged_state = _merge_history_states(client_record.get("state") or {}, client_state)
+            client_record["updated_at"] = now_iso
+            client_record["state"] = merged_state
+
+        _write_history_store(store)
+
+    return {
+        "service": "solomonic_clock",
+        "client_id": client_id,
+        "state": merged_state,
+        "stored_entries": len(merged_state),
+        "synced_at": now_iso,
+    }, None, HTTPStatus.OK
+
+
 def _get_guided_prompts_expected_key() -> str:
     return str(os.environ.get(GUIDED_PROMPTS_API_KEY_ENV) or "").strip()
 
@@ -2193,7 +2476,7 @@ class ClockRequestHandler(SimpleHTTPRequestHandler):
         parsed_url = urlparse(self.path)
         request_path = parsed_url.path.rstrip("/")
 
-        if request_path not in {"/api/pericope/guided-prompts", BOOK_PARTIAL_API_PATH}:
+        if request_path not in {"/api/pericope/guided-prompts", BOOK_PARTIAL_API_PATH, HISTORY_SYNC_API_PATH}:
             self.send_error(HTTPStatus.NOT_FOUND, "Unknown API route")
             return
 
@@ -2227,6 +2510,8 @@ class ClockRequestHandler(SimpleHTTPRequestHandler):
 
         if request_path == BOOK_PARTIAL_API_PATH:
             response_payload, error, status = _build_book_partial_payload(payload)
+        elif request_path == HISTORY_SYNC_API_PATH:
+            response_payload, error, status = _build_history_sync_post_payload(self.headers, payload)
         else:
             response_payload, error, status = _build_guided_prompts_payload(payload)
 
@@ -2418,6 +2703,15 @@ class ClockRequestHandler(SimpleHTTPRequestHandler):
                 HTTPStatus.OK,
                 send_body=send_body,
             )
+            return True
+
+        if normalized_path == HISTORY_SYNC_API_PATH:
+            response_payload, error, status = _build_history_sync_get_payload(self.headers)
+            if response_payload is None:
+                self._send_json({"error": error or "Unable to load history state."}, status, send_body=send_body)
+                return True
+
+            self._send_json(response_payload, status, send_body=send_body)
             return True
 
         return False

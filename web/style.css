@@ -10,6 +10,10 @@ body {
   font-family: "Inter", "Segoe UI", sans-serif;
 }
 
+body[data-daily-opening="open"] {
+  overflow: hidden;
+}
+
 .layout {
   display: flex;
   justify-content: center;
@@ -130,6 +134,132 @@ body {
   align-items: center;
 }
 
+.daily-opening-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+}
+
+.daily-opening-overlay[hidden] {
+  display: none;
+}
+
+.daily-opening-backdrop {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 50% 32%, rgba(250, 204, 21, 0.1), transparent 44%),
+    rgba(2, 6, 23, 0.8);
+  backdrop-filter: blur(12px);
+}
+
+.daily-opening-card {
+  position: relative;
+  width: min(38rem, 100%);
+  padding: 1.35rem 1.35rem 1.25rem;
+  border-radius: 1.2rem;
+  border: 1px solid rgba(250, 204, 21, 0.24);
+  background:
+    linear-gradient(180deg, rgba(15, 23, 42, 0.95), rgba(2, 6, 23, 0.92));
+  box-shadow: 0 28px 70px rgba(2, 6, 23, 0.45);
+  text-align: left;
+}
+
+.daily-opening-kicker,
+.daily-opening-anchor-label,
+.daily-opening-intention-label {
+  margin: 0;
+  font-size: 0.75rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.daily-opening-kicker {
+  color: #facc15;
+}
+
+.daily-opening-day {
+  margin: 0.45rem 0 0.35rem;
+  font-size: clamp(1.75rem, 3vw, 2.35rem);
+  line-height: 1.1;
+  color: #f8fafc;
+}
+
+.daily-opening-focus,
+.daily-opening-summary,
+.daily-opening-anchor-ref {
+  margin: 0;
+}
+
+.daily-opening-focus {
+  color: #cbd5f5;
+  font-size: 1.02rem;
+  font-weight: 600;
+}
+
+.daily-opening-summary {
+  margin-top: 0.8rem;
+  color: #d7dfeb;
+  line-height: 1.55;
+}
+
+.daily-opening-anchor {
+  margin-top: 1rem;
+  padding: 0.9rem 1rem;
+  border-radius: 0.95rem;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  background: rgba(15, 23, 42, 0.45);
+}
+
+.daily-opening-anchor-label,
+.daily-opening-intention-label {
+  color: #93c5fd;
+}
+
+.daily-opening-anchor-ref {
+  margin-top: 0.35rem;
+  color: #fef08a;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.daily-opening-intention-label {
+  display: block;
+  margin-top: 1rem;
+}
+
+.daily-opening-intention {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 6.2rem;
+  margin-top: 0.5rem;
+  padding: 0.8rem 0.9rem;
+  border-radius: 0.9rem;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  background: rgba(2, 6, 23, 0.74);
+  color: #f8fafc;
+  font: inherit;
+  resize: vertical;
+}
+
+.daily-opening-intention:focus {
+  outline: none;
+  border-color: rgba(250, 204, 21, 0.68);
+  box-shadow: 0 0 0 3px rgba(250, 204, 21, 0.08);
+}
+
+.daily-opening-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  margin-top: 1rem;
+  justify-content: flex-end;
+}
+
 .action-loop {
   max-width: 46rem;
   margin: 1.1rem auto 0;
@@ -153,6 +283,12 @@ body {
   display: flex;
   flex-wrap: wrap;
   gap: 0.65rem;
+}
+
+.action-daily-opening {
+  border-color: rgba(250, 204, 21, 0.58);
+  background: rgba(250, 204, 21, 0.1);
+  color: #fde68a;
 }
 
 .action-button {

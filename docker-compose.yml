@@ -11,11 +11,17 @@ services:
       - SOLOMONIC_PSALM_SOURCE_MODE=pericope_first
       - SOLOMONIC_PERICOPE_API_BASE=http://host.docker.internal:8001
       - SOLOMONIC_GUIDED_PROMPTS_API_KEY=${SOLOMONIC_GUIDED_PROMPTS_API_KEY:-}
+      - SOLOMONIC_HISTORY_STORE_PATH=${SOLOMONIC_HISTORY_STORE_PATH:-/var/lib/solomonic-clock/history_store.json}
     ports:
       - "${SOLOMONIC_HOST_PORT:-8086}:8080"
+    volumes:
+      - solomonic-clock-history:/var/lib/solomonic-clock
     networks:
       - fortress-phronesis-net
 
 networks:
   fortress-phronesis-net:
     external: true
+
+volumes:
+  solomonic-clock-history:
