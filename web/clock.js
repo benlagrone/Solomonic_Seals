@@ -130,8 +130,15 @@ const drawerElements = {
   historyCurrentSummary: document.querySelector(".history-current-summary"),
   historyCurrentMeta: document.querySelector(".history-current-meta"),
   historyCurrentReflection: document.querySelector(".history-current-reflection"),
+  historyCurrentClosing: document.querySelector(".history-current-closing"),
   historyCurrentLaunches: document.querySelector(".history-current-launches"),
   historyLogList: document.querySelector(".history-log-list"),
+  providenceTimeline: document.querySelector(".providence-timeline"),
+  providenceTimelineSummary: document.querySelector(".providence-timeline-summary"),
+  providenceTimelineList: document.querySelector(".providence-timeline-list"),
+  providencePrev: document.querySelector(".providence-prev"),
+  providenceNext: document.querySelector(".providence-next"),
+  providenceToday: document.querySelector(".providence-today"),
   profileDay: document.querySelector(".profile-day"),
   profilePentacle: document.querySelector(".profile-pentacle"),
   profileFocus: document.querySelector(".profile-focus"),
@@ -186,6 +193,7 @@ const drawerElements = {
   actionAdopt: document.querySelector(".action-adopt"),
   actionComplete: document.querySelector(".action-complete"),
   actionReflect: document.querySelector(".action-reflect"),
+  actionCloseDay: document.querySelector(".action-close-day"),
   actionPericopeGuided: document.querySelector(".action-pericope-guided"),
   actionPericopeFreeform: document.querySelector(".action-pericope-freeform"),
   actionCopy: document.querySelector(".action-copy"),
@@ -194,6 +202,13 @@ const drawerElements = {
   reflectionInput: document.querySelector(".reflection-input"),
   reflectionSave: document.querySelector(".reflection-save"),
   reflectionClear: document.querySelector(".reflection-clear"),
+  closingSection: document.querySelector(".closing-capture"),
+  closingSummaryInput: document.querySelector(".closing-summary-input"),
+  closingGratitudeInput: document.querySelector("#closing-gratitude-input"),
+  closingDifficultyInput: document.querySelector("#closing-difficulty-input"),
+  closingCarryInput: document.querySelector("#closing-carry-input"),
+  closingSave: document.querySelector(".closing-save"),
+  closingClear: document.querySelector(".closing-clear"),
 };
 let lastPsalmKey = null;
 let lastGuidanceKey = null;
@@ -205,6 +220,7 @@ let lastActiveSealFocusKey = null;
 let lastLifeWheelKey = null;
 let lastRuleOfLifeKey = null;
 let lastHistoryPanelKey = null;
+let lastProvidenceTimelineKey = null;
 let currentPsalmRequestId = 0;
 let currentBundleRequestId = 0;
 let currentRulePsalmRequestId = 0;
@@ -238,6 +254,7 @@ const uiState = {
   focusedRing: null,
   drawerOpen: false,
   reflectionOpen: false,
+  closingOpen: false,
   dailyOpeningOpen: false,
 };
 const psalmTextCache = new Map();
@@ -909,19 +926,61 @@ function pruneEmptyFields(value) {
 
 function getActionLoopReflectionText(context) {
   const draft = String(drawerElements.reflectionInput?.value || context?.entry?.reflection || "").trim();
-  return draft;
+  if (draft) {
+    return draft;
+  }
+
+  const closingParts = [
+    context?.entry?.closingSummary,
+    context?.entry?.closingDifficulty,
+    context?.entry?.closingCarryForward,
+  ]
+    .map((part) => String(part || "").trim())
+    .filter(Boolean);
+
+  return closingParts.join(" ");
+}
+
+function hydrateClosingInputs(context) {
+  if (
+    !drawerElements.closingSummaryInput ||
+    !drawerElements.closingGratitudeInput ||
+    !drawerElements.closingDifficultyInput ||
+    !drawerElements.closingCarryInput
+  ) {
+    return;
+  }
+
+  const entry = context?.entry || {};
+  drawerElements.closingSummaryInput.value = String(entry.closingSummary || "").trim();
+  drawerElements.closingGratitudeInput.value = String(entry.closingGratitude || "").trim();
+  drawerElements.closingDifficultyInput.value = String(entry.closingDifficulty || "").trim();
+  drawerElements.closingCarryInput.value = String(entry.closingCarryForward || "").trim();
 }
 
 function shouldLaunchReflectionPrompt(context, reflectionText) {
-  return Boolean(reflectionText) && (uiState.reflectionOpen || uiState.mode === "reflection" || Boolean(context?.entry?.reflection));
+  return Boolean(reflectionText) && (
+    uiState.reflectionOpen ||
+    uiState.closingOpen ||
+    uiState.mode === "reflection" ||
+    Boolean(context?.entry?.reflection) ||
+    Boolean(context?.entry?.closingSummary) ||
+    Boolean(context?.entry?.closingCompletedAt)
+  );
 }
 
 function buildPericopeGuidedMessage(context, reflectionText) {
   if (shouldLaunchReflectionPrompt(context, reflectionText)) {
+    const usingClosing = !String(context?.entry?.reflection || "").trim()
+      && (Boolean(context?.entry?.closingSummary) || Boolean(context?.entry?.closingCompletedAt));
     if (context?.ruleOfLife) {
-      return `Help me examine today's ${context.ruleOfLife.domain.toLowerCase()} through ${context.ruleOfLife.virtue.toLowerCase()} in light of this reflection.`;
+      return usingClosing
+        ? `Help me examine and close today's ${context.ruleOfLife.domain.toLowerCase()} through ${context.ruleOfLife.virtue.toLowerCase()} in light of this evening closeout.`
+        : `Help me examine today's ${context.ruleOfLife.domain.toLowerCase()} through ${context.ruleOfLife.virtue.toLowerCase()} in light of this reflection.`;
     }
-    return "Help me examine today's guidance in light of this reflection.";
+    return usingClosing
+      ? "Help me examine and close today's guidance in light of this evening closeout."
+      : "Help me examine today's guidance in light of this reflection.";
   }
 
   return context?.guidedPrompt || "How should I practice today's guidance?";
@@ -935,7 +994,11 @@ function buildPericopeFreeformMessage(context, reflectionText) {
 }
 
 function buildPericopePromptId(context, reflectionText) {
-  const promptType = shouldLaunchReflectionPrompt(context, reflectionText) ? "reflection" : "practice";
+  const promptType = shouldLaunchReflectionPrompt(context, reflectionText)
+    ? ((Boolean(context?.entry?.closingSummary) || Boolean(context?.entry?.closingCompletedAt)) && !String(context?.entry?.reflection || "").trim()
+      ? "closing"
+      : "reflection")
+    : "practice";
   const domain = context?.ruleOfLife?.domain || context?.lifeDomainFocus || context?.dayText || "guidance";
   const virtue = context?.ruleOfLife?.virtue || context?.rulerText || "daily";
   return [promptType, domain, virtue].map(slugifyIdPart).filter(Boolean).join("-") || "solomonic-clock-guidance";
@@ -985,6 +1048,15 @@ function buildPericopeClockContext(context, reflectionText, mode) {
         completed_at: context.entry.openingCompletedAt,
         intention: context.entry.openingIntention,
         scripture_ref: context.entry.openingScriptureRef,
+      }
+      : null,
+    daily_closing: context?.entry?.closingCompletedAt || context?.entry?.closingSummary
+      ? {
+        completed_at: context.entry.closingCompletedAt,
+        summary: context.entry.closingSummary,
+        gratitude: context.entry.closingGratitude,
+        difficulty: context.entry.closingDifficulty,
+        carry_forward: context.entry.closingCarryForward,
       }
       : null,
     content_bundle: {
@@ -1224,11 +1296,18 @@ function setupActionLoopControls() {
     !drawerElements.actionAdopt ||
     !drawerElements.actionComplete ||
     !drawerElements.actionReflect ||
+    !drawerElements.actionCloseDay ||
     !drawerElements.actionPericopeGuided ||
     !drawerElements.actionPericopeFreeform ||
     !drawerElements.reflectionInput ||
     !drawerElements.reflectionSave ||
-    !drawerElements.reflectionClear
+    !drawerElements.reflectionClear ||
+    !drawerElements.closingSummaryInput ||
+    !drawerElements.closingGratitudeInput ||
+    !drawerElements.closingDifficultyInput ||
+    !drawerElements.closingCarryInput ||
+    !drawerElements.closingSave ||
+    !drawerElements.closingClear
   ) {
     return;
   }
@@ -1259,12 +1338,37 @@ function setupActionLoopControls() {
   });
 
   drawerElements.actionReflect.addEventListener("click", () => {
+    const wasReflectionMode = uiState.mode === "reflection";
     uiState.reflectionOpen = !uiState.reflectionOpen;
     if (uiState.reflectionOpen) {
+      uiState.closingOpen = false;
+    }
+    if (uiState.reflectionOpen) {
       setMode("reflection");
+      if (wasReflectionMode) {
+        applyLensState();
+      }
       requestAnimationFrame(() => {
         drawerElements.reflectionInput?.focus();
       });
+    } else if (wasReflectionMode) {
+      applyLensState();
+    }
+  });
+
+  drawerElements.actionCloseDay.addEventListener("click", () => {
+    uiState.closingOpen = !uiState.closingOpen;
+    if (uiState.closingOpen) {
+      uiState.reflectionOpen = false;
+      hydrateClosingInputs(currentActionLoopContext);
+      setMode("reflection");
+      uiState.reflectionOpen = false;
+      applyLensState();
+      requestAnimationFrame(() => {
+        drawerElements.closingSummaryInput?.focus();
+      });
+    } else if (uiState.mode === "reflection") {
+      applyLensState();
     }
   });
 
@@ -1336,6 +1440,57 @@ function setupActionLoopControls() {
       reflectionUpdatedAt: new Date().toISOString(),
     });
     setActionNotice(`Reflection cleared for ${context.dateKey}.`);
+  });
+
+  drawerElements.closingSave.addEventListener("click", () => {
+    const context = currentActionLoopContext;
+    if (!context) {
+      return;
+    }
+
+    const closingSummary = String(drawerElements.closingSummaryInput.value || "").trim()
+      || `I closed the day by reviewing ${String(context.label || context.dayDisplay || "today").toLowerCase()}.`;
+    const closingGratitude = String(drawerElements.closingGratitudeInput.value || "").trim();
+    const closingDifficulty = String(drawerElements.closingDifficultyInput.value || "").trim();
+    const closingCarryForward = String(drawerElements.closingCarryInput.value || "").trim();
+
+    patchDailyActionEntry(context.dateKey, {
+      ...buildDailyActionSnapshot(context),
+      closingCompletedAt: new Date().toISOString(),
+      closingSummary,
+      closingGratitude,
+      closingDifficulty,
+      closingCarryForward,
+      closingUpdatedAt: new Date().toISOString(),
+    });
+    uiState.closingOpen = false;
+    setActionNotice(`Day closed for ${context.dateKey}.`);
+  });
+
+  drawerElements.closingClear.addEventListener("click", () => {
+    const context = currentActionLoopContext;
+    if (!context) {
+      drawerElements.closingSummaryInput.value = "";
+      drawerElements.closingGratitudeInput.value = "";
+      drawerElements.closingDifficultyInput.value = "";
+      drawerElements.closingCarryInput.value = "";
+      return;
+    }
+
+    drawerElements.closingSummaryInput.value = "";
+    drawerElements.closingGratitudeInput.value = "";
+    drawerElements.closingDifficultyInput.value = "";
+    drawerElements.closingCarryInput.value = "";
+    patchDailyActionEntry(context.dateKey, {
+      ...buildDailyActionSnapshot(context),
+      closingCompletedAt: "",
+      closingSummary: "",
+      closingGratitude: "",
+      closingDifficulty: "",
+      closingCarryForward: "",
+      closingUpdatedAt: new Date().toISOString(),
+    });
+    setActionNotice(`Daily closing cleared for ${context.dateKey}.`);
   });
 }
 
@@ -2252,6 +2407,7 @@ function updateHistoryPanel(now, derived, referenceMap) {
     !drawerElements.historyCurrentSummary ||
     !drawerElements.historyCurrentMeta ||
     !drawerElements.historyCurrentReflection ||
+    !drawerElements.historyCurrentClosing ||
     !drawerElements.historyCurrentLaunches ||
     !drawerElements.historyLogList
   ) {
@@ -2267,9 +2423,10 @@ function updateHistoryPanel(now, derived, referenceMap) {
       adoptedAt: selectedEntry.entry.adoptedAt || "",
       completedAt: selectedEntry.entry.completedAt || "",
       reflectionUpdatedAt: selectedEntry.entry.reflectionUpdatedAt || "",
+      closingUpdatedAt: selectedEntry.entry.closingUpdatedAt || "",
       launchCount: selectedEntry.launchCount,
     },
-    recent: recentEntries.map((entry) => `${entry.dateKey}:${entry.entry.updatedAt || entry.entry.completedAt || entry.entry.adoptedAt || ""}:${entry.launchCount}`),
+    recent: recentEntries.map((entry) => `${entry.dateKey}:${entry.entry.updatedAt || entry.entry.closingCompletedAt || entry.entry.completedAt || entry.entry.adoptedAt || ""}:${entry.launchCount}`),
   });
 
   if (key === lastHistoryPanelKey) {
@@ -2296,6 +2453,8 @@ function updateHistoryPanel(now, derived, referenceMap) {
       li.classList.add("is-adopted");
     } else if (badge === "Reflected") {
       li.classList.add("is-reflected");
+    } else if (badge === "Closed") {
+      li.classList.add("is-closed");
     } else if (badge.includes("launch")) {
       li.classList.add("is-launch");
     }
@@ -2310,13 +2469,21 @@ function updateHistoryPanel(now, derived, referenceMap) {
     drawerElements.historyCurrentReflection.textContent = "—";
   }
 
+  if (selectedEntry.closingSnippet) {
+    drawerElements.historyCurrentClosing.hidden = false;
+    drawerElements.historyCurrentClosing.textContent = `Closing: ${selectedEntry.closingSnippet}`;
+  } else {
+    drawerElements.historyCurrentClosing.hidden = true;
+    drawerElements.historyCurrentClosing.textContent = "—";
+  }
+
   drawerElements.historyCurrentLaunches.textContent = describeHistoryLaunches(selectedEntry);
 
   drawerElements.historyLogList.innerHTML = "";
   if (!recentEntries.length) {
     const empty = document.createElement("li");
     empty.className = "history-log-empty";
-    empty.textContent = "No recorded entries yet. Adopt a practice or save a reflection to start the trail.";
+    empty.textContent = "No recorded entries yet. Open the day, adopt a practice, or save a closing note to start the trail.";
     drawerElements.historyLogList.appendChild(empty);
     return;
   }
@@ -2351,6 +2518,121 @@ function updateHistoryPanel(now, derived, referenceMap) {
     li.appendChild(button);
     drawerElements.historyLogList.appendChild(li);
   });
+}
+
+function getProvidenceTimelineEntries(baseDate, derived, referenceMap) {
+  const pastWindow = 9;
+  const futureWindow = 3;
+  const entries = [];
+
+  for (let offset = selectedDayOffset - pastWindow; offset <= selectedDayOffset + futureWindow; offset += 1) {
+    entries.push(buildHistoryTimelineEntry(baseDate, offset, derived, referenceMap));
+  }
+
+  return entries;
+}
+
+function updateProvidenceTimeline(now, derived, referenceMap) {
+  if (
+    !drawerElements.providenceTimeline ||
+    !drawerElements.providenceTimelineSummary ||
+    !drawerElements.providenceTimelineList ||
+    !drawerElements.providencePrev ||
+    !drawerElements.providenceNext ||
+    !drawerElements.providenceToday
+  ) {
+    return;
+  }
+
+  const isVisible = uiState.lens === "history";
+  drawerElements.providenceTimeline.hidden = !isVisible;
+  if (!isVisible) {
+    return;
+  }
+
+  const entries = getProvidenceTimelineEntries(now, derived, referenceMap);
+  const selectedEntry = entries.find((entry) => entry.offset === selectedDayOffset)
+    || buildHistoryTimelineEntry(now, selectedDayOffset, derived, referenceMap);
+  const recordedCount = entries.filter((entry) => entry.hasRecord).length;
+  const closedCount = entries.filter((entry) => entry.closed).length;
+  const key = JSON.stringify({
+    selectedOffset: selectedDayOffset,
+    entries: entries.map((entry) => `${entry.dateKey}:${entry.statusBadges.join(",")}:${entry.summaryLine}:${entry.hasRecord ? 1 : 0}`),
+  });
+
+  if (key === lastProvidenceTimelineKey) {
+    drawerElements.providenceToday.disabled = selectedDayOffset === 0;
+    return;
+  }
+  lastProvidenceTimelineKey = key;
+
+  drawerElements.providenceTimelineSummary.textContent = selectedEntry.hasRecord
+    ? `${recordedCount} recorded ${recordedCount === 1 ? "day" : "days"} in view • ${closedCount} closed. Selected ${selectedEntry.dateLabel}: ${selectedEntry.summaryLine}`
+    : `${recordedCount} recorded ${recordedCount === 1 ? "day" : "days"} in view. ${selectedEntry.dateLabel} has no saved record yet; ${selectedEntry.rulerText} still leans toward ${selectedEntry.displayFocus}.`;
+
+  drawerElements.providenceToday.disabled = selectedDayOffset === 0;
+  drawerElements.providenceTimelineList.innerHTML = "";
+
+  entries.forEach((entry) => {
+    const li = document.createElement("li");
+    li.className = [
+      "providence-timeline-item",
+      entry.offset === selectedDayOffset ? "is-selected" : "",
+      entry.hasRecord ? "has-record" : "",
+      entry.closed ? "is-closed" : "",
+      entry.isToday ? "is-today" : "",
+    ].filter(Boolean).join(" ");
+
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "providence-timeline-button";
+    button.setAttribute("aria-pressed", entry.offset === selectedDayOffset ? "true" : "false");
+    button.addEventListener("click", () => {
+      setSelectedDayOffset(entry.offset);
+      setLens("history");
+    });
+
+    const top = document.createElement("div");
+    top.className = "providence-timeline-card-top";
+
+    const date = document.createElement("p");
+    date.className = "providence-timeline-date";
+    date.textContent = `${entry.dateLabel}${entry.isToday ? " • Today" : ""}`;
+
+    const ruler = document.createElement("p");
+    ruler.className = "providence-timeline-ruler";
+    ruler.textContent = `${entry.rulerText} • ${entry.scriptureRef || entry.psalmRef}`;
+
+    top.append(date, ruler);
+
+    const badges = document.createElement("ul");
+    badges.className = "providence-timeline-badges";
+    (entry.statusBadges.length ? entry.statusBadges : ["No record"]).forEach((badge) => {
+      const badgeItem = document.createElement("li");
+      badgeItem.className = "providence-timeline-badge";
+      badgeItem.textContent = badge;
+      badges.appendChild(badgeItem);
+    });
+
+    const summary = document.createElement("p");
+    summary.className = "providence-timeline-card-summary";
+    summary.textContent = entry.hasRecord
+      ? entry.summaryLine
+      : `No saved record yet. ${entry.displayFocus}`;
+
+    const meta = document.createElement("p");
+    meta.className = "providence-timeline-card-meta";
+    meta.textContent = entry.hasRecord
+      ? `${entry.titleLine} • ${entry.launchCount ? `${entry.launchCount} launch${entry.launchCount === 1 ? "" : "es"}` : "No launches"}`
+      : `${entry.rulerText} guidance • ${entry.pentacleLabel}`;
+
+    button.append(top, badges, summary, meta);
+    li.appendChild(button);
+    drawerElements.providenceTimelineList.appendChild(li);
+  });
+
+  const selectedCard = drawerElements.providenceTimelineList.querySelector(".providence-timeline-item.is-selected");
+  selectedCard?.scrollIntoView({ inline: "center", block: "nearest", behavior: "smooth" });
 }
 
 function updateDailyProfile(timeState) {
@@ -2530,6 +2812,8 @@ function getDailyActionEntryTimestamp(entry) {
 
   return [
     entry.updatedAt,
+    entry.closingUpdatedAt,
+    entry.closingCompletedAt,
     entry.lastLaunchAt,
     entry.reflectionUpdatedAt,
     entry.completedAt,
@@ -2625,6 +2909,12 @@ function normalizeDailyActionEntry(entry) {
     openingCompletedAt: String(entry.openingCompletedAt || "").trim(),
     openingIntention: String(entry.openingIntention || "").trim(),
     openingScriptureRef: String(entry.openingScriptureRef || "").trim(),
+    closingCompletedAt: String(entry.closingCompletedAt || "").trim(),
+    closingSummary: String(entry.closingSummary || "").trim(),
+    closingGratitude: String(entry.closingGratitude || "").trim(),
+    closingDifficulty: String(entry.closingDifficulty || "").trim(),
+    closingCarryForward: String(entry.closingCarryForward || "").trim(),
+    closingUpdatedAt: String(entry.closingUpdatedAt || "").trim(),
     reflection: String(entry.reflection || "").trim(),
     reflectionUpdatedAt: String(entry.reflectionUpdatedAt || "").trim(),
     updatedAt: String(entry.updatedAt || "").trim(),
@@ -3129,6 +3419,7 @@ function updateHistoryPreview(now, derived, referenceMap, outerRadius) {
     .classed("is-selected", (entry) => entry.previewOffset === 0)
     .classed("is-today", (entry) => entry.isToday)
     .classed("has-record", (entry) => entry.hasRecord)
+    .classed("is-closed", (entry) => entry.closed)
     .classed("is-complete", (entry) => entry.completed)
     .classed("has-reflection", (entry) => entry.hasReflection);
 
@@ -3137,8 +3428,16 @@ function updateHistoryPreview(now, derived, referenceMap, outerRadius) {
     .attr("r", (entry) => (entry.previewOffset === 0 ? 11.5 : 9.5))
     .attr("fill", "none")
     .attr("stroke", (entry) => (entry.hasRecord ? entry.recordColor : "rgba(148, 163, 184, 0.18)"))
-    .attr("stroke-width", (entry) => (entry.hasRecord ? (entry.completed ? 2.4 : 2) : 1.1))
-    .attr("stroke-dasharray", (entry) => (entry.hasReflection && !entry.completed ? "2.2 2.8" : null))
+    .attr("stroke-width", (entry) => (entry.hasRecord ? (entry.completed || entry.closed ? 2.4 : 2) : 1.1))
+    .attr("stroke-dasharray", (entry) => {
+      if (entry.closed && !entry.completed) {
+        return "4 2.6";
+      }
+      if (entry.hasReflection && !entry.completed) {
+        return "2.2 2.8";
+      }
+      return null;
+    })
     .attr("opacity", (entry) => (entry.hasRecord ? 0.98 : 0.62));
 
   selection
@@ -3180,6 +3479,9 @@ function updateHistoryPreview(now, derived, referenceMap, outerRadius) {
       parts.push(entry.summaryLine);
       if (entry.reflectionSnippet) {
         parts.push(`Reflection: ${entry.reflectionSnippet}`);
+      }
+      if (entry.closingSnippet) {
+        parts.push(`Closing: ${entry.closingSnippet}`);
       }
       parts.push("Click to focus this day");
       return parts.join(" • ");
@@ -3720,6 +4022,8 @@ function setSelectedDayOffset(nextOffset) {
   }
   selectedDayOffset = normalized;
   lastWeeklyArcKey = null;
+  lastHistoryPanelKey = null;
+  lastProvidenceTimelineKey = null;
 }
 
 function shiftSelectedDay(delta) {
@@ -3752,6 +4056,25 @@ function setupWeeklyArcControls() {
   });
   drawerElements.weeklyArcToday.addEventListener("click", () => {
     setSelectedDayOffset(0);
+  });
+}
+
+function setupProvidenceTimelineControls() {
+  if (!drawerElements.providencePrev || !drawerElements.providenceNext || !drawerElements.providenceToday) {
+    return;
+  }
+
+  drawerElements.providencePrev.addEventListener("click", () => {
+    shiftSelectedDay(-1);
+    setLens("history");
+  });
+  drawerElements.providenceNext.addEventListener("click", () => {
+    shiftSelectedDay(1);
+    setLens("history");
+  });
+  drawerElements.providenceToday.addEventListener("click", () => {
+    setSelectedDayOffset(0);
+    setLens("history");
   });
 }
 
@@ -4341,6 +4664,10 @@ function getHistoryEntryStatusBadges(entry) {
     badges.push("Reflected");
   }
 
+  if (entry.closed) {
+    badges.push("Closed");
+  }
+
   if (entry.launchCount) {
     badges.push(`${entry.launchCount} ${entry.launchCount === 1 ? "launch" : "launches"}`);
   }
@@ -4349,6 +4676,12 @@ function getHistoryEntryStatusBadges(entry) {
 }
 
 function getHistoryEntryRecordColor(entry) {
+  if (entry.closed && entry.completed) {
+    return "#4ade80";
+  }
+  if (entry.closed) {
+    return "#60a5fa";
+  }
   if (entry.completed) {
     return "#4ade80";
   }
@@ -4375,20 +4708,32 @@ function buildHistoryTimelineEntry(baseDate, offset, derived, referenceMap) {
   const dateKey = formatDateStorageKey(targetDate);
   const entry = getDailyActionEntry(dateKey);
   const reflection = String(entry.reflection || "").trim();
+  const closingSummary = String(entry.closingSummary || "").trim();
+  const closingGratitude = String(entry.closingGratitude || "").trim();
+  const closingDifficulty = String(entry.closingDifficulty || "").trim();
+  const closingCarryForward = String(entry.closingCarryForward || "").trim();
   const openingIntention = String(entry.openingIntention || "").trim();
   const launches = Array.isArray(entry.launches) ? entry.launches : [];
   const latestLaunch = launches.length ? launches[launches.length - 1] : null;
   const opened = Boolean(entry.openingCompletedAt);
+  const closed = Boolean(entry.closingCompletedAt || closingSummary || closingCarryForward || closingGratitude || closingDifficulty);
   const adopted = Boolean(entry.adoptedAt);
   const completed = Boolean(entry.completedAt);
   const hasReflection = Boolean(reflection);
   const launchCount = launches.length;
-  const hasRecord = opened || adopted || completed || hasReflection || launchCount > 0;
+  const hasRecord = opened || closed || adopted || completed || hasReflection || launchCount > 0;
   const rule = entry.ruleOfLife && typeof entry.ruleOfLife === "object" ? entry.ruleOfLife : null;
-  const summaryLine = rule?.summary || openingIntention || entry.activeFocus || weeklyEntry.focus;
+  const summaryLine = closingSummary
+    || closingCarryForward
+    || closingDifficulty
+    || closingGratitude
+    || rule?.summary
+    || openingIntention
+    || entry.activeFocus
+    || weeklyEntry.focus;
   const titleLine = entry.label || (rule ? `${rule.domain} • ${rule.virtue}` : `${weeklyEntry.rulerText} guidance`);
-  const statusBadges = getHistoryEntryStatusBadges({ opened, adopted, completed, hasReflection, launchCount });
-  const recordColor = getHistoryEntryRecordColor({ opened, adopted, completed, hasReflection, launchCount });
+  const statusBadges = getHistoryEntryStatusBadges({ opened, closed, adopted, completed, hasReflection, launchCount });
+  const recordColor = getHistoryEntryRecordColor({ opened, closed, adopted, completed, hasReflection, launchCount });
   const launchSummary = latestLaunch
     ? `${latestLaunch.mode === "freeform" ? "Freeform" : "Guided"} • ${latestLaunch.promptId || "clock launch"}`
     : "";
@@ -4400,6 +4745,7 @@ function buildHistoryTimelineEntry(baseDate, offset, derived, referenceMap) {
     targetDate,
     offset,
     opened,
+    closed,
     adopted,
     completed,
     hasReflection,
@@ -4412,6 +4758,11 @@ function buildHistoryTimelineEntry(baseDate, offset, derived, referenceMap) {
     summaryLine,
     reflection,
     reflectionSnippet: toInlineSnippet(reflection, 180),
+    closingSummary,
+    closingGratitude,
+    closingDifficulty,
+    closingCarryForward,
+    closingSnippet: toInlineSnippet(closingSummary || closingCarryForward || closingDifficulty || closingGratitude, 200),
     launchSummary,
     scriptureRef: rule?.scriptureRef || entry.psalmRef || weeklyEntry.psalmRef,
     displayFocus: entry.activeFocus || weeklyEntry.focus,
@@ -4648,40 +4999,65 @@ function updateActionLoop(context) {
     !drawerElements.actionAdopt ||
     !drawerElements.actionComplete ||
     !drawerElements.actionReflect ||
+    !drawerElements.actionCloseDay ||
     !drawerElements.actionPericopeGuided ||
     !drawerElements.actionPericopeFreeform ||
     !drawerElements.actionStatus ||
     !drawerElements.reflectionSection ||
-    !drawerElements.reflectionInput
+    !drawerElements.reflectionInput ||
+    !drawerElements.closingSection ||
+    !drawerElements.closingSummaryInput ||
+    !drawerElements.closingGratitudeInput ||
+    !drawerElements.closingDifficultyInput ||
+    !drawerElements.closingCarryInput
   ) {
     return;
   }
 
   const entry = context?.entry || {};
   const opened = Boolean(entry.openingCompletedAt);
+  const closed = Boolean(entry.closingCompletedAt || entry.closingSummary || entry.closingCarryForward);
   const adopted = Boolean(entry.adoptedAt);
   const completed = Boolean(entry.completedAt);
   const reflection = String(entry.reflection || "");
+  const closingSummary = String(entry.closingSummary || "");
+  const closingGratitude = String(entry.closingGratitude || "");
+  const closingDifficulty = String(entry.closingDifficulty || "");
+  const closingCarryForward = String(entry.closingCarryForward || "");
   const reflectionText = getActionLoopReflectionText(context);
   const rule = context?.ruleOfLife || null;
   const reflectionLaunchReady = shouldLaunchReflectionPrompt(context, reflectionText);
+  const closingLaunchReady = !reflection && (closingSummary || closingCarryForward || closed);
 
   drawerElements.actionDailyOpening.textContent = opened ? "Revisit Opening" : "Daily Opening";
   drawerElements.actionDailyOpening.setAttribute("aria-pressed", uiState.dailyOpeningOpen ? "true" : "false");
   drawerElements.actionAdopt.textContent = adopted ? "Practice Chosen" : "Adopt Today’s Practice";
   drawerElements.actionComplete.textContent = completed ? "Completed Today" : "Mark Complete";
-  drawerElements.actionPericopeGuided.textContent = reflectionLaunchReady ? "Bring Reflection To Pericope" : "Start Guided Chat";
-  drawerElements.actionPericopeFreeform.textContent = reflection ? "Ask Freely About This Day" : "Ask Freely";
+  drawerElements.actionCloseDay.textContent = closed ? "Revisit Closing" : "Close The Day";
+  drawerElements.actionCloseDay.setAttribute("aria-pressed", uiState.closingOpen ? "true" : "false");
+  drawerElements.actionPericopeGuided.textContent = reflectionLaunchReady
+    ? (closingLaunchReady ? "Bring Closing To Pericope" : "Bring Reflection To Pericope")
+    : "Start Guided Chat";
+  drawerElements.actionPericopeFreeform.textContent = (reflection || closingSummary)
+    ? "Ask Freely About This Day"
+    : "Ask Freely";
   if (drawerElements.actionCopy) {
     drawerElements.actionCopy.textContent = "Copy Guided Prompt";
   }
   drawerElements.actionAdopt.disabled = adopted;
   drawerElements.actionComplete.disabled = !adopted || completed;
   drawerElements.actionReflect.setAttribute("aria-pressed", uiState.reflectionOpen ? "true" : "false");
-  drawerElements.reflectionSection.hidden = !(uiState.reflectionOpen || uiState.mode === "reflection");
+  drawerElements.reflectionSection.hidden = !(uiState.reflectionOpen || (uiState.mode === "reflection" && !uiState.closingOpen));
+  drawerElements.closingSection.hidden = !uiState.closingOpen;
 
   if (document.activeElement !== drawerElements.reflectionInput) {
     drawerElements.reflectionInput.value = reflection;
+  }
+  if (!uiState.closingOpen) {
+    drawerElements.closingSummaryInput.value = closingSummary;
+    drawerElements.closingGratitudeInput.value = closingGratitude;
+    drawerElements.closingDifficultyInput.value = closingDifficulty;
+    drawerElements.closingCarryInput.value = closingCarryForward;
   }
 
   if (actionNotice && actionNotice.expiresAt > Date.now()) {
@@ -4701,6 +5077,16 @@ function updateActionLoop(context) {
     drawerElements.actionStatus.textContent = reflection
       ? `Completed: ${context.label}. Bring the reflection to Pericope when you want counsel.`
       : `Completed: ${context.label}. Add an evening note or ask Pericope to close the loop.`;
+    if (closed && closingSummary) {
+      drawerElements.actionStatus.textContent = `Day closed: ${toSnippet(closingSummary, 104)}`;
+    }
+    return;
+  }
+
+  if (closed) {
+    drawerElements.actionStatus.textContent = closingSummary
+      ? `Day closed: ${toSnippet(closingSummary, 104)}`
+      : "The day has been closed. Reopen the closing if you want to revise the examen.";
     return;
   }
 
@@ -4756,6 +5142,7 @@ function getModePresentation(timeState, referenceMap, now, derived, lifeState) {
 
   if (mode === "reflection") {
     const weakest = lifeState?.weakestDomain;
+    const closingSummary = String(currentActionLoopContext?.entry?.closingSummary || "").trim();
     return {
       centerTitle: "Reflection",
       centerSpirit: weakest
@@ -4765,10 +5152,12 @@ function getModePresentation(timeState, referenceMap, now, derived, lifeState) {
         ? `Anchor • ${readablePsalm}`
         : "Review the day with honesty and precision.",
       surfaceLabel: "Reflection Mode",
-      surfaceTitle: "Examine the Day",
-      surfaceBody: weakest
-        ? `Ask what strengthened or weakened ${weakest.name.toLowerCase()} today, and record one honest note.`
-        : "Reflection mode turns the center toward examination rather than action.",
+      surfaceTitle: closingSummary ? "Daily Closing" : "Examine the Day",
+      surfaceBody: closingSummary
+        ? toSnippet(closingSummary, 116)
+        : weakest
+          ? `Ask what strengthened or weakened ${weakest.name.toLowerCase()} today, and record one honest note.`
+          : "Reflection mode turns the center toward examination rather than action.",
     };
   }
 
@@ -5591,6 +5980,7 @@ async function initialiseClock() {
   setupReadingDepthControls();
   setupBundleExpansionControls();
   setupWeeklyArcControls();
+  setupProvidenceTimelineControls();
   const historySyncPromise = bootstrapHistorySync();
 
   try {
@@ -5707,6 +6097,7 @@ function renderClock(data, referenceMap, psalmMetadata, pentacleData, lifeDomain
     updateDailyGuidance(timeState);
     updateWeeklyArcPanel(now, derived, referenceMap);
     updateHistoryPanel(now, derived, referenceMap);
+    updateProvidenceTimeline(now, derived, referenceMap);
     updateDailyProfile(timeState);
     updateExplainabilityPanel(displayNow, timeState, referenceMap, psalmMetadata);
     updateDailyContentBundle(timeState, referenceMap, psalmMetadata);

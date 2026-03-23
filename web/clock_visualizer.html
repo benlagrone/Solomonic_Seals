@@ -32,7 +32,7 @@
       gtag("config", "G-138HFD1QQP");
     </script>
     <link rel="icon" href='data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="12" fill="%23020617"/><circle cx="32" cy="32" r="20" fill="none" stroke="%23facc15" stroke-width="4"/><circle cx="32" cy="32" r="6" fill="%23facc15"/></svg>' />
-    <link rel="stylesheet" href="/web/style.css?v=20260321-1" />
+    <link rel="stylesheet" href="/web/style.css?v=20260322-2" />
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
@@ -143,6 +143,7 @@
             <button type="button" class="action-button action-adopt">Adopt Today&apos;s Practice</button>
             <button type="button" class="action-button action-complete">Mark Complete</button>
             <button type="button" class="action-button action-reflect">Reflect Tonight</button>
+            <button type="button" class="action-button action-close-day">Close The Day</button>
             <button type="button" class="action-button action-button--accent action-pericope-guided">Start Guided Chat</button>
             <button type="button" class="action-button action-pericope-freeform">Ask Freely</button>
             <button type="button" class="action-button action-copy">Copy Guided Prompt</button>
@@ -161,6 +162,65 @@
               <button type="button" class="action-button reflection-clear">Clear</button>
             </div>
           </section>
+          <section class="closing-capture" hidden aria-label="Daily closing">
+            <p class="closing-kicker">Daily Closing</p>
+            <label class="reflection-label" for="closing-summary-input">Closing Summary</label>
+            <textarea
+              id="closing-summary-input"
+              class="reflection-input closing-summary-input"
+              rows="3"
+              placeholder="Name what this day became and how you actually walked through it."
+            ></textarea>
+            <div class="closing-grid">
+              <div class="closing-field">
+                <label class="reflection-label" for="closing-gratitude-input">Gratitude</label>
+                <textarea
+                  id="closing-gratitude-input"
+                  class="reflection-input closing-mini-input"
+                  rows="2"
+                  placeholder="What gift, grace, or mercy should you name?"
+                ></textarea>
+              </div>
+              <div class="closing-field">
+                <label class="reflection-label" for="closing-difficulty-input">Difficulty</label>
+                <textarea
+                  id="closing-difficulty-input"
+                  class="reflection-input closing-mini-input"
+                  rows="2"
+                  placeholder="Where did the day resist you or expose weakness?"
+                ></textarea>
+              </div>
+            </div>
+            <label class="reflection-label" for="closing-carry-input">Carry Forward</label>
+            <textarea
+              id="closing-carry-input"
+              class="reflection-input closing-mini-input"
+              rows="2"
+              placeholder="What should be remembered, repaired, or carried into tomorrow?"
+            ></textarea>
+            <div class="reflection-actions">
+              <button type="button" class="action-button action-button--accent closing-save">Close The Day</button>
+              <button type="button" class="action-button closing-clear">Clear Closing</button>
+            </div>
+          </section>
+        </section>
+        <section class="providence-timeline" hidden aria-label="Providence timeline">
+          <div class="providence-timeline-top">
+            <div>
+              <p class="providence-timeline-kicker">Providence Timeline</p>
+              <p class="providence-timeline-summary">The last days will appear here as a readable trail of openings, practices, closures, and counsel.</p>
+            </div>
+            <div class="providence-timeline-controls" role="group" aria-label="Providence timeline controls">
+              <button type="button" class="weekly-arc-button providence-prev" aria-label="Previous day">
+                &#8592;
+              </button>
+              <button type="button" class="weekly-arc-button providence-next" aria-label="Next day">
+                &#8594;
+              </button>
+              <button type="button" class="weekly-arc-button providence-today">Today</button>
+            </div>
+          </div>
+          <ol class="providence-timeline-list"></ol>
         </section>
         <p class="page-legacy-line">Formerly Solomonic Clock of Spheres</p>
       </main>
@@ -222,11 +282,12 @@
               <p class="history-current-summary">No saved action for this day yet.</p>
               <ul class="history-current-meta"></ul>
               <p class="history-current-reflection" hidden>—</p>
+              <p class="history-current-closing" hidden>—</p>
               <p class="history-current-launches">No Pericope launches recorded yet.</p>
             </article>
             <div class="history-log-top">
               <p class="history-log-label">Recent entries</p>
-              <p class="history-log-note">Saved practice, completion, reflection, and launch states appear here.</p>
+              <p class="history-log-note">Saved opening, practice, reflection, closing, and launch states appear here.</p>
             </div>
             <ul class="history-log-list"></ul>
           </section>
@@ -313,6 +374,6 @@
       </aside>
     </div>
     <script src="https://d3js.org/d3.v7.min.js"></script>
-    <script src="/web/clock.js?v=20260321-1"></script>
+    <script src="/web/clock.js?v=20260322-2"></script>
   </body>
 </html>

@@ -1358,6 +1358,12 @@ def _normalize_history_entry(entry: Any) -> dict[str, Any]:
         "openingCompletedAt": _to_snippet(str(entry.get("openingCompletedAt", "")).strip(), 64),
         "openingIntention": _to_snippet(str(entry.get("openingIntention", "")).strip(), 280),
         "openingScriptureRef": _to_snippet(str(entry.get("openingScriptureRef", "")).strip(), 120),
+        "closingCompletedAt": _to_snippet(str(entry.get("closingCompletedAt", "")).strip(), 64),
+        "closingSummary": _to_snippet(str(entry.get("closingSummary", "")).strip(), 600),
+        "closingGratitude": _to_snippet(str(entry.get("closingGratitude", "")).strip(), 400),
+        "closingDifficulty": _to_snippet(str(entry.get("closingDifficulty", "")).strip(), 400),
+        "closingCarryForward": _to_snippet(str(entry.get("closingCarryForward", "")).strip(), 400),
+        "closingUpdatedAt": _to_snippet(str(entry.get("closingUpdatedAt", "")).strip(), 64),
         "reflection": str(entry.get("reflection", "")).strip()[:MAX_HISTORY_REFLECTION_LENGTH],
         "reflectionUpdatedAt": _to_snippet(str(entry.get("reflectionUpdatedAt", "")).strip(), 64),
         "updatedAt": _to_snippet(str(entry.get("updatedAt", "")).strip(), 64),
@@ -1406,7 +1412,15 @@ def _normalize_history_state(state: Any) -> dict[str, dict[str, Any]]:
 
 
 def _history_entry_timestamp(entry: dict[str, Any]) -> str:
-    for key in ("updatedAt", "lastLaunchAt", "reflectionUpdatedAt", "completedAt", "adoptedAt"):
+    for key in (
+        "updatedAt",
+        "closingUpdatedAt",
+        "closingCompletedAt",
+        "lastLaunchAt",
+        "reflectionUpdatedAt",
+        "completedAt",
+        "adoptedAt",
+    ):
         value = str(entry.get(key, "")).strip()
         if value:
             return value
