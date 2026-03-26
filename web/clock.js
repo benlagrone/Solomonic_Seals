@@ -12,6 +12,17 @@ const RING_THICKNESS = {
 };
 
 const MS_PER_DAY = 86_400_000;
+const PROVIDENCE_MAP_MAX_DAYS = 42;
+const PROVIDENCE_MAP_MAX_ENTRIES = 48;
+const HISTORY_RULER_COLORS = {
+  Sun: "#facc15",
+  Moon: "#cbd5f5",
+  Mars: "#ef4444",
+  Mercury: "#f59e0b",
+  Jupiter: "#60a5fa",
+  Venus: "#34d399",
+  Saturn: "#a78bfa",
+};
 
 const clockWrapper = d3.select(".clock-wrapper");
 const tooltip = (() => {
@@ -185,6 +196,8 @@ const drawerElements = {
   dailyOpeningFocus: document.querySelector(".daily-opening-focus"),
   dailyOpeningSummary: document.querySelector(".daily-opening-summary"),
   dailyOpeningAnchorRef: document.querySelector(".daily-opening-anchor-ref"),
+  dailyOpeningAnchorText: document.querySelector(".daily-opening-anchor-text"),
+  dailyOpeningAnchorToggle: document.querySelector(".daily-opening-anchor-toggle"),
   dailyOpeningIntent: document.querySelector(".daily-opening-intention"),
   dailyOpeningSuggested: document.querySelector(".daily-opening-suggested"),
   dailyOpeningSkip: document.querySelector(".daily-opening-skip"),
@@ -221,9 +234,11 @@ let lastLifeWheelKey = null;
 let lastRuleOfLifeKey = null;
 let lastHistoryPanelKey = null;
 let lastProvidenceTimelineKey = null;
+let lastProvidenceMapKey = null;
 let currentPsalmRequestId = 0;
 let currentBundleRequestId = 0;
 let currentRulePsalmRequestId = 0;
+let currentDailyOpeningPsalmRequestId = 0;
 let readingDepth = "medium";
 let hoveredPlanetaryKey = null;
 let selectedDayOffset = 0;
@@ -248,6 +263,9 @@ let historySyncPendingTimer = null;
 let historySyncLastSerializedState = "";
 let historySyncNeedsFlush = false;
 let dailyOpeningAutofillKey = null;
+let dailyOpeningAnchorExpanded = false;
+let lastDailyOpeningAnchorKey = null;
+let lastDailyOpeningDateKey = null;
 const uiState = {
   lens: "base",
   mode: "guidance",
@@ -333,7 +351,7 @@ const LENS_DEFINITIONS = {
   scripture: {
     title: "Scripture Lens",
     subtitle: () => `${baseDrawerSubtitleText} Reading depth, verse mappings, and provenance are foregrounded.`,
-    status: "Scripture lens surfaces psalms, wisdom excerpts, and explicit why-this-was-selected logic.",
+    status: "See today's psalm, wisdom anchor, and selection notes.",
     focusRing: "core",
     focusLabel: "Scripture Anchor",
     focusColor: "#facc15",
@@ -660,7 +678,7 @@ function updateLensFocusOverlay(radii) {
     life: radii.celestial - 36,
     planetary: radii.planetary - 6,
     spirit: radii.spirit - 6,
-    history: radii.spirit + 28,
+    history: getProvidenceMapOrbitRadii(radii).outer - 6,
   }[uiState.focusedRing];
 
   if (!focusRadius) {
@@ -1239,7 +1257,8 @@ function setupDailyOpeningControls() {
     !drawerElements.dailyOpeningSuggested ||
     !drawerElements.dailyOpeningSkip ||
     !drawerElements.dailyOpeningBegin ||
-    !drawerElements.actionDailyOpening
+    !drawerElements.actionDailyOpening ||
+    !drawerElements.dailyOpeningAnchorToggle
   ) {
     return;
   }
@@ -1258,6 +1277,16 @@ function setupDailyOpeningControls() {
     }
     drawerElements.dailyOpeningIntent.value = buildDailyOpeningSuggestedIntention(context);
     drawerElements.dailyOpeningIntent.focus();
+  });
+
+  drawerElements.dailyOpeningAnchorToggle.addEventListener("click", () => {
+    const context = currentActionLoopContext;
+    if (!context?.ruleOfLife?.psalmChapter) {
+      return;
+    }
+    dailyOpeningAnchorExpanded = !dailyOpeningAnchorExpanded;
+    lastDailyOpeningAnchorKey = null;
+    updateDailyOpeningAnchorPreview(context);
   });
 
   drawerElements.dailyOpeningSkip.addEventListener("click", () => {
@@ -2100,19 +2129,6 @@ function drawArcRing(layerName, items, outerRadius, color, tooltipFormatter) {
     bindTooltip(selection, tooltipFormatter);
   }
 
-  if (layerName === "planetary") {
-    selection
-      .attr("data-planetary-key", (entry) => slugifyIdPart(entry?.name || ""))
-      .on("mouseenter.seal-hover", (_event, entry) => {
-        hoveredPlanetaryKey = slugifyIdPart(entry?.name || "");
-        updatePlanetarySealGlyphVisibility();
-      })
-      .on("mouseleave.seal-hover", () => {
-        hoveredPlanetaryKey = null;
-        updatePlanetarySealGlyphVisibility();
-      });
-  }
-
   return data;
 }
 
@@ -2342,6 +2358,8 @@ function buildWeeklyArcEntry(baseDate, offset, derived, referenceMap) {
     isToday: offset === 0,
     dateLabel: target.toLocaleDateString([], { weekday: "short", month: "short", day: "numeric" }),
     rulerText: dayLabel.rulerText,
+    weekFraction,
+    pentacleIndex,
     pentacleLabel: activePentacle
       ? `${activePentacle.planet} #${activePentacle.pentacle.index}`
       : "Unavailable",
@@ -3375,107 +3393,176 @@ function updateLifeWheel(timeState, radii, lifeConfig) {
   return lifeState;
 }
 
-function updateHistoryPreview(now, derived, referenceMap, outerRadius) {
-  const previewOffsets = [-3, -2, -1, 0, 1, 2, 3];
-  const entries = previewOffsets.map((previewOffset) => {
-    const entry = buildHistoryTimelineEntry(now, selectedDayOffset + previewOffset, derived, referenceMap);
-    const angleDegrees = -90 + previewOffset * 24;
-    const angleRadians = (angleDegrees * Math.PI) / 180;
-    const point = polarPoint(0, 0, outerRadius, angleRadians);
-    const rulerColor = hexToRgba(
-      {
-        Sun: "#facc15",
-        Moon: "#cbd5f5",
-        Mars: "#ef4444",
-        Mercury: "#f59e0b",
-        Jupiter: "#60a5fa",
-        Venus: "#34d399",
-        Saturn: "#a78bfa",
-      }[entry.rulerText] || "#cbd5f5",
-      previewOffset === 0 ? 0.95 : 0.78
-    );
-
-    return {
-      ...entry,
-      previewOffset,
-      x: point.x,
-      y: point.y,
-      color: rulerColor,
-      shortLabel: entry.dateLabel.split(" ").slice(0, 2).join(" "),
-    };
+function updateHistoryPreview(now, derived, referenceMap, radii) {
+  const entries = getProvidenceMapEntries(now, derived, referenceMap, radii);
+  const orbitRadii = getProvidenceMapOrbitRadii(radii);
+  const key = JSON.stringify({
+    selectedOffset: selectedDayOffset,
+    entries: entries.map((entry) => [
+      entry.dateKey,
+      entry.offset,
+      entry.statusBadges.join(","),
+      entry.summaryLine,
+      entry.launchCount,
+      entry.recordColor,
+      entry.isSelected ? 1 : 0,
+    ].join(":")),
   });
 
-  const selection = historyPreviewGroup
+  if (key === lastProvidenceMapKey) {
+    return;
+  }
+  lastProvidenceMapKey = key;
+
+  historyPreviewGroup.selectAll("*").remove();
+
+  const orbitLabelAngle = degreesToRadians(156);
+  const orbitGroup = historyPreviewGroup.append("g").attr("class", "providence-map-orbits");
+  [
+    { label: "1 wk", radius: getProvidenceMapRadius(7, radii) },
+    { label: "3 wk", radius: getProvidenceMapRadius(21, radii) },
+    { label: "6 wk", radius: orbitRadii.outer },
+  ].forEach((orbit, index) => {
+    orbitGroup
+      .append("circle")
+      .attr("class", `providence-map-orbit providence-map-orbit--${index + 1}`)
+      .attr("r", orbit.radius);
+
+    const labelPoint = polarPoint(0, 0, orbit.radius, orbitLabelAngle);
+    orbitGroup
+      .append("text")
+      .attr("class", "providence-map-orbit-label")
+      .attr("x", labelPoint.x)
+      .attr("y", labelPoint.y - 4)
+      .attr("text-anchor", labelPoint.x >= 0 ? "start" : "end")
+      .text(orbit.label);
+  });
+
+  if (entries.length > 1) {
+    const line = d3
+      .line()
+      .x((entry) => entry.x)
+      .y((entry) => entry.y)
+      .curve(d3.curveCatmullRom.alpha(0.55));
+
+    historyPreviewGroup
+      .append("path")
+      .attr("class", "providence-map-path")
+      .attr("d", line(entries));
+  }
+
+  const nodesGroup = historyPreviewGroup.append("g").attr("class", "providence-map-nodes");
+  const selection = nodesGroup
     .selectAll("g.history-node")
     .data(entries, (entry) => entry.dateKey)
     .join((enter) => {
-      const group = enter.append("g").attr("class", "history-node");
+      const group = enter.append("g").attr("class", "history-node providence-map-node");
+      group.append("circle").attr("class", "history-node-hit");
+      group.append("circle").attr("class", "history-node-halo");
       group.append("circle").attr("class", "history-node-ring");
       group.append("circle").attr("class", "history-node-dot");
+      group.append("circle").attr("class", "history-node-launch");
       group.append("text").attr("class", "history-node-label").attr("text-anchor", "middle");
+      group.append("text").attr("class", "history-node-caption").attr("text-anchor", "middle");
       return group;
     })
     .attr("transform", (entry) => `translate(${entry.x}, ${entry.y})`)
-    .classed("is-selected", (entry) => entry.previewOffset === 0)
+    .classed("is-selected", (entry) => entry.isSelected)
     .classed("is-today", (entry) => entry.isToday)
     .classed("has-record", (entry) => entry.hasRecord)
     .classed("is-closed", (entry) => entry.closed)
     .classed("is-complete", (entry) => entry.completed)
-    .classed("has-reflection", (entry) => entry.hasReflection);
+    .classed("has-reflection", (entry) => entry.hasReflection)
+    .classed("is-ghost", (entry) => entry.isGhost);
+
+  selection
+    .select("circle.history-node-hit")
+    .attr("r", (entry) => entry.haloRadius + 2.8)
+    .attr("fill", "rgba(15, 23, 42, 0.001)")
+    .attr("stroke", "none");
+
+  selection
+    .select("circle.history-node-halo")
+    .attr("r", (entry) => entry.haloRadius)
+    .attr("fill", (entry) => hexToRgba(entry.recordColor || "#94a3b8", entry.isSelected ? 0.22 : entry.closed ? 0.16 : 0.08))
+    .attr("opacity", (entry) => (entry.isGhost ? 0.22 : 0.94));
 
   selection
     .select("circle.history-node-ring")
-    .attr("r", (entry) => (entry.previewOffset === 0 ? 11.5 : 9.5))
+    .attr("r", (entry) => entry.nodeRadius + 2.4)
     .attr("fill", "none")
-    .attr("stroke", (entry) => (entry.hasRecord ? entry.recordColor : "rgba(148, 163, 184, 0.18)"))
-    .attr("stroke-width", (entry) => (entry.hasRecord ? (entry.completed || entry.closed ? 2.4 : 2) : 1.1))
+    .attr("stroke", (entry) => (entry.hasRecord ? entry.recordColor : "rgba(148, 163, 184, 0.26)"))
+    .attr("stroke-width", (entry) => (entry.isSelected ? 2.6 : entry.closed || entry.completed ? 2.1 : 1.5))
     .attr("stroke-dasharray", (entry) => {
       if (entry.closed && !entry.completed) {
-        return "4 2.6";
+        return "4 2.4";
       }
-      if (entry.hasReflection && !entry.completed) {
-        return "2.2 2.8";
+      if (entry.hasReflection && !entry.closed && !entry.completed) {
+        return "2.4 2.6";
+      }
+      if (entry.isGhost) {
+        return "3.2 3.2";
       }
       return null;
     })
-    .attr("opacity", (entry) => (entry.hasRecord ? 0.98 : 0.62));
+    .attr("opacity", (entry) => (entry.isGhost ? 0.64 : 0.98));
 
   selection
     .select("circle.history-node-dot")
-    .attr("r", (entry) => (entry.previewOffset === 0 ? 7 : entry.hasRecord ? 6 : 5))
-    .attr("fill", (entry) => entry.color)
+    .attr("r", (entry) => entry.nodeRadius)
+    .attr("fill", (entry) => (entry.isGhost ? "rgba(148, 163, 184, 0.18)" : entry.rulerColor))
     .attr("stroke", "#0f172a")
-    .attr("stroke-width", (entry) => (entry.previewOffset === 0 ? 2 : 1.4));
+    .attr("stroke-width", (entry) => (entry.isSelected ? 1.9 : 1.3));
+
+  selection
+    .select("circle.history-node-launch")
+    .attr("cx", (entry) => polarPoint(0, 0, entry.nodeRadius + 5.2, entry.mapAngle + degreesToRadians(46)).x)
+    .attr("cy", (entry) => polarPoint(0, 0, entry.nodeRadius + 5.2, entry.mapAngle + degreesToRadians(46)).y)
+    .attr("r", (entry) => (entry.launchCount ? Math.min(3.6, 1.6 + entry.launchCount * 0.32) : 0))
+    .attr("fill", (entry) => (entry.launchCount ? "#f8fafc" : "transparent"))
+    .attr("stroke", (entry) => (entry.launchCount ? hexToRgba(entry.recordColor, 0.92) : "none"))
+    .attr("stroke-width", 1.1);
 
   selection
     .select("text.history-node-label")
-    .attr("y", -11)
-    .attr("fill", (entry) => (entry.previewOffset === 0 ? "#f8fafc" : "#cbd5f5"))
-    .attr("font-size", (entry) => (entry.previewOffset === 0 ? 11 : 10))
-    .text((entry) => entry.shortLabel);
+    .attr("y", (entry) => -(entry.haloRadius + 6))
+    .attr("fill", (entry) => (entry.isSelected ? "#f8fafc" : "#cbd5f5"))
+    .attr("font-size", (entry) => (entry.isSelected ? 11 : 10))
+    .text((entry) => (entry.isSelected || entry.isToday ? entry.shortLabel : ""));
 
   selection
+    .select("text.history-node-caption")
+    .attr("y", (entry) => entry.haloRadius + 14)
+    .attr("fill", (entry) => hexToRgba(entry.recordColor, entry.isSelected ? 0.92 : 0.64))
+    .attr("font-size", 10)
+    .text((entry) => (entry.isSelected ? (entry.statusBadges[0] || "Selected") : ""));
+
+  const hitSelection = selection
+    .select("circle.history-node-hit")
     .attr("tabindex", 0)
     .attr("role", "button")
     .attr("aria-label", (entry) => `View ${entry.dateLabel}: ${entry.summaryLine}`)
     .style("cursor", "pointer")
     .on("click", (_event, entry) => {
-      setSelectedDayOffset(selectedDayOffset + entry.previewOffset);
+      setSelectedDayOffset(entry.offset);
+      setLens("history");
     })
     .on("keydown", (event, entry) => {
       if (event.key === "Enter" || event.key === " ") {
         event.preventDefault();
-        setSelectedDayOffset(selectedDayOffset + entry.previewOffset);
+        setSelectedDayOffset(entry.offset);
+        setLens("history");
       }
     });
 
   bindTooltip(
-    selection,
+    hitSelection,
     (entry) => {
       const parts = [`${entry.dateLabel} • ${entry.rulerText}`];
       if (entry.statusBadges.length) {
         parts.push(entry.statusBadges.join(" • "));
       }
+      parts.push(entry.scriptureRef || entry.psalmRef);
       parts.push(entry.summaryLine);
       if (entry.reflectionSnippet) {
         parts.push(`Reflection: ${entry.reflectionSnippet}`);
@@ -3487,6 +3574,12 @@ function updateHistoryPreview(now, derived, referenceMap, outerRadius) {
       return parts.join(" • ");
     }
   );
+
+  selection.each(function reorderIfSelected(entry) {
+    if (entry.isSelected) {
+      this.parentNode.appendChild(this);
+    }
+  });
 }
 
 function updateScriptureOverlay(timeState, referenceMap, now, radii) {
@@ -4024,6 +4117,7 @@ function setSelectedDayOffset(nextOffset) {
   lastWeeklyArcKey = null;
   lastHistoryPanelKey = null;
   lastProvidenceTimelineKey = null;
+  lastProvidenceMapKey = null;
 }
 
 function shiftSelectedDay(delta) {
@@ -4611,6 +4705,7 @@ function updateDailyOpening(context) {
   if (!context) {
     drawerElements.dailyOpeningOverlay.hidden = true;
     document.body.dataset.dailyOpening = "closed";
+    setDailyOpeningAnchorPreview("Today's anchor", "—", { expandable: false, expanded: false });
     return;
   }
 
@@ -4622,12 +4717,19 @@ function updateDailyOpening(context) {
     || `Receive ${String(context.rulerText || "today").toLowerCase()} with attention and steadiness.`;
   const anchorRef = context.ruleOfLife?.psalmRef || context.psalmRef || context.wisdomRef || "Today's anchor";
 
+  if (lastDailyOpeningDateKey !== context.dateKey) {
+    dailyOpeningAnchorExpanded = false;
+    lastDailyOpeningAnchorKey = null;
+    lastDailyOpeningDateKey = context.dateKey;
+  }
+
   drawerElements.dailyOpeningDay.textContent = `${context.dayText} — ${context.rulerText}`;
   drawerElements.dailyOpeningFocus.textContent = context.ruleOfLife
     ? `${context.ruleOfLife.domain} • ${context.ruleOfLife.virtue}`
     : context.label;
   drawerElements.dailyOpeningSummary.textContent = openingSummary;
   drawerElements.dailyOpeningAnchorRef.textContent = anchorRef;
+  updateDailyOpeningAnchorPreview(context);
 
   const preferredIntention = String(entry.openingIntention || "").trim() || suggestedIntention;
   if (
@@ -4769,6 +4871,70 @@ function buildHistoryTimelineEntry(baseDate, offset, derived, referenceMap) {
   };
 }
 
+function getProvidenceMapOrbitRadii(radii) {
+  const inner = Math.max(radii.spirit - 62, radii.planetary + 26);
+  const middle = Math.max(radii.spirit - 36, inner + 18);
+  const outer = Math.max(radii.spirit - 12, middle + 18);
+  return { inner, middle, outer };
+}
+
+function getProvidenceMapRadius(distanceDays, radii) {
+  const orbitRadii = getProvidenceMapOrbitRadii(radii);
+  const normalizedDistance = Math.max(0, Math.min(PROVIDENCE_MAP_MAX_DAYS, Number(distanceDays) || 0));
+  const ratio = normalizedDistance / PROVIDENCE_MAP_MAX_DAYS;
+  return orbitRadii.inner + (orbitRadii.outer - orbitRadii.inner) * ratio;
+}
+
+function getHistoryRulerColor(rulerText, alpha = 1) {
+  return hexToRgba(HISTORY_RULER_COLORS[rulerText] || "#cbd5f5", alpha);
+}
+
+function getProvidenceMapEntries(baseDate, derived, referenceMap, radii) {
+  const state = loadDailyActionState();
+  const recordedEntries = Object.keys(state)
+    .map((dateKey) => buildHistoryTimelineEntryFromDateKey(dateKey, baseDate, derived, referenceMap))
+    .filter((entry) => entry && entry.hasRecord && Math.abs(entry.offset) <= PROVIDENCE_MAP_MAX_DAYS)
+    .sort((left, right) => left.targetDate - right.targetDate)
+    .slice(-PROVIDENCE_MAP_MAX_ENTRIES);
+
+  const selectedEntry = buildHistoryTimelineEntry(baseDate, selectedDayOffset, derived, referenceMap);
+  if (
+    selectedEntry
+    && !recordedEntries.some((entry) => entry.dateKey === selectedEntry.dateKey)
+    && Math.abs(selectedEntry.offset) <= PROVIDENCE_MAP_MAX_DAYS
+  ) {
+    recordedEntries.push(selectedEntry);
+    recordedEntries.sort((left, right) => left.targetDate - right.targetDate);
+  }
+
+  return recordedEntries.map((entry) => {
+    const distanceDays = Math.abs(entry.offset);
+    const angleRadians = (-((Number(entry.weekFraction) || 0) * Math.PI * 2)) - Math.PI / 2;
+    const orbitRadius = getProvidenceMapRadius(distanceDays, radii);
+    const point = polarPoint(0, 0, orbitRadius, angleRadians);
+    const nodeRadius = 4.8
+      + (entry.closed ? 1.6 : 0)
+      + (entry.completed ? 0.9 : 0)
+      + (entry.hasReflection ? 0.5 : 0)
+      + Math.min(entry.launchCount, 4) * 0.3;
+
+    return {
+      ...entry,
+      distanceDays,
+      mapAngle: angleRadians,
+      mapRadius: orbitRadius,
+      x: point.x,
+      y: point.y,
+      rulerColor: getHistoryRulerColor(entry.rulerText, entry.hasRecord ? 0.94 : 0.46),
+      nodeRadius,
+      haloRadius: nodeRadius + (entry.offset === selectedDayOffset ? 5.2 : entry.closed ? 2.8 : entry.hasReflection ? 1.8 : 0.8),
+      shortLabel: entry.isToday ? "Today" : entry.dateLabel.replace(",", ""),
+      isSelected: entry.offset === selectedDayOffset,
+      isGhost: !entry.hasRecord,
+    };
+  });
+}
+
 function buildHistoryTimelineEntryFromDateKey(dateKey, baseDate, derived, referenceMap) {
   const targetDate = parseDateStorageKey(dateKey);
   if (!targetDate) {
@@ -4881,6 +5047,104 @@ function clearRuleScripturePreview(target) {
   target.ref.textContent = "—";
   target.text.textContent = "—";
   target.text.classList.remove("loading", "error");
+}
+
+function setDailyOpeningAnchorPreview(reference, text, {
+  loading = false,
+  error = false,
+  expandable = false,
+  expanded = false,
+} = {}) {
+  if (
+    !drawerElements.dailyOpeningAnchorRef ||
+    !drawerElements.dailyOpeningAnchorText ||
+    !drawerElements.dailyOpeningAnchorToggle
+  ) {
+    return;
+  }
+
+  drawerElements.dailyOpeningAnchorRef.textContent = reference || "Today's anchor";
+  drawerElements.dailyOpeningAnchorText.textContent = text || "No passage available.";
+  drawerElements.dailyOpeningAnchorText.classList.toggle("loading", loading);
+  drawerElements.dailyOpeningAnchorText.classList.toggle("error", error);
+  drawerElements.dailyOpeningAnchorToggle.hidden = !expandable;
+  drawerElements.dailyOpeningAnchorToggle.textContent = expanded ? "Show Less" : "Read More";
+  drawerElements.dailyOpeningAnchorToggle.setAttribute("aria-expanded", expanded ? "true" : "false");
+}
+
+function updateDailyOpeningAnchorPreview(context) {
+  if (
+    !drawerElements.dailyOpeningAnchorRef ||
+    !drawerElements.dailyOpeningAnchorText ||
+    !drawerElements.dailyOpeningAnchorToggle
+  ) {
+    return;
+  }
+
+  const rule = context?.ruleOfLife || null;
+  const anchorRef = rule?.psalmRef || context?.psalmRef || context?.wisdomRef || "Today's anchor";
+  const wisdomText = context?.rulerText ? WISDOM_CONTENT_BY_RULER[context.rulerText]?.text || "" : "";
+  const hasPsalmAnchor = Boolean(rule?.psalmChapter && anchorRef);
+  const key = [
+    context?.dateKey || "none",
+    anchorRef,
+    rule?.psalmChapter || "none",
+    rule?.psalmVerse || "none",
+    dailyOpeningAnchorExpanded ? "expanded" : "preview",
+  ].join("|");
+
+  if (key === lastDailyOpeningAnchorKey) {
+    return;
+  }
+  lastDailyOpeningAnchorKey = key;
+
+  if (!hasPsalmAnchor) {
+    setDailyOpeningAnchorPreview(anchorRef, wisdomText || anchorRef, {
+      expandable: false,
+      expanded: false,
+    });
+    return;
+  }
+
+  const requestId = ++currentDailyOpeningPsalmRequestId;
+  setDailyOpeningAnchorPreview(
+    anchorRef,
+    dailyOpeningAnchorExpanded ? "Loading full passage…" : "Loading scripture anchor…",
+    {
+      loading: true,
+      expandable: true,
+      expanded: dailyOpeningAnchorExpanded,
+    }
+  );
+
+  const previewPromise = dailyOpeningAnchorExpanded
+    ? retrievePsalmPassage(rule.psalmChapter, rule.psalmVerse, "medium")
+    : retrievePsalmText(rule.psalmChapter, rule.psalmVerse);
+
+  previewPromise.then((text) => {
+    if (requestId !== currentDailyOpeningPsalmRequestId) {
+      return;
+    }
+
+    const passageText = dailyOpeningAnchorExpanded
+      ? normalizePsalmText(text)
+      : formatPsalmPreviewText(text, 260);
+    setDailyOpeningAnchorPreview(anchorRef, passageText || "No passage returned.", {
+      expandable: true,
+      expanded: dailyOpeningAnchorExpanded,
+    });
+  }).catch((error) => {
+    console.error("Failed to fetch daily opening scripture anchor", error);
+    if (requestId !== currentDailyOpeningPsalmRequestId) {
+      return;
+    }
+
+    setDailyOpeningAnchorPreview(anchorRef, "Unable to load scripture anchor.", {
+      expandable: true,
+      expanded: dailyOpeningAnchorExpanded,
+      error: true,
+    });
+  });
 }
 
 function updateRuleScripturePreview(rule) {
@@ -5245,10 +5509,20 @@ function updateSurfacePanel(timeState, referenceMap, now, derived, lifeState) {
   updateRuleOfLifePanels(null);
 
   if (uiState.lens === "scripture") {
-    drawerElements.surfaceLensTitle.textContent = readablePsalm || "Scripture Anchor";
-    drawerElements.surfaceLensBody.textContent = wisdom?.ref
-      ? `${wisdom.ref} stays near the center while the mapped psalm governs today’s reading.`
-      : "Current scripture mapping is foregrounded on the instrument surface.";
+    drawerElements.surfaceLensTitle.textContent = wisdom?.ref
+      ? "Wisdom Anchor"
+      : readablePsalm
+        ? "Psalm Pairing"
+        : "Scripture Anchor";
+    if (wisdom?.ref && readablePsalm) {
+      drawerElements.surfaceLensBody.textContent = `Today's wisdom anchor: ${wisdom.ref}. Mapped psalm: ${readablePsalm}.`;
+    } else if (wisdom?.ref) {
+      drawerElements.surfaceLensBody.textContent = `Today's wisdom anchor: ${wisdom.ref}.`;
+    } else if (readablePsalm) {
+      drawerElements.surfaceLensBody.textContent = `Today's mapped psalm: ${readablePsalm}.`;
+    } else {
+      drawerElements.surfaceLensBody.textContent = "Today's scripture mapping appears here.";
+    }
     return;
   }
 
@@ -6060,7 +6334,7 @@ function renderClock(data, referenceMap, psalmMetadata, pentacleData, lifeDomain
   derived.flatPentacles = flattenPentacles(layers.planetary.groups);
   derived.totalPentacles = derived.flatPentacles.length;
   ensureSealSymbols(derived.flatPentacles);
-  drawPlanetarySealGlyphs(layers.planetary.groups, radii.planetary);
+  planetarySealGlyphGroup.selectAll("*").remove();
 
   function frame() {
     const now = new Date();
@@ -6078,14 +6352,13 @@ function renderClock(data, referenceMap, psalmMetadata, pentacleData, lifeDomain
     highlightLayer("spirit", timeState.indices.spirit);
     highlightLayer("planetary", timeState.indices.planetary);
     highlightLayer("celestial", timeState.indices.celestial);
-    updateActivePlanetarySealGlyph(timeState.active.pentacle);
     updateActiveSealFocus(timeState.active.pentacle, pentacleData, referenceMap);
     updateCenterModeControl(radii);
     updateScriptureOverlay(timeState, referenceMap, now, radii);
     updateRitualOverlay(timeState, now, radii);
     updateEsotericOverlay(timeState, radii, derived);
     const lifeState = updateLifeWheel(timeState, radii, lifeDomainData);
-    updateHistoryPreview(now, derived, referenceMap, radii.spirit + 28);
+    updateHistoryPreview(now, derived, referenceMap, radii);
     updateLensFocusOverlay(radii);
     updateLensAnnotations(timeState, referenceMap, now, radii);
 

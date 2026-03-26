@@ -191,7 +191,8 @@ body[data-daily-opening="open"] {
 
 .daily-opening-focus,
 .daily-opening-summary,
-.daily-opening-anchor-ref {
+.daily-opening-anchor-ref,
+.daily-opening-anchor-text {
   margin: 0;
 }
 
@@ -225,6 +226,44 @@ body[data-daily-opening="open"] {
   color: #fef08a;
   font-size: 1rem;
   font-weight: 600;
+}
+
+.daily-opening-anchor-text {
+  margin-top: 0.45rem;
+  color: #d7dfeb;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+.daily-opening-anchor-text.loading {
+  color: #93c5fd;
+}
+
+.daily-opening-anchor-text.error {
+  color: #fca5a5;
+}
+
+.daily-opening-anchor-toggle {
+  margin-top: 0.7rem;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #facc15;
+  font: inherit;
+  font-size: 0.92rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  cursor: pointer;
+}
+
+.daily-opening-anchor-toggle:hover {
+  color: #fde68a;
+}
+
+.daily-opening-anchor-toggle:focus {
+  outline: none;
+  color: #fde68a;
+  text-decoration: underline;
 }
 
 .daily-opening-intention-label {
@@ -971,15 +1010,96 @@ svg#clock .lens-focus-overlay {
 svg[data-lens="history"] .history-preview {
   opacity: 1;
   pointer-events: auto;
+  filter: drop-shadow(0 0 12px rgba(96, 165, 250, 0.14));
+}
+
+svg[data-lens="history"] {
+  pointer-events: none;
+}
+
+svg[data-lens="history"] .history-preview,
+svg[data-lens="history"] .history-preview *,
+svg[data-lens="history"] .center-mode-control,
+svg[data-lens="history"] .center-mode-control *,
+svg[data-lens="history"] .center-label,
+svg[data-lens="history"] .center-label * {
+  pointer-events: auto;
+}
+
+svg[data-lens="history"] .ring-spirit,
+svg[data-lens="history"] .ring-spirit * {
+  pointer-events: none;
+}
+
+.providence-map-orbit {
+  fill: none;
+  stroke: rgba(148, 163, 184, 0.18);
+  stroke-width: 1.1;
+  stroke-dasharray: 4 8;
+}
+
+.providence-map-orbit--1 {
+  stroke-opacity: 0.32;
+}
+
+.providence-map-orbit--2 {
+  stroke-opacity: 0.24;
+}
+
+.providence-map-orbit--3 {
+  stroke-opacity: 0.18;
+}
+
+.providence-map-orbit-label,
+.history-node-caption,
+.history-node-label {
+  font-family: "Times New Roman", serif;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  pointer-events: none;
+}
+
+.providence-map-orbit-label {
+  font-size: 10px;
+  fill: rgba(191, 219, 254, 0.78);
+}
+
+.providence-map-path {
+  fill: none;
+  stroke: rgba(148, 163, 184, 0.28);
+  stroke-width: 1.45;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .history-node-label {
-  font-family: "Times New Roman", serif;
-  pointer-events: none;
+  paint-order: stroke;
+  stroke: rgba(15, 23, 42, 0.92);
+  stroke-width: 2.8;
 }
 
 .history-node-ring {
   pointer-events: none;
+}
+
+.history-node-halo,
+.history-node-dot,
+.history-node-launch,
+.history-node-caption {
+  pointer-events: none;
+}
+
+.history-node-halo {
+  transition: fill 160ms ease, opacity 160ms ease;
+}
+
+.history-node.is-selected .history-node-dot,
+.history-node.is-selected .history-node-ring {
+  filter: drop-shadow(0 0 9px rgba(248, 250, 252, 0.22));
+}
+
+.history-node.is-ghost .history-node-caption {
+  fill: rgba(148, 163, 184, 0.66);
 }
 
 .scripture-overlay-text,
