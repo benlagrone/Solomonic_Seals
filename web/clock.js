@@ -139,6 +139,10 @@ const drawerElements = {
   weeklyArcPrev: document.querySelector(".weekly-arc-prev"),
   weeklyArcNext: document.querySelector(".weekly-arc-next"),
   weeklyArcToday: document.querySelector(".weekly-arc-today"),
+  historyWeeklyWindow: document.querySelector(".history-weekly-window"),
+  historyWeeklyNarrative: document.querySelector(".history-weekly-narrative"),
+  historyWeeklyMeta: document.querySelector(".history-weekly-meta"),
+  historyPatternList: document.querySelector(".history-pattern-list"),
   historyCurrentDay: document.querySelector(".history-current-day"),
   historyCurrentSummary: document.querySelector(".history-current-summary"),
   historyCurrentMeta: document.querySelector(".history-current-meta"),
@@ -238,6 +242,7 @@ let lastPlanetaryRingPresentationKey = null;
 let lastLifeWheelKey = null;
 let lastRuleOfLifeKey = null;
 let lastHistoryPanelKey = null;
+let lastHistoryWeeklyKey = null;
 let lastProvidenceTimelineKey = null;
 let lastProvidenceMapKey = null;
 let currentPsalmRequestId = 0;
@@ -2642,6 +2647,10 @@ function updateWeeklyArcPanel(now, derived, referenceMap) {
 
 function updateHistoryPanel(now, derived, referenceMap) {
   if (
+    !drawerElements.historyWeeklyWindow ||
+    !drawerElements.historyWeeklyNarrative ||
+    !drawerElements.historyWeeklyMeta ||
+    !drawerElements.historyPatternList ||
     !drawerElements.historyCurrentDay ||
     !drawerElements.historyCurrentSummary ||
     !drawerElements.historyCurrentMeta ||
@@ -2655,7 +2664,9 @@ function updateHistoryPanel(now, derived, referenceMap) {
 
   const selectedEntry = buildHistoryTimelineEntry(now, selectedDayOffset, derived, referenceMap);
   const recentEntries = getRecordedHistoryEntries(now, derived, referenceMap, 6);
+  const weeklySummary = buildWeeklyHistorySummary(now, derived, referenceMap);
   const key = JSON.stringify({
+    weekly: weeklySummary.key,
     selected: {
       dateKey: selectedEntry.dateKey,
       updatedAt: selectedEntry.entry.updatedAt || "",
@@ -2672,6 +2683,33 @@ function updateHistoryPanel(now, derived, referenceMap) {
     return;
   }
   lastHistoryPanelKey = key;
+  lastHistoryWeeklyKey = weeklySummary.key;
+
+  drawerElements.historyWeeklyWindow.textContent = weeklySummary.windowLabel;
+  drawerElements.historyWeeklyNarrative.textContent = weeklySummary.narrative;
+
+  drawerElements.historyWeeklyMeta.innerHTML = "";
+  weeklySummary.metaItems.forEach((item) => {
+    const li = document.createElement("li");
+    li.className = "history-meta-pill is-recorded";
+    li.textContent = item;
+    drawerElements.historyWeeklyMeta.appendChild(li);
+  });
+
+  drawerElements.historyPatternList.innerHTML = "";
+  if (weeklySummary.patterns.length) {
+    weeklySummary.patterns.forEach((pattern) => {
+      const li = document.createElement("li");
+      li.className = "history-pattern-item";
+      li.textContent = pattern;
+      drawerElements.historyPatternList.appendChild(li);
+    });
+  } else {
+    const li = document.createElement("li");
+    li.className = "history-pattern-empty";
+    li.textContent = "No strong repeated pattern yet. Keep opening and closing the day to make the week readable.";
+    drawerElements.historyPatternList.appendChild(li);
+  }
 
   drawerElements.historyCurrentDay.textContent = `${selectedEntry.dateLabel} (${selectedEntry.rulerText})${selectedEntry.isToday ? " • Today" : ""}`;
   drawerElements.historyCurrentSummary.textContent = selectedEntry.hasRecord
@@ -4340,6 +4378,7 @@ function setSelectedDayOffset(nextOffset) {
   selectedDayOffset = normalized;
   lastWeeklyArcKey = null;
   lastHistoryPanelKey = null;
+  lastHistoryWeeklyKey = null;
   lastProvidenceTimelineKey = null;
   lastProvidenceMapKey = null;
 }
@@ -5092,6 +5131,8 @@ function buildHistoryTimelineEntry(baseDate, offset, derived, referenceMap) {
     launchSummary,
     scriptureRef: rule?.scriptureRef || entry.psalmRef || weeklyEntry.psalmRef,
     displayFocus: entry.activeFocus || weeklyEntry.focus,
+    ruleVirtue: rule?.virtue || "",
+    ruleDomain: rule?.domain || "",
   };
 }
 
@@ -5177,6 +5218,152 @@ function getRecordedHistoryEntries(baseDate, derived, referenceMap, limit = 6) {
     .map((dateKey) => buildHistoryTimelineEntryFromDateKey(dateKey, baseDate, derived, referenceMap))
     .filter((entry) => entry && entry.hasRecord)
     .slice(0, limit);
+}
+
+function incrementCount(map, label) {
+  const clean = String(label || "").trim();
+  if (!clean) {
+    return;
+  }
+  map.set(clean, (map.get(clean) || 0) + 1);
+}
+
+function pickTopCount(map) {
+  let winner = null;
+  map.forEach((count, label) => {
+    if (!winner || count > winner.count || (count === winner.count && label < winner.label)) {
+      winner = { label, count };
+    }
+  });
+  return winner;
+}
+
+function getWeeklyHistoryEntries(baseDate, derived, referenceMap) {
+  const entries = [];
+  for (let offset = selectedDayOffset - 6; offset <= selectedDayOffset; offset += 1) {
+    entries.push(buildHistoryTimelineEntry(baseDate, offset, derived, referenceMap));
+  }
+  return entries;
+}
+
+function buildWeeklyHistorySummary(baseDate, derived, referenceMap) {
+  const entries = getWeeklyHistoryEntries(baseDate, derived, referenceMap);
+  const recordedEntries = entries.filter((entry) => entry.hasRecord);
+  const windowStart = entries[0];
+  const windowEnd = entries[entries.length - 1];
+  const windowLabel = `${windowStart.dateLabel} — ${windowEnd.dateLabel}`;
+
+  if (!recordedEntries.length) {
+    return {
+      key: `${windowLabel}|empty`,
+      windowLabel,
+      narrative: "No recorded week yet. Open the day, act, and close it to begin a readable trail.",
+      metaItems: [],
+      patterns: [],
+    };
+  }
+
+  const closedCount = recordedEntries.filter((entry) => entry.closed).length;
+  const completedCount = recordedEntries.filter((entry) => entry.completed).length;
+  const reflectedCount = recordedEntries.filter((entry) => entry.hasReflection).length;
+  const adoptedCount = recordedEntries.filter((entry) => entry.adopted).length;
+  const incompleteCount = recordedEntries.filter((entry) => entry.adopted && !entry.completed).length;
+  const unclosedCount = recordedEntries.filter((entry) => !entry.closed).length;
+  const launchCount = recordedEntries.reduce((sum, entry) => sum + entry.launchCount, 0);
+
+  const virtueCounts = new Map();
+  const domainCounts = new Map();
+  const scriptureCounts = new Map();
+
+  recordedEntries.forEach((entry) => {
+    incrementCount(virtueCounts, entry.ruleVirtue);
+    incrementCount(domainCounts, entry.ruleDomain);
+    incrementCount(scriptureCounts, entry.scriptureRef);
+  });
+
+  const topVirtue = pickTopCount(virtueCounts);
+  const topDomain = pickTopCount(domainCounts);
+  const topScripture = pickTopCount(scriptureCounts);
+
+  const narrativeParts = [
+    `${recordedEntries.length} recorded ${recordedEntries.length === 1 ? "day" : "days"}`,
+    `${closedCount} closed`,
+  ];
+
+  if (completedCount) {
+    narrativeParts.push(`${completedCount} completed`);
+  } else if (adoptedCount) {
+    narrativeParts.push(`${adoptedCount} adopted`);
+  }
+
+  if (reflectedCount) {
+    narrativeParts.push(`${reflectedCount} reflected`);
+  }
+
+  if (launchCount) {
+    narrativeParts.push(`${launchCount} ${launchCount === 1 ? "launch" : "launches"}`);
+  }
+
+  let narrative = `${narrativeParts.join(", ")} this week.`;
+  if (topVirtue) {
+    narrative += ` ${topVirtue.label} was the clearest virtue emphasis.`;
+  }
+  if (topDomain) {
+    narrative += ` ${topDomain.label} kept returning as the field of practice.`;
+  }
+
+  const patterns = [];
+  if (topDomain && topDomain.count >= 2) {
+    patterns.push(`${topDomain.label} appeared on ${topDomain.count} recorded days, so the same field of life kept asking for attention.`);
+  }
+  if (incompleteCount >= 2) {
+    patterns.push(`${incompleteCount} adopted ${incompleteCount === 1 ? "day remained" : "days remained"} incomplete, which suggests resistance after intention was set.`);
+  }
+  if (unclosedCount >= 2) {
+    patterns.push(`${unclosedCount} recorded ${unclosedCount === 1 ? "day was" : "days were"} left open without a full closing, so review may be trailing behind action.`);
+  }
+  if (launchCount >= 3) {
+    patterns.push(`You leaned on Pericope ${launchCount} times this week, which signals a recurring need for guided conversation rather than isolated questions.`);
+  }
+  if (topScripture && topScripture.count >= 2) {
+    patterns.push(`${topScripture.label} reappeared ${topScripture.count} times, so the same scriptural thread is staying near the center of the week.`);
+  }
+  if (!patterns.length && reflectedCount >= 2) {
+    patterns.push(`Reflection held on ${reflectedCount} recorded days, which is enough to begin seeing a stable rhythm rather than isolated entries.`);
+  }
+
+  const metaItems = [
+    `${recordedEntries.length} recorded`,
+    `${closedCount} closed`,
+  ];
+  if (completedCount) {
+    metaItems.push(`${completedCount} completed`);
+  }
+  if (reflectedCount) {
+    metaItems.push(`${reflectedCount} reflected`);
+  }
+  if (launchCount) {
+    metaItems.push(`${launchCount} ${launchCount === 1 ? "launch" : "launches"}`);
+  }
+  if (topVirtue) {
+    metaItems.push(`Virtue • ${topVirtue.label}`);
+  }
+  if (topDomain) {
+    metaItems.push(`Domain • ${topDomain.label}`);
+  }
+
+  return {
+    key: JSON.stringify({
+      windowLabel,
+      recorded: recordedEntries.map((entry) => `${entry.dateKey}:${entry.entry.updatedAt || entry.entry.closingUpdatedAt || entry.entry.reflectionUpdatedAt || entry.entry.completedAt || entry.entry.adoptedAt || ""}:${entry.launchCount}`),
+      topVirtue: topVirtue?.label || "",
+      topDomain: topDomain?.label || "",
+    }),
+    windowLabel,
+    narrative,
+    metaItems,
+    patterns: patterns.slice(0, 3),
+  };
 }
 
 function describeHistoryLaunches(entry) {
