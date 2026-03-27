@@ -32,7 +32,7 @@
       gtag("config", "G-138HFD1QQP");
     </script>
     <link rel="icon" href='data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="12" fill="%23020617"/><circle cx="32" cy="32" r="20" fill="none" stroke="%23facc15" stroke-width="4"/><circle cx="32" cy="32" r="6" fill="%23facc15"/></svg>' />
-    <link rel="stylesheet" href="/web/style.css?v=20260326-1" />
+    <link rel="stylesheet" href="/web/style.css?v=20260326-3" />
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
@@ -85,6 +85,20 @@
         <p class="page-intro">
           Read the day through Scripture-first counsel, daily practice, and the live clock. Start here if
           you want the instrument surface, the rule of life, and Psalm correspondences in one place.
+        </p>
+        <nav class="presentation-bar" aria-label="Clock presentation">
+          <button type="button" class="presentation-button active" data-presentation="guidance" aria-pressed="true">
+            Guidance First
+          </button>
+          <button type="button" class="presentation-button" data-presentation="historical_symbols" aria-pressed="false">
+            Historical Symbols
+          </button>
+          <button type="button" class="presentation-button" data-presentation="talismans" aria-pressed="false">
+            Talismans
+          </button>
+        </nav>
+        <p class="presentation-status" aria-live="polite">
+          Guidance-first keeps Scripture, practice, and life-balance primary. Historical symbol layers stay off until you ask for them.
         </p>
         <nav class="lens-bar" aria-label="Clock lenses">
           <button type="button" class="lens-button active" data-lens="base" aria-pressed="true">
@@ -231,7 +245,7 @@
           <div class="drawer-header-top">
             <div>
               <h2>Psalm Correspondences</h2>
-              <p class="drawer-subtitle">Live mapping for the active planetary pentacle.</p>
+              <p class="drawer-subtitle">Today's scripture, guidance, and practice details.</p>
             </div>
             <button type="button" class="drawer-toggle" aria-expanded="true" aria-controls="drawer-body">
               Hide Details
@@ -351,7 +365,7 @@
                 </button>
               </div>
             </article>
-            <article class="bundle-item">
+            <article class="bundle-item bundle-item--solomonic">
               <p class="bundle-label">Solomonic</p>
               <p class="bundle-ref bundle-solomonic-ref">—</p>
               <p class="bundle-text bundle-solomonic-text">—</p>
@@ -376,6 +390,6 @@
       </aside>
     </div>
     <script src="https://d3js.org/d3.v7.min.js"></script>
-    <script src="/web/clock.js?v=20260326-1"></script>
+    <script src="/web/clock.js?v=20260326-3"></script>
   </body>
 </html>

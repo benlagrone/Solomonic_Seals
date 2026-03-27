@@ -128,6 +128,8 @@ const drawerElements = {
   list: document.querySelector(".psalm-list"),
   subtitle: document.querySelector(".drawer-subtitle"),
   lensStatus: document.querySelector(".lens-status"),
+  presentationButtons: Array.from(document.querySelectorAll(".presentation-button[data-presentation]")),
+  presentationStatus: document.querySelector(".presentation-status"),
   lensButtons: Array.from(document.querySelectorAll(".lens-button[data-lens]")),
   sections: Array.from(document.querySelectorAll(".drawer-section[data-lenses]")),
   guidanceDay: document.querySelector(".guidance-day"),
@@ -153,6 +155,7 @@ const drawerElements = {
   profileDay: document.querySelector(".profile-day"),
   profilePentacle: document.querySelector(".profile-pentacle"),
   profileFocus: document.querySelector(".profile-focus"),
+  profileCorrespondences: document.querySelector(".profile-correspondences"),
   profileColor: document.querySelector(".profile-color"),
   profileMetal: document.querySelector(".profile-metal"),
   profileAngel: document.querySelector(".profile-angel"),
@@ -166,6 +169,7 @@ const drawerElements = {
   bundleWisdomText: document.querySelector(".bundle-wisdom-text"),
   bundleWisdomExpand: document.querySelector(".bundle-wisdom-expand"),
   bundleWisdomDiscuss: document.querySelector(".bundle-wisdom-discuss"),
+  bundleSolomonicItem: document.querySelector(".bundle-item--solomonic"),
   bundleSolomonicRef: document.querySelector(".bundle-solomonic-ref"),
   bundleSolomonicText: document.querySelector(".bundle-solomonic-text"),
   bundleSolomonicExpand: document.querySelector(".bundle-solomonic-expand"),
@@ -230,6 +234,7 @@ let lastProfileKey = null;
 let lastExplainabilityKey = null;
 let lastBundleKey = null;
 let lastActiveSealFocusKey = null;
+let lastPlanetaryRingPresentationKey = null;
 let lastLifeWheelKey = null;
 let lastRuleOfLifeKey = null;
 let lastHistoryPanelKey = null;
@@ -267,6 +272,7 @@ let dailyOpeningAnchorExpanded = false;
 let lastDailyOpeningAnchorKey = null;
 let lastDailyOpeningDateKey = null;
 const uiState = {
+  presentationMode: "guidance",
   lens: "base",
   mode: "guidance",
   focusedRing: null,
@@ -341,16 +347,40 @@ const RULE_OF_LIFE_DAY_TONES = {
   Saturn: "with discipline",
 };
 const READING_DEPTHS = new Set(["short", "medium", "long"]);
+const PRESENTATION_DEFINITIONS = {
+  guidance: {
+    title: "Guidance First",
+    status: "Guidance-first keeps Scripture, practice, and life-balance primary. Historical symbol layers stay off until you ask for them.",
+    allowEsotericLens: false,
+    showHistoricalSymbols: false,
+    showTalismans: false,
+  },
+  historical_symbols: {
+    title: "Historical Symbols",
+    status: "Historical symbol study is available, but Scripture, practice, and readable guidance remain primary.",
+    allowEsotericLens: true,
+    showHistoricalSymbols: true,
+    showTalismans: false,
+  },
+  talismans: {
+    title: "Talismans",
+    status: "Full talisman rendering is now explicit and opt-in. Guidance remains the primary way to read the day.",
+    allowEsotericLens: true,
+    showHistoricalSymbols: true,
+    showTalismans: true,
+  },
+};
+const AVAILABLE_PRESENTATIONS = new Set(Object.keys(PRESENTATION_DEFINITIONS));
 const LENS_DEFINITIONS = {
   base: {
     title: "Daily Guidance",
-    subtitle: () => baseDrawerSubtitleText,
-    status: "Base lens keeps the clock primary and now surfaces both current guidance and life-balance state.",
+    subtitle: () => getBaseDrawerSubtitleText(),
+    status: () => "Base lens keeps the clock primary and surfaces current guidance, life-balance state, and clear next action.",
     focusRing: null,
   },
   scripture: {
     title: "Scripture Lens",
-    subtitle: () => `${baseDrawerSubtitleText} Reading depth, verse mappings, and provenance are foregrounded.`,
+    subtitle: () => `${getBaseDrawerSubtitleText()} Reading depth, verse mappings, and provenance are foregrounded.`,
     status: "See today's psalm, wisdom anchor, and selection notes.",
     focusRing: "core",
     focusLabel: "Scripture Anchor",
@@ -367,7 +397,7 @@ const LENS_DEFINITIONS = {
   esoteric: {
     title: "Esoteric Lens",
     subtitle: () => "Pentacle correspondences, symbolic profile, and hidden structural logic are foregrounded.",
-    status: "Esoteric lens pulls symbolic correspondences forward without replacing the base guidance.",
+    status: () => "Esoteric lens is an explicit opt-in for historical-symbol study and does not replace the guidance-first reading.",
     focusRing: "spirit",
     focusLabel: "Correspondence Ring",
     focusColor: "#c4b5fd",
@@ -386,7 +416,7 @@ const MODE_DEFINITIONS = {
   guidance: {
     title: "Guidance",
     shortLabel: "Guide",
-    description: "Keep the current day, pentacle, and spirit reading centered.",
+    description: "Keep the current day, scripture anchor, and practical guidance centered.",
     focusRing: null,
     accentColor: "#facc15",
   },
@@ -554,6 +584,43 @@ function getModeDefinition(mode) {
   return MODE_DEFINITIONS[mode] || MODE_DEFINITIONS.guidance;
 }
 
+function getPresentationDefinition(mode) {
+  return PRESENTATION_DEFINITIONS[mode] || PRESENTATION_DEFINITIONS.guidance;
+}
+
+function getBaseDrawerSubtitleText() {
+  if (uiState.presentationMode === "talismans") {
+    return baseDrawerSubtitleText;
+  }
+  if (uiState.presentationMode === "historical_symbols") {
+    return "Today's scripture, guidance, and historical-symbol context are available here.";
+  }
+  return "Today's scripture, guidance, and practice details are foregrounded here.";
+}
+
+function applyPresentationState() {
+  const presentationDefinition = getPresentationDefinition(uiState.presentationMode);
+  document.body.dataset.presentation = uiState.presentationMode;
+  svg.attr("data-presentation", uiState.presentationMode);
+
+  drawerElements.presentationButtons.forEach((button) => {
+    const buttonPresentation = String(button.dataset.presentation || "").toLowerCase();
+    const isActive = buttonPresentation === uiState.presentationMode;
+    button.classList.toggle("active", isActive);
+    button.setAttribute("aria-pressed", isActive ? "true" : "false");
+  });
+
+  if (drawerElements.presentationStatus) {
+    drawerElements.presentationStatus.textContent = presentationDefinition.status;
+  }
+
+  drawerElements.lensButtons.forEach((button) => {
+    const buttonLens = String(button.dataset.lens || "").toLowerCase();
+    const shouldHide = buttonLens === "esoteric" && !presentationDefinition.allowEsotericLens;
+    button.hidden = shouldHide;
+  });
+}
+
 function applyLensState() {
   const lensDefinition = getLensDefinition(uiState.lens);
   const modeDefinition = getModeDefinition(uiState.mode);
@@ -562,6 +629,7 @@ function applyLensState() {
   document.body.dataset.mode = uiState.mode;
   svg.attr("data-lens", uiState.lens);
   svg.attr("data-mode", uiState.mode);
+  applyPresentationState();
 
   drawerElements.lensButtons.forEach((button) => {
     const buttonLens = String(button.dataset.lens || "").toLowerCase();
@@ -579,7 +647,9 @@ function applyLensState() {
   }
 
   if (drawerElements.lensStatus) {
-    drawerElements.lensStatus.textContent = lensDefinition.status;
+    drawerElements.lensStatus.textContent = typeof lensDefinition.status === "function"
+      ? lensDefinition.status()
+      : lensDefinition.status;
   }
 
   drawerElements.sections.forEach((section) => {
@@ -652,6 +722,20 @@ function setLens(nextLens) {
   }
 
   uiState.lens = normalizedLens;
+  applyLensState();
+}
+
+function setPresentationMode(nextMode) {
+  const normalizedMode = String(nextMode || "").toLowerCase();
+  if (!AVAILABLE_PRESENTATIONS.has(normalizedMode) || normalizedMode === uiState.presentationMode) {
+    return;
+  }
+
+  uiState.presentationMode = normalizedMode;
+  const presentationDefinition = getPresentationDefinition(normalizedMode);
+  if (!presentationDefinition.allowEsotericLens && uiState.lens === "esoteric") {
+    uiState.lens = "base";
+  }
   applyLensState();
 }
 
@@ -799,6 +883,24 @@ function updateCenterModeControl(radii) {
     });
 
   bindTooltip(segments.select("path.center-mode-hit"), (entry) => `${entry.title} • ${entry.description}`);
+}
+
+function setupPresentationControls() {
+  if (!drawerElements.presentationButtons.length) {
+    return;
+  }
+
+  drawerElements.presentationButtons.forEach((button) => {
+    const mode = String(button.dataset.presentation || "").toLowerCase();
+    if (!AVAILABLE_PRESENTATIONS.has(mode)) {
+      return;
+    }
+    button.addEventListener("click", () => {
+      setPresentationMode(mode);
+    });
+  });
+
+  applyPresentationState();
 }
 
 function setupLensControls() {
@@ -1826,14 +1928,14 @@ function drawPlanetarySealGlyphs(groups, outerRadius) {
 
   bindTooltip(
     selection,
-    (entry) => `Seal of ${entry.planet} #${entry.pentacleIndex}${entry.focus ? ` — ${entry.focus}` : ""}`
+    (entry) => `Historical seal of ${entry.planet} #${entry.pentacleIndex}${entry.focus ? ` — ${entry.focus}` : ""}`
   );
 }
 
 function updatePlanetarySealGlyphVisibility() {
   planetarySealGlyphGroup
     .selectAll("use.ring-seal-glyph")
-    .classed("visible", (entry) => Boolean(hoveredPlanetaryKey) && entry.groupKey === hoveredPlanetaryKey);
+    .classed("visible", uiState.presentationMode === "talismans");
 }
 
 function updateActivePlanetarySealGlyph(activePentacle) {
@@ -1841,6 +1943,23 @@ function updateActivePlanetarySealGlyph(activePentacle) {
   planetarySealGlyphGroup
     .selectAll("use.ring-seal-glyph")
     .classed("active", (entry) => Boolean(activeKey) && entry.key === activeKey);
+}
+
+function updatePlanetaryRingPresentation(groups, outerRadius, activePentacle) {
+  const key = `${uiState.presentationMode}|${getPentacleKey(activePentacle) || "none"}`;
+  if (key === lastPlanetaryRingPresentationKey) {
+    return;
+  }
+  lastPlanetaryRingPresentationKey = key;
+
+  if (uiState.presentationMode !== "talismans") {
+    planetarySealGlyphGroup.selectAll("*").remove();
+    return;
+  }
+
+  drawPlanetarySealGlyphs(groups, outerRadius);
+  updatePlanetarySealGlyphVisibility();
+  updateActivePlanetarySealGlyph(activePentacle);
 }
 
 function formatPsalmReference(entry) {
@@ -2050,9 +2169,80 @@ function renderDynamicPentacle(group, config) {
     .text(String(config.virtue || "?").slice(0, 1).toUpperCase());
 }
 
+function renderGuidanceSealFocus(group, config) {
+  group
+    .append("circle")
+    .attr("class", "active-seal-focus-ring")
+    .attr("r", 70)
+    .attr("stroke", hexToRgba(config.color, 0.42));
+
+  group
+    .append("circle")
+    .attr("class", "active-seal-focus-ring")
+    .attr("r", 52)
+    .attr("stroke", hexToRgba(config.color, 0.3));
+
+  group
+    .append("text")
+    .attr("class", "guidance-seal-ref")
+    .attr("fill", hexToRgba(config.color, 0.96))
+    .attr("x", 0)
+    .attr("y", -4)
+    .attr("text-anchor", "middle")
+    .text(config.scriptureRef);
+
+  group
+    .append("text")
+    .attr("class", "guidance-seal-virtue")
+    .attr("fill", "#f8fafc")
+    .attr("x", 0)
+    .attr("y", 22)
+    .attr("text-anchor", "middle")
+    .text(String(config.virtue || "Guidance"));
+}
+
+function renderHistoricalSealFocus(group, config) {
+  group
+    .append("circle")
+    .attr("class", "dynamic-pentacle-ring dynamic-pentacle-ring--outer")
+    .attr("r", 74)
+    .attr("stroke", hexToRgba(config.color, 0.78));
+
+  group
+    .append("circle")
+    .attr("class", "dynamic-pentacle-ring dynamic-pentacle-ring--text")
+    .attr("r", 60)
+    .attr("stroke", hexToRgba(config.color, 0.62));
+
+  renderCircularGlyphs(
+    group.append("g").attr("class", "historical-seal-scripture-ring"),
+    config.scriptureRef,
+    60,
+    hexToRgba(config.color, 0.84)
+  );
+
+  group
+    .append("text")
+    .attr("class", "dynamic-pentacle-planet-glyph")
+    .attr("fill", hexToRgba(config.color, 0.96))
+    .attr("x", 0)
+    .attr("y", 2)
+    .attr("text-anchor", "middle")
+    .text(config.glyph);
+
+  group
+    .append("text")
+    .attr("class", "guidance-seal-virtue")
+    .attr("fill", "#f8fafc")
+    .attr("x", 0)
+    .attr("y", 24)
+    .attr("text-anchor", "middle")
+    .text(String(config.virtue || "Guidance"));
+}
+
 function updateActiveSealFocus(activePentacle, pentacleData, referenceMap) {
   const config = getPentacleRenderConfig(activePentacle, pentacleData, referenceMap);
-  const nextKey = config?.key || null;
+  const nextKey = config ? `${uiState.presentationMode}:${config.key}` : null;
 
   if (nextKey === lastActiveSealFocusKey) {
     return;
@@ -2075,7 +2265,14 @@ function updateActiveSealFocus(activePentacle, pentacleData, referenceMap) {
     .attr("r", 86)
     .attr("stroke", hexToRgba(config.color, 0.38));
 
-  renderDynamicPentacle(preview.append("g").attr("class", "active-seal-dynamic"), config);
+  const content = preview.append("g").attr("class", "active-seal-dynamic");
+  if (uiState.presentationMode === "talismans") {
+    renderDynamicPentacle(content, config);
+  } else if (uiState.presentationMode === "historical_symbols") {
+    renderHistoricalSealFocus(content, config);
+  } else {
+    renderGuidanceSealFocus(content, config);
+  }
 
   preview
     .append("circle")
@@ -2239,7 +2436,11 @@ function updateCenterLabels(coreName, timeState, referenceMap, now, derived, lif
     centerSpiritLabel.text(wisdom?.ref ? `Wisdom anchor • ${wisdom.ref}` : "Scripture lens");
     centerPentacleLabel.text(
       active.pentacle
-        ? `Mapped via ${active.pentacle.planet} #${active.pentacle.pentacle.index} • ${toSnippet(active.pentacle.pentacle.focus, 72)}`
+        ? uiState.presentationMode === "guidance"
+          ? `Mapped focus • ${toSnippet(active.pentacle.pentacle.focus, 72)}`
+          : uiState.presentationMode === "historical_symbols"
+            ? `Historical key • ${active.pentacle.planet} #${active.pentacle.pentacle.index} • ${toSnippet(active.pentacle.pentacle.focus, 72)}`
+            : `Mapped via ${active.pentacle.planet} #${active.pentacle.pentacle.index} • ${toSnippet(active.pentacle.pentacle.focus, 72)}`
         : "No active pentacle mapping available."
     );
     return;
@@ -2281,6 +2482,22 @@ function updateCenterLabels(coreName, timeState, referenceMap, now, derived, lif
   }
 
   centerTitleLabel.text(coreName);
+  if (uiState.presentationMode === "guidance") {
+    centerSpiritLabel.text(
+      readablePsalm
+        ? `Scripture anchor • ${readablePsalm}`
+        : active.pentacle?.pentacle?.focus
+          ? `Today's focus • ${toSnippet(active.pentacle.pentacle.focus, 72)}`
+          : ""
+    );
+    centerPentacleLabel.text(
+      active.pentacle?.pentacle?.focus
+        ? toSnippet(active.pentacle.pentacle.focus, 92)
+        : ""
+    );
+    return;
+  }
+
   if (active.spirit) {
     centerSpiritLabel.text(
       `${active.spirit.zodiac} ${active.spirit.degrees} • ${active.spirit.spirit}`
@@ -2380,7 +2597,7 @@ function updateWeeklyArcPanel(now, derived, referenceMap) {
     return;
   }
 
-  const key = `${now.getFullYear()}-${now.getMonth()}-${now.getDate()}|${selectedDayOffset}`;
+  const key = `${uiState.presentationMode}|${now.getFullYear()}-${now.getMonth()}-${now.getDate()}|${selectedDayOffset}`;
   if (key === lastWeeklyArcKey) {
     return;
   }
@@ -2401,10 +2618,14 @@ function updateWeeklyArcPanel(now, derived, referenceMap) {
   dayLine.textContent = `${entry.dateLabel} (${entry.rulerText})${entry.isToday ? " • Today" : ""}`;
   li.appendChild(dayLine);
 
-  const pentacleLine = document.createElement("p");
-  pentacleLine.classList.add("weekly-arc-pentacle");
-  pentacleLine.textContent = `Pentacle ${entry.pentacleLabel}`;
-  li.appendChild(pentacleLine);
+  if (uiState.presentationMode !== "guidance") {
+    const pentacleLine = document.createElement("p");
+    pentacleLine.classList.add("weekly-arc-pentacle");
+    pentacleLine.textContent = uiState.presentationMode === "talismans"
+      ? `Pentacle ${entry.pentacleLabel}`
+      : `Historical key • ${entry.pentacleLabel}`;
+    li.appendChild(pentacleLine);
+  }
 
   const focusLine = document.createElement("p");
   focusLine.classList.add("weekly-arc-focus");
@@ -2658,6 +2879,7 @@ function updateDailyProfile(timeState) {
     !drawerElements.profileDay ||
     !drawerElements.profilePentacle ||
     !drawerElements.profileFocus ||
+    !drawerElements.profileCorrespondences ||
     !drawerElements.profileColor ||
     !drawerElements.profileMetal ||
     !drawerElements.profileAngel
@@ -2671,7 +2893,7 @@ function updateDailyProfile(timeState) {
   const pentacleId = activePentacle
     ? `${activePentacle.planet}-${activePentacle.pentacle.index}`
     : "none";
-  const key = `${dayText}-${rulerText}-${pentacleId}`;
+  const key = `${uiState.presentationMode}-${dayText}-${rulerText}-${pentacleId}`;
   if (key === lastProfileKey) {
     return;
   }
@@ -2684,9 +2906,11 @@ function updateDailyProfile(timeState) {
   };
 
   drawerElements.profileDay.textContent = `${dayText} ruled by ${rulerText}`;
+  drawerElements.profilePentacle.hidden = uiState.presentationMode === "guidance";
+  drawerElements.profileCorrespondences.hidden = uiState.presentationMode === "guidance";
   drawerElements.profilePentacle.textContent = activePentacle
-    ? `Active pentacle: ${activePentacle.planet} #${activePentacle.pentacle.index}`
-    : "Active pentacle: unavailable";
+    ? `Historical key: ${activePentacle.planet} #${activePentacle.pentacle.index}`
+    : "Historical key unavailable.";
   drawerElements.profileFocus.textContent = activePentacle?.pentacle?.focus
     ? `Suggested focus: ${activePentacle.pentacle.focus}`
     : "Suggested focus: center attention on deliberate, disciplined action.";
@@ -5559,11 +5783,13 @@ function updateSurfacePanel(timeState, referenceMap, now, derived, lifeState) {
   }
 
   drawerElements.surfaceLensTitle.textContent = activePentacle
-    ? `${activePentacle.planet} #${activePentacle.pentacle.index}`
+    ? uiState.presentationMode === "guidance"
+      ? "Current Guidance"
+      : `${activePentacle.planet} #${activePentacle.pentacle.index}`
     : "Current Guidance";
   drawerElements.surfaceLensBody.textContent = activePentacle?.pentacle?.focus
     ? toSnippet(activePentacle.pentacle.focus, 96)
-    : "The clock surface summarizes the active day, pentacle, and spirit state.";
+    : "The clock surface summarizes the active day, scripture anchor, and present focus.";
 }
 
 function getLensAnnotations(timeState, referenceMap, now, radii) {
@@ -5654,6 +5880,7 @@ function updateExplainabilityPanel(now, timeState, referenceMap, psalmMetadata) 
   const primaryPsalm = getPrimaryPsalmEntry(record);
 
   const key = [
+    uiState.presentationMode,
     dayText,
     rulerText,
     pentacleKey || "none",
@@ -5677,16 +5904,18 @@ function updateExplainabilityPanel(now, timeState, referenceMap, psalmMetadata) 
     );
   }
 
-  if (activeSpirit) {
+  if (activeSpirit && uiState.presentationMode !== "guidance") {
     reasons.push(
       `Active spirit sector: ${activeSpirit.zodiac} ${activeSpirit.degrees} (${activeSpirit.spirit}) informs the sign layer.`
     );
   }
 
-  if (activePentacle) {
+  if (activePentacle && uiState.presentationMode === "talismans") {
     reasons.push(
       `Active pentacle rule: ${activePentacle.planet} #${activePentacle.pentacle.index} (${activePentacle.pentacle.focus}).`
     );
+  } else if (activePentacle?.pentacle?.focus) {
+    reasons.push(`Today's practical focus: ${activePentacle.pentacle.focus}.`);
   }
 
   if (primaryPsalm) {
@@ -5711,6 +5940,7 @@ function updateDailyContentBundle(timeState, referenceMap, psalmMetadata) {
     !drawerElements.bundlePsalmText ||
     !drawerElements.bundleWisdomRef ||
     !drawerElements.bundleWisdomText ||
+    !drawerElements.bundleSolomonicItem ||
     !drawerElements.bundleSolomonicRef ||
     !drawerElements.bundleSolomonicText
   ) {
@@ -5724,13 +5954,14 @@ function updateDailyContentBundle(timeState, referenceMap, psalmMetadata) {
   const record = pentacleKey ? referenceMap.get(pentacleKey) : null;
   const primaryPsalm = getPrimaryPsalmEntry(record);
 
-  const key = `${dayText}|${rulerText}|${pentacleKey || "none"}|${primaryPsalm?.number ?? primaryPsalm?.psalm ?? "fallback"}|${primaryPsalm?.verses || "none"}|${readingDepth}`;
+  const key = `${uiState.presentationMode}|${dayText}|${rulerText}|${pentacleKey || "none"}|${primaryPsalm?.number ?? primaryPsalm?.psalm ?? "fallback"}|${primaryPsalm?.verses || "none"}|${readingDepth}`;
   if (key === lastBundleKey) {
     return;
   }
   lastBundleKey = key;
 
   const requestId = ++currentBundleRequestId;
+  drawerElements.bundleSolomonicItem.hidden = uiState.presentationMode === "guidance";
   const wisdom = WISDOM_CONTENT_BY_RULER[rulerText] || {
     ref: "Proverbs 16:3",
     text: "Commit thy works unto the LORD, and thy thoughts shall be established.",
@@ -6247,6 +6478,7 @@ async function retrievePsalmText(chapter, verse) {
 }
 
 async function initialiseClock() {
+  setupPresentationControls();
   setupLensControls();
   setupDrawerToggle();
   setupDailyOpeningControls();
@@ -6334,7 +6566,6 @@ function renderClock(data, referenceMap, psalmMetadata, pentacleData, lifeDomain
   derived.flatPentacles = flattenPentacles(layers.planetary.groups);
   derived.totalPentacles = derived.flatPentacles.length;
   ensureSealSymbols(derived.flatPentacles);
-  planetarySealGlyphGroup.selectAll("*").remove();
 
   function frame() {
     const now = new Date();
@@ -6352,6 +6583,7 @@ function renderClock(data, referenceMap, psalmMetadata, pentacleData, lifeDomain
     highlightLayer("spirit", timeState.indices.spirit);
     highlightLayer("planetary", timeState.indices.planetary);
     highlightLayer("celestial", timeState.indices.celestial);
+    updatePlanetaryRingPresentation(layers.planetary.groups, radii.planetary, timeState.active.pentacle);
     updateActiveSealFocus(timeState.active.pentacle, pentacleData, referenceMap);
     updateCenterModeControl(radii);
     updateScriptureOverlay(timeState, referenceMap, now, radii);

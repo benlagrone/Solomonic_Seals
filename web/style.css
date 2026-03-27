@@ -85,6 +85,47 @@ body[data-daily-opening="open"] {
   margin: 0 auto 0.8rem;
 }
 
+.presentation-bar {
+  display: inline-flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.55rem;
+  margin: 0 auto 0.7rem;
+}
+
+.presentation-button {
+  border: 1px solid rgba(148, 163, 184, 0.32);
+  background: rgba(15, 23, 42, 0.68);
+  color: #cbd5f5;
+  border-radius: 999px;
+  padding: 0.45rem 0.9rem;
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: border-color 0.18s ease, background 0.18s ease, color 0.18s ease, transform 0.18s ease;
+}
+
+.presentation-button:hover {
+  border-color: rgba(250, 204, 21, 0.58);
+  color: #f8fafc;
+  transform: translateY(-1px);
+}
+
+.presentation-button.active {
+  border-color: rgba(250, 204, 21, 0.78);
+  background: rgba(250, 204, 21, 0.14);
+  color: #fde68a;
+  box-shadow: 0 0 16px rgba(250, 204, 21, 0.12);
+}
+
+.presentation-status {
+  max-width: 48rem;
+  margin: 0 auto 0.8rem;
+  color: #cbd5f5;
+  font-size: 0.88rem;
+  line-height: 1.48;
+}
+
 .lens-button {
   border: 1px solid rgba(148, 163, 184, 0.32);
   background: rgba(15, 23, 42, 0.68);
@@ -1031,6 +1072,16 @@ svg[data-lens="history"] .ring-spirit * {
   pointer-events: none;
 }
 
+body[data-presentation="guidance"] .lens-button[data-lens="esoteric"] {
+  display: none;
+}
+
+body[data-presentation="guidance"] .profile-pentacle,
+body[data-presentation="guidance"] .profile-correspondences,
+body[data-presentation="guidance"] .bundle-item--solomonic {
+  display: none;
+}
+
 .providence-map-orbit {
   fill: none;
   stroke: rgba(148, 163, 184, 0.18);
@@ -1526,6 +1577,24 @@ svg[data-mode="timeline"] .history-preview {
 
 .active-seal-dynamic {
   filter: drop-shadow(0 0 10px rgba(250, 204, 21, 0.18));
+}
+
+.guidance-seal-ref,
+.guidance-seal-virtue {
+  font-family: "Times New Roman", serif;
+  pointer-events: none;
+}
+
+.guidance-seal-ref {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.guidance-seal-virtue {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
 }
 
 .tooltip {
