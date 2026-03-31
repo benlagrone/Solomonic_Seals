@@ -58,6 +58,7 @@ SCRIPTURE_VERSE_LINE_RE = re.compile(r"(?m)^\s*(\d+)\s+")
 BOOK_PARTIAL_API_PATH = "/api/pericope/book-partial"
 KEY_OF_SOLOMON_SOURCE = "key_of_solomon_esotericarchives.txt"
 KEY_OF_SOLOMON_BOOK = "Key of Solomon, Book II"
+SOLOMONIC_PENTACLE_PLANETS = ("Saturn", "Jupiter", "Mars", "Sun", "Venus", "Mercury", "Moon")
 PENTACLE_ORDINAL_WORDS = {
     1: "first",
     2: "second",
@@ -675,6 +676,19 @@ def _coalesce_chapter(entries: list[dict[str, Any]]) -> str | None:
     return f"{chapters[0]}-{chapters[-1]}"
 
 
+def _build_solomonic_pentacle_heading_pattern(planet: str, ordinal: str) -> re.Pattern[str]:
+    return re.compile(
+        rf"Figure\s+\d+\s*[\.:]?\s*[\-—–]+\s*The\s+{re.escape(ordinal)}(?:\s+and\s+last)?\s+pentacle\s+of\s+(?:the\s+)?{re.escape(planet)}\b",
+        re.IGNORECASE,
+    )
+
+
+SOLOMONIC_NEXT_PENTACLE_HEADING_PATTERN = re.compile(
+    rf"Figure\s+\d+\s*[\.:]?\s*[\-—–]+\s*The\s+(?:{'|'.join(re.escape(word) for word in PENTACLE_ORDINAL_WORDS.values())})(?:\s+and\s+last)?\s+pentacle\s+of\s+(?:the\s+)?(?:{'|'.join(re.escape(planet) for planet in SOLOMONIC_PENTACLE_PLANETS)})\b",
+    re.IGNORECASE,
+)
+
+
 def _build_local_book_partial_payload(
     target: BookPartialTarget,
 ) -> tuple[dict[str, Any] | None, str | None]:
@@ -870,7 +884,7 @@ def _resolve_wisdom_book_partial_target(
 def _resolve_solomonic_book_partial_target(
     payload: dict[str, Any],
 ) -> tuple[BookPartialTarget | None, str | None, HTTPStatus]:
-    planet = str(payload.get("planet") or "").strip()
+    planet = re.sub(r"(?i)^the\s+", "", str(payload.get("planet") or "").strip())
     pentacle_raw = payload.get("pentacle")
     reference = str(payload.get("reference") or "").strip() or None
 
@@ -891,11 +905,7 @@ def _resolve_solomonic_book_partial_target(
         return None, error or "Solomonic source text unavailable.", HTTPStatus.NOT_FOUND
 
     entries = _split_into_position_entries(raw_text)
-    heading_pattern = re.compile(
-        rf"Figure\s+\d+\.--\s+The\s+{ordinal}\s+pentacle of {re.escape(planet)}\.--",
-        re.IGNORECASE,
-    )
-    next_heading_pattern = re.compile(r"Figure\s+\d+\.--\s+The\s+\w+\s+pentacle of ", re.IGNORECASE)
+    heading_pattern = _build_solomonic_pentacle_heading_pattern(planet, ordinal)
 
     start_entry: dict[str, Any] | None = None
     end_entry: dict[str, Any] | None = None
@@ -907,7 +917,7 @@ def _resolve_solomonic_book_partial_target(
             end_entry = entry
             started = True
             continue
-        if started and next_heading_pattern.search(text):
+        if started and SOLOMONIC_NEXT_PENTACLE_HEADING_PATTERN.search(text):
             break
         if started:
             end_entry = entry
