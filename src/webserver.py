@@ -973,14 +973,6 @@ def _build_psalm_lookup_chapter_payload(
     )
 
 
-def _build_book_partial_payload(
-    payload: dict[str, Any],
-) -> tuple[dict[str, Any] | None, str | None, HTTPStatus]:
-    kind = str(payload.get("kind") or "").strip().lower()
-    requested_reference = str(payload.get("reference") or "").strip() or None
-
-    resolver_map = {
-        "psalm": _resolve_psalm_book_partial_target,
 def _build_psalm_api_fallback_payload(
     chapter: int,
     verse: int | None,
@@ -1002,6 +994,14 @@ def _build_psalm_api_fallback_payload(
     return payload
 
 
+def _build_book_partial_payload(
+    payload: dict[str, Any],
+) -> tuple[dict[str, Any] | None, str | None, HTTPStatus]:
+    kind = str(payload.get("kind") or "").strip().lower()
+    requested_reference = str(payload.get("reference") or "").strip() or None
+
+    resolver_map = {
+        "psalm": _resolve_psalm_book_partial_target,
         "wisdom": _resolve_wisdom_book_partial_target,
         "solomonic": _resolve_solomonic_book_partial_target,
     }
@@ -1395,6 +1395,13 @@ def _normalize_history_entry(entry: Any) -> dict[str, Any]:
         "closingDifficulty": _to_snippet(str(entry.get("closingDifficulty", "")).strip(), 400),
         "closingCarryForward": _to_snippet(str(entry.get("closingCarryForward", "")).strip(), 400),
         "closingUpdatedAt": _to_snippet(str(entry.get("closingUpdatedAt", "")).strip(), 64),
+        "weeklyReviewStatus": _to_snippet(str(entry.get("weeklyReviewStatus", "")).strip(), 32),
+        "weeklyReviewStatusAt": _to_snippet(str(entry.get("weeklyReviewStatusAt", "")).strip(), 64),
+        "weeklyReviewNote": _to_snippet(str(entry.get("weeklyReviewNote", "")).strip(), 400),
+        "weeklyReviewEncouragement": _to_snippet(str(entry.get("weeklyReviewEncouragement", "")).strip(), 400),
+        "weeklyReviewWarning": _to_snippet(str(entry.get("weeklyReviewWarning", "")).strip(), 400),
+        "weeklyReviewCarryForward": _to_snippet(str(entry.get("weeklyReviewCarryForward", "")).strip(), 400),
+        "weeklyReviewScriptureRef": _to_snippet(str(entry.get("weeklyReviewScriptureRef", "")).strip(), 120),
         "reflection": str(entry.get("reflection", "")).strip()[:MAX_HISTORY_REFLECTION_LENGTH],
         "reflectionUpdatedAt": _to_snippet(str(entry.get("reflectionUpdatedAt", "")).strip(), 64),
         "updatedAt": _to_snippet(str(entry.get("updatedAt", "")).strip(), 64),
@@ -1403,13 +1410,6 @@ def _normalize_history_entry(entry: Any) -> dict[str, Any]:
         "dayDisplay": _to_snippet(str(entry.get("dayDisplay", "")).strip(), 120),
         "rulerText": _to_snippet(str(entry.get("rulerText", "")).strip(), 32),
         "activeFocus": _to_snippet(str(entry.get("activeFocus", "")).strip(), 180),
-        "weeklyReviewStatus": _to_snippet(str(entry.get("weeklyReviewStatus", "")).strip(), 32),
-        "weeklyReviewStatusAt": _to_snippet(str(entry.get("weeklyReviewStatusAt", "")).strip(), 64),
-        "weeklyReviewNote": _to_snippet(str(entry.get("weeklyReviewNote", "")).strip(), 400),
-        "weeklyReviewEncouragement": _to_snippet(str(entry.get("weeklyReviewEncouragement", "")).strip(), 400),
-        "weeklyReviewWarning": _to_snippet(str(entry.get("weeklyReviewWarning", "")).strip(), 400),
-        "weeklyReviewCarryForward": _to_snippet(str(entry.get("weeklyReviewCarryForward", "")).strip(), 400),
-        "weeklyReviewScriptureRef": _to_snippet(str(entry.get("weeklyReviewScriptureRef", "")).strip(), 120),
         "activePentacleLabel": _to_snippet(str(entry.get("activePentacleLabel", "")).strip(), 120),
         "psalmRef": _to_snippet(str(entry.get("psalmRef", "")).strip(), 80),
         "wisdomRef": _to_snippet(str(entry.get("wisdomRef", "")).strip(), 80),
@@ -2703,6 +2703,10 @@ class ClockRequestHandler(SimpleHTTPRequestHandler):
             if verse is None:
                 entries, collect_error = _collect_spans_text(lookup, spans)
                 if entries is None:
+                    fallback_payload = _build_psalm_api_fallback_payload(chapter, None, response_meta)
+                    if fallback_payload is not None:
+                        self._send_json(fallback_payload, HTTPStatus.OK, send_body=send_body)
+                        return True
                     self._send_json(
                         {"error": collect_error or f"Chapter {chapter} not found in configured Psalms source."},
                         HTTPStatus.NOT_FOUND,
@@ -2712,10 +2716,6 @@ class ClockRequestHandler(SimpleHTTPRequestHandler):
 
                 ordered_text = [text for _chapter, _verse, text in entries]
                 self._send_json(
-                    fallback_payload = _build_psalm_api_fallback_payload(chapter, None, response_meta)
-                    if fallback_payload is not None:
-                        self._send_json(fallback_payload, HTTPStatus.OK, send_body=send_body)
-                        return True
                     {
                         "chapter": chapter,
                         "text": "\n".join(ordered_text),
@@ -2729,6 +2729,10 @@ class ClockRequestHandler(SimpleHTTPRequestHandler):
 
             mapped_reference, map_error = _resolve_mapped_verse(lookup, spans, verse)
             if mapped_reference is None:
+                fallback_payload = _build_psalm_api_fallback_payload(chapter, verse, response_meta)
+                if fallback_payload is not None:
+                    self._send_json(fallback_payload, HTTPStatus.OK, send_body=send_body)
+                    return True
                 self._send_json(
                     {"error": map_error or f"Psalm {chapter}:{verse} not found in configured Psalms source."},
                     HTTPStatus.NOT_FOUND,
@@ -2738,11 +2742,11 @@ class ClockRequestHandler(SimpleHTTPRequestHandler):
 
             resolved_chapter, resolved_verse = mapped_reference
             verse_text = lookup.get(resolved_chapter, {}).get(resolved_verse)
+            if not verse_text:
                 fallback_payload = _build_psalm_api_fallback_payload(chapter, verse, response_meta)
                 if fallback_payload is not None:
                     self._send_json(fallback_payload, HTTPStatus.OK, send_body=send_body)
                     return True
-            if not verse_text:
                 self._send_json(
                     {"error": f"Psalm {chapter}:{verse} not found in configured Psalms source."},
                     HTTPStatus.NOT_FOUND,
@@ -2752,10 +2756,6 @@ class ClockRequestHandler(SimpleHTTPRequestHandler):
 
             self._send_json(
                 {
-                fallback_payload = _build_psalm_api_fallback_payload(chapter, verse, response_meta)
-                if fallback_payload is not None:
-                    self._send_json(fallback_payload, HTTPStatus.OK, send_body=send_body)
-                    return True
                     "chapter": chapter,
                     "verse": verse,
                     "text": verse_text,
