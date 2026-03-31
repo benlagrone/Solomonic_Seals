@@ -143,6 +143,16 @@ const drawerElements = {
   historyWeeklyNarrative: document.querySelector(".history-weekly-narrative"),
   historyWeeklyMeta: document.querySelector(".history-weekly-meta"),
   historyPatternList: document.querySelector(".history-pattern-list"),
+  historyReviewStatus: document.querySelector(".history-review-status"),
+  historyReviewEncouragement: document.querySelector(".history-review-encouragement"),
+  historyReviewWarning: document.querySelector(".history-review-warning"),
+  historyReviewCarry: document.querySelector(".history-review-carry"),
+  historyReviewScriptureRef: document.querySelector(".history-review-scripture-ref"),
+  historyReviewScriptureText: document.querySelector(".history-review-scripture-text"),
+  historyReviewNote: document.querySelector(".history-review-note"),
+  historyReviewAccept: document.querySelector(".history-review-accept"),
+  historyReviewRevise: document.querySelector(".history-review-revise"),
+  historyReviewPericope: document.querySelector(".history-review-pericope"),
   historyCurrentDay: document.querySelector(".history-current-day"),
   historyCurrentSummary: document.querySelector(".history-current-summary"),
   historyCurrentMeta: document.querySelector(".history-current-meta"),
@@ -243,6 +253,7 @@ let lastLifeWheelKey = null;
 let lastRuleOfLifeKey = null;
 let lastHistoryPanelKey = null;
 let lastHistoryWeeklyKey = null;
+let lastHistoryReviewKey = null;
 let lastProvidenceTimelineKey = null;
 let lastProvidenceMapKey = null;
 let currentPsalmRequestId = 0;
@@ -273,9 +284,11 @@ let historySyncPendingTimer = null;
 let historySyncLastSerializedState = "";
 let historySyncNeedsFlush = false;
 let dailyOpeningAutofillKey = null;
+let historyReviewAutofillKey = null;
 let dailyOpeningAnchorExpanded = false;
 let lastDailyOpeningAnchorKey = null;
 let lastDailyOpeningDateKey = null;
+let currentWeeklyReviewContext = null;
 const uiState = {
   presentationMode: "guidance",
   lens: "base",
@@ -1630,6 +1643,80 @@ function setupActionLoopControls() {
   });
 }
 
+function setupHistoryReviewControls() {
+  if (
+    !drawerElements.historyReviewNote ||
+    !drawerElements.historyReviewAccept ||
+    !drawerElements.historyReviewRevise ||
+    !drawerElements.historyReviewPericope
+  ) {
+    return;
+  }
+
+  const persistWeeklyReview = (status) => {
+    const reviewContext = currentWeeklyReviewContext;
+    if (!reviewContext?.selectedEntry?.dateKey || !reviewContext.weeklyReview) {
+      setActionNotice("No weekly review is ready yet.");
+      return null;
+    }
+
+    const note = String(drawerElements.historyReviewNote.value || "").trim();
+    if (status === "revised" && !note) {
+      setActionNotice("Add a renewal note before saving a revision.");
+      return null;
+    }
+
+    patchDailyActionEntry(reviewContext.selectedEntry.dateKey, {
+      weeklyReviewStatus: status,
+      weeklyReviewStatusAt: new Date().toISOString(),
+      weeklyReviewNote: note,
+      weeklyReviewEncouragement: reviewContext.weeklyReview.encouragement,
+      weeklyReviewWarning: reviewContext.weeklyReview.warning,
+      weeklyReviewCarryForward: reviewContext.weeklyReview.carryForward,
+      weeklyReviewScriptureRef: reviewContext.weeklyReview.scriptureRef,
+    });
+
+    setActionNotice(status === "accepted" ? "Weekly direction received." : "Weekly revision saved.");
+    return reviewContext;
+  };
+
+  drawerElements.historyReviewAccept.addEventListener("click", () => {
+    persistWeeklyReview("accepted");
+  });
+
+  drawerElements.historyReviewRevise.addEventListener("click", () => {
+    persistWeeklyReview("revised");
+  });
+
+  drawerElements.historyReviewPericope.addEventListener("click", () => {
+    const reviewContext = currentWeeklyReviewContext;
+    if (!reviewContext?.selectedEntry || !reviewContext.weeklyReview) {
+      setActionNotice("No weekly review is ready yet.");
+      return;
+    }
+
+    const launchContext = buildWeeklyReviewLaunchContext(reviewContext.selectedEntry, reviewContext.weeklyReview);
+    const launched = launchPericopeChat(launchContext, "guided", {
+      message: reviewContext.weeklyReview.prompt,
+      promptId: `weekly-review-${reviewContext.selectedEntry.dateKey}`,
+      extraContext: {
+        weekly_review: {
+          window: reviewContext.weeklySummary.windowLabel,
+          encouragement: reviewContext.weeklyReview.encouragement,
+          warning: reviewContext.weeklyReview.warning,
+          carry_forward: reviewContext.weeklyReview.carryForward,
+          scripture_ref: reviewContext.weeklyReview.scriptureRef,
+          renewal_note: String(drawerElements.historyReviewNote.value || "").trim(),
+        },
+      },
+    });
+
+    if (launched) {
+      setActionNotice("Opening weekly review in Pericope...");
+    }
+  });
+}
+
 function computeRingLayout(items) {
   if (!items || !items.length) {
     return [];
@@ -2651,6 +2738,13 @@ function updateHistoryPanel(now, derived, referenceMap) {
     !drawerElements.historyWeeklyNarrative ||
     !drawerElements.historyWeeklyMeta ||
     !drawerElements.historyPatternList ||
+    !drawerElements.historyReviewStatus ||
+    !drawerElements.historyReviewEncouragement ||
+    !drawerElements.historyReviewWarning ||
+    !drawerElements.historyReviewCarry ||
+    !drawerElements.historyReviewScriptureRef ||
+    !drawerElements.historyReviewScriptureText ||
+    !drawerElements.historyReviewNote ||
     !drawerElements.historyCurrentDay ||
     !drawerElements.historyCurrentSummary ||
     !drawerElements.historyCurrentMeta ||
@@ -2665,8 +2759,19 @@ function updateHistoryPanel(now, derived, referenceMap) {
   const selectedEntry = buildHistoryTimelineEntry(now, selectedDayOffset, derived, referenceMap);
   const recentEntries = getRecordedHistoryEntries(now, derived, referenceMap, 6);
   const weeklySummary = buildWeeklyHistorySummary(now, derived, referenceMap);
+  const weeklyReview = buildWeeklyReview(weeklySummary, selectedEntry);
   const key = JSON.stringify({
     weekly: weeklySummary.key,
+    review: [
+      weeklyReview.encouragement,
+      weeklyReview.warning,
+      weeklyReview.carryForward,
+      weeklyReview.scriptureRef,
+      weeklyReview.scriptureText,
+      selectedEntry.entry.weeklyReviewStatus || "",
+      selectedEntry.entry.weeklyReviewStatusAt || "",
+      selectedEntry.entry.weeklyReviewNote || "",
+    ].join("|"),
     selected: {
       dateKey: selectedEntry.dateKey,
       updatedAt: selectedEntry.entry.updatedAt || "",
@@ -2684,6 +2789,12 @@ function updateHistoryPanel(now, derived, referenceMap) {
   }
   lastHistoryPanelKey = key;
   lastHistoryWeeklyKey = weeklySummary.key;
+  lastHistoryReviewKey = `${selectedEntry.dateKey}|${selectedEntry.entry.weeklyReviewStatus || ""}|${selectedEntry.entry.weeklyReviewStatusAt || ""}`;
+  currentWeeklyReviewContext = {
+    selectedEntry,
+    weeklySummary,
+    weeklyReview,
+  };
 
   drawerElements.historyWeeklyWindow.textContent = weeklySummary.windowLabel;
   drawerElements.historyWeeklyNarrative.textContent = weeklySummary.narrative;
@@ -2709,6 +2820,20 @@ function updateHistoryPanel(now, derived, referenceMap) {
     li.className = "history-pattern-empty";
     li.textContent = "No strong repeated pattern yet. Keep opening and closing the day to make the week readable.";
     drawerElements.historyPatternList.appendChild(li);
+  }
+
+  drawerElements.historyReviewStatus.textContent = formatWeeklyReviewStatus(selectedEntry);
+  drawerElements.historyReviewEncouragement.textContent = weeklyReview.encouragement;
+  drawerElements.historyReviewWarning.textContent = weeklyReview.warning;
+  drawerElements.historyReviewCarry.textContent = weeklyReview.carryForward;
+  drawerElements.historyReviewScriptureRef.textContent = weeklyReview.scriptureRef;
+  drawerElements.historyReviewScriptureText.textContent = weeklyReview.scriptureText;
+  if (
+    document.activeElement !== drawerElements.historyReviewNote
+    || historyReviewAutofillKey !== selectedEntry.dateKey
+  ) {
+    drawerElements.historyReviewNote.value = String(selectedEntry.entry.weeklyReviewNote || "").trim();
+    historyReviewAutofillKey = selectedEntry.dateKey;
   }
 
   drawerElements.historyCurrentDay.textContent = `${selectedEntry.dateLabel} (${selectedEntry.rulerText})${selectedEntry.isToday ? " • Today" : ""}`;
@@ -3195,6 +3320,13 @@ function normalizeDailyActionEntry(entry) {
     closingDifficulty: String(entry.closingDifficulty || "").trim(),
     closingCarryForward: String(entry.closingCarryForward || "").trim(),
     closingUpdatedAt: String(entry.closingUpdatedAt || "").trim(),
+    weeklyReviewStatus: String(entry.weeklyReviewStatus || "").trim(),
+    weeklyReviewStatusAt: String(entry.weeklyReviewStatusAt || "").trim(),
+    weeklyReviewNote: String(entry.weeklyReviewNote || "").trim(),
+    weeklyReviewEncouragement: String(entry.weeklyReviewEncouragement || "").trim(),
+    weeklyReviewWarning: String(entry.weeklyReviewWarning || "").trim(),
+    weeklyReviewCarryForward: String(entry.weeklyReviewCarryForward || "").trim(),
+    weeklyReviewScriptureRef: String(entry.weeklyReviewScriptureRef || "").trim(),
     reflection: String(entry.reflection || "").trim(),
     reflectionUpdatedAt: String(entry.reflectionUpdatedAt || "").trim(),
     updatedAt: String(entry.updatedAt || "").trim(),
@@ -4379,6 +4511,7 @@ function setSelectedDayOffset(nextOffset) {
   lastWeeklyArcKey = null;
   lastHistoryPanelKey = null;
   lastHistoryWeeklyKey = null;
+  lastHistoryReviewKey = null;
   lastProvidenceTimelineKey = null;
   lastProvidenceMapKey = null;
 }
@@ -5363,6 +5496,161 @@ function buildWeeklyHistorySummary(baseDate, derived, referenceMap) {
     narrative,
     metaItems,
     patterns: patterns.slice(0, 3),
+    entries,
+    recordedEntries,
+    closedCount,
+    completedCount,
+    reflectedCount,
+    adoptedCount,
+    incompleteCount,
+    unclosedCount,
+    launchCount,
+    topVirtue: topVirtue?.label || "",
+    topVirtueCount: topVirtue?.count || 0,
+    topDomain: topDomain?.label || "",
+    topDomainCount: topDomain?.count || 0,
+    topScripture: topScripture?.label || "",
+    topScriptureCount: topScripture?.count || 0,
+  };
+}
+
+function parsePsalmReferenceString(reference) {
+  const match = String(reference || "").trim().match(/^Psalm\s+(\d+)(?::([\d,\-]+))?$/i);
+  if (!match) {
+    return null;
+  }
+  const chapter = Number.parseInt(match[1], 10);
+  if (Number.isNaN(chapter) || chapter <= 0) {
+    return null;
+  }
+  return {
+    chapter,
+    verseSpec: match[2] || "",
+    verse: expandVerseSpecification(match[2] || "")[0] || null,
+  };
+}
+
+function buildWeeklyReview(summary, selectedEntry) {
+  const recordedEntries = Array.isArray(summary?.recordedEntries) ? summary.recordedEntries : [];
+  const latestRecorded = recordedEntries[recordedEntries.length - 1] || selectedEntry;
+  const anchorEntry = recordedEntries
+    .slice()
+    .reverse()
+    .find((entry) => (
+      (summary?.topDomain && entry.ruleDomain === summary.topDomain)
+      || (summary?.topVirtue && entry.ruleVirtue === summary.topVirtue)
+    )) || latestRecorded;
+
+  const encouragement = summary?.topVirtue
+    ? `The week held together most clearly when ${summary.topVirtue.toLowerCase()} was practiced in ${String(summary.topDomain || anchorEntry?.ruleDomain || "the active field").toLowerCase()}.`
+    : summary?.reflectedCount >= 3
+      ? `You kept returning to reflection instead of leaving the week to drift, which is a real grace to build on.`
+      : `A readable rhythm is forming. Stay close to the places where the week felt most deliberate.`;
+
+  let warning = "Do not let the next week become reactive where this one needed deliberate review.";
+  if ((summary?.incompleteCount || 0) >= 2) {
+    warning = "The week weakened after intention was set, so do not confuse naming a practice with actually carrying it through.";
+  } else if ((summary?.unclosedCount || 0) >= 2) {
+    warning = "Several recorded days stayed open, so review is trailing behind action and needs to be restored deliberately.";
+  } else if ((summary?.topDomainCount || 0) >= 3 && summary?.topDomain) {
+    warning = `${summary.topDomain} kept returning, so avoid treating that field of life as solved just because it is familiar.`;
+  }
+
+  const carrySeed = String(
+    anchorEntry?.closingCarryForward
+    || anchorEntry?.entry?.closingCarryForward
+    || anchorEntry?.entry?.ruleOfLife?.morning
+    || anchorEntry?.entry?.ruleOfLife?.summary
+    || anchorEntry?.displayFocus
+    || selectedEntry?.displayFocus
+    || "repeat the clearest act of fidelity"
+  ).trim();
+  const loweredCarrySeed = carrySeed ? `${carrySeed.charAt(0).toLowerCase()}${carrySeed.slice(1)}` : "repeat the clearest act of fidelity";
+  const carryForward = withTerminalPunctuation(
+    summary?.topVirtue && (summary?.topDomain || anchorEntry?.ruleDomain)
+      ? `Carry ${summary.topVirtue.toLowerCase()} into ${String(summary.topDomain || anchorEntry?.ruleDomain).toLowerCase()} by ${loweredCarrySeed}`
+      : `Carry the clearest grace of this week forward by ${loweredCarrySeed}`
+  );
+
+  const scriptureRef = summary?.topScripture || anchorEntry?.scriptureRef || selectedEntry?.scriptureRef || "Today's scripture";
+  const parsedPsalm = parsePsalmReferenceString(scriptureRef);
+  const scriptureText = parsedPsalm
+    ? formatPsalmPreviewText(getPsalmFallbackText(parsedPsalm.chapter, parsedPsalm.verse), 220)
+    : `Keep ${scriptureRef} near the beginning of next week.`;
+
+  const pericopePrompt = withTerminalPunctuation(
+    `Review this week through ${String(summary?.topVirtue || anchorEntry?.ruleVirtue || "the week’s guidance").toLowerCase()}${summary?.topDomain || anchorEntry?.ruleDomain ? ` in ${String(summary?.topDomain || anchorEntry?.ruleDomain).toLowerCase()}` : ""}. Encourage what held, warn me about what repeated, and help me carry this forward: ${carryForward}`
+  );
+
+  return {
+    encouragement: withTerminalPunctuation(encouragement),
+    warning: withTerminalPunctuation(warning),
+    carryForward,
+    scriptureRef,
+    scriptureText,
+    prompt: pericopePrompt,
+  };
+}
+
+function formatWeeklyReviewStatus(selectedEntry) {
+  const status = String(selectedEntry?.entry?.weeklyReviewStatus || "").trim();
+  const note = String(selectedEntry?.entry?.weeklyReviewNote || "").trim();
+  if (status === "accepted") {
+    return note
+      ? `Direction received. Note: ${toInlineSnippet(note, 140)}`
+      : "Direction received for this week.";
+  }
+  if (status === "revised") {
+    return note
+      ? `Direction revised. Note: ${toInlineSnippet(note, 140)}`
+      : "Direction revised for this week.";
+  }
+  return "No weekly review saved yet.";
+}
+
+function buildWeeklyReviewLaunchContext(selectedEntry, review) {
+  const ruleOfLife = selectedEntry?.entry?.ruleOfLife && typeof selectedEntry.entry.ruleOfLife === "object"
+    ? {
+      virtue: selectedEntry.entry.ruleOfLife.virtue || "",
+      domain: selectedEntry.entry.ruleOfLife.domain || "",
+      morning: selectedEntry.entry.ruleOfLife.morning || review.carryForward,
+      midday: selectedEntry.entry.ruleOfLife.midday || review.warning,
+      evening: selectedEntry.entry.ruleOfLife.evening || review.encouragement,
+      psalmRef: selectedEntry.entry.ruleOfLife.scriptureRef || review.scriptureRef,
+      anchor: selectedEntry.entry.ruleOfLife.scriptureRef || review.scriptureRef,
+    }
+    : {
+      virtue: selectedEntry?.ruleVirtue || "Guidance",
+      domain: selectedEntry?.ruleDomain || "Week",
+      morning: review.carryForward,
+      midday: review.warning,
+      evening: review.encouragement,
+      psalmRef: review.scriptureRef,
+      anchor: review.scriptureRef,
+    };
+
+  return {
+    asOf: selectedEntry?.targetDate?.toISOString?.() || new Date().toISOString(),
+    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC",
+    dayDisplay: `${selectedEntry?.dateLabel || "Selected day"} (${selectedEntry?.rulerText || "week"})`,
+    dayText: selectedEntry?.dateLabel || "Selected day",
+    rulerText: selectedEntry?.rulerText || "Week",
+    label: `${ruleOfLife.domain} • ${ruleOfLife.virtue}`,
+    guidanceTone: review.encouragement,
+    guidanceActivities: [review.carryForward, review.warning],
+    weeklyEntry: selectedEntry,
+    activeFocus: selectedEntry?.displayFocus || review.carryForward,
+    activePentacleLabel: selectedEntry?.pentacleLabel || "",
+    lifeDomainFocus: ruleOfLife.domain,
+    weakestDomain: "",
+    weakestDomainScore: null,
+    ruleOfLife,
+    psalmRef: review.scriptureRef,
+    wisdomRef: selectedEntry?.wisdomRef || "",
+    solomonicRef: selectedEntry?.entry?.solomonicRef || selectedEntry?.solomonicRef || "",
+    entry: selectedEntry?.entry || {},
+    dateKey: selectedEntry?.dateKey || "",
+    guidedPrompt: review.prompt,
   };
 }
 
@@ -6670,6 +6958,7 @@ async function initialiseClock() {
   setupDrawerToggle();
   setupDailyOpeningControls();
   setupActionLoopControls();
+  setupHistoryReviewControls();
   setupReadingDepthControls();
   setupBundleExpansionControls();
   setupWeeklyArcControls();
