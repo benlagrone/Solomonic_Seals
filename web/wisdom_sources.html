@@ -60,8 +60,32 @@
         background: rgba(250, 204, 21, 0.12);
         color: #fde68a;
       }
+
+      .wisdom-card-actions {
+        margin-top: 0.9rem;
+      }
+
+      .wisdom-empty-actions,
+      .wisdom-starter-actions {
+        margin-top: 0.25rem;
+      }
+
+      .wisdom-source-card.is-highlighted {
+        border-color: rgba(250, 204, 21, 0.62);
+        background: rgba(30, 41, 59, 0.86);
+        box-shadow: 0 0 0 3px rgba(250, 204, 21, 0.1);
+      }
+
+      .wisdom-starter-card {
+        display: grid;
+        gap: 0.58rem;
+      }
+
+      .wisdom-starter-copy {
+        margin: 0;
+      }
     </style>
-    <script defer src="/web/wisdom_sources.js?v=20260402-tagfix1"></script>
+    <script defer src="/web/wisdom_sources.js?v=20260402-launch2"></script>
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
@@ -231,7 +255,9 @@
         </div>
         <div class="wisdom-source-grid">
           <article
+            id="source-life-of-st-antony"
             class="wisdom-source-card js-wisdom-card"
+            data-source-id="life-of-st-antony"
             data-title="Life of St. Antony"
             data-author="Athanasius"
             data-tradition="egyptian"
@@ -258,7 +284,9 @@
             </p>
           </article>
           <article
+            id="source-rule-of-pachomius"
             class="wisdom-source-card js-wisdom-card"
+            data-source-id="rule-of-pachomius"
             data-title="Rule of Pachomius"
             data-author="Pachomian writings"
             data-tradition="egyptian"
@@ -285,7 +313,9 @@
             </p>
           </article>
           <article
+            id="source-historia-monachorum-in-aegypto"
             class="wisdom-source-card js-wisdom-card"
+            data-source-id="historia-monachorum-in-aegypto"
             data-title="Historia Monachorum in Aegypto"
             data-author="Anonymous Greek compilation"
             data-tradition="egyptian"
@@ -312,7 +342,9 @@
             </p>
           </article>
           <article
+            id="source-apophthegmata-patrum"
             class="wisdom-source-card js-wisdom-card"
+            data-source-id="apophthegmata-patrum"
             data-title="Apophthegmata Patrum"
             data-author="Sayings of the Desert Fathers"
             data-tradition="egyptian"
@@ -339,7 +371,9 @@
             </p>
           </article>
           <article
+            id="source-praktikos-and-chapters-on-prayer"
             class="wisdom-source-card js-wisdom-card"
+            data-source-id="praktikos-and-chapters-on-prayer"
             data-title="Praktikos and Chapters on Prayer"
             data-author="Evagrius Ponticus"
             data-tradition="egyptian"
@@ -366,7 +400,9 @@
             </p>
           </article>
           <article
+            id="source-lausiac-history"
             class="wisdom-source-card js-wisdom-card"
+            data-source-id="lausiac-history"
             data-title="Lausiac History"
             data-author="Palladius"
             data-tradition="egyptian"
@@ -411,7 +447,9 @@
         </div>
         <div class="wisdom-source-grid">
           <article
+            id="source-history-of-the-monks-of-syria"
             class="wisdom-source-card js-wisdom-card"
+            data-source-id="history-of-the-monks-of-syria"
             data-title="History of the Monks of Syria"
             data-author="Theodoret of Cyrrhus"
             data-tradition="syrian"
@@ -457,7 +495,9 @@
         </div>
         <div class="wisdom-source-grid">
           <article
+            id="source-rule-of-st-basil"
             class="wisdom-source-card js-wisdom-card"
+            data-source-id="rule-of-st-basil"
             data-title="Rule of St. Basil"
             data-author="Basil of Caesarea"
             data-tradition="eastern"
@@ -484,7 +524,9 @@
             </p>
           </article>
           <article
+            id="source-the-ladder-of-divine-ascent"
             class="wisdom-source-card js-wisdom-card"
+            data-source-id="the-ladder-of-divine-ascent"
             data-title="The Ladder of Divine Ascent"
             data-author="John Climacus"
             data-tradition="eastern"
@@ -530,7 +572,9 @@
         </div>
         <div class="wisdom-source-grid">
           <article
+            id="source-institutes-and-conferences"
             class="wisdom-source-card js-wisdom-card"
+            data-source-id="institutes-and-conferences"
             data-title="Institutes and Conferences"
             data-author="John Cassian"
             data-tradition="western"
@@ -558,7 +602,9 @@
             </p>
           </article>
           <article
+            id="source-rule-of-st-benedict"
             class="wisdom-source-card js-wisdom-card"
+            data-source-id="rule-of-st-benedict"
             data-title="Rule of St. Benedict"
             data-author="Benedict of Nursia"
             data-tradition="western"
@@ -604,7 +650,9 @@
         </div>
         <div class="wisdom-source-grid">
           <article
+            id="source-the-philokalia"
             class="wisdom-source-card js-wisdom-card"
+            data-source-id="the-philokalia"
             data-title="The Philokalia"
             data-author="Orthodox spiritual anthology"
             data-tradition="synthesis"
@@ -639,6 +687,9 @@
           Try a broader search, or reset one of the tradition, type, or period filters to recover the
           full reading list.
         </p>
+        <div class="guide-actions wisdom-empty-actions">
+          <button class="guide-link-button guide-link-button--primary" id="wisdom-empty-reset" type="button">Reset filters</button>
+        </div>
       </section>
 
       <section class="guide-panel" id="starter-canon">
@@ -647,34 +698,38 @@
           If you want a compact reading path without flattening the traditions, start with the
           foundational desert texts, then move into the major Eastern and Western rules.
         </p>
+        <p class="wisdom-section-summary">
+          Each card can jump you back to the source note or open a Pericope conversation with a
+          starter question.
+        </p>
         <ul class="wisdom-starter-list">
-          <li>
+          <li class="wisdom-starter-card js-starter-card" data-source-id="life-of-st-antony">
             <strong>Life of St. Antony</strong>
-            Start with the desert hermit ideal and the imaginative center of early monastic witness.
+            <p class="wisdom-starter-copy">Start with the desert hermit ideal and the imaginative center of early monastic witness.</p>
           </li>
-          <li>
+          <li class="wisdom-starter-card js-starter-card" data-source-id="rule-of-pachomius">
             <strong>Rule of Pachomius</strong>
-            Read the first durable pattern of communal monastic life.
+            <p class="wisdom-starter-copy">Read the first durable pattern of communal monastic life.</p>
           </li>
-          <li>
+          <li class="wisdom-starter-card js-starter-card" data-source-id="apophthegmata-patrum">
             <strong>Apophthegmata Patrum</strong>
-            Carry the sayings tradition for concise practical wisdom.
+            <p class="wisdom-starter-copy">Carry the sayings tradition for concise practical wisdom.</p>
           </li>
-          <li>
+          <li class="wisdom-starter-card js-starter-card" data-source-id="institutes-and-conferences">
             <strong>Institutes and Conferences</strong>
-            Use Cassian as the bridge from Egypt into the Latin West.
+            <p class="wisdom-starter-copy">Use Cassian as the bridge from Egypt into the Latin West.</p>
           </li>
-          <li>
+          <li class="wisdom-starter-card js-starter-card" data-source-id="rule-of-st-basil">
             <strong>Rule of St. Basil</strong>
-            Read the East's foundational communal rule.
+            <p class="wisdom-starter-copy">Read the East's foundational communal rule.</p>
           </li>
-          <li>
+          <li class="wisdom-starter-card js-starter-card" data-source-id="rule-of-st-benedict">
             <strong>Rule of St. Benedict</strong>
-            Read the dominant Western rule of life.
+            <p class="wisdom-starter-copy">Read the dominant Western rule of life.</p>
           </li>
-          <li>
+          <li class="wisdom-starter-card js-starter-card" data-source-id="the-ladder-of-divine-ascent">
             <strong>The Ladder of Divine Ascent</strong>
-            Add the classic map of ascent, struggle, and spiritual maturity.
+            <p class="wisdom-starter-copy">Add the classic map of ascent, struggle, and spiritual maturity.</p>
           </li>
         </ul>
       </section>
