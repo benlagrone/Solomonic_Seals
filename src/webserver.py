@@ -95,17 +95,25 @@ PUBLIC_PAGE_TEMPLATES = {
     "/": (REPO_ROOT / "web" / "index.html", "/"),
     "/clock": (REPO_ROOT / "web" / "clock_visualizer.html", "/clock"),
     "/how-to-use": (REPO_ROOT / "web" / "how_to_use.html", "/how-to-use"),
+    "/wisdom-sources": (REPO_ROOT / "web" / "wisdom_sources.html", "/wisdom-sources"),
     "/web/index.html": (REPO_ROOT / "web" / "index.html", "/"),
     "/web/clock_visualizer.html": (REPO_ROOT / "web" / "clock_visualizer.html", "/clock"),
     "/web/how_to_use.html": (REPO_ROOT / "web" / "how_to_use.html", "/how-to-use"),
+    "/web/wisdom_sources.html": (REPO_ROOT / "web" / "wisdom_sources.html", "/wisdom-sources"),
 }
 SITEMAP_PAGE_SOURCES = {
     "/": REPO_ROOT / "web" / "index.html",
     "/clock": REPO_ROOT / "web" / "clock_visualizer.html",
     "/how-to-use": REPO_ROOT / "web" / "how_to_use.html",
+    "/wisdom-sources": REPO_ROOT / "web" / "wisdom_sources.html",
 }
 NOINDEX_PREFIXES = ("/api/", "/data/", "/docs/", "/src/", "/deploy/", "/output/", "/.playwright-cli/")
-NOINDEX_PATHS = {"/web/index.html", "/web/clock_visualizer.html", "/web/how_to_use.html"}
+NOINDEX_PATHS = {
+    "/web/index.html",
+    "/web/clock_visualizer.html",
+    "/web/how_to_use.html",
+    "/web/wisdom_sources.html",
+}
 
 MS_PER_DAY = 1000 * 60 * 60 * 24
 CHALDEAN_ORDER = ["Saturn", "Jupiter", "Mars", "Sun", "Venus", "Mercury", "Moon"]
@@ -2482,6 +2490,7 @@ class ClockRequestHandler(SimpleHTTPRequestHandler):
             "Disallow: /web/index.html",
             "Disallow: /web/clock_visualizer.html",
             "Disallow: /web/how_to_use.html",
+            "Disallow: /web/wisdom_sources.html",
             "",
             f"Sitemap: {sitemap_url}",
         ]
