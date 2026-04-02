@@ -5,8 +5,36 @@ const filterState = {
   era: "all",
 };
 
+const TAG_ACTIONS = {
+  "monastic texts": { query: "monastic" },
+  "desert fathers": { tradition: "egyptian", query: "desert fathers" },
+  "cenobitic life": { query: "cenobitic" },
+  "eremitic tradition": { query: "eremitic" },
+  "eastern orthodoxy": { query: "orthodox" },
+  benedictine: { query: "benedictine" },
+  "ascetic theology": { query: "ascetic" },
+  "rule of life": { type: "rule", query: "rule" },
+  "primary sources": { query: "primary source" },
+  egypt: { tradition: "egyptian", query: "egypt" },
+  syria: { tradition: "syrian", query: "syria" },
+  rule: { type: "rule", query: "rule" },
+  history: { type: "history", query: "history" },
+  sayings: { type: "sayings", query: "sayings" },
+  manual: { type: "manual", query: "manual" },
+  anthology: { type: "anthology", query: "anthology" },
+  hagiography: { type: "hagiography", query: "hagiography" },
+  "4th to 15th centuries": { era: "later", query: "4th" },
+};
+
 function normalize(text) {
   return String(text || "").trim().toLowerCase();
+}
+
+function resetFilterState() {
+  filterState.query = "";
+  filterState.tradition = "all";
+  filterState.type = "all";
+  filterState.era = "all";
 }
 
 function cardMatches(card) {
@@ -37,6 +65,22 @@ function syncButtonState(group, value) {
     const isActive = button.dataset.filterValue === value;
     button.classList.toggle("is-active", isActive);
     button.setAttribute("aria-pressed", isActive ? "true" : "false");
+  });
+}
+
+function syncAllFilterButtons() {
+  document.querySelectorAll(".wisdom-filter-group").forEach((group) => {
+    const filterGroup = group.dataset.filterGroup;
+    if (!filterGroup) {
+      return;
+    }
+    syncButtonState(group, filterState[filterGroup] || "all");
+  });
+}
+
+function clearActiveTagState() {
+  document.querySelectorAll(".wisdom-tag--interactive").forEach((tag) => {
+    tag.classList.remove("is-active");
   });
 }
 
@@ -102,6 +146,7 @@ function setupSearch() {
 
   searchInput.addEventListener("input", (event) => {
     filterState.query = normalize(event.target.value);
+    clearActiveTagState();
     applyFilters();
   });
 }
@@ -119,6 +164,7 @@ function setupFilters() {
       const value = button.dataset.filterValue || "all";
       filterState[filterGroup] = value;
       syncButtonState(group, value);
+      clearActiveTagState();
       applyFilters();
     });
   });
@@ -132,17 +178,56 @@ function setupClear() {
   }
 
   clearButton.addEventListener("click", () => {
-    filterState.query = "";
-    filterState.tradition = "all";
-    filterState.type = "all";
-    filterState.era = "all";
+    resetFilterState();
     searchInput.value = "";
+    clearActiveTagState();
+    syncAllFilterButtons();
+    applyFilters();
+  });
+}
 
-    document.querySelectorAll(".wisdom-filter-group").forEach((group) => {
-      syncButtonState(group, "all");
+function applyTagAction(tag) {
+  const label = String(tag.dataset.label || tag.textContent || "").trim();
+  const action = TAG_ACTIONS[normalize(label)] || { query: label };
+  const searchInput = document.getElementById("wisdom-search");
+
+  resetFilterState();
+  filterState.query = normalize(action.query || "");
+  filterState.tradition = action.tradition || "all";
+  filterState.type = action.type || "all";
+  filterState.era = action.era || "all";
+
+  if (searchInput) {
+    searchInput.value = action.query || label;
+  }
+
+  document.querySelectorAll(".wisdom-tag--interactive").forEach((item) => {
+    item.classList.toggle("is-active", item === tag);
+  });
+
+  syncAllFilterButtons();
+  applyFilters();
+}
+
+function setupTagFilters() {
+  const tags = Array.from(document.querySelectorAll(".wisdom-tag"));
+  tags.forEach((tag) => {
+    tag.classList.add("wisdom-tag--interactive");
+    tag.setAttribute("role", "button");
+    tag.setAttribute("tabindex", "0");
+    tag.setAttribute("title", `Filter sources by ${String(tag.textContent || "").trim()}`);
+
+    tag.addEventListener("click", () => {
+      applyTagAction(tag);
     });
 
-    applyFilters();
+    tag.addEventListener("keydown", (event) => {
+      if (event.key !== "Enter" && event.key !== " ") {
+        return;
+      }
+      event.preventDefault();
+      applyTagAction(tag);
+    });
   });
 }
 
@@ -150,5 +235,6 @@ document.addEventListener("DOMContentLoaded", () => {
   setupSearch();
   setupFilters();
   setupClear();
+  setupTagFilters();
   applyFilters();
 });
