@@ -436,7 +436,8 @@ body[data-daily-opening="open"] {
 }
 
 .providence-timeline-kicker,
-.providence-timeline-summary {
+.providence-timeline-summary,
+.providence-map-guide {
   margin: 0;
 }
 
@@ -454,10 +455,61 @@ body[data-daily-opening="open"] {
   line-height: 1.55;
 }
 
+.providence-map-guide {
+  margin-top: 0.55rem;
+  max-width: 40rem;
+  color: #bfd3ea;
+  line-height: 1.55;
+}
+
 .providence-timeline-controls {
   display: flex;
   gap: 0.45rem;
   flex-wrap: wrap;
+}
+
+.providence-map-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  list-style: none;
+  padding: 0;
+  margin: 0.75rem 0 0;
+}
+
+.providence-map-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: #dbe4f0;
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+}
+
+.providence-map-legend-dot {
+  width: 0.72rem;
+  height: 0.72rem;
+  border-radius: 999px;
+  display: inline-block;
+  background: rgba(148, 163, 184, 0.22);
+  border: 1px solid rgba(148, 163, 184, 0.28);
+}
+
+.providence-map-legend-dot--recorded {
+  background: rgba(74, 222, 128, 0.8);
+  border-color: rgba(187, 247, 208, 0.78);
+  box-shadow: 0 0 10px rgba(74, 222, 128, 0.28);
+}
+
+.providence-map-legend-dot--ghost {
+  background: rgba(148, 163, 184, 0.14);
+  border-color: rgba(148, 163, 184, 0.3);
+}
+
+.providence-map-legend-dot--selected {
+  background: rgba(248, 250, 252, 0.92);
+  border-color: rgba(250, 204, 21, 0.75);
+  box-shadow: 0 0 12px rgba(250, 204, 21, 0.28);
 }
 
 .providence-timeline-list {
@@ -1319,8 +1371,22 @@ body[data-presentation="guidance"] .bundle-item--solomonic {
   filter: drop-shadow(0 0 9px rgba(248, 250, 252, 0.22));
 }
 
+.history-node:hover .history-node-halo,
+.history-node:focus-within .history-node-halo {
+  opacity: 1;
+}
+
+.history-node:hover .history-node-ring,
+.history-node:focus-within .history-node-ring {
+  stroke-width: 2.5;
+}
+
 .history-node.is-ghost .history-node-caption {
   fill: rgba(148, 163, 184, 0.66);
+}
+
+.history-node.is-ghost .history-node-label {
+  fill: rgba(191, 219, 254, 0.82);
 }
 
 .scripture-overlay-text,

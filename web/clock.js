@@ -14,6 +14,7 @@ const RING_THICKNESS = {
 const MS_PER_DAY = 86_400_000;
 const PROVIDENCE_MAP_MAX_DAYS = 42;
 const PROVIDENCE_MAP_MAX_ENTRIES = 48;
+const PROVIDENCE_MAP_MIN_CONTEXT_ENTRIES = 7;
 const HISTORY_RULER_COLORS = {
   Sun: "#facc15",
   Moon: "#cbd5f5",
@@ -162,6 +163,7 @@ const drawerElements = {
   historyLogList: document.querySelector(".history-log-list"),
   providenceTimeline: document.querySelector(".providence-timeline"),
   providenceTimelineSummary: document.querySelector(".providence-timeline-summary"),
+  providenceMapGuide: document.querySelector(".providence-map-guide"),
   providenceTimelineList: document.querySelector(".providence-timeline-list"),
   providencePrev: document.querySelector(".providence-prev"),
   providenceNext: document.querySelector(".providence-next"),
@@ -2934,10 +2936,30 @@ function getProvidenceTimelineEntries(baseDate, derived, referenceMap) {
   return entries;
 }
 
+function getProvidenceGuideCopy(entries, selectedEntry) {
+  const recordedCount = entries.filter((entry) => entry.hasRecord).length;
+  const ghostCount = entries.filter((entry) => entry.isGhost).length;
+
+  if (!recordedCount) {
+    return "No recorded days yet. The faint outer nodes mark the last week so you can start the trail by opening, reflecting on, or closing today.";
+  }
+
+  if (recordedCount < 3) {
+    return `${recordedCount} saved ${recordedCount === 1 ? "day is" : "days are"} visible. Faint guide nodes fill the recent week so the map stays readable while the trail is still sparse.`;
+  }
+
+  if (ghostCount) {
+    return `Brighter outer nodes are recorded days. Faint guide nodes keep the recent week legible while you browse ${selectedEntry.dateLabel}.`;
+  }
+
+  return "Select an outer node or a timeline card to revisit a recorded day. Brighter nodes indicate stronger completion and closure.";
+}
+
 function updateProvidenceTimeline(now, derived, referenceMap) {
   if (
     !drawerElements.providenceTimeline ||
     !drawerElements.providenceTimelineSummary ||
+    !drawerElements.providenceMapGuide ||
     !drawerElements.providenceTimelineList ||
     !drawerElements.providencePrev ||
     !drawerElements.providenceNext ||
@@ -2957,6 +2979,7 @@ function updateProvidenceTimeline(now, derived, referenceMap) {
     || buildHistoryTimelineEntry(now, selectedDayOffset, derived, referenceMap);
   const recordedCount = entries.filter((entry) => entry.hasRecord).length;
   const closedCount = entries.filter((entry) => entry.closed).length;
+  const guideCopy = getProvidenceGuideCopy(entries, selectedEntry);
   const key = JSON.stringify({
     selectedOffset: selectedDayOffset,
     entries: entries.map((entry) => `${entry.dateKey}:${entry.statusBadges.join(",")}:${entry.summaryLine}:${entry.hasRecord ? 1 : 0}`),
@@ -2971,6 +2994,7 @@ function updateProvidenceTimeline(now, derived, referenceMap) {
   drawerElements.providenceTimelineSummary.textContent = selectedEntry.hasRecord
     ? `${recordedCount} recorded ${recordedCount === 1 ? "day" : "days"} in view • ${closedCount} closed. Selected ${selectedEntry.dateLabel}: ${selectedEntry.summaryLine}`
     : `${recordedCount} recorded ${recordedCount === 1 ? "day" : "days"} in view. ${selectedEntry.dateLabel} has no saved record yet; ${selectedEntry.rulerText} still leans toward ${selectedEntry.displayFocus}.`;
+  drawerElements.providenceMapGuide.textContent = guideCopy;
 
   drawerElements.providenceToday.disabled = selectedDayOffset === 0;
   drawerElements.providenceTimelineList.innerHTML = "";
@@ -3851,13 +3875,13 @@ function updateHistoryPreview(now, derived, referenceMap, radii) {
     .data(entries, (entry) => entry.dateKey)
     .join((enter) => {
       const group = enter.append("g").attr("class", "history-node providence-map-node");
-      group.append("circle").attr("class", "history-node-hit");
-      group.append("circle").attr("class", "history-node-halo");
-      group.append("circle").attr("class", "history-node-ring");
-      group.append("circle").attr("class", "history-node-dot");
-      group.append("circle").attr("class", "history-node-launch");
-      group.append("text").attr("class", "history-node-label").attr("text-anchor", "middle");
-      group.append("text").attr("class", "history-node-caption").attr("text-anchor", "middle");
+      group.append("circle").attr("class", "history-node-hit").attr("pointer-events", "all");
+      group.append("circle").attr("class", "history-node-halo").attr("pointer-events", "none");
+      group.append("circle").attr("class", "history-node-ring").attr("pointer-events", "none");
+      group.append("circle").attr("class", "history-node-dot").attr("pointer-events", "none");
+      group.append("circle").attr("class", "history-node-launch").attr("pointer-events", "none");
+      group.append("text").attr("class", "history-node-label").attr("text-anchor", "middle").attr("pointer-events", "none");
+      group.append("text").attr("class", "history-node-caption").attr("text-anchor", "middle").attr("pointer-events", "none");
       return group;
     })
     .attr("transform", (entry) => `translate(${entry.x}, ${entry.y})`)
@@ -3867,11 +3891,26 @@ function updateHistoryPreview(now, derived, referenceMap, radii) {
     .classed("is-closed", (entry) => entry.closed)
     .classed("is-complete", (entry) => entry.completed)
     .classed("has-reflection", (entry) => entry.hasReflection)
-    .classed("is-ghost", (entry) => entry.isGhost);
+    .classed("is-ghost", (entry) => entry.isGhost)
+    .attr("tabindex", 0)
+    .attr("role", "button")
+    .attr("aria-label", (entry) => `View ${entry.dateLabel}: ${entry.summaryLine}`)
+    .style("cursor", "pointer")
+    .on("click", (_event, entry) => {
+      setSelectedDayOffset(entry.offset);
+      setLens("history");
+    })
+    .on("keydown", (event, entry) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        setSelectedDayOffset(entry.offset);
+        setLens("history");
+      }
+    });
 
   selection
     .select("circle.history-node-hit")
-    .attr("r", (entry) => entry.haloRadius + 2.8)
+    .attr("r", (entry) => Math.max(entry.haloRadius + 5.8, 14))
     .attr("fill", "rgba(15, 23, 42, 0.001)")
     .attr("stroke", "none");
 
@@ -3933,21 +3972,7 @@ function updateHistoryPreview(now, derived, referenceMap, radii) {
 
   const hitSelection = selection
     .select("circle.history-node-hit")
-    .attr("tabindex", 0)
-    .attr("role", "button")
-    .attr("aria-label", (entry) => `View ${entry.dateLabel}: ${entry.summaryLine}`)
-    .style("cursor", "pointer")
-    .on("click", (_event, entry) => {
-      setSelectedDayOffset(entry.offset);
-      setLens("history");
-    })
-    .on("keydown", (event, entry) => {
-      if (event.key === "Enter" || event.key === " ") {
-        event.preventDefault();
-        setSelectedDayOffset(entry.offset);
-        setLens("history");
-      }
-    });
+    .attr("aria-hidden", "true");
 
   bindTooltip(
     hitSelection,
@@ -5294,20 +5319,41 @@ function getProvidenceMapEntries(baseDate, derived, referenceMap, radii) {
     .filter((entry) => entry && entry.hasRecord && Math.abs(entry.offset) <= PROVIDENCE_MAP_MAX_DAYS)
     .sort((left, right) => left.targetDate - right.targetDate)
     .slice(-PROVIDENCE_MAP_MAX_ENTRIES);
+  const entryByDateKey = new Map(recordedEntries.map((entry) => [entry.dateKey, entry]));
 
   const selectedEntry = buildHistoryTimelineEntry(baseDate, selectedDayOffset, derived, referenceMap);
   if (
     selectedEntry
-    && !recordedEntries.some((entry) => entry.dateKey === selectedEntry.dateKey)
+    && !entryByDateKey.has(selectedEntry.dateKey)
     && Math.abs(selectedEntry.offset) <= PROVIDENCE_MAP_MAX_DAYS
   ) {
     recordedEntries.push(selectedEntry);
-    recordedEntries.sort((left, right) => left.targetDate - right.targetDate);
+    entryByDateKey.set(selectedEntry.dateKey, selectedEntry);
   }
+
+  if (recordedEntries.length < PROVIDENCE_MAP_MIN_CONTEXT_ENTRIES) {
+    for (let offset = selectedDayOffset - (PROVIDENCE_MAP_MIN_CONTEXT_ENTRIES - 1); offset <= selectedDayOffset; offset += 1) {
+      if (Math.abs(offset) > PROVIDENCE_MAP_MAX_DAYS) {
+        continue;
+      }
+      const entry = buildHistoryTimelineEntry(baseDate, offset, derived, referenceMap);
+      if (!entry || entryByDateKey.has(entry.dateKey)) {
+        continue;
+      }
+      recordedEntries.push(entry);
+      entryByDateKey.set(entry.dateKey, entry);
+    }
+  }
+
+  recordedEntries.sort((left, right) => left.targetDate - right.targetDate);
 
   return recordedEntries.map((entry) => {
     const distanceDays = Math.abs(entry.offset);
-    const angleRadians = (-((Number(entry.weekFraction) || 0) * Math.PI * 2)) - Math.PI / 2;
+    const weekIndex = Math.floor(distanceDays / 7);
+    const angleNudge = weekIndex
+      ? degreesToRadians((weekIndex % 2 === 0 ? 1 : -1) * Math.min(weekIndex, 4) * 2.2)
+      : 0;
+    const angleRadians = (-((Number(entry.weekFraction) || 0) * Math.PI * 2)) - Math.PI / 2 + angleNudge;
     const orbitRadius = getProvidenceMapRadius(distanceDays, radii);
     const point = polarPoint(0, 0, orbitRadius, angleRadians);
     const nodeRadius = 4.8
@@ -6246,8 +6292,14 @@ function updateSurfacePanel(timeState, referenceMap, now, derived, lifeState) {
   }
 
   if (uiState.lens === "history") {
-    drawerElements.surfaceLensTitle.textContent = weeklyEntry.dateLabel;
-    drawerElements.surfaceLensBody.textContent = `${weeklyEntry.rulerText} • ${weeklyEntry.focus}`;
+    const recentEntries = getRecordedHistoryEntries(now, derived, referenceMap, 7);
+    const selectedHistoryEntry = buildHistoryTimelineEntry(now, selectedDayOffset, derived, referenceMap);
+    drawerElements.surfaceLensTitle.textContent = recentEntries.length
+      ? `Providence Map • ${selectedHistoryEntry.dateLabel}`
+      : "Providence Map";
+    drawerElements.surfaceLensBody.textContent = recentEntries.length
+      ? `${recentEntries.length} recorded ${recentEntries.length === 1 ? "day" : "days"} in view. Select an outer node or timeline card to revisit ${selectedHistoryEntry.dateLabel.toLowerCase()}.`
+      : "No recorded trail yet. Faint guide nodes mark the recent week so you can begin the map by opening and closing the day.";
     return;
   }
 

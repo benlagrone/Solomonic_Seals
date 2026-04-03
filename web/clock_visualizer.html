@@ -32,7 +32,7 @@
       gtag("config", "G-138HFD1QQP");
     </script>
     <link rel="icon" href='data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="12" fill="%23020617"/><circle cx="32" cy="32" r="20" fill="none" stroke="%23facc15" stroke-width="4"/><circle cx="32" cy="32" r="6" fill="%23facc15"/></svg>' />
-    <link rel="stylesheet" href="/web/style.css?v=20260328-1" />
+    <link rel="stylesheet" href="/web/style.css?v=20260401-1" />
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
@@ -225,6 +225,21 @@
             <div>
               <p class="providence-timeline-kicker">Providence Timeline</p>
               <p class="providence-timeline-summary">The last days will appear here as a readable trail of openings, practices, closures, and counsel.</p>
+              <p class="providence-map-guide">Brighter nodes on the outer wheel are recorded days. Faint guide nodes keep nearby unsaved days readable until the trail fills in.</p>
+              <ul class="providence-map-legend" aria-label="Providence map legend">
+                <li class="providence-map-legend-item">
+                  <span class="providence-map-legend-dot providence-map-legend-dot--recorded"></span>
+                  Recorded day
+                </li>
+                <li class="providence-map-legend-item">
+                  <span class="providence-map-legend-dot providence-map-legend-dot--ghost"></span>
+                  Unsaved nearby day
+                </li>
+                <li class="providence-map-legend-item">
+                  <span class="providence-map-legend-dot providence-map-legend-dot--selected"></span>
+                  Selected day
+                </li>
+              </ul>
             </div>
             <div class="providence-timeline-controls" role="group" aria-label="Providence timeline controls">
               <button type="button" class="weekly-arc-button providence-prev" aria-label="Previous day">
@@ -432,6 +447,6 @@
       </aside>
     </div>
     <script src="https://d3js.org/d3.v7.min.js"></script>
-    <script src="/web/clock.js?v=20260328-1"></script>
+    <script src="/web/clock.js?v=20260401-1"></script>
   </body>
 </html>
