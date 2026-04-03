@@ -32,7 +32,7 @@
       gtag("config", "G-138HFD1QQP");
     </script>
     <link rel="icon" href='data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="12" fill="%23020617"/><circle cx="32" cy="32" r="20" fill="none" stroke="%23facc15" stroke-width="4"/><circle cx="32" cy="32" r="6" fill="%23facc15"/></svg>' />
-    <link rel="stylesheet" href="/web/style.css?v=20260401-1" />
+    <link rel="stylesheet" href="/web/style.css?v=20260402-1" />
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
@@ -45,7 +45,14 @@
       }
     </script>
   </head>
-  <body data-pericope-chat-url="https://pericopeai.com/chat">
+  <body
+    data-pericope-chat-url="https://pericopeai.com/chat"
+    data-auth-url="__AUTH_URL__"
+    data-auth-realm="__AUTH_REALM__"
+    data-auth-client-id="__AUTH_CLIENT_ID__"
+    data-auth-disabled="__AUTH_DISABLED__"
+    data-auth-dev-fake="__AUTH_DEV_FAKE__"
+  >
     <section class="daily-opening-overlay" hidden aria-label="Daily opening">
       <div class="daily-opening-backdrop"></div>
       <div class="daily-opening-card" role="dialog" aria-modal="true" aria-labelledby="daily-opening-day">
@@ -86,6 +93,16 @@
           Read the day through Scripture-first counsel, daily practice, and the live clock. Start here if
           you want the instrument surface, the rule of life, and Psalm correspondences in one place.
         </p>
+        <section class="account-bar" aria-label="Account and history sync">
+          <div class="account-copy">
+            <p class="account-kicker">Account</p>
+            <p class="account-status">Guest mode. History is saved in this browser until you sign in.</p>
+          </div>
+          <div class="account-actions">
+            <button type="button" class="action-button account-sign-in">Sign In</button>
+            <button type="button" class="action-button account-sign-out" hidden>Sign Out</button>
+          </div>
+        </section>
         <nav class="presentation-bar" aria-label="Clock presentation">
           <button type="button" class="presentation-button active" data-presentation="guidance" aria-pressed="true">
             Guidance First
@@ -447,6 +464,7 @@
       </aside>
     </div>
     <script src="https://d3js.org/d3.v7.min.js"></script>
-    <script src="/web/clock.js?v=20260401-1"></script>
+    <script src="https://cdn.jsdelivr.net/npm/keycloak-js@26.0.2/dist/keycloak.min.js"></script>
+    <script src="/web/clock.js?v=20260402-1"></script>
   </body>
 </html>

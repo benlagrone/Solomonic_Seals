@@ -3142,3 +3142,53 @@ svg[data-mode="timeline"] .history-preview {
     flex-direction: column;
   }
 }
+
+.account-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.95rem 1.1rem;
+  margin: 0 0 1rem;
+  border-radius: 1rem;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.92), rgba(10, 17, 35, 0.86));
+  box-shadow: 0 14px 34px rgba(2, 6, 23, 0.28);
+}
+
+.account-copy {
+  min-width: 0;
+}
+
+.account-kicker {
+  margin: 0 0 0.3rem;
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #93c5fd;
+}
+
+.account-status {
+  margin: 0;
+  color: #dbeafe;
+  line-height: 1.45;
+}
+
+.account-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  justify-content: flex-end;
+}
+
+@media (max-width: 960px) {
+  .account-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .account-actions {
+    justify-content: flex-start;
+  }
+}

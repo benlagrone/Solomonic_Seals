@@ -120,6 +120,9 @@ const centerPentacleLabel = centerGroup
   .attr("y", 72);
 
 const drawerElements = {
+  accountStatus: document.querySelector(".account-status"),
+  accountSignIn: document.querySelector(".account-sign-in"),
+  accountSignOut: document.querySelector(".account-sign-out"),
   headerTitle: document.querySelector(".drawer-header h2"),
   drawer: document.querySelector(".drawer"),
   drawerBody: document.querySelector(".drawer-body"),
@@ -277,6 +280,8 @@ const HISTORY_CLIENT_ID_STORAGE_KEY = "truevineos-history-client-id";
 const HISTORY_CLIENT_KEY_STORAGE_KEY = "truevineos-history-client-key";
 const HISTORY_CLIENT_HEADER = "X-TrueVine-History-Client";
 const HISTORY_KEY_HEADER = "X-TrueVine-History-Key";
+const DEV_AUTH_SUB_HEADER = "X-Dev-Auth-Sub";
+const DEV_AUTH_NAME_HEADER = "X-Dev-Auth-Name";
 const MAX_DAILY_ACTION_LAUNCHES = 12;
 let dailyActionStateCache = null;
 let historySyncIdentity = null;
@@ -285,12 +290,32 @@ let historySyncInFlight = null;
 let historySyncPendingTimer = null;
 let historySyncLastSerializedState = "";
 let historySyncNeedsFlush = false;
+let historySyncScopeKey = "";
 let dailyOpeningAutofillKey = null;
 let historyReviewAutofillKey = null;
 let dailyOpeningAnchorExpanded = false;
 let lastDailyOpeningAnchorKey = null;
 let lastDailyOpeningDateKey = null;
 let currentWeeklyReviewContext = null;
+const authDataset = typeof document !== "undefined" ? (document.body?.dataset || {}) : {};
+const CLOCK_AUTH_URL = String(authDataset.authUrl || "https://auth.pericopeai.com").trim();
+const CLOCK_AUTH_REALM = String(authDataset.authRealm || "pericope").trim();
+const CLOCK_AUTH_CLIENT_ID = String(authDataset.authClientId || "pericope-web").trim();
+const CLOCK_AUTH_DISABLED = String(authDataset.authDisabled || "").trim().toLowerCase() === "true";
+const CLOCK_DEV_FAKE_AUTH_ENABLED = String(authDataset.authDevFake || "").trim().toLowerCase() === "true";
+const CLOCK_DEV_AUTH_SUB_PARAM = "clock_dev_auth_sub";
+const CLOCK_DEV_AUTH_NAME_PARAM = "clock_dev_auth_name";
+let clockKeycloak = null;
+let clockAuthReady = false;
+let clockAuthRefreshTimer = null;
+let clockAuthState = {
+  mode: "guest",
+  authenticated: false,
+  token: null,
+  profile: null,
+  devFake: false,
+  error: "",
+};
 const uiState = {
   presentationMode: "guidance",
   lens: "base",
@@ -3208,7 +3233,321 @@ function randomBase64Url(byteLength = 18) {
   return window.btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
 }
 
-function getHistorySyncIdentity() {
+function clearClockAuthRefreshTimer() {
+  if (clockAuthRefreshTimer && typeof window !== "undefined") {
+    window.clearTimeout(clockAuthRefreshTimer);
+    clockAuthRefreshTimer = null;
+  }
+}
+
+function getClockAuthRedirectUri() {
+  if (typeof window === "undefined") {
+    return undefined;
+  }
+  const url = new URL(window.location.href);
+  url.searchParams.delete("code");
+  url.searchParams.delete("state");
+  url.searchParams.delete("session_state");
+  return `${url.origin}${url.pathname}${url.search}${url.hash}`;
+}
+
+function removeClockAuthParamsFromUrl() {
+  if (typeof window === "undefined") {
+    return;
+  }
+  const url = new URL(window.location.href);
+  const keys = ["code", "state", "session_state", "iss"];
+  let mutated = false;
+  keys.forEach((key) => {
+    if (url.searchParams.has(key)) {
+      url.searchParams.delete(key);
+      mutated = true;
+    }
+  });
+  if (mutated) {
+    window.history.replaceState(null, document.title, `${url.pathname}${url.search}${url.hash}`);
+  }
+}
+
+function getClockDevFakeProfileFromUrl() {
+  if (typeof window === "undefined" || !CLOCK_DEV_FAKE_AUTH_ENABLED) {
+    return null;
+  }
+  const params = new URLSearchParams(window.location.search || "");
+  const sub = String(params.get(CLOCK_DEV_AUTH_SUB_PARAM) || "").trim();
+  if (!sub) {
+    return null;
+  }
+  const name = String(params.get(CLOCK_DEV_AUTH_NAME_PARAM) || "").trim() || "Local Clock User";
+  return {
+    sub,
+    name,
+    email: "",
+  };
+}
+
+function setClockAuthState(nextState) {
+  clockAuthState = {
+    ...clockAuthState,
+    ...nextState,
+  };
+  updateAccountUi();
+}
+
+function getClockAuthDisplayName() {
+  const profile = clockAuthState.profile || {};
+  return String(profile.name || profile.email || profile.sub || "").trim();
+}
+
+function updateAccountUi() {
+  if (!drawerElements.accountStatus) {
+    return;
+  }
+
+  if (CLOCK_AUTH_DISABLED) {
+    drawerElements.accountStatus.textContent = "Account sign-in is disabled here. History remains local to this browser.";
+    if (drawerElements.accountSignIn) {
+      drawerElements.accountSignIn.hidden = true;
+    }
+    if (drawerElements.accountSignOut) {
+      drawerElements.accountSignOut.hidden = true;
+    }
+    return;
+  }
+
+  const authenticated = Boolean(clockAuthState.authenticated && clockAuthState.profile?.sub);
+  const displayName = getClockAuthDisplayName();
+
+  if (authenticated) {
+    const accountKind = clockAuthState.devFake ? "Local dev account" : "Signed in";
+    drawerElements.accountStatus.textContent = displayName
+      ? `${accountKind}: ${displayName}. History is bound to your account and can follow you across browsers.`
+      : `${accountKind}. History is bound to your account and can follow you across browsers.`;
+    if (drawerElements.accountSignIn) {
+      drawerElements.accountSignIn.hidden = true;
+    }
+    if (drawerElements.accountSignOut) {
+      drawerElements.accountSignOut.hidden = false;
+    }
+    return;
+  }
+
+  const errorText = clockAuthState.error ? ` ${clockAuthState.error}` : "";
+  drawerElements.accountStatus.textContent = `Guest mode. History is saved in this browser until you sign in.${errorText}`;
+  if (drawerElements.accountSignIn) {
+    drawerElements.accountSignIn.hidden = false;
+  }
+  if (drawerElements.accountSignOut) {
+    drawerElements.accountSignOut.hidden = true;
+  }
+}
+
+function scheduleClockAuthRefresh() {
+  clearClockAuthRefreshTimer();
+  if (typeof window === "undefined" || !clockKeycloak?.tokenParsed?.exp) {
+    return;
+  }
+
+  const expiresAt = Number(clockKeycloak.tokenParsed.exp || 0) * 1000;
+  if (!Number.isFinite(expiresAt) || expiresAt <= 0) {
+    return;
+  }
+  const timeoutMs = Math.max(expiresAt - Date.now() - 60_000, 5_000);
+  clockAuthRefreshTimer = window.setTimeout(async () => {
+    try {
+      await clockKeycloak.updateToken(60);
+      setClockAuthState({ token: clockKeycloak.token || null, error: "" });
+      scheduleClockAuthRefresh();
+      void bootstrapHistorySync();
+    } catch (_error) {
+      clearClockAuthRefreshTimer();
+      setClockAuthState({
+        mode: "guest",
+        authenticated: false,
+        token: null,
+        profile: null,
+        devFake: false,
+        error: "Session refresh failed. Sign in again to keep account history syncing.",
+      });
+      void bootstrapHistorySync();
+    }
+  }, timeoutMs);
+}
+
+async function getClockAuthAccessToken() {
+  if (!clockAuthState.authenticated) {
+    return null;
+  }
+
+  if (clockAuthState.devFake) {
+    return null;
+  }
+
+  try {
+    if (clockKeycloak?.authenticated) {
+      await clockKeycloak.updateToken(30);
+      const token = clockKeycloak.token || null;
+      setClockAuthState({ token, error: "" });
+      scheduleClockAuthRefresh();
+      return token;
+    }
+  } catch (_error) {
+    setClockAuthState({
+      mode: "guest",
+      authenticated: false,
+      token: null,
+      profile: null,
+      devFake: false,
+      error: "Session expired. Sign in again to resume account history sync.",
+    });
+  }
+
+  return null;
+}
+
+function applyClockAuthProfile(profile, options = {}) {
+  setClockAuthState({
+    mode: options.devFake ? "user" : (profile?.sub ? "user" : "guest"),
+    authenticated: Boolean(profile?.sub),
+    token: options.token || null,
+    profile: profile?.sub ? {
+      sub: String(profile.sub || "").trim(),
+      name: String(profile.name || profile.preferred_username || profile.email || "").trim(),
+      email: String(profile.email || "").trim(),
+    } : null,
+    devFake: Boolean(options.devFake),
+    error: options.error || "",
+  });
+}
+
+async function initialiseClockAuth() {
+  updateAccountUi();
+
+  if (CLOCK_AUTH_DISABLED || typeof window === "undefined") {
+    clockAuthReady = true;
+    return false;
+  }
+
+  const devProfile = getClockDevFakeProfileFromUrl();
+  if (devProfile) {
+    applyClockAuthProfile(devProfile, { devFake: true });
+    clockAuthReady = true;
+    return true;
+  }
+
+  if (typeof window.Keycloak !== "function") {
+    setClockAuthState({
+      error: CLOCK_DEV_FAKE_AUTH_ENABLED ? "" : " Sign-in is temporarily unavailable in this browser.",
+    });
+    clockAuthReady = true;
+    return false;
+  }
+
+  try {
+    clockKeycloak = new window.Keycloak({
+      url: CLOCK_AUTH_URL,
+      realm: CLOCK_AUTH_REALM,
+      clientId: CLOCK_AUTH_CLIENT_ID,
+      storage: "localStorage",
+    });
+
+    const authenticated = await clockKeycloak.init({
+      onLoad: "check-sso",
+      pkceMethod: "S256",
+      responseMode: "query",
+      flow: "standard",
+      checkLoginIframe: false,
+      silentCheckSsoFallback: true,
+      thirdPartyCookies: false,
+      silentCheckSsoRedirectUri: `${window.location.origin}/web/keycloak-silent-check-sso.html`,
+      redirectUri: getClockAuthRedirectUri(),
+    });
+
+    const hasToken = Boolean(clockKeycloak?.token);
+    if (authenticated || hasToken) {
+      removeClockAuthParamsFromUrl();
+      scheduleClockAuthRefresh();
+      applyClockAuthProfile(clockKeycloak.tokenParsed || {}, {
+        token: clockKeycloak.token || null,
+      });
+      clockAuthReady = true;
+      return true;
+    }
+
+    applyClockAuthProfile(null, {});
+    clockAuthReady = true;
+    return false;
+  } catch (_error) {
+    setClockAuthState({
+      mode: "guest",
+      authenticated: false,
+      token: null,
+      profile: null,
+      devFake: false,
+      error: " Sign-in could not be initialized; guest mode is still available.",
+    });
+    clearClockAuthRefreshTimer();
+    clockAuthReady = true;
+    return false;
+  }
+}
+
+function startClockLogin() {
+  if (CLOCK_AUTH_DISABLED || typeof window === "undefined") {
+    return;
+  }
+
+  if (CLOCK_DEV_FAKE_AUTH_ENABLED) {
+    const url = new URL(window.location.href);
+    if (!url.searchParams.get(CLOCK_DEV_AUTH_SUB_PARAM)) {
+      url.searchParams.set(CLOCK_DEV_AUTH_SUB_PARAM, "clock-dev-user");
+    }
+    if (!url.searchParams.get(CLOCK_DEV_AUTH_NAME_PARAM)) {
+      url.searchParams.set(CLOCK_DEV_AUTH_NAME_PARAM, "Local Clock User");
+    }
+    window.location.assign(url.toString());
+    return;
+  }
+
+  if (!clockKeycloak) {
+    return;
+  }
+
+  void clockKeycloak.login({ redirectUri: getClockAuthRedirectUri() });
+}
+
+function startClockLogout() {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  if (CLOCK_DEV_FAKE_AUTH_ENABLED && clockAuthState.devFake) {
+    const url = new URL(window.location.href);
+    url.searchParams.delete(CLOCK_DEV_AUTH_SUB_PARAM);
+    url.searchParams.delete(CLOCK_DEV_AUTH_NAME_PARAM);
+    window.location.assign(url.toString());
+    return;
+  }
+
+  if (!clockKeycloak) {
+    return;
+  }
+
+  clearClockAuthRefreshTimer();
+  void clockKeycloak.logout({ redirectUri: getClockAuthRedirectUri() });
+}
+
+function setupAccountControls() {
+  drawerElements.accountSignIn?.addEventListener("click", () => {
+    startClockLogin();
+  });
+  drawerElements.accountSignOut?.addEventListener("click", () => {
+    startClockLogout();
+  });
+  updateAccountUi();
+}
+
+function getGuestHistorySyncIdentity() {
   if (historySyncIdentity) {
     return historySyncIdentity;
   }
@@ -3232,6 +3571,49 @@ function getHistorySyncIdentity() {
 
   historySyncIdentity = { clientId, clientKey };
   return historySyncIdentity;
+}
+
+async function getHistorySyncAccess() {
+  if (clockAuthState.authenticated && clockAuthState.profile?.sub) {
+    const token = await getClockAuthAccessToken();
+    if (token) {
+      return {
+        mode: "user",
+        scopeKey: `user:${clockAuthState.profile.sub}`,
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        userId: clockAuthState.profile.sub,
+      };
+    }
+
+    if (clockAuthState.devFake) {
+      return {
+        mode: "user",
+        scopeKey: `user:${clockAuthState.profile.sub}`,
+        headers: {
+          [DEV_AUTH_SUB_HEADER]: clockAuthState.profile.sub,
+          [DEV_AUTH_NAME_HEADER]: getClockAuthDisplayName() || "Local Clock User",
+        },
+        userId: clockAuthState.profile.sub,
+      };
+    }
+  }
+
+  const identity = getGuestHistorySyncIdentity();
+  if (!identity) {
+    return null;
+  }
+
+  return {
+    mode: "guest",
+    scopeKey: `guest:${identity.clientId}`,
+    headers: {
+      [HISTORY_CLIENT_HEADER]: identity.clientId,
+      [HISTORY_KEY_HEADER]: identity.clientKey,
+    },
+    clientId: identity.clientId,
+  };
 }
 
 function getDailyActionEntryTimestamp(entry) {
@@ -3461,17 +3843,14 @@ function setDailyOpeningDismissedDate(dateKey) {
   }
 }
 
-async function fetchHistorySyncState(identity) {
-  if (typeof window === "undefined" || typeof window.fetch !== "function" || !identity) {
+async function fetchHistorySyncState(access) {
+  if (typeof window === "undefined" || typeof window.fetch !== "function" || !access) {
     return null;
   }
 
   const response = await window.fetch(HISTORY_SYNC_API_PATH, {
     method: "GET",
-    headers: {
-      [HISTORY_CLIENT_HEADER]: identity.clientId,
-      [HISTORY_KEY_HEADER]: identity.clientKey,
-    },
+    headers: access.headers,
     credentials: "same-origin",
     cache: "no-store",
   });
@@ -3484,8 +3863,8 @@ async function fetchHistorySyncState(identity) {
   return normalizeDailyActionState(payload?.state || {});
 }
 
-async function pushHistorySyncState(identity, state) {
-  if (typeof window === "undefined" || typeof window.fetch !== "function" || !identity) {
+async function pushHistorySyncState(access, state) {
+  if (typeof window === "undefined" || typeof window.fetch !== "function" || !access) {
     return null;
   }
 
@@ -3493,8 +3872,7 @@ async function pushHistorySyncState(identity, state) {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      [HISTORY_CLIENT_HEADER]: identity.clientId,
-      [HISTORY_KEY_HEADER]: identity.clientKey,
+      ...access.headers,
     },
     credentials: "same-origin",
     body: JSON.stringify({ state: normalizeDailyActionState(state) }),
@@ -3509,11 +3887,12 @@ async function pushHistorySyncState(identity, state) {
 }
 
 async function flushHistorySync() {
-  const identity = getHistorySyncIdentity();
-  if (!identity) {
+  const access = await getHistorySyncAccess();
+  if (!access) {
     return;
   }
 
+  historySyncScopeKey = access.scopeKey;
   const serialized = serializeDailyActionState(loadDailyActionState());
   if (historySyncReady && serialized === historySyncLastSerializedState) {
     return;
@@ -3525,9 +3904,10 @@ async function flushHistorySync() {
   }
 
   historySyncNeedsFlush = false;
+  const requestScopeKey = access.scopeKey;
 
-  historySyncInFlight = pushHistorySyncState(identity, dailyActionStateCache || {}).then((remoteState) => {
-    if (remoteState) {
+  historySyncInFlight = pushHistorySyncState(access, dailyActionStateCache || {}).then((remoteState) => {
+    if (remoteState && historySyncScopeKey === requestScopeKey) {
       saveDailyActionState(mergeDailyActionStates(dailyActionStateCache || {}, remoteState));
       historySyncLastSerializedState = serializeDailyActionState(dailyActionStateCache || {});
     }
@@ -3560,14 +3940,15 @@ function scheduleHistorySync(delayMs = 700) {
 }
 
 async function bootstrapHistorySync() {
-  const identity = getHistorySyncIdentity();
-  if (!identity) {
+  const access = await getHistorySyncAccess();
+  if (!access) {
     historySyncReady = true;
     return;
   }
 
   try {
-    const remoteState = await fetchHistorySyncState(identity);
+    historySyncScopeKey = access.scopeKey;
+    const remoteState = await fetchHistorySyncState(access);
     const merged = mergeDailyActionStates(loadDailyActionState(), remoteState || {});
     saveDailyActionState(merged);
     historySyncLastSerializedState = serializeDailyActionState(merged);
@@ -7005,6 +7386,7 @@ async function retrievePsalmText(chapter, verse) {
 }
 
 async function initialiseClock() {
+  setupAccountControls();
   setupPresentationControls();
   setupLensControls();
   setupDrawerToggle();
@@ -7015,7 +7397,8 @@ async function initialiseClock() {
   setupBundleExpansionControls();
   setupWeeklyArcControls();
   setupProvidenceTimelineControls();
-  const historySyncPromise = bootstrapHistorySync();
+  const authPromise = initialiseClockAuth();
+  const historySyncPromise = authPromise.then(() => bootstrapHistorySync());
 
   try {
     const [clockResponse, psalmResponse, pentacleResponse, lifeDomainResponse, scriptureResponse] = await Promise.all([

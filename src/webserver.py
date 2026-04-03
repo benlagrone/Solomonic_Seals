@@ -17,6 +17,7 @@ import json
 import os
 import re
 import threading
+import time
 from dataclasses import dataclass
 from datetime import datetime
 from functools import partial
@@ -25,6 +26,7 @@ from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any
 from urllib.parse import parse_qs, urlparse
+from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 from xml.sax.saxutils import escape as xml_escape
 from zoneinfo import ZoneInfo
@@ -83,6 +85,8 @@ GUIDED_PROMPTS_AUTH_HEADER = "X-Solomonic-Clock-Key"
 HISTORY_SYNC_API_PATH = "/api/history/sync"
 HISTORY_CLIENT_HEADER = "X-TrueVine-History-Client"
 HISTORY_KEY_HEADER = "X-TrueVine-History-Key"
+DEV_AUTH_SUB_HEADER = "X-Dev-Auth-Sub"
+DEV_AUTH_NAME_HEADER = "X-Dev-Auth-Name"
 HISTORY_STORE_PATH_ENV = "SOLOMONIC_HISTORY_STORE_PATH"
 DEFAULT_HISTORY_STORE_PATH = Path("/var/lib/solomonic-clock/history_store.json")
 MAX_HISTORY_ENTRIES_PER_CLIENT = 400
@@ -91,6 +95,20 @@ MAX_HISTORY_LAUNCHES_PER_ENTRY = 12
 _HISTORY_STORE_LOCK = threading.Lock()
 DEFAULT_SITE_URL = "https://truevineos.cloud"
 SITE_URL_ENV = "SOLOMONIC_SITE_URL"
+AUTH_URL_ENV = "SOLOMONIC_AUTH_URL"
+AUTH_REALM_ENV = "SOLOMONIC_AUTH_REALM"
+AUTH_CLIENT_ID_ENV = "SOLOMONIC_AUTH_CLIENT_ID"
+AUTH_ISSUER_ENV = "SOLOMONIC_AUTH_ISSUER"
+AUTH_USERINFO_URL_ENV = "SOLOMONIC_AUTH_USERINFO_URL"
+AUTH_DISABLED_ENV = "SOLOMONIC_AUTH_DISABLED"
+DEV_FAKE_AUTH_ENV = "SOLOMONIC_DEV_FAKE_AUTH"
+DEV_FAKE_AUTH_DEFAULT_SUB_ENV = "SOLOMONIC_DEV_FAKE_AUTH_DEFAULT_SUB"
+DEV_FAKE_AUTH_DEFAULT_NAME_ENV = "SOLOMONIC_DEV_FAKE_AUTH_DEFAULT_NAME"
+DEFAULT_AUTH_URL = "https://auth.pericopeai.com"
+DEFAULT_AUTH_REALM = "pericope"
+DEFAULT_AUTH_CLIENT_ID = "pericope-web"
+_AUTH_USERINFO_CACHE_LOCK = threading.Lock()
+_AUTH_USERINFO_CACHE: dict[str, dict[str, Any]] = {}
 PUBLIC_PAGE_TEMPLATES = {
     "/": (REPO_ROOT / "web" / "index.html", "/"),
     "/clock": (REPO_ROOT / "web" / "clock_visualizer.html", "/clock"),
@@ -1316,6 +1334,191 @@ def _resolve_history_store_path() -> Path:
     return DEFAULT_HISTORY_STORE_PATH
 
 
+def _is_truthy(value: Any) -> bool:
+    return str(value or "").strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _resolve_auth_url() -> str:
+    return str(os.environ.get(AUTH_URL_ENV, DEFAULT_AUTH_URL) or DEFAULT_AUTH_URL).strip().rstrip("/")
+
+
+def _resolve_auth_realm() -> str:
+    return str(os.environ.get(AUTH_REALM_ENV, DEFAULT_AUTH_REALM) or DEFAULT_AUTH_REALM).strip()
+
+
+def _resolve_auth_client_id() -> str:
+    return str(os.environ.get(AUTH_CLIENT_ID_ENV, DEFAULT_AUTH_CLIENT_ID) or DEFAULT_AUTH_CLIENT_ID).strip()
+
+
+def _resolve_auth_issuer() -> str:
+    configured = str(os.environ.get(AUTH_ISSUER_ENV, "") or "").strip()
+    if configured:
+        return configured.rstrip("/")
+    return f"{_resolve_auth_url()}/realms/{_resolve_auth_realm()}"
+
+
+def _resolve_auth_userinfo_url() -> str:
+    configured = str(os.environ.get(AUTH_USERINFO_URL_ENV, "") or "").strip()
+    if configured:
+        return configured.rstrip("/")
+    return f"{_resolve_auth_issuer()}/protocol/openid-connect/userinfo"
+
+
+def _auth_disabled() -> bool:
+    return _is_truthy(os.environ.get(AUTH_DISABLED_ENV, "false"))
+
+
+def _dev_fake_auth_enabled() -> bool:
+    return _is_truthy(os.environ.get(DEV_FAKE_AUTH_ENV, "false"))
+
+
+def _default_dev_fake_auth_sub() -> str:
+    return str(os.environ.get(DEV_FAKE_AUTH_DEFAULT_SUB_ENV, "clock-dev-user") or "clock-dev-user").strip()
+
+
+def _default_dev_fake_auth_name() -> str:
+    return str(os.environ.get(DEV_FAKE_AUTH_DEFAULT_NAME_ENV, "Local Clock User") or "Local Clock User").strip()
+
+
+def _extract_bearer_token(headers: Any) -> str:
+    authorization = str(headers.get("Authorization", "") or "").strip()
+    match = re.match(r"Bearer\s+(.+)$", authorization, re.I)
+    if match:
+        return match.group(1).strip()
+    return ""
+
+
+def _build_dev_fake_auth_claims(headers: Any) -> dict[str, Any] | None:
+    if not _dev_fake_auth_enabled():
+        return None
+
+    sub = str(headers.get(DEV_AUTH_SUB_HEADER, "") or "").strip()
+    if not sub:
+        return None
+
+    name = str(headers.get(DEV_AUTH_NAME_HEADER, "") or "").strip() or _default_dev_fake_auth_name()
+    return {
+        "sub": sub,
+        "name": name,
+        "preferred_username": sub,
+        "dev_fake_auth": True,
+        "iss": _resolve_auth_issuer(),
+    }
+
+
+def _verify_userinfo_token(token: str) -> dict[str, Any]:
+    token = str(token or "").strip()
+    if not token:
+        raise ValueError("Missing bearer token.")
+
+    token_hash = hashlib.sha256(token.encode("utf-8")).hexdigest()
+    now = time.time()
+    with _AUTH_USERINFO_CACHE_LOCK:
+        cached = _AUTH_USERINFO_CACHE.get(token_hash)
+        if cached and float(cached.get("exp", 0.0)) > now:
+            return dict(cached.get("claims") or {})
+
+    request = Request(
+        _resolve_auth_userinfo_url(),
+        headers={
+            "Authorization": f"Bearer {token}",
+            "Accept": "application/json",
+        },
+    )
+    try:
+        with urlopen(request, timeout=5) as response:
+            payload = json.loads(response.read().decode("utf-8"))
+    except HTTPError as exc:
+        raise ValueError(f"Userinfo rejected token ({exc.code}).") from exc
+    except URLError as exc:
+        raise ValueError(f"Userinfo unavailable: {exc.reason}") from exc
+    except Exception as exc:  # pragma: no cover - unexpected decode/network failures
+        raise ValueError(f"Userinfo lookup failed: {exc}") from exc
+
+    if not isinstance(payload, dict):
+        raise ValueError("Userinfo response was not a JSON object.")
+
+    subject = str(payload.get("sub", "") or "").strip()
+    if not subject:
+        raise ValueError("Userinfo response did not include sub.")
+
+    issuer = str(payload.get("iss", "") or "").strip()
+    expected_issuer = _resolve_auth_issuer()
+    if issuer and issuer.rstrip("/") != expected_issuer.rstrip("/"):
+        raise ValueError("Userinfo issuer did not match the configured realm.")
+
+    cache_ttl = max(30.0, min(300.0, float(payload.get("expires_in", 120) or 120)))
+    with _AUTH_USERINFO_CACHE_LOCK:
+        _AUTH_USERINFO_CACHE[token_hash] = {
+            "exp": now + cache_ttl,
+            "claims": payload,
+        }
+
+    return payload
+
+
+def _extract_history_actor(headers: Any) -> tuple[dict[str, Any] | None, HTTPStatus, str | None]:
+    bearer = _extract_bearer_token(headers)
+    if bearer:
+        try:
+            claims = _verify_userinfo_token(bearer)
+        except ValueError as exc:
+            return None, HTTPStatus.UNAUTHORIZED, str(exc)
+
+        subject = str(claims.get("sub", "") or "").strip()
+        if not subject:
+            return None, HTTPStatus.UNAUTHORIZED, "Authenticated history requires a token subject."
+
+        return {
+            "mode": "user",
+            "id": subject,
+            "claims": claims,
+        }, HTTPStatus.OK, None
+
+    dev_claims = _build_dev_fake_auth_claims(headers)
+    if dev_claims:
+        return {
+            "mode": "user",
+            "id": str(dev_claims.get("sub") or "").strip(),
+            "claims": dev_claims,
+        }, HTTPStatus.OK, None
+
+    allowed, status, client_id, error = _authorize_history_client(headers)
+    if not allowed or client_id is None:
+        return None, status, error or "Unauthorized."
+
+    return {
+        "mode": "guest",
+        "id": client_id,
+        "client_key": str(headers.get(HISTORY_KEY_HEADER, "") or "").strip(),
+    }, HTTPStatus.OK, None
+
+
+def _build_history_actor_payload(actor: dict[str, Any]) -> dict[str, Any]:
+    mode = str(actor.get("mode") or "guest")
+    if mode == "user":
+        claims = actor.get("claims") or {}
+        return {
+            "auth_mode": "user",
+            "user": {
+                "sub": str(claims.get("sub", "") or "").strip(),
+                "name": str(
+                    claims.get("name")
+                    or claims.get("preferred_username")
+                    or claims.get("email")
+                    or "Signed in user"
+                ).strip(),
+                "email": str(claims.get("email", "") or "").strip(),
+                "dev_fake_auth": bool(claims.get("dev_fake_auth")),
+            },
+        }
+
+    return {
+        "auth_mode": "guest",
+        "client_id": str(actor.get("id", "") or "").strip(),
+    }
+
+
 def _ensure_parent_dir(path: Path) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -1323,19 +1526,21 @@ def _ensure_parent_dir(path: Path) -> None:
 def _read_history_store() -> dict[str, Any]:
     path = _resolve_history_store_path()
     if not path.exists():
-        return {"clients": {}}
+        return {"clients": {}, "users": {}}
 
     try:
         payload = json.loads(path.read_text(encoding="utf-8"))
     except Exception:
-        return {"clients": {}}
+        return {"clients": {}, "users": {}}
 
     if not isinstance(payload, dict):
-        return {"clients": {}}
+        return {"clients": {}, "users": {}}
     clients = payload.get("clients")
-    if not isinstance(clients, dict):
-        return {"clients": {}}
-    return {"clients": clients}
+    users = payload.get("users")
+    return {
+        "clients": clients if isinstance(clients, dict) else {},
+        "users": users if isinstance(users, dict) else {},
+    }
 
 
 def _write_history_store(payload: dict[str, Any]) -> None:
@@ -2301,79 +2506,104 @@ def _build_guided_prompts_payload(request_payload: dict[str, Any]) -> tuple[dict
 
 
 def _build_history_sync_get_payload(headers: Any) -> tuple[dict[str, Any] | None, str | None, HTTPStatus]:
-    allowed, status, client_id, error = _authorize_history_client(headers)
-    if not allowed or client_id is None:
+    actor, status, error = _extract_history_actor(headers)
+    if actor is None:
         return None, error or "Unauthorized.", status
 
-    client_key = str(headers.get(HISTORY_KEY_HEADER, "")).strip()
     with _HISTORY_STORE_LOCK:
         store = _read_history_store()
-        client_record = store.get("clients", {}).get(client_id)
-        if client_record is None:
-            return {
+        record: dict[str, Any] | None = None
+        if actor["mode"] == "user":
+            record = store.get("users", {}).get(actor["id"])
+        else:
+            client_record = store.get("clients", {}).get(actor["id"])
+            if client_record is not None:
+                key_hash = _hash_history_key(str(actor.get("client_key", "") or "").strip())
+                if not hmac.compare_digest(str(client_record.get("key_hash", "")), key_hash):
+                    return None, "Invalid history key.", HTTPStatus.FORBIDDEN
+            record = client_record
+
+        if record is None:
+            response = {
                 "service": "solomonic_clock",
-                "client_id": client_id,
                 "state": {},
                 "stored_entries": 0,
                 "synced_at": datetime.utcnow().isoformat() + "Z",
-            }, None, HTTPStatus.OK
+            }
+            response.update(_build_history_actor_payload(actor))
+            return response, None, HTTPStatus.OK
 
-        if not hmac.compare_digest(str(client_record.get("key_hash", "")), _hash_history_key(client_key)):
-            return None, "Invalid history key.", HTTPStatus.FORBIDDEN
-
-        state = _normalize_history_state(client_record.get("state") or {})
-        return {
+        state = _normalize_history_state(record.get("state") or {})
+        response = {
             "service": "solomonic_clock",
-            "client_id": client_id,
             "state": state,
             "stored_entries": len(state),
-            "synced_at": str(client_record.get("updated_at") or datetime.utcnow().isoformat() + "Z"),
-        }, None, HTTPStatus.OK
+            "synced_at": str(record.get("updated_at") or datetime.utcnow().isoformat() + "Z"),
+        }
+        response.update(_build_history_actor_payload(actor))
+        return response, None, HTTPStatus.OK
 
 
 def _build_history_sync_post_payload(
     headers: Any,
     request_payload: dict[str, Any],
 ) -> tuple[dict[str, Any] | None, str | None, HTTPStatus]:
-    allowed, status, client_id, error = _authorize_history_client(headers)
-    if not allowed or client_id is None:
+    actor, status, error = _extract_history_actor(headers)
+    if actor is None:
         return None, error or "Unauthorized.", status
 
-    client_key = str(headers.get(HISTORY_KEY_HEADER, "")).strip()
     client_state = _normalize_history_state(request_payload.get("state") or {})
     now_iso = datetime.utcnow().isoformat() + "Z"
 
     with _HISTORY_STORE_LOCK:
         store = _read_history_store()
-        clients = store.setdefault("clients", {})
-        client_record = clients.get(client_id)
-        key_hash = _hash_history_key(client_key)
-
-        if client_record is None:
-            merged_state = client_state
-            clients[client_id] = {
-                "key_hash": key_hash,
-                "created_at": now_iso,
-                "updated_at": now_iso,
-                "state": merged_state,
-            }
+        if actor["mode"] == "user":
+            users = store.setdefault("users", {})
+            user_record = users.get(actor["id"])
+            if user_record is None:
+                merged_state = client_state
+                users[actor["id"]] = {
+                    "created_at": now_iso,
+                    "updated_at": now_iso,
+                    "profile": _build_history_actor_payload(actor).get("user", {}),
+                    "state": merged_state,
+                }
+            else:
+                merged_state = _merge_history_states(user_record.get("state") or {}, client_state)
+                user_record["updated_at"] = now_iso
+                user_record["profile"] = _build_history_actor_payload(actor).get("user", {})
+                user_record["state"] = merged_state
         else:
-            if not hmac.compare_digest(str(client_record.get("key_hash", "")), key_hash):
-                return None, "Invalid history key.", HTTPStatus.FORBIDDEN
+            clients = store.setdefault("clients", {})
+            client_record = clients.get(actor["id"])
+            key_hash = _hash_history_key(str(actor.get("client_key", "") or "").strip())
 
-            merged_state = _merge_history_states(client_record.get("state") or {}, client_state)
-            client_record["updated_at"] = now_iso
-            client_record["state"] = merged_state
+            if client_record is None:
+                merged_state = client_state
+                clients[actor["id"]] = {
+                    "key_hash": key_hash,
+                    "created_at": now_iso,
+                    "updated_at": now_iso,
+                    "state": merged_state,
+                }
+            else:
+                if not hmac.compare_digest(str(client_record.get("key_hash", "")), key_hash):
+                    return None, "Invalid history key.", HTTPStatus.FORBIDDEN
+
+                merged_state = _merge_history_states(client_record.get("state") or {}, client_state)
+                client_record["updated_at"] = now_iso
+                client_record["state"] = merged_state
 
         _write_history_store(store)
 
-    return {
+    response = {
         "service": "solomonic_clock",
-        "client_id": client_id,
         "state": merged_state,
         "stored_entries": len(merged_state),
         "synced_at": now_iso,
-    }, None, HTTPStatus.OK
+    }
+    response.update(_build_history_actor_payload(actor))
+    return response, None, HTTPStatus.OK
 
 
 def _get_guided_prompts_expected_key() -> str:
@@ -2459,6 +2689,11 @@ class ClockRequestHandler(SimpleHTTPRequestHandler):
             "__SITE_URL__": self._resolve_site_url(),
             "__CANONICAL_URL__": self._build_absolute_url(canonical_path),
             "__SITEMAP_URL__": self._build_absolute_url("/sitemap.xml"),
+            "__AUTH_URL__": _resolve_auth_url(),
+            "__AUTH_REALM__": _resolve_auth_realm(),
+            "__AUTH_CLIENT_ID__": _resolve_auth_client_id(),
+            "__AUTH_DISABLED__": "true" if _auth_disabled() else "false",
+            "__AUTH_DEV_FAKE__": "true" if _dev_fake_auth_enabled() else "false",
         }
         for token, value in replacements.items():
             html = html.replace(token, value)
