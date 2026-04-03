@@ -301,19 +301,27 @@ const authDataset = typeof document !== "undefined" ? (document.body?.dataset ||
 const CLOCK_AUTH_URL = String(authDataset.authUrl || "https://auth.pericopeai.com").trim();
 const CLOCK_AUTH_REALM = String(authDataset.authRealm || "pericope").trim();
 const CLOCK_AUTH_CLIENT_ID = String(authDataset.authClientId || "pericope-web").trim();
+const CLOCK_AUTH_BRIDGE_URL = String(
+  authDataset.authBridgeUrl || "https://pericopeai.com/clock-auth-bridge.html"
+).trim();
 const CLOCK_AUTH_DISABLED = String(authDataset.authDisabled || "").trim().toLowerCase() === "true";
 const CLOCK_DEV_FAKE_AUTH_ENABLED = String(authDataset.authDevFake || "").trim().toLowerCase() === "true";
 const CLOCK_DEV_AUTH_SUB_PARAM = "clock_dev_auth_sub";
 const CLOCK_DEV_AUTH_NAME_PARAM = "clock_dev_auth_name";
+const CLOCK_AUTH_BRIDGE_STORAGE_KEY = "truevineos-auth-bridge-v1";
+const CLOCK_AUTH_BRIDGE_MESSAGE_SOURCE = "pericope-clock-auth";
 let clockKeycloak = null;
 let clockAuthReady = false;
 let clockAuthRefreshTimer = null;
+let clockAuthPopup = null;
+let clockBridgeListenerInstalled = false;
 let clockAuthState = {
   mode: "guest",
   authenticated: false,
   token: null,
   profile: null,
   devFake: false,
+  bridge: false,
   error: "",
 };
 const uiState = {
@@ -3240,11 +3248,231 @@ function clearClockAuthRefreshTimer() {
   }
 }
 
+function prefersClockAuthBridge() {
+  if (typeof window === "undefined") {
+    return false;
+  }
+  return !/(^|\.)pericopeai\.com$/i.test(window.location.hostname || "");
+}
+
+function getClockAuthBridgeOrigin() {
+  try {
+    return new URL(CLOCK_AUTH_BRIDGE_URL).origin;
+  } catch (_error) {
+    return "https://pericopeai.com";
+  }
+}
+
+function getClockAuthTokenExpiry(token) {
+  if (typeof token !== "string" || !token.includes(".")) {
+    return 0;
+  }
+  const parts = token.split(".");
+  if (parts.length < 2) {
+    return 0;
+  }
+  try {
+    const base64 = parts[1].replace(/-/g, "+").replace(/_/g, "/");
+    const normalized = `${base64}${"=".repeat((4 - (base64.length % 4)) % 4)}`;
+    const payload = JSON.parse(window.atob(normalized));
+    return Number(payload?.exp || 0) * 1000;
+  } catch (_error) {
+    return 0;
+  }
+}
+
+function persistClockBridgeSession(profile, token) {
+  if (typeof window === "undefined" || !window.localStorage) {
+    return;
+  }
+  const expiresAt = getClockAuthTokenExpiry(token);
+  if (!profile?.sub || !token || !Number.isFinite(expiresAt) || expiresAt <= Date.now()) {
+    window.localStorage.removeItem(CLOCK_AUTH_BRIDGE_STORAGE_KEY);
+    return;
+  }
+  window.localStorage.setItem(
+    CLOCK_AUTH_BRIDGE_STORAGE_KEY,
+    JSON.stringify({
+      profile: {
+        sub: String(profile.sub || "").trim(),
+        name: String(profile.name || profile.preferred_username || profile.email || "").trim(),
+        email: String(profile.email || "").trim(),
+      },
+      token,
+      expiresAt,
+    })
+  );
+}
+
+function clearClockBridgeSession() {
+  if (typeof window !== "undefined" && window.localStorage) {
+    window.localStorage.removeItem(CLOCK_AUTH_BRIDGE_STORAGE_KEY);
+  }
+}
+
+function restoreClockBridgeSession() {
+  if (typeof window === "undefined" || !window.localStorage) {
+    return false;
+  }
+  try {
+    const raw = window.localStorage.getItem(CLOCK_AUTH_BRIDGE_STORAGE_KEY);
+    if (!raw) {
+      return false;
+    }
+    const parsed = JSON.parse(raw);
+    const profile = parsed?.profile || null;
+    const token = typeof parsed?.token === "string" ? parsed.token : "";
+    const expiresAt = Number(parsed?.expiresAt || 0);
+    if (!profile?.sub || !token || !Number.isFinite(expiresAt) || expiresAt <= Date.now() + 15_000) {
+      clearClockBridgeSession();
+      return false;
+    }
+    applyClockAuthProfile(profile, {
+      token,
+      bridge: true,
+      error: "",
+    });
+    return true;
+  } catch (_error) {
+    clearClockBridgeSession();
+    return false;
+  }
+}
+
+function closeClockAuthPopup() {
+  if (clockAuthPopup && !clockAuthPopup.closed) {
+    clockAuthPopup.close();
+  }
+  clockAuthPopup = null;
+}
+
+function resetClockAuthToGuest(error = "") {
+  clearClockAuthRefreshTimer();
+  clearClockBridgeSession();
+  setClockAuthState({
+    mode: "guest",
+    authenticated: false,
+    token: null,
+    profile: null,
+    devFake: false,
+    bridge: false,
+    error,
+  });
+}
+
+function handleClockBridgeMessage(event) {
+  if (typeof window === "undefined") {
+    return;
+  }
+  if (event.origin !== getClockAuthBridgeOrigin()) {
+    return;
+  }
+  const data = event.data || {};
+  if (data?.source !== CLOCK_AUTH_BRIDGE_MESSAGE_SOURCE) {
+    return;
+  }
+
+  closeClockAuthPopup();
+
+  if (data.type === "success") {
+    const profile = data.profile || {};
+    const token = typeof data.token === "string" ? data.token : "";
+    if (!profile?.sub || !token) {
+      resetClockAuthToGuest("Sign-in did not return a usable account session.");
+      void bootstrapHistorySync();
+      return;
+    }
+    persistClockBridgeSession(profile, token);
+    applyClockAuthProfile(profile, {
+      token,
+      bridge: true,
+      error: "",
+    });
+    clockAuthReady = true;
+    void bootstrapHistorySync();
+    return;
+  }
+
+  if (data.type === "logout") {
+    resetClockAuthToGuest("");
+    clockAuthReady = true;
+    void bootstrapHistorySync();
+    return;
+  }
+
+  if (data.type === "error") {
+    resetClockAuthToGuest(
+      `Sign-in could not be completed${data.message ? `: ${data.message}` : "."}`
+    );
+    clockAuthReady = true;
+    void bootstrapHistorySync();
+  }
+}
+
+function setupClockBridgeMessaging() {
+  if (clockBridgeListenerInstalled || typeof window === "undefined") {
+    return;
+  }
+  window.addEventListener("message", handleClockBridgeMessage);
+  clockBridgeListenerInstalled = true;
+}
+
+function startClockBridgeLogin() {
+  if (typeof window === "undefined") {
+    return;
+  }
+  const bridgeUrl = new URL(CLOCK_AUTH_BRIDGE_URL);
+  bridgeUrl.searchParams.set("opener_origin", window.location.origin);
+  bridgeUrl.searchParams.set("source", "solomonic-clock");
+  clockAuthPopup = window.open(
+    bridgeUrl.toString(),
+    "truevineos-clock-auth",
+    "popup=yes,width=560,height=760,resizable=yes,scrollbars=yes"
+  );
+  if (!clockAuthPopup) {
+    setClockAuthState({
+      error: " Sign-in popup was blocked. Allow popups for this site and try again.",
+    });
+    return;
+  }
+  setClockAuthState({ error: "" });
+  try {
+    clockAuthPopup.focus();
+  } catch (_error) {
+    // ignore focus failures
+  }
+}
+
+function startClockBridgeLogout() {
+  if (typeof window === "undefined") {
+    return;
+  }
+  const bridgeUrl = new URL(CLOCK_AUTH_BRIDGE_URL);
+  bridgeUrl.searchParams.set("opener_origin", window.location.origin);
+  bridgeUrl.searchParams.set("source", "solomonic-clock");
+  bridgeUrl.searchParams.set("action", "logout");
+  clockAuthPopup = window.open(
+    bridgeUrl.toString(),
+    "truevineos-clock-auth",
+    "popup=yes,width=560,height=760,resizable=yes,scrollbars=yes"
+  );
+  if (clockAuthPopup) {
+    try {
+      clockAuthPopup.focus();
+    } catch (_error) {
+      // ignore focus failures
+    }
+  }
+}
+
 function getClockAuthRedirectUri() {
   if (typeof window === "undefined") {
     return undefined;
   }
   const url = new URL(window.location.href);
+  if (url.pathname === "/web/clock_visualizer.html") {
+    url.pathname = "/clock";
+  }
   url.searchParams.delete("code");
   url.searchParams.delete("state");
   url.searchParams.delete("session_state");
@@ -3319,7 +3547,9 @@ function updateAccountUi() {
   const displayName = getClockAuthDisplayName();
 
   if (authenticated) {
-    const accountKind = clockAuthState.devFake ? "Local dev account" : "Signed in";
+    const accountKind = clockAuthState.devFake
+      ? "Local dev account"
+      : (clockAuthState.bridge ? "Signed in via Pericope" : "Signed in");
     drawerElements.accountStatus.textContent = displayName
       ? `${accountKind}: ${displayName}. History is bound to your account and can follow you across browsers.`
       : `${accountKind}. History is bound to your account and can follow you across browsers.`;
@@ -3383,6 +3613,16 @@ async function getClockAuthAccessToken() {
     return null;
   }
 
+  if (clockAuthState.bridge) {
+    const token = typeof clockAuthState.token === "string" ? clockAuthState.token : "";
+    const expiresAt = getClockAuthTokenExpiry(token);
+    if (token && expiresAt > Date.now() + 15_000) {
+      return token;
+    }
+    resetClockAuthToGuest("Session expired. Sign in again to resume account history sync.");
+    return null;
+  }
+
   try {
     if (clockKeycloak?.authenticated) {
       await clockKeycloak.updateToken(30);
@@ -3416,12 +3656,14 @@ function applyClockAuthProfile(profile, options = {}) {
       email: String(profile.email || "").trim(),
     } : null,
     devFake: Boolean(options.devFake),
+    bridge: Boolean(options.bridge),
     error: options.error || "",
   });
 }
 
 async function initialiseClockAuth() {
   updateAccountUi();
+  setupClockBridgeMessaging();
 
   if (CLOCK_AUTH_DISABLED || typeof window === "undefined") {
     clockAuthReady = true;
@@ -3433,6 +3675,16 @@ async function initialiseClockAuth() {
     applyClockAuthProfile(devProfile, { devFake: true });
     clockAuthReady = true;
     return true;
+  }
+
+  if (restoreClockBridgeSession()) {
+    clockAuthReady = true;
+    return true;
+  }
+
+  if (prefersClockAuthBridge()) {
+    clockAuthReady = true;
+    return false;
   }
 
   if (typeof window.Keycloak !== "function") {
@@ -3509,6 +3761,11 @@ function startClockLogin() {
     return;
   }
 
+  if (prefersClockAuthBridge()) {
+    startClockBridgeLogin();
+    return;
+  }
+
   if (!clockKeycloak) {
     return;
   }
@@ -3526,6 +3783,13 @@ function startClockLogout() {
     url.searchParams.delete(CLOCK_DEV_AUTH_SUB_PARAM);
     url.searchParams.delete(CLOCK_DEV_AUTH_NAME_PARAM);
     window.location.assign(url.toString());
+    return;
+  }
+
+  if (clockAuthState.bridge || prefersClockAuthBridge()) {
+    startClockBridgeLogout();
+    resetClockAuthToGuest("");
+    void bootstrapHistorySync();
     return;
   }
 
