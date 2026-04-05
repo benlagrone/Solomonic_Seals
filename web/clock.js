@@ -308,6 +308,7 @@ const CLOCK_AUTH_DISABLED = String(authDataset.authDisabled || "").trim().toLowe
 const CLOCK_DEV_FAKE_AUTH_ENABLED = String(authDataset.authDevFake || "").trim().toLowerCase() === "true";
 const CLOCK_DEV_AUTH_SUB_PARAM = "clock_dev_auth_sub";
 const CLOCK_DEV_AUTH_NAME_PARAM = "clock_dev_auth_name";
+const CLOCK_AUTH_FORCE_BRIDGE_PARAM = "clock_auth_bridge";
 const CLOCK_AUTH_BRIDGE_STORAGE_KEY = "truevineos-auth-bridge-v1";
 const CLOCK_AUTH_BRIDGE_MESSAGE_SOURCE = "pericope-clock-auth";
 let clockKeycloak = null;
@@ -3252,7 +3253,9 @@ function prefersClockAuthBridge() {
   if (typeof window === "undefined") {
     return false;
   }
-  return !/(^|\.)pericopeai\.com$/i.test(window.location.hostname || "");
+  const params = new URLSearchParams(window.location.search || "");
+  const requested = String(params.get(CLOCK_AUTH_FORCE_BRIDGE_PARAM) || "").trim().toLowerCase();
+  return requested === "1" || requested === "true" || requested === "yes";
 }
 
 function getClockAuthBridgeOrigin() {
