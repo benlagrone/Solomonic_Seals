@@ -877,7 +877,7 @@ body[data-daily-opening="open"] {
 .history-current-summary,
 .history-current-reflection,
 .history-current-closing,
-.history-current-launches,
+.history-current-launches-summary,
 .history-log-label,
 .history-log-note {
   margin: 0;
@@ -891,10 +891,21 @@ body[data-daily-opening="open"] {
 .history-current-summary,
 .history-current-reflection,
 .history-current-closing,
-.history-current-launches,
+.history-current-launches-summary,
 .history-log-note {
   color: #dbe4f0;
   line-height: 1.55;
+}
+
+.history-current-launches {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.history-current-launch-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
 }
 
 .history-current-meta {

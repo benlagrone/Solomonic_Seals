@@ -58,6 +58,7 @@ VALID_PSALM_LOOKUP_NUMBERINGS = {"auto", "vulgate", "hebrew"}
 SCRIPTURE_CHAPTER_LINE_RE = re.compile(r"(?im)^\s*chapter\s+(\d+)\b")
 SCRIPTURE_VERSE_LINE_RE = re.compile(r"(?m)^\s*(\d+)\s+")
 BOOK_PARTIAL_API_PATH = "/api/pericope/book-partial"
+PERICOPE_HISTORY_SESSIONS_API_PATH = "/api/pericope/history-sessions"
 KEY_OF_SOLOMON_SOURCE = "key_of_solomon_esotericarchives.txt"
 KEY_OF_SOLOMON_BOOK = "Key of Solomon, Book II"
 SOLOMONIC_PENTACLE_PLANETS = ("Saturn", "Jupiter", "Mars", "Sun", "Venus", "Mercury", "Moon")
@@ -107,6 +108,7 @@ DEV_FAKE_AUTH_DEFAULT_NAME_ENV = "SOLOMONIC_DEV_FAKE_AUTH_DEFAULT_NAME"
 DEFAULT_AUTH_URL = "https://auth.pericopeai.com"
 DEFAULT_AUTH_REALM = "pericope"
 DEFAULT_AUTH_CLIENT_ID = "pericope-web"
+DEFAULT_PERICOPE_API_BASE = "https://pericopeai.com/api/v1"
 _AUTH_USERINFO_CACHE_LOCK = threading.Lock()
 _AUTH_USERINFO_CACHE: dict[str, dict[str, Any]] = {}
 PUBLIC_PAGE_TEMPLATES = {
@@ -547,6 +549,27 @@ def _resolve_pericope_book_partial_urls() -> list[str]:
         seen.add(cleaned)
         deduped.append(cleaned)
     return deduped
+
+
+def _resolve_pericope_api_base_url() -> str:
+    configured = str(os.environ.get("SOLOMONIC_PERICOPE_API_BASE", "") or "").strip()
+    if configured:
+        base = configured.rstrip("/")
+        if base.endswith("/api/v1") or base.endswith("/v1"):
+            return base
+        if base.endswith("/api"):
+            return f"{base}/v1"
+        return f"{base}/api/v1"
+    return DEFAULT_PERICOPE_API_BASE
+
+
+def _resolve_pericope_web_base_url() -> str:
+    api_base = _resolve_pericope_api_base_url().rstrip("/")
+    if api_base.endswith("/api/v1"):
+        return api_base[:-7]
+    if api_base.endswith("/v1"):
+        return api_base[:-3]
+    return api_base
 
 
 def _load_external_author_text_dirs() -> dict[str, Path]:
@@ -1494,6 +1517,41 @@ def _extract_history_actor(headers: Any) -> tuple[dict[str, Any] | None, HTTPSta
     }, HTTPStatus.OK, None
 
 
+def _fetch_pericope_json(path: str, token: str, *, timeout: float = 6.0) -> dict[str, Any]:
+    clean_token = str(token or "").strip()
+    if not clean_token:
+        raise ValueError("Authenticated Pericope continuity requires a bearer token.")
+
+    clean_path = str(path or "").strip()
+    if not clean_path.startswith("/"):
+        clean_path = f"/{clean_path}"
+
+    request = Request(
+        f"{_resolve_pericope_api_base_url().rstrip('/')}{clean_path}",
+        headers={
+            "Authorization": f"Bearer {clean_token}",
+            "Accept": "application/json",
+        },
+    )
+    try:
+        with urlopen(request, timeout=timeout) as response:
+            payload = json.loads(response.read().decode("utf-8"))
+    except HTTPError as exc:
+        detail = exc.read().decode("utf-8", errors="replace").strip()
+        raise ValueError(
+            f"Pericope continuity request failed ({exc.code}){f': {detail}' if detail else ''}."
+        ) from exc
+    except URLError as exc:
+        raise ValueError(f"Pericope continuity unavailable: {exc.reason}") from exc
+    except Exception as exc:  # pragma: no cover - unexpected decode/network failures
+        raise ValueError(f"Pericope continuity lookup failed: {exc}") from exc
+
+    if not isinstance(payload, dict):
+        raise ValueError("Pericope continuity response was not a JSON object.")
+
+    return payload
+
+
 def _build_history_actor_payload(actor: dict[str, Any]) -> dict[str, Any]:
     mode = str(actor.get("mode") or "guest")
     if mode == "user":
@@ -1568,10 +1626,18 @@ def _normalize_history_launch(entry: Any) -> dict[str, Any] | None:
         "mode": _to_snippet(str(entry.get("mode", "")).strip(), 24),
         "promptId": _to_snippet(str(entry.get("promptId", "")).strip(), 120),
         "message": _to_snippet(str(entry.get("message", "")).strip(), 280),
+        "clockDay": _to_snippet(str(entry.get("clockDay", "")).strip(), 80),
         "bundleKind": _to_snippet(str(entry.get("bundleKind", "")).strip(), 40),
         "bundleRef": _to_snippet(str(entry.get("bundleRef", "")).strip(), 140),
         "reflectionIncluded": bool(entry.get("reflectionIncluded")),
         "source": _to_snippet(str(entry.get("source", "")).strip(), 60),
+        "sessionId": _to_snippet(str(entry.get("sessionId", "")).strip(), 64),
+        "sessionUrl": _to_snippet(str(entry.get("sessionUrl", "")).strip(), 240),
+        "sessionPersona": _to_snippet(str(entry.get("sessionPersona", "")).strip(), 64),
+        "sessionPreview": _to_snippet(str(entry.get("sessionPreview", "")).strip(), 220),
+        "sessionStartedAt": _to_snippet(str(entry.get("sessionStartedAt", "")).strip(), 64),
+        "sessionLastActiveAt": _to_snippet(str(entry.get("sessionLastActiveAt", "")).strip(), 64),
+        "linkedAt": _to_snippet(str(entry.get("linkedAt", "")).strip(), 64),
     }
     return {key: value for key, value in payload.items() if value not in {"", None, False}}
 
@@ -1692,8 +1758,7 @@ def _merge_history_states(server_state: dict[str, Any], client_state: dict[str, 
             combined = dict(client_entry)
             combined.update(server_entry)
 
-        seen_launches: set[tuple[str, str, str]] = set()
-        launches: list[dict[str, Any]] = []
+        launches_by_key: dict[tuple[str, str, str], dict[str, Any]] = {}
         for launch_list in (server_entry.get("launches") or [], client_entry.get("launches") or []):
             if not isinstance(launch_list, list):
                 continue
@@ -1705,10 +1770,12 @@ def _merge_history_states(server_state: dict[str, Any], client_state: dict[str, 
                     str(source.get("mode", "")),
                     str(source.get("promptId", "")),
                 )
-                if launch_key in seen_launches:
-                    continue
-                seen_launches.add(launch_key)
-                launches.append(source)
+                merged_launch = dict(launches_by_key.get(launch_key) or {})
+                merged_launch.update(source)
+                normalized_launch = _normalize_history_launch(merged_launch)
+                if normalized_launch is not None:
+                    launches_by_key[launch_key] = normalized_launch
+        launches = list(launches_by_key.values())
         if launches:
             launches.sort(key=lambda entry: str(entry.get("launchedAt", "")))
             combined["launches"] = launches[-MAX_HISTORY_LAUNCHES_PER_ENTRY:]
@@ -2606,6 +2673,87 @@ def _build_history_sync_post_payload(
     return response, None, HTTPStatus.OK
 
 
+def _build_pericope_history_sessions_payload(
+    headers: Any,
+    query: dict[str, list[str]],
+) -> tuple[dict[str, Any] | None, str | None, HTTPStatus]:
+    bearer = _extract_bearer_token(headers)
+    if not bearer:
+        return None, "Authenticated Pericope continuity requires Authorization: Bearer <token>.", HTTPStatus.UNAUTHORIZED
+
+    try:
+        claims = _verify_userinfo_token(bearer)
+    except ValueError as exc:
+        return None, str(exc), HTTPStatus.UNAUTHORIZED
+
+    user_id = str(claims.get("sub", "") or "").strip()
+    if not user_id:
+        return None, "Authenticated continuity requires a token subject.", HTTPStatus.UNAUTHORIZED
+
+    limit_raw = (query.get("limit") or ["12"])[0]
+    try:
+        limit = max(1, min(20, int(limit_raw)))
+    except (TypeError, ValueError):
+        return None, f"Invalid limit value: {limit_raw!r}", HTTPStatus.BAD_REQUEST
+
+    try:
+        history_payload = _fetch_pericope_json(f"/history?limit={limit}", bearer)
+    except ValueError as exc:
+        return None, str(exc), HTTPStatus.BAD_GATEWAY
+
+    raw_sessions = history_payload.get("sessions")
+    if not isinstance(raw_sessions, list):
+        raw_sessions = []
+
+    sessions: list[dict[str, Any]] = []
+    pericope_base_url = _resolve_pericope_web_base_url().rstrip("/")
+    for raw in raw_sessions:
+        if not isinstance(raw, dict):
+            continue
+        session_id = _to_snippet(str(raw.get("session_id", "")).strip(), 64)
+        if not session_id:
+            continue
+
+        try:
+            detail = _fetch_pericope_json(f"/history/{session_id}", bearer)
+        except ValueError:
+            continue
+
+        source = _to_snippet(str(detail.get("source", "")).strip(), 60)
+        source_prompt_id = _to_snippet(str(detail.get("source_prompt_id", "")).strip(), 128)
+        raw_clock_context = detail.get("clock_context")
+        clock_context = raw_clock_context if isinstance(raw_clock_context, dict) else None
+        if source.lower() != "solomonic_clock" and not source_prompt_id and not clock_context:
+            continue
+
+        sessions.append(
+            {
+                "session_id": session_id,
+                "session_url": f"{pericope_base_url}/chat?session_id={session_id}",
+                "persona": _to_snippet(str(raw.get("persona", "")).strip(), 64),
+                "mode": _to_snippet(str(raw.get("mode", "")).strip(), 24),
+                "start_time": _to_snippet(str(raw.get("start_time", "")).strip(), 64),
+                "last_active": _to_snippet(str(raw.get("last_active", "")).strip(), 64),
+                "active": bool(raw.get("active")),
+                "preview": _to_snippet(str(raw.get("preview", "")).strip(), 220),
+                "source": source,
+                "source_prompt_id": source_prompt_id,
+                "mentor_hint": _to_snippet(str(detail.get("mentor_hint", "")).strip(), 64),
+                "clock_context_attached": bool(detail.get("clock_context_attached")),
+                "clock_context": clock_context or {},
+            }
+        )
+
+    return {
+        "service": "solomonic_clock",
+        "user_id": user_id,
+        "pericope_api_base": _resolve_pericope_api_base_url(),
+        "sessions": sessions,
+        "count": len(sessions),
+        "fetched_at": datetime.utcnow().isoformat() + "Z",
+    }, None, HTTPStatus.OK
+
+
 def _get_guided_prompts_expected_key() -> str:
     return str(os.environ.get(GUIDED_PROMPTS_API_KEY_ENV) or "").strip()
 
@@ -3017,6 +3165,18 @@ class ClockRequestHandler(SimpleHTTPRequestHandler):
             response_payload, error, status = _build_history_sync_get_payload(self.headers)
             if response_payload is None:
                 self._send_json({"error": error or "Unable to load history state."}, status, send_body=send_body)
+                return True
+
+            self._send_json(response_payload, status, send_body=send_body)
+            return True
+
+        if normalized_path == PERICOPE_HISTORY_SESSIONS_API_PATH:
+            response_payload, error, status = _build_pericope_history_sessions_payload(
+                self.headers,
+                parse_qs(parsed_url.query),
+            )
+            if response_payload is None:
+                self._send_json({"error": error or "Unable to load Pericope continuity sessions."}, status, send_body=send_body)
                 return True
 
             self._send_json(response_payload, status, send_body=send_body)

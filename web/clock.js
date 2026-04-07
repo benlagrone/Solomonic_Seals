@@ -163,6 +163,9 @@ const drawerElements = {
   historyCurrentReflection: document.querySelector(".history-current-reflection"),
   historyCurrentClosing: document.querySelector(".history-current-closing"),
   historyCurrentLaunches: document.querySelector(".history-current-launches"),
+  historyCurrentLaunchesSummary: document.querySelector(".history-current-launches-summary"),
+  historyCurrentLaunchActions: document.querySelector(".history-current-launch-actions"),
+  historyCurrentResume: document.querySelector(".history-current-resume"),
   historyLogList: document.querySelector(".history-log-list"),
   providenceTimeline: document.querySelector(".providence-timeline"),
   providenceTimelineSummary: document.querySelector(".providence-timeline-summary"),
@@ -276,6 +279,7 @@ let historyLensOwnsMode = false;
 const DAILY_ACTION_STORAGE_KEY = "truevineos-daily-actions-v1";
 const DAILY_OPENING_DISMISSED_STORAGE_KEY = "truevineos-daily-opening-dismissed-v1";
 const HISTORY_SYNC_API_PATH = "/api/history/sync";
+const PERICOPE_HISTORY_SESSIONS_API_PATH = "/api/pericope/history-sessions";
 const HISTORY_CLIENT_ID_STORAGE_KEY = "truevineos-history-client-id";
 const HISTORY_CLIENT_KEY_STORAGE_KEY = "truevineos-history-client-key";
 const HISTORY_CLIENT_HEADER = "X-TrueVine-History-Client";
@@ -291,6 +295,10 @@ let historySyncPendingTimer = null;
 let historySyncLastSerializedState = "";
 let historySyncNeedsFlush = false;
 let historySyncScopeKey = "";
+let pericopeSessionSyncTimer = null;
+let pericopeSessionSyncInFlight = null;
+let pericopeSessionSyncQueued = false;
+let lastPericopeSessionSyncSignature = "";
 let dailyOpeningAutofillKey = null;
 let historyReviewAutofillKey = null;
 let dailyOpeningAnchorExpanded = false;
@@ -1025,6 +1033,25 @@ function getPericopeChatBaseUrl() {
   return "https://pericopeai.com/chat";
 }
 
+function getPericopeBaseUrl() {
+  try {
+    const url = new URL(getPericopeChatBaseUrl());
+    return url.origin;
+  } catch (_error) {
+    return "https://pericopeai.com";
+  }
+}
+
+function buildPericopeSessionResumeUrl(sessionId) {
+  const cleanSessionId = String(sessionId || "").trim();
+  if (!cleanSessionId) {
+    return "";
+  }
+  const url = new URL(`${getPericopeBaseUrl()}/chat`);
+  url.searchParams.set("session_id", cleanSessionId);
+  return url.toString();
+}
+
 function base64UrlEncodeUtf8(text) {
   if (typeof window === "undefined" || typeof window.btoa !== "function") {
     return "";
@@ -1050,6 +1077,36 @@ function toInlineSnippet(text, maxLength = 180) {
     return clean;
   }
   return `${clean.slice(0, maxLength - 1).trimEnd()}…`;
+}
+
+function normalizeComparableText(text) {
+  return String(text || "")
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}]+/gu, " ")
+    .trim();
+}
+
+function buildDailyActionLaunchKey(launch) {
+  return [
+    String(launch?.launchedAt || "").trim(),
+    String(launch?.mode || "").trim(),
+    String(launch?.promptId || launch?.prompt_id || "").trim(),
+  ].join("|");
+}
+
+function getLatestLinkedLaunch(launches) {
+  if (!Array.isArray(launches) || !launches.length) {
+    return null;
+  }
+
+  for (let index = launches.length - 1; index >= 0; index -= 1) {
+    const launch = launches[index];
+    if (launch?.sessionId && launch?.sessionUrl) {
+      return launch;
+    }
+  }
+
+  return null;
 }
 
 function pruneEmptyFields(value) {
@@ -1325,6 +1382,7 @@ function recordPericopeLaunch(context, request) {
       mode: request.mode,
       promptId: request.promptId,
       message: request.message,
+      clockDay: context.dayDisplay,
       bundleKind: request.extraContext?.bundle_focus?.kind || "",
       bundleRef: request.extraContext?.bundle_focus?.reference || "",
       reflectionIncluded: Boolean(request.reflectionText),
@@ -1332,6 +1390,7 @@ function recordPericopeLaunch(context, request) {
     },
     buildDailyActionSnapshot(context)
   );
+  schedulePericopeSessionSync(2400);
 }
 
 function launchPericopeChat(context, mode = "guided", options = {}) {
@@ -1750,6 +1809,36 @@ function setupHistoryReviewControls() {
     if (launched) {
       setActionNotice("Opening weekly review in Pericope...");
     }
+  });
+}
+
+function setupHistoryLaunchControls() {
+  if (!drawerElements.historyCurrentResume) {
+    return;
+  }
+
+  drawerElements.historyCurrentResume.addEventListener("click", () => {
+    const now = new Date();
+    const timeState = getTimeState(now);
+    const referenceMap = buildReferenceLookupMap(timeState);
+    const derived = deriveGuidance(timeState);
+    const selectedEntry = buildHistoryTimelineEntry(now, selectedDayOffset, derived, referenceMap);
+    const latestLinkedLaunch = selectedEntry?.latestLinkedLaunch;
+    const resumeUrl = String(latestLinkedLaunch?.sessionUrl || "").trim();
+
+    if (!resumeUrl || typeof window === "undefined") {
+      setActionNotice("No linked Pericope conversation is available for this day yet.");
+      return;
+    }
+
+    const launched = window.open(resumeUrl, "_blank", "noopener");
+    if (launched) {
+      launched.opener = null;
+      setActionNotice("Opening linked Pericope conversation...");
+      return;
+    }
+
+    window.location.assign(resumeUrl);
   });
 }
 
@@ -2915,7 +3004,16 @@ function updateHistoryPanel(now, derived, referenceMap) {
     drawerElements.historyCurrentClosing.textContent = "—";
   }
 
-  drawerElements.historyCurrentLaunches.textContent = describeHistoryLaunches(selectedEntry);
+  const launchSummaryText = describeHistoryLaunches(selectedEntry);
+  if (drawerElements.historyCurrentLaunchesSummary) {
+    drawerElements.historyCurrentLaunchesSummary.textContent = launchSummaryText;
+  } else if (drawerElements.historyCurrentLaunches) {
+    drawerElements.historyCurrentLaunches.textContent = launchSummaryText;
+  }
+
+  if (drawerElements.historyCurrentLaunchActions) {
+    drawerElements.historyCurrentLaunchActions.hidden = !selectedEntry.latestLinkedLaunch?.sessionUrl;
+  }
 
   drawerElements.historyLogList.innerHTML = "";
   if (!recentEntries.length) {
@@ -3917,19 +4015,22 @@ function mergeDailyActionEntries(serverEntry, clientEntry) {
   const right = normalizeDailyActionEntry(clientEntry);
   const preferRight = getDailyActionEntryTimestamp(right) >= getDailyActionEntryTimestamp(left);
   const merged = preferRight ? { ...left, ...right } : { ...right, ...left };
-  const launches = [];
-  const seenLaunches = new Set();
+  const launchesByKey = new Map();
 
   [left, right].forEach((entry) => {
     (entry.launches || []).forEach((launch) => {
       const key = [launch.launchedAt, launch.mode, launch.promptId].join("|");
-      if (seenLaunches.has(key)) {
-        return;
+      const mergedLaunch = {
+        ...(launchesByKey.get(key) || {}),
+        ...launch,
+      };
+      const normalized = normalizeDailyActionLaunch(mergedLaunch);
+      if (normalized) {
+        launchesByKey.set(key, normalized);
       }
-      seenLaunches.add(key);
-      launches.push(launch);
     });
   });
+  const launches = Array.from(launchesByKey.values());
 
   if (launches.length) {
     merged.launches = launches.slice(-MAX_DAILY_ACTION_LAUNCHES);
@@ -3961,10 +4062,18 @@ function normalizeDailyActionLaunch(launch) {
     mode: String(launch.mode || "").trim(),
     promptId: String(launch.promptId || launch.prompt_id || "").trim(),
     message: toInlineSnippet(launch.message || "", 180),
+    clockDay: String(launch.clockDay || launch.clock_day || "").trim(),
     bundleKind: String(launch.bundleKind || launch.bundle_kind || "").trim(),
     bundleRef: String(launch.bundleRef || launch.bundle_ref || "").trim(),
     reflectionIncluded: Boolean(launch.reflectionIncluded),
     source: String(launch.source || "solomonic_clock").trim(),
+    sessionId: String(launch.sessionId || launch.session_id || "").trim(),
+    sessionUrl: String(launch.sessionUrl || launch.session_url || "").trim(),
+    sessionPersona: String(launch.sessionPersona || launch.session_persona || "").trim(),
+    sessionPreview: toInlineSnippet(launch.sessionPreview || launch.session_preview || "", 180),
+    sessionStartedAt: String(launch.sessionStartedAt || launch.session_started_at || "").trim(),
+    sessionLastActiveAt: String(launch.sessionLastActiveAt || launch.session_last_active_at || "").trim(),
+    linkedAt: String(launch.linkedAt || launch.linked_at || "").trim(),
   });
 }
 
@@ -4225,6 +4334,8 @@ async function bootstrapHistorySync() {
   } finally {
     historySyncReady = true;
   }
+
+  schedulePericopeSessionSync(900);
 }
 
 function getDailyActionEntry(dateKey) {
@@ -4240,6 +4351,38 @@ function patchDailyActionEntry(dateKey, patch) {
     ...current,
     ...patch,
     updatedAt: patch?.updatedAt || new Date().toISOString(),
+  });
+  saveDailyActionState(state);
+  scheduleHistorySync();
+  return state[dateKey];
+}
+
+function patchDailyActionLaunch(dateKey, launchKey, patch = {}, entryPatch = {}) {
+  const state = loadDailyActionState();
+  const current = state[dateKey] && typeof state[dateKey] === "object" ? state[dateKey] : {};
+  const launches = Array.isArray(current.launches) ? current.launches.slice() : [];
+  let mutated = false;
+
+  const nextLaunches = launches.map((launch) => {
+    if (buildDailyActionLaunchKey(launch) !== launchKey) {
+      return launch;
+    }
+    mutated = true;
+    return normalizeDailyActionLaunch({
+      ...launch,
+      ...patch,
+    });
+  }).filter(Boolean);
+
+  if (!mutated) {
+    return normalizeDailyActionEntry(current);
+  }
+
+  state[dateKey] = normalizeDailyActionEntry({
+    ...current,
+    ...entryPatch,
+    launches: nextLaunches,
+    updatedAt: new Date().toISOString(),
   });
   saveDailyActionState(state);
   scheduleHistorySync();
@@ -4268,6 +4411,228 @@ function appendDailyActionLaunch(dateKey, launchPatch = {}, entryPatch = {}) {
   saveDailyActionState(state);
   scheduleHistorySync();
   return state[dateKey];
+}
+
+async function fetchPericopeHistorySessions(access, limit = 12) {
+  if (
+    typeof window === "undefined"
+    || typeof window.fetch !== "function"
+    || !access
+    || access.mode !== "user"
+    || !access.headers?.Authorization
+  ) {
+    return [];
+  }
+
+  const response = await window.fetch(
+    `${PERICOPE_HISTORY_SESSIONS_API_PATH}?limit=${encodeURIComponent(Math.max(1, Math.min(20, limit)))}`,
+    {
+      method: "GET",
+      headers: access.headers,
+      credentials: "same-origin",
+      cache: "no-store",
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error(`Pericope history sessions GET failed: ${response.status}`);
+  }
+
+  const payload = await response.json();
+  return Array.isArray(payload?.sessions) ? payload.sessions : [];
+}
+
+function collectPericopeSessionCandidates(state) {
+  const candidateEntries = [];
+
+  Object.entries(normalizeDailyActionState(state)).forEach(([dateKey, entry]) => {
+    const launches = Array.isArray(entry.launches) ? entry.launches : [];
+    launches.forEach((launch) => {
+      if (!launch || launch.sessionId || launch.source !== "solomonic_clock") {
+        return;
+      }
+      candidateEntries.push({
+        dateKey,
+        entry,
+        launch,
+        launchKey: buildDailyActionLaunchKey(launch),
+      });
+    });
+  });
+
+  return candidateEntries
+    .sort((left, right) => String(right.launch.launchedAt || "").localeCompare(String(left.launch.launchedAt || "")))
+    .slice(0, 12);
+}
+
+function buildPericopeSessionSyncSignature(entries) {
+  return entries
+    .map((entry) => `${entry.dateKey}:${entry.launchKey}`)
+    .join("||");
+}
+
+function scorePericopeSessionMatch(launch, session) {
+  if (!launch || !session || String(session.source || "").trim().toLowerCase() !== "solomonic_clock") {
+    return -1;
+  }
+
+  let score = 0;
+  const launchPromptId = String(launch.promptId || "").trim();
+  const sessionPromptId = String(session.source_prompt_id || session.sourcePromptId || "").trim();
+  if (launchPromptId && sessionPromptId && launchPromptId === sessionPromptId) {
+    score += 8;
+  }
+
+  const launchMode = String(launch.mode || "").trim().toLowerCase();
+  const sessionMode = String(session.mode || "").trim().toLowerCase();
+  if (launchMode && sessionMode && launchMode === sessionMode) {
+    score += 2;
+  }
+
+  const launchMessage = normalizeComparableText(launch.message);
+  const sessionPreview = normalizeComparableText(session.preview);
+  if (launchMessage && sessionPreview) {
+    if (launchMessage === sessionPreview) {
+      score += 6;
+    } else if (launchMessage.startsWith(sessionPreview) || sessionPreview.startsWith(launchMessage)) {
+      score += 4;
+    } else if (launchMessage.includes(sessionPreview) || sessionPreview.includes(launchMessage)) {
+      score += 2;
+    }
+  }
+
+  const launchedAt = Date.parse(String(launch.launchedAt || ""));
+  const sessionStartedAt = Date.parse(String(session.start_time || session.startTime || session.last_active || ""));
+  if (Number.isFinite(launchedAt) && Number.isFinite(sessionStartedAt)) {
+    const delta = Math.abs(sessionStartedAt - launchedAt);
+    if (delta <= 1000 * 60 * 90) {
+      score += Math.max(0, 4 - (delta / (1000 * 60 * 30)));
+    } else {
+      score -= 2;
+    }
+  }
+
+  const launchDay = String(launch.clockDay || "").trim();
+  const sessionDay = String(session.clock_context?.daily_guidance?.day || "").trim();
+  if (launchDay && sessionDay && launchDay === sessionDay) {
+    score += 1;
+  }
+
+  return score;
+}
+
+function findBestPericopeSessionMatch(launch, sessions, usedSessionIds = new Set()) {
+  let best = null;
+  let bestScore = -1;
+
+  sessions.forEach((session) => {
+    const sessionId = String(session?.session_id || session?.sessionId || "").trim();
+    if (!sessionId || usedSessionIds.has(sessionId)) {
+      return;
+    }
+    const score = scorePericopeSessionMatch(launch, session);
+    if (score > bestScore) {
+      best = session;
+      bestScore = score;
+    }
+  });
+
+  return bestScore >= 5 ? best : null;
+}
+
+async function reconcilePericopeSessionLinks(force = false) {
+  const access = await getHistorySyncAccess();
+  if (
+    !access
+    || access.mode !== "user"
+    || !access.headers?.Authorization
+  ) {
+    return;
+  }
+
+  const candidates = collectPericopeSessionCandidates(loadDailyActionState());
+  if (!candidates.length) {
+    lastPericopeSessionSyncSignature = "";
+    return;
+  }
+
+  const signature = buildPericopeSessionSyncSignature(candidates);
+  if (!force && signature && signature === lastPericopeSessionSyncSignature) {
+    return;
+  }
+
+  if (pericopeSessionSyncInFlight) {
+    pericopeSessionSyncQueued = true;
+    return pericopeSessionSyncInFlight;
+  }
+
+  lastPericopeSessionSyncSignature = signature;
+  pericopeSessionSyncQueued = false;
+
+  pericopeSessionSyncInFlight = fetchPericopeHistorySessions(access, Math.max(12, candidates.length + 4))
+    .then((sessions) => {
+      const usedSessionIds = new Set();
+      candidates.forEach((candidate) => {
+        const match = findBestPericopeSessionMatch(candidate.launch, sessions, usedSessionIds);
+        const sessionId = String(match?.session_id || match?.sessionId || "").trim();
+        if (!match || !sessionId) {
+          return;
+        }
+        usedSessionIds.add(sessionId);
+        patchDailyActionLaunch(candidate.dateKey, candidate.launchKey, {
+          sessionId,
+          sessionUrl: buildPericopeSessionResumeUrl(sessionId),
+          sessionPersona: String(match.persona || "").trim(),
+          sessionPreview: String(match.preview || "").trim(),
+          sessionStartedAt: String(match.start_time || match.startTime || "").trim(),
+          sessionLastActiveAt: String(match.last_active || match.lastActive || "").trim(),
+          linkedAt: new Date().toISOString(),
+        });
+      });
+    })
+    .catch((_error) => {
+      // Preserve the local action loop even if continuity lookup fails.
+    })
+    .finally(() => {
+      pericopeSessionSyncInFlight = null;
+      if (pericopeSessionSyncQueued) {
+        pericopeSessionSyncQueued = false;
+        void reconcilePericopeSessionLinks(true);
+      }
+    });
+
+  return pericopeSessionSyncInFlight;
+}
+
+function schedulePericopeSessionSync(delayMs = 1200, force = false) {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  if (pericopeSessionSyncTimer) {
+    window.clearTimeout(pericopeSessionSyncTimer);
+  }
+
+  pericopeSessionSyncTimer = window.setTimeout(() => {
+    pericopeSessionSyncTimer = null;
+    void reconcilePericopeSessionLinks(force);
+  }, Math.max(0, delayMs));
+}
+
+function setupPericopeSessionSyncRefresh() {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  window.addEventListener("focus", () => {
+    schedulePericopeSessionSync(450, true);
+  });
+
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") {
+      schedulePericopeSessionSync(450, true);
+    }
+  });
 }
 
 function buildGuidedPromptFromContext(ruleOfLife, timeState) {
@@ -5886,12 +6251,14 @@ function buildHistoryTimelineEntry(baseDate, offset, derived, referenceMap) {
   const openingIntention = String(entry.openingIntention || "").trim();
   const launches = Array.isArray(entry.launches) ? entry.launches : [];
   const latestLaunch = launches.length ? launches[launches.length - 1] : null;
+  const latestLinkedLaunch = getLatestLinkedLaunch(launches);
   const opened = Boolean(entry.openingCompletedAt);
   const closed = Boolean(entry.closingCompletedAt || closingSummary || closingCarryForward || closingGratitude || closingDifficulty);
   const adopted = Boolean(entry.adoptedAt);
   const completed = Boolean(entry.completedAt);
   const hasReflection = Boolean(reflection);
   const launchCount = launches.length;
+  const linkedLaunchCount = launches.filter((launch) => Boolean(launch?.sessionId)).length;
   const hasRecord = opened || closed || adopted || completed || hasReflection || launchCount > 0;
   const rule = entry.ruleOfLife && typeof entry.ruleOfLife === "object" ? entry.ruleOfLife : null;
   const summaryLine = closingSummary
@@ -5922,7 +6289,9 @@ function buildHistoryTimelineEntry(baseDate, offset, derived, referenceMap) {
     hasReflection,
     hasRecord,
     launchCount,
+    linkedLaunchCount,
     latestLaunch,
+    latestLinkedLaunch,
     statusBadges,
     recordColor,
     titleLine,
@@ -6354,10 +6723,16 @@ function describeHistoryLaunches(entry) {
   }
 
   const latestLaunch = entry.latestLaunch;
+  const latestLinkedLaunch = entry.latestLinkedLaunch;
   const latestSummary = latestLaunch
     ? `${latestLaunch.mode === "freeform" ? "freeform" : "guided"} • ${latestLaunch.promptId || "clock prompt"}`
     : "clock prompt";
-  return `${entry.launchCount} ${entry.launchCount === 1 ? "launch" : "launches"} recorded. Latest: ${latestSummary}.`;
+  if (latestLinkedLaunch?.sessionId) {
+    const personaLabel = String(latestLinkedLaunch.sessionPersona || "").trim();
+    const personaText = personaLabel ? ` with ${personaLabel}` : "";
+    return `${entry.launchCount} ${entry.launchCount === 1 ? "launch" : "launches"} recorded. ${entry.linkedLaunchCount || 0} linked to saved Pericope sessions. Latest: ${latestSummary}${personaText}.`;
+  }
+  return `${entry.launchCount} ${entry.launchCount === 1 ? "launch" : "launches"} recorded. Latest: ${latestSummary}. Waiting for linked session history.`;
 }
 
 function updateRuleOfLifePanels(rule) {
@@ -7660,10 +8035,12 @@ async function initialiseClock() {
   setupDailyOpeningControls();
   setupActionLoopControls();
   setupHistoryReviewControls();
+  setupHistoryLaunchControls();
   setupReadingDepthControls();
   setupBundleExpansionControls();
   setupWeeklyArcControls();
   setupProvidenceTimelineControls();
+  setupPericopeSessionSyncRefresh();
   const authPromise = initialiseClockAuth();
   const historySyncPromise = authPromise.then(() => bootstrapHistorySync());
 

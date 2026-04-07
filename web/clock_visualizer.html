@@ -32,7 +32,7 @@
       gtag("config", "G-138HFD1QQP");
     </script>
     <link rel="icon" href='data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="12" fill="%23020617"/><circle cx="32" cy="32" r="20" fill="none" stroke="%23facc15" stroke-width="4"/><circle cx="32" cy="32" r="6" fill="%23facc15"/></svg>' />
-    <link rel="stylesheet" href="/web/style.css?v=20260405-1" />
+    <link rel="stylesheet" href="/web/style.css?v=20260406-1" />
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
@@ -374,7 +374,12 @@
               <ul class="history-current-meta"></ul>
               <p class="history-current-reflection" hidden>—</p>
               <p class="history-current-closing" hidden>—</p>
-              <p class="history-current-launches">No Pericope launches recorded yet.</p>
+              <div class="history-current-launches">
+                <p class="history-current-launches-summary">No Pericope launches recorded yet.</p>
+                <div class="history-current-launch-actions" hidden>
+                  <button type="button" class="action-button action-button--accent history-current-resume">Resume In Pericope</button>
+                </div>
+              </div>
             </article>
             <div class="history-log-top">
               <p class="history-log-label">Recent entries</p>
@@ -468,7 +473,7 @@
     <script type="module">
       import Keycloak from "https://cdn.jsdelivr.net/npm/keycloak-js@26.0.2/+esm";
       window.Keycloak = Keycloak;
-      import("/web/clock.js?v=20260405-1");
+      import("/web/clock.js?v=20260406-1");
     </script>
   </body>
 </html>
