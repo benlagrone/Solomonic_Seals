@@ -304,6 +304,7 @@ let historyReviewAutofillKey = null;
 let dailyOpeningAnchorExpanded = false;
 let lastDailyOpeningAnchorKey = null;
 let lastDailyOpeningDateKey = null;
+let dailyOpeningSuggestionOffset = 0;
 let currentWeeklyReviewContext = null;
 const authDataset = typeof document !== "undefined" ? (document.body?.dataset || {}) : {};
 const CLOCK_AUTH_URL = String(authDataset.authUrl || "https://auth.pericopeai.com").trim();
@@ -408,6 +409,42 @@ const RULE_OF_LIFE_DAY_TONES = {
   Venus: "with gentleness",
   Saturn: "with discipline",
 };
+const DAILY_OPENING_SUMMARY_TEMPLATES = [
+  "{ruler} gives the day to {domain}. Carry it with {virtue}",
+  "Receive {ruler} as a summons to {virtue} in {domain}",
+  "The weight of the day falls on {domain}. Let {virtue} keep it rightly ordered",
+  "{ruler} presses toward {domain} today. {virtue} is the right way to bear it",
+  "Take this {ruler} day as a call to {virtue} in {domain}",
+  "{ruler} favors {domain} today, but only if it is carried with {virtue}",
+];
+const DAILY_OPENING_FOCUS_CLAUSES = [
+  "Keep {focus} near the next decision",
+  "Let {focus} shape the first hard turn",
+  "Use {focus} as the day’s practical edge",
+  "Make {focus} concrete before noon",
+  "Let {focus} govern one real choice early",
+];
+const DAILY_OPENING_REPAIR_CLAUSES = [
+  "Leave room to repair {weakest} before night",
+  "Do not let {weakest} go unattended by the close",
+  "Before the day shuts, return attention to {weakest}",
+  "If the day scatters, come back to {weakest} before evening",
+];
+const DAILY_OPENING_INTENTION_TEMPLATES = [
+  "Today I will practice {virtue} in {domain}: {morning}",
+  "Today I will begin {domain} with {virtue}: {morning}",
+  "Today I will answer {ruler} with {virtue} in {domain}: {morning}",
+  "Today I will keep {virtue} near {domain}: {morning}",
+  "Today I will take one concrete step in {domain} with {virtue}: {morning}",
+  "Today I will let {focus} shape {domain}: {morning}",
+];
+const DAILY_OPENING_INTENTION_CLOSES = [
+  "I will begin before hesitation gathers.",
+  "I will start while the day is still clear.",
+  "I will go early rather than late.",
+  "I will begin with steadiness instead of pressure.",
+  "I will take the first step before the day fragments.",
+];
 const READING_DEPTHS = new Set(["short", "medium", "long"]);
 const PRESENTATION_DEFINITIONS = {
   guidance: {
@@ -1490,7 +1527,10 @@ function setupDailyOpeningControls() {
     if (!context) {
       return;
     }
-    drawerElements.dailyOpeningIntent.value = buildDailyOpeningSuggestedIntention(context);
+    dailyOpeningSuggestionOffset = lastDailyOpeningDateKey === context.dateKey
+      ? dailyOpeningSuggestionOffset + 1
+      : 0;
+    drawerElements.dailyOpeningIntent.value = buildDailyOpeningSuggestedIntention(context, dailyOpeningSuggestionOffset);
     drawerElements.dailyOpeningIntent.focus();
   });
 
@@ -2952,7 +2992,7 @@ function updateHistoryPanel(now, derived, referenceMap) {
   drawerElements.historyReviewWarning.textContent = weeklyReview.warning;
   drawerElements.historyReviewCarry.textContent = weeklyReview.carryForward;
   drawerElements.historyReviewScriptureRef.textContent = weeklyReview.scriptureRef;
-  drawerElements.historyReviewScriptureText.textContent = weeklyReview.scriptureText;
+  drawerElements.historyReviewScriptureText.textContent = sanitizeInlinePassageText(weeklyReview.scriptureText);
   if (
     document.activeElement !== drawerElements.historyReviewNote
     || historyReviewAutofillKey !== selectedEntry.dateKey
@@ -5691,7 +5731,9 @@ function updateBundlePreviewState(kind, { reference, text }) {
     state.previewRef = reference;
   }
   if (typeof text === "string") {
-    state.previewText = text;
+    state.previewText = kind === "wisdom"
+      ? sanitizeInlinePassageText(text)
+      : text;
   }
 }
 
@@ -5762,7 +5804,9 @@ async function toggleBundleExpansion(kind) {
     }
 
     requestState.expanded = true;
-    requestState.expandedText = String(payload?.content || "").trim() || "No expanded text returned.";
+    requestState.expandedText = kind === "wisdom"
+      ? sanitizeInlinePassageText(payload?.content || "") || "No expanded text returned."
+      : String(payload?.content || "").trim() || "No expanded text returned.";
     elements.text.classList.remove("loading", "error");
     elements.text.textContent = requestState.expandedText;
     elements.button.textContent = "Show Summary";
@@ -5873,6 +5917,17 @@ function toSnippet(text, maxLength = 220) {
   return `${clean.slice(0, maxLength - 1).trim()}…`;
 }
 
+function sanitizeInlinePassageText(text) {
+  return String(text || "")
+    .replace(/\r\n?/g, "\n")
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .join(" ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 function normalizePsalmText(text) {
   const clean = String(text || "")
     .replace(/\(\s*Note:[\s\S]*$/i, "")
@@ -5958,6 +6013,65 @@ function withTerminalPunctuation(text) {
     return "";
   }
   return /[.!?]$/.test(clean) ? clean : `${clean}.`;
+}
+
+function fillDailyOpeningTemplate(template, replacements = {}) {
+  return String(template || "")
+    .replace(/\{([a-zA-Z0-9_]+)\}/g, (_match, key) => String(replacements[key] ?? "").trim())
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function normalizeDailyOpeningVariant(text) {
+  return String(text || "")
+    .replace(/\s+/g, " ")
+    .replace(/[.!?]+$/, "")
+    .trim()
+    .toLowerCase();
+}
+
+function pickDailyOpeningVariant(options, seedParts, recentValues = [], offset = 0) {
+  const variants = (Array.isArray(options) ? options : [options])
+    .map((option) => String(option || "").trim())
+    .filter(Boolean);
+  if (!variants.length) {
+    return "";
+  }
+
+  const seed = (Array.isArray(seedParts) ? seedParts : [seedParts])
+    .map((part) => String(part || "").trim())
+    .filter(Boolean)
+    .join("|");
+  const normalizedRecent = recentValues
+    .map((value) => normalizeDailyOpeningVariant(value))
+    .filter(Boolean);
+
+  const ranked = variants
+    .map((variant, index) => {
+      const normalizedVariant = normalizeDailyOpeningVariant(variant);
+      const recentIndex = normalizedRecent.findIndex((value) => value === normalizedVariant);
+      const recentPenalty = recentIndex === -1 ? 0 : (normalizedRecent.length - recentIndex) * 1_000_000;
+      return {
+        variant,
+        score: hashString(`${seed}|${variant}|${index}`) - recentPenalty,
+      };
+    })
+    .sort((left, right) => right.score - left.score);
+
+  const safeOffset = Math.max(0, Number.parseInt(offset, 10) || 0);
+  return ranked[safeOffset % ranked.length]?.variant || ranked[0]?.variant || "";
+}
+
+function getRecentDailyOpeningIntentions(excludeDateKey, limit = 6) {
+  const state = loadDailyActionState();
+  return Object.keys(state)
+    .filter((dateKey) => dateKey !== excludeDateKey)
+    .sort()
+    .reverse()
+    .map((dateKey) => normalizeDailyActionEntry(state[dateKey]))
+    .map((entry) => String(entry.openingIntention || "").trim())
+    .filter(Boolean)
+    .slice(0, limit);
 }
 
 function sentenceCase(text) {
@@ -6105,15 +6219,97 @@ function buildDailyActionSnapshot(context) {
   });
 }
 
-function buildDailyOpeningSuggestedIntention(context) {
+function buildDailyOpeningSummary(context) {
+  if (!context?.ruleOfLife) {
+    return context?.guidanceTone || `Receive ${String(context?.rulerText || "today").toLowerCase()} with attention and steadiness.`;
+  }
+
+  const rule = context.ruleOfLife;
+  const focusText = String(context.activeFocus || "").trim();
+  const weakestText = String(context.weakestDomain || rule.weakestDomain || "").trim();
+  const replacements = {
+    ruler: String(context.rulerText || "Today"),
+    domain: String(rule.domain || "the day").toLowerCase(),
+    virtue: String(rule.virtue || "attention").toLowerCase(),
+    focus: focusText.toLowerCase(),
+    weakest: weakestText.toLowerCase(),
+  };
+  const seedParts = [
+    context.dateKey,
+    context.dayText,
+    context.rulerText,
+    rule.domain,
+    rule.virtue,
+    focusText,
+    weakestText,
+  ];
+  const baseSummary = pickDailyOpeningVariant(
+    DAILY_OPENING_SUMMARY_TEMPLATES.map((template) => fillDailyOpeningTemplate(template, replacements)),
+    [...seedParts, "opening-summary"]
+  );
+
+  const supportingOptions = [];
+  if (focusText) {
+    supportingOptions.push(...DAILY_OPENING_FOCUS_CLAUSES.map((template) => fillDailyOpeningTemplate(template, replacements)));
+  }
+  if (weakestText && weakestText.toLowerCase() !== String(rule.domain || "").toLowerCase()) {
+    supportingOptions.push(...DAILY_OPENING_REPAIR_CLAUSES.map((template) => fillDailyOpeningTemplate(template, replacements)));
+  }
+
+  const supportLine = supportingOptions.length
+    ? pickDailyOpeningVariant(supportingOptions, [...seedParts, "opening-support"])
+    : "";
+
+  return withTerminalPunctuation([baseSummary, supportLine].filter(Boolean).join(". "));
+}
+
+function buildDailyOpeningSuggestedIntention(context, offset = 0) {
   if (!context) {
     return "";
   }
 
   const rule = context.ruleOfLife;
   if (rule) {
-    const anchor = rule.morning || context.activeFocus || "today's work";
-    return `Today I will practice ${rule.virtue.toLowerCase()} in ${rule.domain.toLowerCase()} by ${anchor.charAt(0).toLowerCase()}${anchor.slice(1)}`;
+    const focusText = String(context.activeFocus || "").trim();
+    const morningText = withTerminalPunctuation(String(rule.morning || context.activeFocus || "take one concrete step"));
+    const replacements = {
+      ruler: String(context.rulerText || "Today"),
+      virtue: String(rule.virtue || "attention").toLowerCase(),
+      domain: String(rule.domain || "the day").toLowerCase(),
+      focus: focusText.toLowerCase(),
+      morning: morningText,
+    };
+    const templates = DAILY_OPENING_INTENTION_TEMPLATES
+      .filter((template) => focusText || !template.includes("{focus}"))
+      .map((template) => fillDailyOpeningTemplate(template, replacements));
+    const openLine = pickDailyOpeningVariant(
+      templates,
+      [
+        context.dateKey,
+        context.dayText,
+        context.rulerText,
+        rule.domain,
+        rule.virtue,
+        morningText,
+      ],
+      getRecentDailyOpeningIntentions(context.dateKey),
+      offset
+    );
+    const closeLine = pickDailyOpeningVariant(
+      DAILY_OPENING_INTENTION_CLOSES,
+      [
+        context.dateKey,
+        context.rulerText,
+        rule.domain,
+        rule.virtue,
+        "daily-opening-close",
+      ],
+      getRecentDailyOpeningIntentions(context.dateKey),
+      offset
+    );
+    return [withTerminalPunctuation(openLine), closeLine]
+      .filter(Boolean)
+      .join(" ");
   }
 
   if (context.activeFocus) {
@@ -6145,17 +6341,15 @@ function updateDailyOpening(context) {
 
   const entry = context.entry || {};
   const opened = Boolean(entry.openingCompletedAt);
-  const suggestedIntention = buildDailyOpeningSuggestedIntention(context);
-  const openingSummary = context.ruleOfLife?.summary
-    || context.guidanceTone
-    || `Receive ${String(context.rulerText || "today").toLowerCase()} with attention and steadiness.`;
-  const anchorRef = context.ruleOfLife?.psalmRef || context.psalmRef || context.wisdomRef || "Today's anchor";
-
   if (lastDailyOpeningDateKey !== context.dateKey) {
     dailyOpeningAnchorExpanded = false;
     lastDailyOpeningAnchorKey = null;
     lastDailyOpeningDateKey = context.dateKey;
+    dailyOpeningSuggestionOffset = 0;
   }
+  const suggestedIntention = buildDailyOpeningSuggestedIntention(context, dailyOpeningSuggestionOffset);
+  const openingSummary = buildDailyOpeningSummary(context);
+  const anchorRef = context.ruleOfLife?.psalmRef || context.psalmRef || context.wisdomRef || "Today's anchor";
 
   drawerElements.dailyOpeningDay.textContent = `${context.dayText} — ${context.rulerText}`;
   drawerElements.dailyOpeningFocus.textContent = context.ruleOfLife
@@ -6851,7 +7045,9 @@ function updateDailyOpeningAnchorPreview(context) {
 
   const rule = context?.ruleOfLife || null;
   const anchorRef = rule?.psalmRef || context?.psalmRef || context?.wisdomRef || "Today's anchor";
-  const wisdomText = context?.rulerText ? WISDOM_CONTENT_BY_RULER[context.rulerText]?.text || "" : "";
+  const wisdomText = context?.rulerText
+    ? sanitizeInlinePassageText(WISDOM_CONTENT_BY_RULER[context.rulerText]?.text || "")
+    : "";
   const hasPsalmAnchor = Boolean(rule?.psalmChapter && anchorRef);
   const key = [
     context?.dateKey || "none",
@@ -7516,11 +7712,12 @@ function updateDailyContentBundle(timeState, referenceMap, psalmMetadata) {
     ref: "Proverbs 16:3",
     text: "Commit thy works unto the LORD, and thy thoughts shall be established.",
   };
+  const sanitizedWisdomText = sanitizeInlinePassageText(wisdom.text);
   drawerElements.bundleWisdomRef.textContent = wisdom.ref;
-  drawerElements.bundleWisdomText.textContent = wisdom.text;
+  drawerElements.bundleWisdomText.textContent = sanitizedWisdomText;
   configureBundleExpansion("wisdom", {
     reference: wisdom.ref,
-    text: wisdom.text,
+    text: sanitizedWisdomText,
     request: parseScriptureReference(wisdom.ref) ? { kind: "wisdom", reference: wisdom.ref } : null,
   });
 
