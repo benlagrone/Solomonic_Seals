@@ -306,6 +306,7 @@ let lastDailyOpeningAnchorKey = null;
 let lastDailyOpeningDateKey = null;
 let dailyOpeningSuggestionOffset = 0;
 let currentWeeklyReviewContext = null;
+let loadedPentacleData = null;
 const authDataset = typeof document !== "undefined" ? (document.body?.dataset || {}) : {};
 const CLOCK_AUTH_URL = String(authDataset.authUrl || "https://auth.pericopeai.com").trim();
 const CLOCK_AUTH_REALM = String(authDataset.authRealm || "pericope").trim();
@@ -5687,37 +5688,53 @@ function parseScriptureReference(reference) {
   };
 }
 
-function configureBundleExpansion(kind, { reference, text, request }) {
+function configureBundleExpansion(kind, {
+  reference,
+  text,
+  request,
+  expandedText = "",
+  expandLabel = "Read Full Passage",
+  collapseLabel = "Show Summary",
+  discussLabel = "Discuss In Pericope",
+}) {
   const elements = getBundleCardElements(kind);
   if (!elements) {
     return;
   }
 
-  bundleExpansionState[kind] = request
+  const localExpandedText = String(expandedText || "").trim();
+  const available = Boolean(request || localExpandedText);
+
+  bundleExpansionState[kind] = available
     ? {
       request,
       previewRef: reference,
       previewText: text,
       expanded: false,
       expandedText: "",
+      localExpandedText,
+      expandLabel,
+      collapseLabel,
+      discussLabel,
     }
     : null;
 
   if (!elements.button) {
     if (elements.discuss) {
-      elements.discuss.hidden = !request;
-      elements.discuss.disabled = !request;
+      elements.discuss.hidden = !available;
+      elements.discuss.disabled = !available;
+      elements.discuss.textContent = available ? discussLabel : "Discussion Unavailable";
     }
     return;
   }
 
-  elements.button.hidden = !request;
-  elements.button.disabled = !request;
-  elements.button.textContent = request ? "Read Full Passage" : "Expansion Unavailable";
+  elements.button.hidden = !available;
+  elements.button.disabled = !available;
+  elements.button.textContent = available ? expandLabel : "Expansion Unavailable";
   if (elements.discuss) {
-    elements.discuss.hidden = !request;
-    elements.discuss.disabled = !request;
-    elements.discuss.textContent = request ? "Discuss In Pericope" : "Discussion Unavailable";
+    elements.discuss.hidden = !available;
+    elements.discuss.disabled = !available;
+    elements.discuss.textContent = available ? discussLabel : "Discussion Unavailable";
   }
 }
 
@@ -5753,11 +5770,11 @@ function restoreBundlePreview(kind) {
   }
   if (elements.button) {
     elements.button.disabled = false;
-    elements.button.textContent = "Read Full Passage";
+    elements.button.textContent = state.expandLabel || "Read Full Passage";
   }
   if (elements.discuss) {
     elements.discuss.disabled = false;
-    elements.discuss.textContent = "Discuss In Pericope";
+    elements.discuss.textContent = state.discussLabel || "Discuss In Pericope";
   }
 
   state.expanded = false;
@@ -5766,7 +5783,7 @@ function restoreBundlePreview(kind) {
 async function toggleBundleExpansion(kind) {
   const elements = getBundleCardElements(kind);
   const state = bundleExpansionState[kind];
-  if (!elements?.text || !elements.button || !state?.request) {
+  if (!elements?.text || !elements.button || !state || (!state.request && !state.localExpandedText)) {
     return;
   }
 
@@ -5784,6 +5801,16 @@ async function toggleBundleExpansion(kind) {
   elements.text.textContent = "Loading expanded passage…";
 
   try {
+    if (requestState.localExpandedText) {
+      requestState.expanded = true;
+      requestState.expandedText = requestState.localExpandedText;
+      elements.text.classList.remove("loading", "error");
+      elements.text.textContent = requestState.localExpandedText;
+      elements.button.textContent = requestState.collapseLabel || "Show Summary";
+      elements.button.disabled = false;
+      return;
+    }
+
     let payload = bundleExpansionCache.get(cacheKey);
     if (!payload) {
       const response = await fetch(BOOK_PARTIAL_API_ENDPOINT, {
@@ -5809,7 +5836,7 @@ async function toggleBundleExpansion(kind) {
       : String(payload?.content || "").trim() || "No expanded text returned.";
     elements.text.classList.remove("loading", "error");
     elements.text.textContent = requestState.expandedText;
-    elements.button.textContent = "Show Summary";
+    elements.button.textContent = requestState.collapseLabel || "Show Summary";
     elements.button.disabled = false;
   } catch (error) {
     console.error(`Failed to expand ${kind} bundle text`, error);
@@ -5926,6 +5953,78 @@ function sanitizeInlinePassageText(text) {
     .join(" ")
     .replace(/\s+/g, " ")
     .trim();
+}
+
+function lowerSentence(text) {
+  const clean = String(text || "").trim();
+  if (!clean) {
+    return "";
+  }
+  return `${clean.charAt(0).toLowerCase()}${clean.slice(1)}`;
+}
+
+function getLoadedPentacleRecord(activePentacle) {
+  if (!activePentacle || !loadedPentacleData?.pentacles) {
+    return null;
+  }
+
+  const key = `${String(activePentacle.planet || "").trim().toLowerCase()}_${String(activePentacle.pentacle?.index || "").trim()}`;
+  return loadedPentacleData.pentacles[key] || null;
+}
+
+function buildSolomonicBundleContent(timeState) {
+  const activePentacle = timeState?.active?.pentacle || null;
+  const context = currentActionLoopContext || null;
+  const record = getLoadedPentacleRecord(activePentacle);
+  const planet = String(activePentacle?.planet || record?.planet || "").trim();
+  const index = String(activePentacle?.pentacle?.index || record?.index || "").trim();
+  const name = String(record?.name || (planet && index ? `Pentacle of ${planet} #${index}` : "Key of Solomon, Book II")).trim();
+  const purpose = sentenceCase(String(record?.purpose || activePentacle?.pentacle?.focus || context?.activeFocus || "").trim());
+  const virtue = sentenceCase(String(record?.virtue || context?.ruleOfLife?.virtue || "").trim());
+  const domain = sentenceCase(String(context?.ruleOfLife?.domain || context?.lifeDomainFocus || "").trim());
+  const practice = withTerminalPunctuation(String(context?.ruleOfLife?.morning || context?.ruleOfLife?.summary || "").trim());
+  const guideTone = String(PLANETARY_DAY_GUIDANCE[timeState?.dayLabel?.rulerText || planet]?.tone || "").trim();
+
+  if (!activePentacle && !record) {
+    return {
+      reference: "Key of Solomon, Book II",
+      previewText: "No active pentacle focus is available right now.",
+      expandedText: "",
+    };
+  }
+
+  const traditionalMeaning = purpose
+    ? `Traditional meaning: This ${planet || "planetary"} pentacle is traditionally associated with ${lowerSentence(purpose)}.`
+    : `Traditional meaning: This ${planet || "planetary"} pentacle is treated as one of the symbolic figures in the Key of Solomon.`;
+  const todayReading = domain && virtue
+    ? `Today's reading: Because today's guidance leans toward ${domain.toLowerCase()}, read this figure as a call to ${purpose ? lowerSentence(purpose) : `practice ${virtue.toLowerCase()}`} through ${virtue.toLowerCase()}.`
+    : guideTone
+      ? `Today's reading: It is being surfaced here because ${lowerSentence(guideTone)}`
+      : "Today's reading: It is being surfaced here as a symbolic reading for the present hour.";
+  const suggestedPractice = practice
+    ? `Suggested practice: ${practice}`
+    : purpose
+      ? `Suggested practice: Make ${lowerSentence(purpose)} concrete in one action before the day moves on.`
+      : "";
+  const historicalNote = planet
+    ? `Historical note: Book II places this among the ${planet.toLowerCase()} pentacles. In this app, manuscript and editorial notes are kept secondary to the practical reading.`
+    : "Historical note: The source tradition is preserved, but the primary goal here is readable guidance rather than archival description.";
+  const previewText = purpose && domain
+    ? `Traditionally associated with ${lowerSentence(purpose)}. Today it is being read as a prompt toward ${domain.toLowerCase()}${virtue ? ` with ${virtue.toLowerCase()}` : ""}.`
+    : purpose
+      ? `Traditionally associated with ${lowerSentence(purpose)}. Read it here as a practical prompt, not just a figure note.`
+      : "Read this as a practical symbolic prompt for today's guidance, not as an archival note.";
+
+  return {
+    reference: name,
+    previewText: withTerminalPunctuation(previewText),
+    expandedText: [
+      traditionalMeaning,
+      todayReading,
+      suggestedPractice,
+      historicalNote,
+    ].filter(Boolean).join("\n\n"),
+  };
 }
 
 function normalizePsalmText(text) {
@@ -7721,29 +7820,17 @@ function updateDailyContentBundle(timeState, referenceMap, psalmMetadata) {
     request: parseScriptureReference(wisdom.ref) ? { kind: "wisdom", reference: wisdom.ref } : null,
   });
 
-  const solomonicReference = activePentacle
-    ? `Key of Solomon, Book II • ${activePentacle.planet} Pentacle #${activePentacle.pentacle.index}`
-    : "Key of Solomon, Book II";
-  if (activePentacle) {
-    drawerElements.bundleSolomonicRef.textContent = solomonicReference;
-    drawerElements.bundleSolomonicText.textContent = activePentacle.pentacle.focus
-      ? `Purpose: ${activePentacle.pentacle.focus}.`
-      : "Purpose unavailable for this pentacle.";
-  } else {
-    drawerElements.bundleSolomonicRef.textContent = solomonicReference;
-    drawerElements.bundleSolomonicText.textContent = "No active pentacle focus available.";
-  }
+  const solomonicBundle = buildSolomonicBundleContent(timeState);
+  const solomonicReference = solomonicBundle.reference || "Key of Solomon, Book II";
+  drawerElements.bundleSolomonicRef.textContent = solomonicReference;
+  drawerElements.bundleSolomonicText.textContent = solomonicBundle.previewText || "No active pentacle focus available.";
   configureBundleExpansion("solomonic", {
     reference: solomonicReference,
     text: drawerElements.bundleSolomonicText.textContent,
-    request: activePentacle
-      ? {
-        kind: "solomonic",
-        planet: activePentacle.planet,
-        pentacle: activePentacle.pentacle.index,
-        reference: solomonicReference,
-      }
-      : null,
+    expandedText: solomonicBundle.expandedText,
+    expandLabel: "Show Meaning",
+    collapseLabel: "Show Brief",
+    discussLabel: "Discuss In Pericope",
   });
 
   let chapter = Number.NaN;
@@ -8277,6 +8364,7 @@ async function initialiseClock() {
       lifeDomainResponse.json(),
       scriptureResponse.json(),
     ]);
+    loadedPentacleData = pentacleData;
     const referenceMap = buildPentacleReferenceMap(psalmData);
     buildBundledPsalmMap(scriptureData);
 
