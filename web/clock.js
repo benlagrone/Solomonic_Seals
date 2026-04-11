@@ -5780,6 +5780,40 @@ function restoreBundlePreview(kind) {
   state.expanded = false;
 }
 
+async function resolveExpandedBundleFallbackText(kind, requestState) {
+  if (!requestState) {
+    return "";
+  }
+
+  if (kind === "psalm") {
+    const chapter = Number.parseInt(requestState.request?.chapter, 10);
+    const verseSpec = String(
+      requestState.request?.verseSpec
+      || parseScriptureReference(requestState.request?.reference || requestState.previewRef)?.verseSpec
+      || ""
+    ).trim();
+    if (!Number.isNaN(chapter) && chapter > 0) {
+      try {
+        const fallbackText = await retrievePsalmPassage(chapter, verseSpec, readingDepth);
+        return fallbackText || requestState.previewText || "";
+      } catch (_error) {
+        return requestState.previewText || "";
+      }
+    }
+  }
+
+  if (kind === "wisdom") {
+    const reference = String(requestState.request?.reference || requestState.previewRef || "today's wisdom reading").trim();
+    const previewText = sanitizeInlinePassageText(requestState.previewText || "");
+    if (previewText) {
+      return `${previewText}\n\nFull passage view for ${reference} is unavailable right now. The cited verse remains the active anchor.`;
+    }
+    return `Full passage view for ${reference} is unavailable right now.`;
+  }
+
+  return "";
+}
+
 async function toggleBundleExpansion(kind) {
   const elements = getBundleCardElements(kind);
   const state = bundleExpansionState[kind];
@@ -5811,19 +5845,37 @@ async function toggleBundleExpansion(kind) {
       return;
     }
 
-    let payload = bundleExpansionCache.get(cacheKey);
-    if (!payload) {
-      const response = await fetch(BOOK_PARTIAL_API_ENDPOINT, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(requestState.request),
-      });
-      const responsePayload = await response.json().catch(() => ({}));
-      if (!response.ok) {
-        throw new Error(responsePayload?.error || `HTTP ${response.status}`);
+    if (kind === "psalm") {
+      const chapter = Number.parseInt(requestState.request?.chapter, 10);
+      const verseSpec = String(
+        requestState.request?.verseSpec
+        || parseScriptureReference(requestState.request?.reference || requestState.previewRef)?.verseSpec
+        || ""
+      ).trim();
+      if (!Number.isNaN(chapter) && chapter > 0) {
+        requestState.expandedText = await retrievePsalmPassage(chapter, verseSpec, readingDepth);
       }
-      payload = responsePayload;
-      bundleExpansionCache.set(cacheKey, payload);
+    }
+
+    if (!requestState.expandedText) {
+      let payload = bundleExpansionCache.get(cacheKey);
+      if (!payload) {
+        const response = await fetch(BOOK_PARTIAL_API_ENDPOINT, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(requestState.request),
+        });
+        const responsePayload = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          throw new Error(responsePayload?.error || `HTTP ${response.status}`);
+        }
+        payload = responsePayload;
+        bundleExpansionCache.set(cacheKey, payload);
+      }
+
+      requestState.expandedText = kind === "wisdom"
+        ? sanitizeInlinePassageText(payload?.content || "") || "No expanded text returned."
+        : String(payload?.content || "").trim() || "No expanded text returned.";
     }
 
     if (bundleExpansionState[kind] !== requestState) {
@@ -5831,9 +5883,6 @@ async function toggleBundleExpansion(kind) {
     }
 
     requestState.expanded = true;
-    requestState.expandedText = kind === "wisdom"
-      ? sanitizeInlinePassageText(payload?.content || "") || "No expanded text returned."
-      : String(payload?.content || "").trim() || "No expanded text returned.";
     elements.text.classList.remove("loading", "error");
     elements.text.textContent = requestState.expandedText;
     elements.button.textContent = requestState.collapseLabel || "Show Summary";
@@ -5841,6 +5890,17 @@ async function toggleBundleExpansion(kind) {
   } catch (error) {
     console.error(`Failed to expand ${kind} bundle text`, error);
     if (bundleExpansionState[kind] !== requestState) {
+      return;
+    }
+
+    const fallbackText = await resolveExpandedBundleFallbackText(kind, requestState);
+    if (fallbackText) {
+      requestState.expanded = true;
+      requestState.expandedText = fallbackText;
+      elements.text.classList.remove("loading", "error");
+      elements.text.textContent = fallbackText;
+      elements.button.textContent = requestState.collapseLabel || "Show Summary";
+      elements.button.disabled = false;
       return;
     }
 
@@ -7867,6 +7927,7 @@ function updateDailyContentBundle(timeState, referenceMap, psalmMetadata) {
     request: {
       kind: "psalm",
       chapter,
+      verseSpec: bundleVerseSpec,
       reference: citedPsalmReference,
     },
   });
