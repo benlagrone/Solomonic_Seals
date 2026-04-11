@@ -186,10 +186,14 @@ const drawerElements = {
   bundlePsalmRef: document.querySelector(".bundle-psalm-ref"),
   bundlePsalmText: document.querySelector(".bundle-psalm-text"),
   bundlePsalmExpand: document.querySelector(".bundle-psalm-expand"),
+  bundlePsalmListen: document.querySelector(".bundle-psalm-listen"),
+  bundlePsalmStop: document.querySelector(".bundle-psalm-stop"),
   bundlePsalmDiscuss: document.querySelector(".bundle-psalm-discuss"),
   bundleWisdomRef: document.querySelector(".bundle-wisdom-ref"),
   bundleWisdomText: document.querySelector(".bundle-wisdom-text"),
   bundleWisdomExpand: document.querySelector(".bundle-wisdom-expand"),
+  bundleWisdomListen: document.querySelector(".bundle-wisdom-listen"),
+  bundleWisdomStop: document.querySelector(".bundle-wisdom-stop"),
   bundleWisdomDiscuss: document.querySelector(".bundle-wisdom-discuss"),
   bundleSolomonicItem: document.querySelector(".bundle-item--solomonic"),
   bundleSolomonicRef: document.querySelector(".bundle-solomonic-ref"),
@@ -307,6 +311,7 @@ let lastDailyOpeningDateKey = null;
 let dailyOpeningSuggestionOffset = 0;
 let currentWeeklyReviewContext = null;
 let loadedPentacleData = null;
+let bundleSpeechToken = 0;
 const authDataset = typeof document !== "undefined" ? (document.body?.dataset || {}) : {};
 const CLOCK_AUTH_URL = String(authDataset.authUrl || "https://auth.pericopeai.com").trim();
 const CLOCK_AUTH_REALM = String(authDataset.authRealm || "pericope").trim();
@@ -357,6 +362,13 @@ const bundledPsalmMap = new Map();
 const PSALM_API_ENDPOINT = "/api/psalm";
 const BOOK_PARTIAL_API_ENDPOINT = "/api/pericope/book-partial";
 const ENABLE_REMOTE_SCRIPTURE_FETCH = true;
+const BUNDLE_AUDIO_SUPPORTED = typeof window !== "undefined"
+  && typeof window.SpeechSynthesisUtterance === "function"
+  && "speechSynthesis" in window;
+const bundleAudioState = {
+  kind: "",
+  speaking: false,
+};
 const RULE_OF_LIFE_LIBRARY = {
   mind: {
     morning: "Read one demanding paragraph before messages or feeds.",
@@ -5654,6 +5666,8 @@ function getBundleCardElements(kind) {
         ref: drawerElements.bundlePsalmRef,
         text: drawerElements.bundlePsalmText,
         button: drawerElements.bundlePsalmExpand,
+        listen: drawerElements.bundlePsalmListen,
+        stop: drawerElements.bundlePsalmStop,
         discuss: drawerElements.bundlePsalmDiscuss,
       };
     case "wisdom":
@@ -5661,6 +5675,8 @@ function getBundleCardElements(kind) {
         ref: drawerElements.bundleWisdomRef,
         text: drawerElements.bundleWisdomText,
         button: drawerElements.bundleWisdomExpand,
+        listen: drawerElements.bundleWisdomListen,
+        stop: drawerElements.bundleWisdomStop,
         discuss: drawerElements.bundleWisdomDiscuss,
       };
     case "solomonic":
@@ -5915,10 +5931,28 @@ async function toggleBundleExpansion(kind) {
 
 function setupBundleExpansionControls() {
   [
-    ["psalm", drawerElements.bundlePsalmExpand, drawerElements.bundlePsalmDiscuss],
-    ["wisdom", drawerElements.bundleWisdomExpand, drawerElements.bundleWisdomDiscuss],
-    ["solomonic", drawerElements.bundleSolomonicExpand, drawerElements.bundleSolomonicDiscuss],
-  ].forEach(([kind, button, discuss]) => {
+    [
+      "psalm",
+      drawerElements.bundlePsalmExpand,
+      drawerElements.bundlePsalmDiscuss,
+      drawerElements.bundlePsalmListen,
+      drawerElements.bundlePsalmStop,
+    ],
+    [
+      "wisdom",
+      drawerElements.bundleWisdomExpand,
+      drawerElements.bundleWisdomDiscuss,
+      drawerElements.bundleWisdomListen,
+      drawerElements.bundleWisdomStop,
+    ],
+    [
+      "solomonic",
+      drawerElements.bundleSolomonicExpand,
+      drawerElements.bundleSolomonicDiscuss,
+      null,
+      null,
+    ],
+  ].forEach(([kind, button, discuss, listen, stop]) => {
     if (!button) {
       if (discuss) {
         discuss.addEventListener("click", () => {
@@ -5935,7 +5969,118 @@ function setupBundleExpansionControls() {
         launchBundleDiscussion(kind);
       });
     }
+    if (listen) {
+      listen.addEventListener("click", () => {
+        speakBundlePassage(kind);
+      });
+    }
+    if (stop) {
+      stop.addEventListener("click", () => {
+        stopBundleAudioPlayback();
+      });
+    }
   });
+}
+
+function getBundleSpeechText(reference, text) {
+  const cleanReference = String(reference || "")
+    .replace(/•/g, ".")
+    .replace(/\s+/g, " ")
+    .trim();
+  const cleanText = String(text || "")
+    .replace(/\n+/g, ". ")
+    .replace(/\s+/g, " ")
+    .trim();
+  return [cleanReference, cleanText].filter(Boolean).join(". ");
+}
+
+function getBundleAudioContent(kind) {
+  const elements = getBundleCardElements(kind);
+  if (!elements?.ref || !elements?.text) {
+    return null;
+  }
+
+  const reference = String(elements.ref.textContent || "").trim();
+  const text = String(elements.text.textContent || "").trim();
+  if (
+    !reference ||
+    !text ||
+    elements.text.classList.contains("loading") ||
+    elements.text.classList.contains("error") ||
+    /^loading\b/i.test(text) ||
+    /^unable\b/i.test(text)
+  ) {
+    return null;
+  }
+
+  return { reference, text };
+}
+
+function renderBundleAudioControls() {
+  ["psalm", "wisdom"].forEach((kind) => {
+    const elements = getBundleCardElements(kind);
+    if (!elements?.listen || !elements?.stop) {
+      return;
+    }
+
+    const content = getBundleAudioContent(kind);
+    const isSpeaking = bundleAudioState.speaking && bundleAudioState.kind === kind;
+    elements.listen.disabled = !BUNDLE_AUDIO_SUPPORTED || !content || isSpeaking;
+    elements.listen.textContent = isSpeaking ? "Playing…" : "Listen";
+    elements.stop.disabled = !BUNDLE_AUDIO_SUPPORTED || !isSpeaking;
+  });
+}
+
+function stopBundleAudioPlayback() {
+  bundleSpeechToken += 1;
+  bundleAudioState.kind = "";
+  bundleAudioState.speaking = false;
+  if (BUNDLE_AUDIO_SUPPORTED) {
+    window.speechSynthesis.cancel();
+  }
+  renderBundleAudioControls();
+}
+
+function speakBundlePassage(kind) {
+  if (!BUNDLE_AUDIO_SUPPORTED) {
+    renderBundleAudioControls();
+    return;
+  }
+
+  const content = getBundleAudioContent(kind);
+  if (!content) {
+    renderBundleAudioControls();
+    return;
+  }
+
+  stopBundleAudioPlayback();
+  const token = ++bundleSpeechToken;
+  const utterance = new SpeechSynthesisUtterance(
+    getBundleSpeechText(content.reference, content.text)
+  );
+  utterance.rate = 0.96;
+  utterance.pitch = 1;
+  utterance.onend = () => {
+    if (token !== bundleSpeechToken) {
+      return;
+    }
+    bundleAudioState.kind = "";
+    bundleAudioState.speaking = false;
+    renderBundleAudioControls();
+  };
+  utterance.onerror = () => {
+    if (token !== bundleSpeechToken) {
+      return;
+    }
+    bundleAudioState.kind = "";
+    bundleAudioState.speaking = false;
+    renderBundleAudioControls();
+  };
+
+  bundleAudioState.kind = kind;
+  bundleAudioState.speaking = true;
+  renderBundleAudioControls();
+  window.speechSynthesis.speak(utterance);
 }
 
 function getPentacleKey(activePentacle) {
@@ -8507,6 +8652,7 @@ function renderClock(data, referenceMap, psalmMetadata, pentacleData, lifeDomain
     updateDailyProfile(timeState);
     updateExplainabilityPanel(displayNow, timeState, referenceMap, psalmMetadata);
     updateDailyContentBundle(timeState, referenceMap, psalmMetadata);
+    renderBundleAudioControls();
     updatePsalmDrawer(timeState.active.pentacle, referenceMap);
 
     requestAnimationFrame(frame);

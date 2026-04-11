@@ -3035,6 +3035,52 @@ svg[data-mode="timeline"] .history-preview {
   opacity: 0.45;
 }
 
+.bundle-listen,
+.bundle-stop {
+  appearance: none;
+  border-radius: 999px;
+  padding: 0.36rem 0.8rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: border-color 150ms ease, color 150ms ease, background 150ms ease, opacity 150ms ease;
+}
+
+.bundle-listen {
+  border: 1px solid rgba(96, 165, 250, 0.3);
+  background: rgba(15, 23, 42, 0.68);
+  color: #bfdbfe;
+}
+
+.bundle-listen:hover,
+.bundle-listen:focus-visible {
+  border-color: rgba(96, 165, 250, 0.54);
+  color: #eff6ff;
+  background: rgba(15, 23, 42, 0.9);
+  outline: none;
+}
+
+.bundle-stop {
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  background: rgba(30, 41, 59, 0.58);
+  color: #cbd5f5;
+}
+
+.bundle-stop:hover,
+.bundle-stop:focus-visible {
+  border-color: rgba(148, 163, 184, 0.48);
+  color: #f8fafc;
+  background: rgba(51, 65, 85, 0.84);
+  outline: none;
+}
+
+.bundle-listen:disabled,
+.bundle-stop:disabled {
+  cursor: default;
+  opacity: 0.45;
+}
+
 .bundle-discuss {
   appearance: none;
   border: 1px solid rgba(250, 204, 21, 0.28);
