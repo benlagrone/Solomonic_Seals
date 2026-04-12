@@ -7473,19 +7473,13 @@ async function retrievePsalmPassage(chapter, verseSpec, depth = readingDepth) {
     return normalizePsalmText(await retrievePsalmText(chapter));
   }
 
+  let chapterText = "";
   try {
-    const chapterText = await retrievePsalmText(chapter);
+    chapterText = await retrievePsalmText(chapter);
     const verseMap = parsePsalmChapterVerseMap(chapterText);
     const passageFromChapter = buildPsalmPassageFromVerseMap(chapter, verseMap, versesToFetch, depth);
     if (passageFromChapter) {
       return passageFromChapter;
-    }
-
-    // Some mapped Psalm references resolve at the chapter level but do not preserve
-    // the original verse numbering one-to-one. In those cases, prefer the resolved
-    // chapter text instead of issuing failing per-verse requests that only add noise.
-    if (chapterText) {
-      return normalizePsalmText(chapterText);
     }
   } catch (_error) {
     // Fall through to individual verse fetches when chapter retrieval itself fails.
@@ -7522,7 +7516,16 @@ async function retrievePsalmPassage(chapter, verseSpec, depth = readingDepth) {
     ))
     .join("\n\n");
 
-  return combined || normalizePsalmText(await retrievePsalmText(chapter));
+  if (combined) {
+    return combined;
+  }
+
+  const anchoredFallback = normalizePsalmText(await retrievePsalmText(chapter, versesToFetch[0]));
+  if (anchoredFallback) {
+    return anchoredFallback;
+  }
+
+  return normalizePsalmText(chapterText || await retrievePsalmText(chapter));
 }
 
 function updateActionLoop(context) {
