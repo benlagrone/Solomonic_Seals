@@ -353,6 +353,7 @@ const uiState = {
 const psalmTextCache = new Map();
 const psalmTextMetaCache = new Map();
 const bundleExpansionCache = new Map();
+const clientErrorReportCache = new Map();
 const bundleExpansionState = {
   psalm: null,
   wisdom: null,
@@ -361,7 +362,9 @@ const bundleExpansionState = {
 const bundledPsalmMap = new Map();
 const PSALM_API_ENDPOINT = "/api/psalm";
 const BOOK_PARTIAL_API_ENDPOINT = "/api/pericope/book-partial";
+const CLIENT_ERRORS_API_ENDPOINT = "/api/client-errors";
 const ENABLE_REMOTE_SCRIPTURE_FETCH = true;
+const CLIENT_ERROR_DEDUPE_WINDOW_MS = 90_000;
 const BUNDLE_AUDIO_SUPPORTED = typeof window !== "undefined"
   && typeof window.SpeechSynthesisUtterance === "function"
   && "speechSynthesis" in window;
@@ -369,6 +372,102 @@ const bundleAudioState = {
   kind: "",
   speaking: false,
 };
+
+function toClientErrorSnippet(value, maxLength = 240) {
+  const clean = String(value || "").replace(/\s+/g, " ").trim();
+  if (!clean) {
+    return "";
+  }
+  if (clean.length <= maxLength) {
+    return clean;
+  }
+  return `${clean.slice(0, maxLength - 1).trim()}…`;
+}
+
+function getClockAssetVersion() {
+  const releaseStrong = document.querySelector(".footer-release-meta strong");
+  const releaseText = String(releaseStrong?.textContent || "").trim();
+  if (releaseText) {
+    return releaseText.replace(/^v/i, "").trim();
+  }
+
+  const moduleScript = document.querySelector('script[type="module"]');
+  const scriptText = String(moduleScript?.textContent || "");
+  const versionMatch = scriptText.match(/clock\.js\?v=([A-Za-z0-9._-]+)/);
+  return versionMatch?.[1] || "";
+}
+
+function getClockReleaseLabel() {
+  const releaseMeta = document.querySelector(".footer-release-meta");
+  return toClientErrorSnippet(releaseMeta?.textContent || "", 180);
+}
+
+function buildClientErrorFingerprint(kind, payload) {
+  return [
+    kind,
+    payload.endpoint || "",
+    payload.httpStatus || "",
+    payload.requestedReference || "",
+    payload.resolvedReference || "",
+    payload.message || "",
+    payload.source || "",
+    payload.fallbackUsed ? "1" : "0",
+  ].join("|");
+}
+
+function reportClientError(kind, details = {}) {
+  if (
+    typeof window === "undefined"
+    || typeof window.fetch !== "function"
+    || !kind
+  ) {
+    return;
+  }
+
+  const payload = {
+    kind: String(kind).trim(),
+    severity: String(details.severity || "error").trim().toLowerCase() || "error",
+    message: toClientErrorSnippet(details.message || details.error || "", 420),
+    endpoint: toClientErrorSnippet(details.endpoint || "", 160),
+    httpStatus: Number.isFinite(Number(details.httpStatus)) ? Number(details.httpStatus) : null,
+    source: toClientErrorSnippet(details.source || "", 180),
+    fallbackUsed: Boolean(details.fallbackUsed),
+    requestedReference: toClientErrorSnippet(details.requestedReference || "", 140),
+    resolvedReference: toClientErrorSnippet(details.resolvedReference || "", 140),
+    requestKind: toClientErrorSnippet(details.requestKind || "", 48),
+    pageUrl: toClientErrorSnippet(window.location.href || "", 280),
+    pagePath: toClientErrorSnippet(window.location.pathname || "", 160),
+    assetVersion: getClockAssetVersion(),
+    release: getClockReleaseLabel(),
+    lens: uiState.lens,
+    mode: uiState.mode,
+    presentation: uiState.presentationMode,
+    readingDepth,
+    authMode: clockAuthState.mode,
+    dateKey: currentActionLoopContext?.dateKey || "",
+    chapter: Number.isFinite(Number(details.chapter)) ? Number(details.chapter) : null,
+    verse: Number.isFinite(Number(details.verse)) ? Number(details.verse) : null,
+  };
+
+  const fingerprint = buildClientErrorFingerprint(kind, payload);
+  const now = Date.now();
+  const lastSentAt = clientErrorReportCache.get(fingerprint) || 0;
+  if (now - lastSentAt < CLIENT_ERROR_DEDUPE_WINDOW_MS) {
+    return;
+  }
+  clientErrorReportCache.set(fingerprint, now);
+
+  const body = JSON.stringify(payload);
+  void window.fetch(CLIENT_ERRORS_API_ENDPOINT, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body,
+    keepalive: true,
+    credentials: "same-origin",
+  }).catch(() => {
+    // Never allow error reporting to cascade into the main UI flow.
+  });
+}
 const RULE_OF_LIFE_LIBRARY = {
   mind: {
     morning: "Read one demanding paragraph before messages or feeds.",
@@ -4277,14 +4376,28 @@ async function fetchHistorySyncState(access) {
     return null;
   }
 
-  const response = await window.fetch(HISTORY_SYNC_API_PATH, {
-    method: "GET",
-    headers: access.headers,
-    credentials: "same-origin",
-    cache: "no-store",
-  });
+  let response;
+  try {
+    response = await window.fetch(HISTORY_SYNC_API_PATH, {
+      method: "GET",
+      headers: access.headers,
+      credentials: "same-origin",
+      cache: "no-store",
+    });
+  } catch (error) {
+    reportClientError("history_sync_get_fetch_error", {
+      endpoint: HISTORY_SYNC_API_PATH,
+      message: error?.message || "History sync GET fetch failed.",
+    });
+    throw error;
+  }
 
   if (!response.ok) {
+    reportClientError("history_sync_get_http_error", {
+      endpoint: HISTORY_SYNC_API_PATH,
+      httpStatus: response.status,
+      message: `History sync GET failed with HTTP ${response.status}.`,
+    });
     throw new Error(`History sync GET failed: ${response.status}`);
   }
 
@@ -4297,17 +4410,31 @@ async function pushHistorySyncState(access, state) {
     return null;
   }
 
-  const response = await window.fetch(HISTORY_SYNC_API_PATH, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      ...access.headers,
-    },
-    credentials: "same-origin",
-    body: JSON.stringify({ state: normalizeDailyActionState(state) }),
-  });
+  let response;
+  try {
+    response = await window.fetch(HISTORY_SYNC_API_PATH, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...access.headers,
+      },
+      credentials: "same-origin",
+      body: JSON.stringify({ state: normalizeDailyActionState(state) }),
+    });
+  } catch (error) {
+    reportClientError("history_sync_post_fetch_error", {
+      endpoint: HISTORY_SYNC_API_PATH,
+      message: error?.message || "History sync POST fetch failed.",
+    });
+    throw error;
+  }
 
   if (!response.ok) {
+    reportClientError("history_sync_post_http_error", {
+      endpoint: HISTORY_SYNC_API_PATH,
+      httpStatus: response.status,
+      message: `History sync POST failed with HTTP ${response.status}.`,
+    });
     throw new Error(`History sync POST failed: ${response.status}`);
   }
 
@@ -4477,17 +4604,31 @@ async function fetchPericopeHistorySessions(access, limit = 12) {
     return [];
   }
 
-  const response = await window.fetch(
-    `${PERICOPE_HISTORY_SESSIONS_API_PATH}?limit=${encodeURIComponent(Math.max(1, Math.min(20, limit)))}`,
-    {
-      method: "GET",
-      headers: access.headers,
-      credentials: "same-origin",
-      cache: "no-store",
-    }
-  );
+  let response;
+  try {
+    response = await window.fetch(
+      `${PERICOPE_HISTORY_SESSIONS_API_PATH}?limit=${encodeURIComponent(Math.max(1, Math.min(20, limit)))}`,
+      {
+        method: "GET",
+        headers: access.headers,
+        credentials: "same-origin",
+        cache: "no-store",
+      }
+    );
+  } catch (error) {
+    reportClientError("pericope_history_sessions_fetch_error", {
+      endpoint: PERICOPE_HISTORY_SESSIONS_API_PATH,
+      message: error?.message || "Pericope history session fetch failed.",
+    });
+    throw error;
+  }
 
   if (!response.ok) {
+    reportClientError("pericope_history_sessions_http_error", {
+      endpoint: PERICOPE_HISTORY_SESSIONS_API_PATH,
+      httpStatus: response.status,
+      message: `Pericope history session fetch failed with HTTP ${response.status}.`,
+    });
     throw new Error(`Pericope history sessions GET failed: ${response.status}`);
   }
 
@@ -5811,6 +5952,18 @@ async function resolveExpandedBundleFallbackText(kind, requestState) {
     if (!Number.isNaN(chapter) && chapter > 0) {
       try {
         const fallbackText = await retrievePsalmPassage(chapter, verseSpec, readingDepth);
+        if (fallbackText) {
+          reportClientError("bundle_expansion_fallback_used", {
+            severity: "warn",
+            endpoint: kind === "psalm" ? PSALM_API_ENDPOINT : BOOK_PARTIAL_API_ENDPOINT,
+            requestKind: kind,
+            requestedReference: requestState.request?.reference || requestState.previewRef || `Psalm ${chapter}:${verseSpec}`,
+            chapter,
+            verse: expandVerseSpecification(verseSpec)[0] || null,
+            fallbackUsed: true,
+            message: `Expanded ${kind} passage used a fallback rendering path.`,
+          });
+        }
         return fallbackText || requestState.previewText || "";
       } catch (_error) {
         return requestState.previewText || "";
@@ -5821,6 +5974,14 @@ async function resolveExpandedBundleFallbackText(kind, requestState) {
   if (kind === "wisdom") {
     const reference = String(requestState.request?.reference || requestState.previewRef || "today's wisdom reading").trim();
     const previewText = sanitizeInlinePassageText(requestState.previewText || "");
+    reportClientError("bundle_expansion_fallback_used", {
+      severity: "warn",
+      endpoint: BOOK_PARTIAL_API_ENDPOINT,
+      requestKind: kind,
+      requestedReference: reference,
+      fallbackUsed: true,
+      message: `Expanded ${kind} passage used a preview-only fallback.`,
+    });
     if (previewText) {
       return `${previewText}\n\nFull passage view for ${reference} is unavailable right now. The cited verse remains the active anchor.`;
     }
@@ -5876,13 +6037,31 @@ async function toggleBundleExpansion(kind) {
     if (!requestState.expandedText) {
       let payload = bundleExpansionCache.get(cacheKey);
       if (!payload) {
-        const response = await fetch(BOOK_PARTIAL_API_ENDPOINT, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(requestState.request),
-        });
+        let response;
+        try {
+          response = await fetch(BOOK_PARTIAL_API_ENDPOINT, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(requestState.request),
+          });
+        } catch (error) {
+          reportClientError("book_partial_fetch_error", {
+            endpoint: BOOK_PARTIAL_API_ENDPOINT,
+            requestKind: requestState.request?.kind,
+            requestedReference: requestState.request?.reference || requestState.previewRef,
+            message: error?.message || "Expanded scripture fetch failed.",
+          });
+          throw error;
+        }
         const responsePayload = await response.json().catch(() => ({}));
         if (!response.ok) {
+          reportClientError("book_partial_http_error", {
+            endpoint: BOOK_PARTIAL_API_ENDPOINT,
+            httpStatus: response.status,
+            requestKind: requestState.request?.kind,
+            requestedReference: requestState.request?.reference || requestState.previewRef,
+            message: responsePayload?.error || `Expanded scripture fetch failed with HTTP ${response.status}.`,
+          });
           throw new Error(responsePayload?.error || `HTTP ${response.status}`);
         }
         payload = responsePayload;
@@ -5926,6 +6105,12 @@ async function toggleBundleExpansion(kind) {
     elements.text.textContent = `${requestState.previewText}\n\nUnable to load expanded passage.`;
     elements.button.textContent = "Retry Expansion";
     elements.button.disabled = false;
+    reportClientError("bundle_expansion_failed", {
+      endpoint: kind === "psalm" ? PSALM_API_ENDPOINT : BOOK_PARTIAL_API_ENDPOINT,
+      requestKind: kind,
+      requestedReference: requestState.request?.reference || requestState.previewRef,
+      message: error?.message || `Expanded ${kind} passage failed.`,
+    });
   }
 }
 
@@ -7407,6 +7592,13 @@ function updateDailyOpeningAnchorPreview(context) {
       return;
     }
 
+    reportClientError("daily_opening_anchor_failed", {
+      endpoint: PSALM_API_ENDPOINT,
+      requestedReference: anchorRef,
+      chapter: rule.psalmChapter,
+      verse: rule.psalmVerse,
+      message: error?.message || "Daily Opening scripture anchor failed to load.",
+    });
     setDailyOpeningAnchorPreview(anchorRef, "Unable to load scripture anchor.", {
       expandable: true,
       expanded: dailyOpeningAnchorExpanded,
@@ -7457,10 +7649,26 @@ function updateRuleScripturePreview(rule) {
       return;
     }
 
+    reportClientError("rule_scripture_preview_failed", {
+      endpoint: PSALM_API_ENDPOINT,
+      requestedReference: rule.psalmRef,
+      chapter: rule.psalmChapter,
+      verse: rule.psalmVerse,
+      message: error?.message || "Rule of Life scripture preview failed to load.",
+    });
     previewTargets.forEach((target) => {
       setRuleScripturePreview(target, rule.psalmRef, "Unable to fetch psalm excerpt.", { error: true });
     });
   });
+}
+
+function buildPsalmRequestedReference(chapter, verseSpec = "") {
+  const cleanChapter = Number.parseInt(chapter, 10);
+  const cleanVerseSpec = String(verseSpec || "").trim();
+  if (Number.isNaN(cleanChapter) || cleanChapter <= 0) {
+    return "";
+  }
+  return cleanVerseSpec ? `${cleanChapter}:${cleanVerseSpec}` : String(cleanChapter);
 }
 
 async function retrievePsalmPassage(chapter, verseSpec, depth = readingDepth) {
@@ -7468,6 +7676,7 @@ async function retrievePsalmPassage(chapter, verseSpec, depth = readingDepth) {
     return normalizePsalmText(await retrievePsalmText(chapter));
   }
 
+  const requestedReference = buildPsalmRequestedReference(chapter, verseSpec);
   const versesToFetch = selectVersesForDepth(verseSpec, depth);
   if (!versesToFetch.length) {
     return normalizePsalmText(await retrievePsalmText(chapter));
@@ -7480,6 +7689,21 @@ async function retrievePsalmPassage(chapter, verseSpec, depth = readingDepth) {
     const passageFromChapter = buildPsalmPassageFromVerseMap(chapter, verseMap, versesToFetch, depth);
     if (passageFromChapter) {
       return passageFromChapter;
+    }
+
+    const chapterMeta = getPsalmTextMeta(chapter);
+    if (chapterMeta?.resolvedReference && chapterMeta.resolvedReference !== String(chapter)) {
+      reportClientError("psalm_expansion_resolution_shift", {
+        severity: "warn",
+        endpoint: PSALM_API_ENDPOINT,
+        requestedReference,
+        resolvedReference: chapterMeta.resolvedReference,
+        source: chapterMeta.source,
+        fallbackUsed: Boolean(chapterMeta.fallback),
+        chapter,
+        verse: versesToFetch[0] || null,
+        message: `Verse-specific expansion for Psalm ${requestedReference} could not be built from the resolved chapter text; anchored fallback will be used.`,
+      });
     }
   } catch (_error) {
     // Fall through to individual verse fetches when chapter retrieval itself fails.
@@ -8099,6 +8323,14 @@ function updateDailyContentBundle(timeState, referenceMap, psalmMetadata) {
     if (requestId !== currentBundleRequestId) {
       return;
     }
+    reportClientError("bundle_psalm_preview_failed", {
+      endpoint: PSALM_API_ENDPOINT,
+      requestKind: "psalm",
+      requestedReference: citedPsalmReference,
+      chapter,
+      verse: expandVerseSpecification(bundleVerseSpec)[0] || null,
+      message: error?.message || "Daily bundle psalm preview failed to load.",
+    });
     const errorText = "Unable to fetch psalm excerpt.";
     setTranslationBadge(drawerElements.bundlePsalmRef, "");
     updateBundlePreviewState("psalm", { text: errorText });
@@ -8379,7 +8611,7 @@ function updatePsalmDrawer(activePentacle, referenceMap) {
     li.appendChild(textBlock);
     drawerElements.list.appendChild(li);
 
-    retrievePsalmPassage(psalmNumber, entry.verses || "", readingDepth).then((text) => {
+  retrievePsalmPassage(psalmNumber, entry.verses || "", readingDepth).then((text) => {
       if (currentPsalmRequestId !== requestId) {
         return;
       }
@@ -8388,14 +8620,22 @@ function updatePsalmDrawer(activePentacle, referenceMap) {
       if (!text) {
         textBlock.classList.add("error");
       }
-    }).catch((error) => {
-      console.error("Failed to fetch psalm text", error);
-      if (currentPsalmRequestId !== requestId) {
-        return;
-      }
-      textBlock.classList.remove("loading");
-      textBlock.classList.add("error");
-      textBlock.textContent = "Unable to fetch psalm text.";
+  }).catch((error) => {
+    console.error("Failed to fetch psalm text", error);
+    if (currentPsalmRequestId !== requestId) {
+      return;
+    }
+    reportClientError("psalm_drawer_failed", {
+      endpoint: PSALM_API_ENDPOINT,
+      requestKind: "psalm_drawer",
+      requestedReference: `Psalm ${psalmNumber}${verseLabel}`,
+      chapter: psalmNumber,
+      verse: expandVerseSpecification(entry.verses || "")[0] || null,
+      message: error?.message || "Psalm drawer passage failed to load.",
+    });
+    textBlock.classList.remove("loading");
+    textBlock.classList.add("error");
+    textBlock.textContent = "Unable to fetch psalm text.";
     });
   });
 }
@@ -8477,12 +8717,17 @@ async function retrievePsalmText(chapter, verse) {
     return psalmTextCache.get(key);
   }
 
+  const requestedReference = buildPsalmRequestedReference(chapter, verse);
+
   if (!ENABLE_REMOTE_SCRIPTURE_FETCH) {
     const fallbackText = getPsalmFallbackText(chapter, verse);
     psalmTextCache.set(key, fallbackText);
     psalmTextMetaCache.set(key, {
       source: getBundledPsalmText(chapter) ? "bundled" : "fallback",
       translationNote: getBundledPsalmNote(chapter),
+      fallback: true,
+      requestedReference,
+      resolvedReference: requestedReference,
     });
     return fallbackText;
   }
@@ -8496,6 +8741,15 @@ async function retrievePsalmText(chapter, verse) {
 
     if (response.ok) {
       const data = await response.json();
+      const numberingMeta = data?.numbering && typeof data.numbering === "object" ? data.numbering : {};
+      const meta = {
+        source: String(data?.source || "api").trim() || "api",
+        translationNote: "",
+        fallback: Boolean(data?.fallback),
+        requestedReference,
+        resolvedReference: String(numberingMeta?.resolved_reference || requestedReference).trim(),
+        numbering: numberingMeta,
+      };
 
       const verseText = (
         data.text ||
@@ -8503,11 +8757,53 @@ async function retrievePsalmText(chapter, verse) {
       ).trim();
       if (verseText) {
         psalmTextCache.set(key, verseText);
-        psalmTextMetaCache.set(key, { source: "api", translationNote: "" });
+        psalmTextMetaCache.set(key, meta);
+        if (meta.fallback) {
+          reportClientError("psalm_api_fallback_used", {
+            severity: "warn",
+            endpoint: PSALM_API_ENDPOINT,
+            httpStatus: response.status,
+            source: meta.source,
+            fallbackUsed: true,
+            requestedReference,
+            resolvedReference: meta.resolvedReference,
+            chapter,
+            verse: verse ?? null,
+            message: `Psalm ${requestedReference || chapter} resolved through a fallback source.`,
+          });
+        }
         return verseText;
       }
+
+      reportClientError("psalm_api_empty_response", {
+        endpoint: PSALM_API_ENDPOINT,
+        httpStatus: response.status,
+        requestedReference,
+        resolvedReference: meta.resolvedReference,
+        source: meta.source,
+        fallbackUsed: meta.fallback,
+        chapter,
+        verse: verse ?? null,
+        message: `Psalm ${requestedReference || chapter} returned no text.`,
+      });
+    } else {
+      reportClientError("psalm_http_error", {
+        endpoint: PSALM_API_ENDPOINT,
+        httpStatus: response.status,
+        requestedReference,
+        chapter,
+        verse: verse ?? null,
+        message: `Psalm lookup failed with HTTP ${response.status}.`,
+      });
     }
-  } catch (_error) {
+  } catch (error) {
+    reportClientError("psalm_fetch_error", {
+      endpoint: PSALM_API_ENDPOINT,
+      requestedReference,
+      chapter,
+      verse: verse ?? null,
+      message: error?.message || `Psalm lookup failed for ${requestedReference || chapter}.`,
+    });
     // Fall through to bundled excerpts when the local psalm endpoint is unavailable.
   }
 
@@ -8516,8 +8812,47 @@ async function retrievePsalmText(chapter, verse) {
   psalmTextMetaCache.set(key, {
     source: getBundledPsalmText(chapter) ? "bundled" : "fallback",
     translationNote: getBundledPsalmNote(chapter),
+    fallback: true,
+    requestedReference,
+    resolvedReference: requestedReference,
   });
   return fallbackText;
+}
+
+async function fetchJsonResource(url, label) {
+  let response;
+  try {
+    response = await fetch(url);
+  } catch (error) {
+    reportClientError("resource_fetch_error", {
+      endpoint: url,
+      requestKind: label,
+      message: error?.message || `Failed to load ${label}.`,
+    });
+    throw error;
+  }
+
+  if (!response.ok) {
+    reportClientError("resource_http_error", {
+      endpoint: url,
+      requestKind: label,
+      httpStatus: response.status,
+      message: `Failed to load ${label} with HTTP ${response.status}.`,
+    });
+    throw new Error(`HTTP ${response.status} while loading ${label}`);
+  }
+
+  try {
+    return await response.json();
+  } catch (error) {
+    reportClientError("resource_json_error", {
+      endpoint: url,
+      requestKind: label,
+      httpStatus: response.status,
+      message: error?.message || `Invalid JSON while loading ${label}.`,
+    });
+    throw error;
+  }
 }
 
 async function initialiseClock() {
@@ -8538,40 +8873,12 @@ async function initialiseClock() {
   const historySyncPromise = authPromise.then(() => bootstrapHistorySync());
 
   try {
-    const [clockResponse, psalmResponse, pentacleResponse, lifeDomainResponse, scriptureResponse] = await Promise.all([
-      fetch("../data/solomonic_clock_full.json"),
-      fetch("../data/pentacle_psalms.json"),
-      fetch("../data/pentacles.json"),
-      fetch("../data/life_domains.json"),
-      fetch("../data/scripture_mappings.json"),
-    ]);
-
-    if (!clockResponse.ok) {
-      throw new Error(`HTTP ${clockResponse.status} while loading clock data`);
-    }
-
-    if (!psalmResponse.ok) {
-      throw new Error(`HTTP ${psalmResponse.status} while loading psalm data`);
-    }
-
-    if (!pentacleResponse.ok) {
-      throw new Error(`HTTP ${pentacleResponse.status} while loading pentacle data`);
-    }
-
-    if (!lifeDomainResponse.ok) {
-      throw new Error(`HTTP ${lifeDomainResponse.status} while loading life domain data`);
-    }
-
-    if (!scriptureResponse.ok) {
-      throw new Error(`HTTP ${scriptureResponse.status} while loading scripture mappings`);
-    }
-
     const [clockData, psalmData, pentacleData, lifeDomainData, scriptureData] = await Promise.all([
-      clockResponse.json(),
-      psalmResponse.json(),
-      pentacleResponse.json(),
-      lifeDomainResponse.json(),
-      scriptureResponse.json(),
+      fetchJsonResource("../data/solomonic_clock_full.json", "clock data"),
+      fetchJsonResource("../data/pentacle_psalms.json", "psalm data"),
+      fetchJsonResource("../data/pentacles.json", "pentacle data"),
+      fetchJsonResource("../data/life_domains.json", "life domain data"),
+      fetchJsonResource("../data/scripture_mappings.json", "scripture mappings"),
     ]);
     loadedPentacleData = pentacleData;
     const referenceMap = buildPentacleReferenceMap(psalmData);
@@ -8586,6 +8893,10 @@ async function initialiseClock() {
     renderClock(clockData, referenceMap, psalmData?.metadata || {}, pentacleData, lifeDomainData);
   } catch (error) {
     console.error("Failed to initialise clock", error);
+    reportClientError("clock_initialisation_failed", {
+      endpoint: "/api/clock",
+      message: error?.message || "Clock initialisation failed.",
+    });
     svg
       .append("text")
       .attr("x", WIDTH / 2)

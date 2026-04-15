@@ -16,6 +16,7 @@ import hmac
 import json
 import os
 import re
+import tempfile
 import threading
 import time
 from dataclasses import dataclass
@@ -59,6 +60,7 @@ SCRIPTURE_CHAPTER_LINE_RE = re.compile(r"(?im)^\s*chapter\s+(\d+)\b")
 SCRIPTURE_VERSE_LINE_RE = re.compile(r"(?m)^\s*(\d+)\s+")
 BOOK_PARTIAL_API_PATH = "/api/pericope/book-partial"
 PERICOPE_HISTORY_SESSIONS_API_PATH = "/api/pericope/history-sessions"
+CLIENT_ERRORS_API_PATH = "/api/client-errors"
 KEY_OF_SOLOMON_SOURCE = "key_of_solomon_esotericarchives.txt"
 KEY_OF_SOLOMON_BOOK = "Key of Solomon, Book II"
 SOLOMONIC_PENTACLE_PLANETS = ("Saturn", "Jupiter", "Mars", "Sun", "Venus", "Mercury", "Moon")
@@ -90,10 +92,13 @@ DEV_AUTH_SUB_HEADER = "X-Dev-Auth-Sub"
 DEV_AUTH_NAME_HEADER = "X-Dev-Auth-Name"
 HISTORY_STORE_PATH_ENV = "SOLOMONIC_HISTORY_STORE_PATH"
 DEFAULT_HISTORY_STORE_PATH = Path("/var/lib/solomonic-clock/history_store.json")
+CLIENT_ERRORS_STORE_PATH_ENV = "SOLOMONIC_CLIENT_ERRORS_STORE_PATH"
+DEFAULT_CLIENT_ERRORS_STORE_PATH = Path("/var/lib/solomonic-clock/client_errors.jsonl")
 MAX_HISTORY_ENTRIES_PER_CLIENT = 400
 MAX_HISTORY_REFLECTION_LENGTH = 4000
 MAX_HISTORY_LAUNCHES_PER_ENTRY = 12
 _HISTORY_STORE_LOCK = threading.Lock()
+_CLIENT_ERRORS_STORE_LOCK = threading.Lock()
 DEFAULT_SITE_URL = "https://truevineos.cloud"
 SITE_URL_ENV = "SOLOMONIC_SITE_URL"
 AUTH_URL_ENV = "SOLOMONIC_AUTH_URL"
@@ -1357,6 +1362,17 @@ def _resolve_history_store_path() -> Path:
     return DEFAULT_HISTORY_STORE_PATH
 
 
+def _resolve_client_errors_store_path() -> Path:
+    configured = os.environ.get(CLIENT_ERRORS_STORE_PATH_ENV, "").strip()
+    if configured:
+        return Path(configured)
+    return DEFAULT_CLIENT_ERRORS_STORE_PATH
+
+
+def _resolve_client_errors_fallback_path() -> Path:
+    return Path(tempfile.gettempdir()) / "solomonic-clock-client_errors.jsonl"
+
+
 def _is_truthy(value: Any) -> bool:
     return str(value or "").strip().lower() in {"1", "true", "yes", "on"}
 
@@ -1805,6 +1821,112 @@ def _to_snippet(text: str, max_length: int = 220) -> str:
     if len(clean) <= max_length:
         return clean
     return f"{clean[: max_length - 1].rstrip()}…"
+
+
+def _normalize_client_error_event(payload: Any) -> dict[str, Any] | None:
+    if not isinstance(payload, dict):
+        return None
+
+    severity = str(payload.get("severity", "error") or "error").strip().lower()
+    if severity not in {"info", "warn", "error"}:
+        severity = "error"
+
+    http_status: int | None = None
+    raw_status = payload.get("httpStatus")
+    if raw_status not in {None, ""}:
+        try:
+            http_status = int(raw_status)
+        except (TypeError, ValueError):
+            http_status = None
+
+    chapter: int | None = None
+    raw_chapter = payload.get("chapter")
+    if raw_chapter not in {None, ""}:
+        try:
+            chapter = int(raw_chapter)
+        except (TypeError, ValueError):
+            chapter = None
+
+    verse: int | None = None
+    raw_verse = payload.get("verse")
+    if raw_verse not in {None, ""}:
+        try:
+            verse = int(raw_verse)
+        except (TypeError, ValueError):
+            verse = None
+
+    event = {
+        "receivedAt": datetime.utcnow().replace(microsecond=0).isoformat() + "Z",
+        "kind": _to_snippet(str(payload.get("kind", "")).strip(), 80),
+        "severity": severity,
+        "message": _to_snippet(str(payload.get("message", "")).strip(), 500),
+        "endpoint": _to_snippet(str(payload.get("endpoint", "")).strip(), 160),
+        "httpStatus": http_status,
+        "source": _to_snippet(str(payload.get("source", "")).strip(), 200),
+        "fallbackUsed": bool(payload.get("fallbackUsed")),
+        "requestedReference": _to_snippet(str(payload.get("requestedReference", "")).strip(), 140),
+        "resolvedReference": _to_snippet(str(payload.get("resolvedReference", "")).strip(), 140),
+        "requestKind": _to_snippet(str(payload.get("requestKind", "")).strip(), 48),
+        "pageUrl": _to_snippet(str(payload.get("pageUrl", "")).strip(), 280),
+        "pagePath": _to_snippet(str(payload.get("pagePath", "")).strip(), 160),
+        "assetVersion": _to_snippet(str(payload.get("assetVersion", "")).strip(), 48),
+        "release": _to_snippet(str(payload.get("release", "")).strip(), 120),
+        "lens": _to_snippet(str(payload.get("lens", "")).strip(), 32),
+        "mode": _to_snippet(str(payload.get("mode", "")).strip(), 32),
+        "presentation": _to_snippet(str(payload.get("presentation", "")).strip(), 32),
+        "readingDepth": _to_snippet(str(payload.get("readingDepth", "")).strip(), 24),
+        "authMode": _to_snippet(str(payload.get("authMode", "")).strip(), 24),
+        "dateKey": _to_snippet(str(payload.get("dateKey", "")).strip(), 40),
+        "chapter": chapter,
+        "verse": verse,
+    }
+
+    if not event["kind"]:
+        return None
+
+    return event
+
+
+def _append_client_error_event(payload: Any) -> tuple[dict[str, Any] | None, str | None]:
+    event = _normalize_client_error_event(payload)
+    if event is None:
+        return None, "Client error payload must include a kind."
+
+    path = _resolve_client_errors_store_path()
+    encoded = json.dumps(event, ensure_ascii=False)
+    try:
+        with _CLIENT_ERRORS_STORE_LOCK:
+            _ensure_parent_dir(path)
+            with path.open("a", encoding="utf-8") as handle:
+                handle.write(encoded)
+                handle.write("\n")
+    except OSError:
+        fallback_path = _resolve_client_errors_fallback_path()
+        with _CLIENT_ERRORS_STORE_LOCK:
+            _ensure_parent_dir(fallback_path)
+            with fallback_path.open("a", encoding="utf-8") as handle:
+                handle.write(encoded)
+                handle.write("\n")
+        event["storePath"] = str(fallback_path)
+    else:
+        event["storePath"] = str(path)
+
+    print(
+        "[client-error]",
+        event.get("severity", "error").upper(),
+        event.get("kind", "unknown"),
+        event.get("endpoint", ""),
+        event.get("requestedReference", ""),
+        event.get("message", ""),
+    )
+    return event, None
+
+
+def _build_client_error_post_payload(payload: Any) -> tuple[dict[str, Any] | None, str | None, HTTPStatus]:
+    event, error = _append_client_error_event(payload)
+    if event is None:
+        return None, error or "Unable to record client error event.", HTTPStatus.BAD_REQUEST
+    return {"ok": True, "event": event}, None, HTTPStatus.ACCEPTED
 
 
 def _strip_translation_meta(text: str) -> str:
@@ -2920,7 +3042,12 @@ class ClockRequestHandler(SimpleHTTPRequestHandler):
         parsed_url = urlparse(self.path)
         request_path = parsed_url.path.rstrip("/")
 
-        if request_path not in {"/api/pericope/guided-prompts", BOOK_PARTIAL_API_PATH, HISTORY_SYNC_API_PATH}:
+        if request_path not in {
+            "/api/pericope/guided-prompts",
+            BOOK_PARTIAL_API_PATH,
+            HISTORY_SYNC_API_PATH,
+            CLIENT_ERRORS_API_PATH,
+        }:
             self.send_error(HTTPStatus.NOT_FOUND, "Unknown API route")
             return
 
@@ -2956,6 +3083,8 @@ class ClockRequestHandler(SimpleHTTPRequestHandler):
             response_payload, error, status = _build_book_partial_payload(payload)
         elif request_path == HISTORY_SYNC_API_PATH:
             response_payload, error, status = _build_history_sync_post_payload(self.headers, payload)
+        elif request_path == CLIENT_ERRORS_API_PATH:
+            response_payload, error, status = _build_client_error_post_payload(payload)
         else:
             response_payload, error, status = _build_guided_prompts_payload(payload)
 
@@ -2963,6 +3092,8 @@ class ClockRequestHandler(SimpleHTTPRequestHandler):
             fallback_error = (
                 "Unable to expand requested text."
                 if request_path == BOOK_PARTIAL_API_PATH
+                else "Unable to record client error event."
+                if request_path == CLIENT_ERRORS_API_PATH
                 else "Unable to build guided prompts payload."
             )
             self._send_json({"error": error or fallback_error}, status)
