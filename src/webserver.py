@@ -101,6 +101,9 @@ _HISTORY_STORE_LOCK = threading.Lock()
 _CLIENT_ERRORS_STORE_LOCK = threading.Lock()
 DEFAULT_SITE_URL = "https://truevineos.cloud"
 SITE_URL_ENV = "SOLOMONIC_SITE_URL"
+APP_VERSION_ENV = "SOLOMONIC_APP_VERSION"
+APP_RELEASE_ENV = "SOLOMONIC_RELEASE"
+APP_RELEASED_AT_ENV = "SOLOMONIC_RELEASED_AT"
 AUTH_URL_ENV = "SOLOMONIC_AUTH_URL"
 AUTH_REALM_ENV = "SOLOMONIC_AUTH_REALM"
 AUTH_CLIENT_ID_ENV = "SOLOMONIC_AUTH_CLIENT_ID"
@@ -114,21 +117,27 @@ DEFAULT_AUTH_URL = "https://auth.pericopeai.com"
 DEFAULT_AUTH_REALM = "pericope"
 DEFAULT_AUTH_CLIENT_ID = "pericope-web"
 DEFAULT_PERICOPE_API_BASE = "https://pericopeai.com/api/v1"
+DEFAULT_APP_VERSION = "dev"
+DEFAULT_APP_RELEASE = "local"
+DEFAULT_APP_RELEASED_AT = "Built locally"
 _AUTH_USERINFO_CACHE_LOCK = threading.Lock()
 _AUTH_USERINFO_CACHE: dict[str, dict[str, Any]] = {}
 PUBLIC_PAGE_TEMPLATES = {
     "/": (REPO_ROOT / "web" / "index.html", "/"),
     "/clock": (REPO_ROOT / "web" / "clock_visualizer.html", "/clock"),
+    "/scripture-study": (REPO_ROOT / "web" / "scripture_study.html", "/scripture-study"),
     "/how-to-use": (REPO_ROOT / "web" / "how_to_use.html", "/how-to-use"),
     "/wisdom-sources": (REPO_ROOT / "web" / "wisdom_sources.html", "/wisdom-sources"),
     "/web/index.html": (REPO_ROOT / "web" / "index.html", "/"),
     "/web/clock_visualizer.html": (REPO_ROOT / "web" / "clock_visualizer.html", "/clock"),
+    "/web/scripture_study.html": (REPO_ROOT / "web" / "scripture_study.html", "/scripture-study"),
     "/web/how_to_use.html": (REPO_ROOT / "web" / "how_to_use.html", "/how-to-use"),
     "/web/wisdom_sources.html": (REPO_ROOT / "web" / "wisdom_sources.html", "/wisdom-sources"),
 }
 SITEMAP_PAGE_SOURCES = {
     "/": REPO_ROOT / "web" / "index.html",
     "/clock": REPO_ROOT / "web" / "clock_visualizer.html",
+    "/scripture-study": REPO_ROOT / "web" / "scripture_study.html",
     "/how-to-use": REPO_ROOT / "web" / "how_to_use.html",
     "/wisdom-sources": REPO_ROOT / "web" / "wisdom_sources.html",
 }
@@ -136,6 +145,7 @@ NOINDEX_PREFIXES = ("/api/", "/data/", "/docs/", "/src/", "/deploy/", "/output/"
 NOINDEX_PATHS = {
     "/web/index.html",
     "/web/clock_visualizer.html",
+    "/web/scripture_study.html",
     "/web/how_to_use.html",
     "/web/wisdom_sources.html",
 }
@@ -1105,6 +1115,44 @@ def _env_int(name: str, default: int) -> int:
         return int(raw)
     except ValueError:
         return default
+
+
+def _clean_release_text(value: Any) -> str:
+    return re.sub(r"\s+", " ", str(value or "")).strip()
+
+
+def _normalize_app_version(value: Any) -> str:
+    version = _clean_release_text(value)
+    return re.sub(r"^v(?=[0-9])", "", version, flags=re.IGNORECASE)
+
+
+def _format_release_timestamp(value: Any) -> str:
+    raw = _clean_release_text(value)
+    if not raw:
+        return ""
+
+    try:
+        parsed = datetime.fromisoformat(raw.replace("Z", "+00:00"))
+    except ValueError:
+        return raw
+
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=ZoneInfo("UTC"))
+    else:
+        parsed = parsed.astimezone(ZoneInfo("UTC"))
+    return parsed.strftime("%Y-%m-%d %H:%M UTC")
+
+
+def _resolve_public_release_metadata() -> dict[str, str]:
+    version = _normalize_app_version(os.environ.get(APP_VERSION_ENV))
+    release = _clean_release_text(os.environ.get(APP_RELEASE_ENV))
+    released_at = _format_release_timestamp(os.environ.get(APP_RELEASED_AT_ENV))
+
+    return {
+        "version": version or _normalize_app_version(release) or DEFAULT_APP_VERSION,
+        "release": release or DEFAULT_APP_RELEASE,
+        "released_at": released_at or DEFAULT_APP_RELEASED_AT,
+    }
 
 
 def _load_psalm_lookup_from_pericope() -> tuple[dict[int, dict[int, str]] | None, str | None]:
@@ -2955,6 +3003,7 @@ class ClockRequestHandler(SimpleHTTPRequestHandler):
 
     def _render_public_template(self, template_path: Path, canonical_path: str) -> str:
         html = template_path.read_text(encoding="utf-8")
+        release_meta = _resolve_public_release_metadata()
         replacements = {
             "__SITE_URL__": self._resolve_site_url(),
             "__CANONICAL_URL__": self._build_absolute_url(canonical_path),
@@ -2964,6 +3013,9 @@ class ClockRequestHandler(SimpleHTTPRequestHandler):
             "__AUTH_CLIENT_ID__": _resolve_auth_client_id(),
             "__AUTH_DISABLED__": "true" if _auth_disabled() else "false",
             "__AUTH_DEV_FAKE__": "true" if _dev_fake_auth_enabled() else "false",
+            "__APP_VERSION__": xml_escape(release_meta["version"]),
+            "__APP_RELEASE__": xml_escape(release_meta["release"]),
+            "__APP_RELEASED_AT__": xml_escape(release_meta["released_at"]),
         }
         for token, value in replacements.items():
             html = html.replace(token, value)
@@ -2994,6 +3046,7 @@ class ClockRequestHandler(SimpleHTTPRequestHandler):
             "Disallow: /.playwright-cli/",
             "Disallow: /web/index.html",
             "Disallow: /web/clock_visualizer.html",
+            "Disallow: /web/scripture_study.html",
             "Disallow: /web/how_to_use.html",
             "Disallow: /web/wisdom_sources.html",
             "",

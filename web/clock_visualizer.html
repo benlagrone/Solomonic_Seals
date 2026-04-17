@@ -32,7 +32,7 @@
       gtag("config", "G-138HFD1QQP");
     </script>
     <link rel="icon" href='data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="12" fill="%23020617"/><circle cx="32" cy="32" r="20" fill="none" stroke="%23facc15" stroke-width="4"/><circle cx="32" cy="32" r="6" fill="%23facc15"/></svg>' />
-    <link rel="stylesheet" href="/web/style.css?v=20260413-1" />
+    <link rel="stylesheet" href="/web/style.css?v=20260416-1" />
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
@@ -65,7 +65,10 @@
           <p class="daily-opening-anchor-label">Scripture Anchor</p>
           <p class="daily-opening-anchor-ref">—</p>
           <p class="daily-opening-anchor-text">—</p>
-          <button type="button" class="daily-opening-anchor-toggle" hidden>Read More</button>
+          <div class="daily-opening-anchor-actions">
+            <button type="button" class="daily-opening-anchor-toggle" hidden>Read More</button>
+            <button type="button" class="daily-opening-anchor-study" hidden>Study Passage</button>
+          </div>
         </div>
         <label class="daily-opening-intention-label" for="daily-opening-intention">
           Intention for today
@@ -88,6 +91,7 @@
         <nav class="page-actions" aria-label="Page links">
           <a class="page-link" href="/">Overview</a>
           <a class="page-link" href="/how-to-use">How It Works</a>
+          <a class="page-link" href="/scripture-study">Scripture Study</a>
         </nav>
         <h1 class="title">True Vine OS</h1>
         <p class="page-intro">
@@ -237,6 +241,43 @@
               <button type="button" class="action-button closing-clear">Clear Closing</button>
             </div>
           </section>
+        </section>
+        <section class="scripture-reader-panel" aria-label="Scripture reader">
+          <div class="scripture-reader-top">
+            <div>
+              <p class="scripture-reader-kicker">Scripture Reader</p>
+              <h2 class="scripture-reader-title">Read and hear today&apos;s passages</h2>
+            </div>
+            <p class="scripture-reader-status" aria-live="polite">Loading today&apos;s psalm…</p>
+          </div>
+          <div class="scripture-reader-tabs" role="tablist" aria-label="Scripture reader sources">
+            <button
+              type="button"
+              class="scripture-reader-tab is-active"
+              data-scripture-kind="psalm"
+              role="tab"
+              aria-selected="true"
+            >
+              Psalm
+            </button>
+            <button
+              type="button"
+              class="scripture-reader-tab"
+              data-scripture-kind="wisdom"
+              role="tab"
+              aria-selected="false"
+            >
+              Wisdom
+            </button>
+          </div>
+          <p class="scripture-reader-ref">—</p>
+          <article class="scripture-reader-text" aria-live="polite">Loading today&apos;s passage…</article>
+          <div class="scripture-reader-actions">
+            <button type="button" class="action-button scripture-reader-toggle">Read Full Passage</button>
+            <button type="button" class="action-button scripture-reader-study">Study Passage</button>
+            <button type="button" class="action-button action-button--accent scripture-reader-listen">Listen</button>
+            <button type="button" class="action-button scripture-reader-stop">Stop</button>
+          </div>
         </section>
         <section class="providence-timeline" hidden aria-label="Providence timeline">
           <div class="providence-timeline-top">
@@ -433,6 +474,9 @@
                 <button type="button" class="bundle-stop bundle-psalm-stop" data-bundle-kind="psalm">
                   Stop
                 </button>
+                <button type="button" class="bundle-study bundle-psalm-study" data-bundle-kind="psalm">
+                  Study Passage
+                </button>
                 <button type="button" class="bundle-discuss bundle-psalm-discuss" data-bundle-kind="psalm">
                   Discuss In Pericope
                 </button>
@@ -451,6 +495,9 @@
                 </button>
                 <button type="button" class="bundle-stop bundle-wisdom-stop" data-bundle-kind="wisdom">
                   Stop
+                </button>
+                <button type="button" class="bundle-study bundle-wisdom-study" data-bundle-kind="wisdom">
+                  Study Passage
                 </button>
                 <button type="button" class="bundle-discuss bundle-wisdom-discuss" data-bundle-kind="wisdom">
                   Discuss In Pericope
@@ -481,11 +528,24 @@
         </div>
       </aside>
     </div>
+    <footer class="clock-footer">
+      <div class="clock-footer-links" aria-label="Clock links">
+        <a class="clock-footer-link" href="/">Overview</a>
+        <a class="clock-footer-link" href="/how-to-use">How It Works</a>
+        <a class="clock-footer-link" href="/scripture-study">Scripture Study</a>
+        <a class="clock-footer-link" href="/wisdom-sources">Wisdom Sources</a>
+      </div>
+      <p class="footer-release-meta">
+        <span>Version <strong>v__APP_VERSION__</strong></span>
+        <span>Release __APP_RELEASE__</span>
+        <span>__APP_RELEASED_AT__</span>
+      </p>
+    </footer>
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <script type="module">
       import Keycloak from "https://cdn.jsdelivr.net/npm/keycloak-js@26.0.2/+esm";
       window.Keycloak = Keycloak;
-      import("/web/clock.js?v=20260413-1");
+      import("/web/clock.js?v=20260416-1");
     </script>
   </body>
 </html>
