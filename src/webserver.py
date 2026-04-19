@@ -125,19 +125,19 @@ _AUTH_USERINFO_CACHE: dict[str, dict[str, Any]] = {}
 PUBLIC_PAGE_TEMPLATES = {
     "/": (REPO_ROOT / "web" / "index.html", "/"),
     "/clock": (REPO_ROOT / "web" / "clock_visualizer.html", "/clock"),
-    "/scripture-study": (REPO_ROOT / "web" / "scripture_study.html", "/web/scripture_study.html"),
+    "/scripture-study": (REPO_ROOT / "web" / "scripture_study.html", "/scripture-study"),
     "/how-to-use": (REPO_ROOT / "web" / "how_to_use.html", "/how-to-use"),
     "/wisdom-sources": (REPO_ROOT / "web" / "wisdom_sources.html", "/wisdom-sources"),
     "/web/index.html": (REPO_ROOT / "web" / "index.html", "/"),
     "/web/clock_visualizer.html": (REPO_ROOT / "web" / "clock_visualizer.html", "/clock"),
-    "/web/scripture_study.html": (REPO_ROOT / "web" / "scripture_study.html", "/web/scripture_study.html"),
+    "/web/scripture_study.html": (REPO_ROOT / "web" / "scripture_study.html", "/scripture-study"),
     "/web/how_to_use.html": (REPO_ROOT / "web" / "how_to_use.html", "/how-to-use"),
     "/web/wisdom_sources.html": (REPO_ROOT / "web" / "wisdom_sources.html", "/wisdom-sources"),
 }
 SITEMAP_PAGE_SOURCES = {
     "/": REPO_ROOT / "web" / "index.html",
     "/clock": REPO_ROOT / "web" / "clock_visualizer.html",
-    "/web/scripture_study.html": REPO_ROOT / "web" / "scripture_study.html",
+    "/scripture-study": REPO_ROOT / "web" / "scripture_study.html",
     "/how-to-use": REPO_ROOT / "web" / "how_to_use.html",
     "/wisdom-sources": REPO_ROOT / "web" / "wisdom_sources.html",
 }
@@ -145,6 +145,7 @@ NOINDEX_PREFIXES = ("/api/", "/data/", "/docs/", "/src/", "/deploy/", "/output/"
 NOINDEX_PATHS = {
     "/web/index.html",
     "/web/clock_visualizer.html",
+    "/web/scripture_study.html",
     "/web/how_to_use.html",
     "/web/wisdom_sources.html",
 }

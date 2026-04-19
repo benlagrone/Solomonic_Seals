@@ -298,7 +298,7 @@ const DAILY_ACTION_STORAGE_KEY = "truevineos-daily-actions-v1";
 const DAILY_OPENING_DISMISSED_STORAGE_KEY = "truevineos-daily-opening-dismissed-v1";
 const HISTORY_SYNC_API_PATH = "/api/history/sync";
 const PERICOPE_HISTORY_SESSIONS_API_PATH = "/api/pericope/history-sessions";
-const SCRIPTURE_STUDY_PATH = "/web/scripture_study.html";
+const SCRIPTURE_STUDY_PATH = "/scripture-study";
 
 function isLoopbackHost(hostname = window.location.hostname) {
   const normalized = String(hostname || "").trim().toLowerCase();
