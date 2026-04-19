@@ -299,6 +299,14 @@ const DAILY_OPENING_DISMISSED_STORAGE_KEY = "truevineos-daily-opening-dismissed-
 const HISTORY_SYNC_API_PATH = "/api/history/sync";
 const PERICOPE_HISTORY_SESSIONS_API_PATH = "/api/pericope/history-sessions";
 const SCRIPTURE_STUDY_PATH = "/web/scripture_study.html";
+
+function isLoopbackHost(hostname = window.location.hostname) {
+  const normalized = String(hostname || "").trim().toLowerCase();
+  return normalized === "localhost"
+    || normalized === "127.0.0.1"
+    || normalized === "::1";
+}
+
 const HISTORY_CLIENT_ID_STORAGE_KEY = "truevineos-history-client-id";
 const HISTORY_CLIENT_KEY_STORAGE_KEY = "truevineos-history-client-key";
 const HISTORY_CLIENT_HEADER = "X-TrueVine-History-Client";
@@ -1074,7 +1082,9 @@ function applyLensState() {
     const supportedLenses = String(section.dataset.lenses || "")
       .split(/\s+/)
       .filter(Boolean);
-    const isVisible = !supportedLenses.length || supportedLenses.includes(uiState.lens);
+    const lensVisible = !supportedLenses.length || supportedLenses.includes(uiState.lens);
+    const stateHidden = String(section.dataset.stateHidden || "").toLowerCase() === "true";
+    const isVisible = lensVisible && !stateHidden;
     section.hidden = !isVisible;
     section.classList.toggle("is-hidden", !isVisible);
   });
@@ -4286,14 +4296,16 @@ async function initialiseClockAuth() {
     });
 
     const authenticated = await clockKeycloak.init({
-      onLoad: "check-sso",
+      onLoad: isLoopbackHost() ? undefined : "check-sso",
       pkceMethod: "S256",
       responseMode: "query",
       flow: "standard",
       checkLoginIframe: false,
       silentCheckSsoFallback: true,
       thirdPartyCookies: false,
-      silentCheckSsoRedirectUri: `${window.location.origin}/web/keycloak-silent-check-sso.html`,
+      silentCheckSsoRedirectUri: isLoopbackHost()
+        ? undefined
+        : `${window.location.origin}/web/keycloak-silent-check-sso.html`,
       redirectUri: getClockAuthRedirectUri(),
     });
 
@@ -6343,7 +6355,8 @@ async function resolveExpandedBundleText(kind, requestState) {
       || ""
     ).trim();
     if (!Number.isNaN(chapter) && chapter > 0) {
-      const nextText = await retrievePsalmPassage(chapter, verseSpec, readingDepth);
+      const expandedDepth = String(requestState.expandedDepth || "long").trim() || "long";
+      const nextText = await retrievePsalmPassage(chapter, verseSpec, expandedDepth);
       requestState.expandedText = nextText || requestState.previewText || "No expanded text returned.";
       return requestState.expandedText;
     }
@@ -6408,7 +6421,8 @@ async function resolveExpandedBundleFallbackText(kind, requestState) {
     ).trim();
     if (!Number.isNaN(chapter) && chapter > 0) {
       try {
-        const fallbackText = await retrievePsalmPassage(chapter, verseSpec, readingDepth);
+        const expandedDepth = String(requestState.expandedDepth || "long").trim() || "long";
+        const fallbackText = await retrievePsalmPassage(chapter, verseSpec, expandedDepth);
         if (fallbackText) {
           reportClientError("bundle_expansion_fallback_used", {
             severity: "warn",
@@ -6453,6 +6467,9 @@ function configureBundleExpansion(kind, {
   text,
   request,
   expandedText = "",
+  expandAvailable = Boolean(request) || Boolean(expandedText),
+  previewDepth = "",
+  expandedDepth = "",
   expandLabel = "Read Full Passage",
   collapseLabel = "Show Summary",
   discussLabel = "Discuss In Pericope",
@@ -6473,6 +6490,9 @@ function configureBundleExpansion(kind, {
       expanded: false,
       expandedText: "",
       localExpandedText,
+      expandAvailable: Boolean(expandAvailable),
+      previewDepth: String(previewDepth || "").trim(),
+      expandedDepth: String(expandedDepth || "").trim(),
       expandLabel,
       collapseLabel,
       discussLabel,
@@ -6492,9 +6512,9 @@ function configureBundleExpansion(kind, {
     return;
   }
 
-  elements.button.hidden = !available;
-  elements.button.disabled = !available;
-  elements.button.textContent = available ? expandLabel : "Expansion Unavailable";
+  elements.button.hidden = !available || !expandAvailable;
+  elements.button.disabled = !available || !expandAvailable;
+  elements.button.textContent = available && expandAvailable ? expandLabel : "Expansion Unavailable";
   if (elements.study) {
     elements.study.hidden = !available;
     elements.study.disabled = !available;
@@ -6537,7 +6557,9 @@ function restoreBundlePreview(kind) {
     elements.text.textContent = state.previewText;
   }
   if (elements.button) {
-    elements.button.disabled = false;
+    const canExpand = Boolean(state.expandAvailable);
+    elements.button.hidden = !canExpand;
+    elements.button.disabled = !canExpand;
     elements.button.textContent = state.expandLabel || "Read Full Passage";
   }
   if (elements.discuss) {
@@ -6551,7 +6573,7 @@ function restoreBundlePreview(kind) {
 async function toggleBundleExpansion(kind) {
   const elements = getBundleCardElements(kind);
   const state = bundleExpansionState[kind];
-  if (!elements?.text || !elements.button || !state || (!state.request && !state.localExpandedText)) {
+  if (!elements?.text || !elements.button || !state || !state.expandAvailable || (!state.request && !state.localExpandedText)) {
     return;
   }
 
@@ -6919,7 +6941,7 @@ function renderScriptureReader(force = false) {
     setScriptureReaderStatus(getScriptureReaderDefaultStatus(kind));
   }
 
-  const canExpand = Boolean(sourceState?.request || sourceState?.localExpandedText);
+  const canExpand = Boolean(sourceState?.expandAvailable);
   const display = getScriptureReaderDisplayState(kind, sourceState);
   const canListen = SCRIPTURE_READER_SUPPORTED
     && !scriptureReaderState.loading
@@ -6968,7 +6990,7 @@ function renderScriptureReader(force = false) {
 async function toggleScriptureReaderExpansion() {
   const kind = scriptureReaderState.kind;
   const sourceState = getScriptureReaderSourceState(kind);
-  if (!sourceState || (!sourceState.request && !sourceState.localExpandedText)) {
+  if (!sourceState || !sourceState.expandAvailable || (!sourceState.request && !sourceState.localExpandedText)) {
     return;
   }
 
@@ -8373,7 +8395,9 @@ function updateRuleOfLifePanels(rule) {
     drawerElements.surfaceRule.hidden = !showRule;
   }
   if (drawerElements.ruleSection) {
+    drawerElements.ruleSection.dataset.stateHidden = showRule ? "false" : "true";
     drawerElements.ruleSection.hidden = !showRule;
+    drawerElements.ruleSection.classList.toggle("is-hidden", !showRule);
   }
 
   if (!showRule) {
@@ -9267,6 +9291,9 @@ function updateDailyContentBundle(timeState, referenceMap, psalmMetadata) {
       verseSpec: bundleVerseSpec,
       reference: citedPsalmReference,
     },
+    expandAvailable: readingDepth !== "long",
+    previewDepth: readingDepth,
+    expandedDepth: "long",
   });
 
   retrievePsalmPassage(chapter, bundleVerseSpec, readingDepth).then((text) => {
