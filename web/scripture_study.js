@@ -49,6 +49,8 @@ const FALLBACK_DAILY_PSALM_BY_RULER = {
   Saturn: { chapter: 90, verse: "12" },
 };
 
+const STUDY_DEPTHS = ["anchor", "context", "crossrefs", "discuss"];
+
 const elements = {
   title: document.querySelector(".study-page-title"),
   intro: document.querySelector(".study-page-intro"),
@@ -56,10 +58,17 @@ const elements = {
   originLine: document.querySelector(".study-origin-line"),
   contextSummary: document.querySelector(".study-context-summary"),
   contextList: document.querySelector(".study-context-list"),
+  depthSummary: document.querySelector(".study-depth-summary"),
+  depthButtons: Array.from(document.querySelectorAll("[data-depth-button]")),
+  depthPanels: Array.from(document.querySelectorAll("[data-depth-panel]")),
   anchorHeading: document.querySelector(".study-anchor-heading"),
   readingStatus: document.querySelector(".study-reading-status"),
   anchorText: document.querySelector(".study-anchor-text"),
-  expandButton: document.querySelector(".study-expand-button"),
+  whyText: document.querySelector(".study-why-text"),
+  whyList: document.querySelector(".study-why-list"),
+  contextHeading: document.querySelector(".study-context-heading"),
+  contextStatus: document.querySelector(".study-context-status"),
+  contextNote: document.querySelector(".study-context-note"),
   expandedText: document.querySelector(".study-expanded-text"),
   pairedRef: document.querySelector(".study-paired-ref"),
   pairedText: document.querySelector(".study-paired-text"),
@@ -71,6 +80,9 @@ const elements = {
   sourceLinks: document.querySelector(".study-source-links"),
   prompts: document.querySelector(".study-prompts"),
   discussButton: document.querySelector(".study-discuss-button"),
+  discussPanelButton: document.querySelector(".study-discuss-panel-button"),
+  discussTitle: document.querySelector(".study-discuss-title"),
+  discussText: document.querySelector(".study-discuss-text"),
 };
 
 function sentenceCase(text) {
@@ -228,6 +240,7 @@ function getStudyQuery() {
   const kindParam = String(params.get("kind") || "").trim().toLowerCase();
   const kind = kindParam || (/^psalm\s+/i.test(reference) ? "psalm" : "wisdom");
   const pentacle = Number.parseInt(params.get("pentacle") || "", 10);
+  const depthParam = String(params.get("depth") || "").trim().toLowerCase();
 
   return {
     kind,
@@ -244,6 +257,7 @@ function getStudyQuery() {
     psalmRef: String(params.get("psalm_ref") || "").trim(),
     wisdomRef: String(params.get("wisdom_ref") || "").trim(),
     origin: String(params.get("origin") || "").trim(),
+    depth: STUDY_DEPTHS.includes(depthParam) ? depthParam : "anchor",
   };
 }
 
@@ -265,6 +279,7 @@ function buildStudyUrl(study, overrides = {}) {
     ["psalm_ref", next.psalmRef],
     ["wisdom_ref", next.wisdomRef],
     ["origin", next.origin],
+    ["depth", next.depth],
   ].forEach(([key, value]) => {
     const clean = String(value ?? "").trim();
     if (clean) {
@@ -313,6 +328,60 @@ function renderContext(study, paired) {
   });
 }
 
+function applyDepthSelection(study, depth, { pushHistory = true } = {}) {
+  const nextDepth = STUDY_DEPTHS.includes(depth) ? depth : "anchor";
+  study.depth = nextDepth;
+
+  elements.depthButtons.forEach((button) => {
+    const isActive = button.dataset.depthButton === nextDepth;
+    button.classList.toggle("is-active", isActive);
+    button.setAttribute("aria-selected", isActive ? "true" : "false");
+    button.tabIndex = isActive ? 0 : -1;
+  });
+
+  elements.depthPanels.forEach((panel) => {
+    const isActive = panel.dataset.depthPanel === nextDepth;
+    panel.hidden = !isActive;
+    panel.classList.toggle("study-depth-panel--active", isActive);
+  });
+
+  if (pushHistory) {
+    const url = buildStudyUrl(study);
+    window.history.replaceState({}, "", url);
+  }
+}
+
+function bindDepthControls(study) {
+  elements.depthButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      applyDepthSelection(study, button.dataset.depthButton);
+    });
+  });
+}
+
+function buildWhyToday(study, paired, solomonicRecord) {
+  const domain = String(study.domain || "today's active field").toLowerCase();
+  const virtue = String(study.virtue || "the needed virtue").toLowerCase();
+  const ruler = study.rulerText ? `${study.rulerText} day` : "today";
+  const summary = `${study.reference || "This passage"} belongs to ${ruler} because the clock is reading ${domain} through ${virtue}, not as an isolated verse but as counsel for one concrete decision.`;
+
+  const bullets = [];
+  if (study.dayText || study.rulerText) {
+    bullets.push(`Frame: ${[study.dayText, study.rulerText].filter(Boolean).join(" — ")}.`);
+  }
+  if (study.domain || study.virtue) {
+    bullets.push(`Moral emphasis: ${[study.domain, study.virtue].filter(Boolean).join(" • ")}.`);
+  }
+  if (paired?.reference) {
+    bullets.push(`Paired with ${paired.reference} so the reading has a second witness.`);
+  }
+  if (solomonicRecord?.name || (study.planet && study.pentacle)) {
+    bullets.push(`Held inside ${solomonicRecord?.name || `${study.planet} Pentacle #${study.pentacle}`}, so the symbolic frame stays subordinate to the scripture but still interprets the day.`);
+  }
+
+  return { summary, bullets: bullets.slice(0, 4) };
+}
+
 function buildPairedReading(study) {
   if (study.kind === "psalm") {
     const paired = WISDOM_CONTENT_BY_RULER[study.rulerText];
@@ -353,6 +422,21 @@ function buildPairedReading(study) {
   };
 }
 
+async function loadPairedReadingText(paired) {
+  if (!paired?.reference) {
+    return "";
+  }
+  if (paired.preview) {
+    return sanitizeInlinePassageText(paired.preview);
+  }
+  if (paired.kind === "psalm" && paired.chapter) {
+    return sanitizeInlinePassageText(
+      await fetchPsalmVerseWindow(paired.chapter, paired.verseSpec || "")
+    );
+  }
+  return sanitizeInlinePassageText(await fetchBookPartial("wisdom", paired.reference));
+}
+
 function renderPairedReading(study, paired) {
   if (!paired?.reference) {
     elements.pairedRef.textContent = "—";
@@ -363,7 +447,7 @@ function renderPairedReading(study, paired) {
 
   elements.pairedRef.textContent = paired.reference;
   elements.pairedText.textContent = paired.preview
-    ? sanitizeInlinePassageText(paired.preview)
+    ? toSnippet(paired.preview, 280)
     : "Open this paired reading to continue the cross-reference path.";
   elements.pairedLink.hidden = false;
   elements.pairedLink.textContent = "Open paired study";
@@ -374,6 +458,7 @@ function renderPairedReading(study, paired) {
     verseSpec: paired.verseSpec || "",
     preview: paired.preview || "",
     origin: "paired-reading",
+    depth: "anchor",
   });
 }
 
@@ -506,13 +591,16 @@ function buildStudyPrompts(study, paired, solomonicRecord) {
   if (!prompts.length) {
     prompts.push("Open a live scripture anchor from the clock to generate passage-specific prompts.");
   }
+  return prompts.slice(0, 3).map((prompt) => withTerminalPunctuation(prompt));
+}
+
+function renderStudyPrompts(prompts) {
   elements.prompts.innerHTML = "";
-  prompts.slice(0, 3).forEach((prompt) => {
+  prompts.forEach((prompt) => {
     const item = document.createElement("li");
-    item.textContent = withTerminalPunctuation(prompt);
+    item.textContent = prompt;
     elements.prompts.appendChild(item);
   });
-  return prompts;
 }
 
 async function loadAnchorTexts(study) {
@@ -520,7 +608,7 @@ async function loadAnchorTexts(study) {
     return {
       anchorText: "Open this page from the clock’s scripture surfaces to load a live passage.",
       expandedText: "",
-      canExpand: false,
+      contextStatus: "Waiting for a broader passage.",
     };
   }
 
@@ -532,7 +620,9 @@ async function loadAnchorTexts(study) {
     return {
       anchorText: anchorText || "Unable to load the anchored verses.",
       expandedText: expandedText || "",
-      canExpand: Boolean(expandedText),
+      contextStatus: expandedText
+        ? "Showing the surrounding psalm so the anchor can be read in sequence."
+        : "Only the anchor verses are available right now.",
     };
   }
 
@@ -541,12 +631,14 @@ async function loadAnchorTexts(study) {
   return {
     anchorText: previewText || toSnippet(expandedText, 260) || "Unable to load the anchored passage.",
     expandedText,
-    canExpand: Boolean(expandedText),
+    contextStatus: expandedText
+      ? "Showing the broader wisdom passage for context."
+      : "Only the anchor excerpt is available right now.",
   };
 }
 
 function bindDiscussAction(study, prompts) {
-  elements.discussButton.addEventListener("click", () => {
+  const launch = () => {
     const message = prompts[0]
       || `Help me study ${study.reference || "this passage"} in the context of today’s counsel.`;
     const params = new URLSearchParams({
@@ -555,15 +647,71 @@ function bindDiscussAction(study, prompts) {
       message,
     });
     window.location.assign(`${PERICOPE_CHAT_URL}?${params.toString()}`);
+  };
+
+  elements.discussButton.onclick = launch;
+  if (elements.discussPanelButton) {
+    elements.discussPanelButton.onclick = launch;
+  }
+}
+
+function renderWhyToday(whyToday) {
+  elements.whyText.textContent = whyToday.summary;
+  elements.whyList.innerHTML = "";
+  whyToday.bullets.forEach((line) => {
+    const item = document.createElement("li");
+    item.textContent = line;
+    elements.whyList.appendChild(item);
   });
+}
+
+async function buildStudyPayload(study) {
+  const paired = buildPairedReading(study);
+  const [
+    scriptureMappings,
+    pentaclePsalmPayload,
+    pentaclesPayload,
+    reading,
+    pairedPreview,
+  ] = await Promise.all([
+    fetchJsonResource(SCRIPTURE_MAPPINGS_PATH, "scripture mappings"),
+    fetchJsonResource(PENTACLE_PSALMS_PATH, "pentacle psalm map"),
+    fetchJsonResource(PENTACLES_PATH, "pentacles"),
+    loadAnchorTexts(study),
+    loadPairedReadingText(paired).catch(() => ""),
+  ]);
+
+  const pairedWithPreview = paired
+    ? { ...paired, preview: paired.preview || pairedPreview || "" }
+    : null;
+  const solomonicRecord = renderSolomonicSetting(study, pentaclesPayload);
+  const whyToday = buildWhyToday(study, pairedWithPreview, solomonicRecord);
+  const prompts = buildStudyPrompts(study, pairedWithPreview, solomonicRecord);
+
+  return {
+    paired: pairedWithPreview,
+    scriptureMappings,
+    pentaclePsalmPayload,
+    pentaclesPayload,
+    reading,
+    solomonicRecord,
+    whyToday,
+    prompts,
+  };
 }
 
 async function initialiseStudyPage() {
   const study = getStudyQuery();
-  const paired = buildPairedReading(study);
+  bindDepthControls(study);
+  applyDepthSelection(study, study.depth, { pushHistory: false });
 
+  const paired = buildPairedReading(study);
   renderContext(study, paired);
   renderPairedReading(study, paired);
+
+  elements.depthSummary.textContent = "Anchor first, then widen into context, cross references, and discussion.";
+  elements.contextHeading.textContent = study.reference || "Open a passage to widen the reading";
+  elements.contextStatus.textContent = "Waiting for a broader passage.";
 
   if (!study.reference) {
     bindDiscussAction(study, []);
@@ -573,43 +721,42 @@ async function initialiseStudyPage() {
   elements.title.textContent = `${study.reference} | Scripture Study`;
   elements.intro.textContent = `Read ${study.reference} as more than a small preview card: hold the anchor, the broader passage, the paired reading, and the live clock context together.`;
   elements.anchorHeading.textContent = study.reference;
-  elements.readingStatus.textContent = "Loading anchor and broader passage…";
+  elements.contextHeading.textContent = study.reference;
+  elements.readingStatus.textContent = "Loading the anchor...";
+  elements.contextStatus.textContent = "Loading the broader passage...";
   elements.anchorText.textContent = "Loading passage…";
+  elements.expandedText.textContent = "Loading broader context…";
 
   try {
-    const [scriptureMappings, pentaclePsalmPayload, pentaclesPayload, reading] = await Promise.all([
-      fetchJsonResource(SCRIPTURE_MAPPINGS_PATH, "scripture mappings"),
-      fetchJsonResource(PENTACLE_PSALMS_PATH, "pentacle psalm map"),
-      fetchJsonResource(PENTACLES_PATH, "pentacles"),
-      loadAnchorTexts(study),
-    ]);
+    const payload = await buildStudyPayload(study);
 
-    elements.anchorText.textContent = reading.anchorText;
-    elements.expandedText.textContent = reading.expandedText;
-    elements.readingStatus.textContent = reading.canExpand
-      ? "Showing the anchor. Open the broader passage when you are ready."
-      : "Showing the anchor reading.";
+    renderPairedReading(study, payload.paired);
+    renderThemesAndLinks(study, payload.scriptureMappings);
+    renderRelatedPentacles(study, payload.pentaclePsalmPayload, payload.pentaclesPayload);
+    renderWhyToday(payload.whyToday);
+    renderStudyPrompts(payload.prompts);
+    bindDiscussAction(study, payload.prompts);
 
-    if (reading.canExpand) {
-      let expandedVisible = false;
-      elements.expandButton.hidden = false;
-      elements.expandButton.textContent = "Read Broader Passage";
-      elements.expandButton.addEventListener("click", () => {
-        expandedVisible = !expandedVisible;
-        elements.expandedText.hidden = !expandedVisible;
-        elements.expandButton.textContent = expandedVisible ? "Show Anchor Only" : "Read Broader Passage";
-      });
-    }
-
-    renderThemesAndLinks(study, scriptureMappings);
-    renderRelatedPentacles(study, pentaclePsalmPayload, pentaclesPayload);
-    const solomonicRecord = renderSolomonicSetting(study, pentaclesPayload);
-    const prompts = buildStudyPrompts(study, paired, solomonicRecord);
-    bindDiscussAction(study, prompts);
+    elements.anchorText.textContent = payload.reading.anchorText;
+    elements.expandedText.textContent = payload.reading.expandedText || "No broader context is available for this passage yet.";
+    elements.readingStatus.textContent = "Showing the anchor. Keep the exact wording in view before widening the reading.";
+    elements.contextStatus.textContent = payload.reading.contextStatus;
+    elements.contextNote.textContent = payload.reading.expandedText
+      ? "This layer widens the anchor into its surrounding passage so the reading can be tested in sequence and tone."
+      : "Only the anchor text is available right now, so stay with the exact cited wording.";
+    elements.depthSummary.textContent = `Use ${study.reference} as the anchor, then widen into context, correspondences, and discussion without losing the original reference.`;
+    elements.discussTitle.textContent = payload.solomonicRecord?.name
+      ? `Discuss ${payload.solomonicRecord.name} and ${study.reference}`
+      : `Discuss ${study.reference}`;
+    elements.discussText.textContent = payload.prompts[0]
+      || "Use the reading stack first, then carry the strongest question into guided conversation.";
   } catch (error) {
     console.error("Failed to initialise scripture study page", error);
     elements.readingStatus.textContent = "Unable to load the deeper study view right now.";
+    elements.contextStatus.textContent = "Context could not be loaded.";
     elements.anchorText.textContent = study.preview || "The study page could not load the requested passage.";
+    elements.expandedText.textContent = "The broader passage is unavailable right now.";
+    elements.contextNote.textContent = "Stay with the anchor and use Pericope if you need help working with the passage while the deeper study surface is unavailable.";
     bindDiscussAction(study, [
       `Help me work with ${study.reference || "this passage"} even though the full study page did not load correctly.`,
     ]);

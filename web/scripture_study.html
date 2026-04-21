@@ -32,8 +32,8 @@
       gtag("config", "G-138HFD1QQP");
     </script>
     <link rel="icon" href='data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="12" fill="%23020617"/><circle cx="32" cy="32" r="20" fill="none" stroke="%23facc15" stroke-width="4"/><circle cx="32" cy="32" r="6" fill="%23facc15"/></svg>' />
-    <link rel="stylesheet" href="/web/style.css?v=20260416-1" />
-    <script defer src="/web/scripture_study.js?v=20260416-1"></script>
+    <link rel="stylesheet" href="/web/style.css?v=20260420-1" />
+    <script defer src="/web/scripture_study.js?v=20260420-1"></script>
   </head>
   <body data-pericope-chat-url="https://pericopeai.com/chat">
     <main class="guide-page study-page">
@@ -79,79 +79,194 @@
         </article>
       </section>
 
-      <section class="guide-panel study-reading-panel" aria-label="Primary reading">
-        <div class="study-reading-top">
-          <div>
-            <p class="study-section-label">Anchor reading</p>
-            <h2 class="study-anchor-heading">Select a passage from the clock</h2>
-          </div>
-          <p class="study-reading-status" aria-live="polite">Waiting for a passage reference.</p>
-        </div>
-        <article class="study-anchor-text">The anchor excerpt will appear here.</article>
-        <div class="study-reading-actions">
-          <button type="button" class="guide-link-button study-expand-button" hidden>Read Broader Passage</button>
-        </div>
-        <article class="study-expanded-text" hidden></article>
-      </section>
-
-      <section class="guide-grid study-detail-grid">
-        <article class="guide-card">
-          <p class="study-section-label">Paired reading</p>
-          <h2 class="study-paired-ref">—</h2>
-          <p class="study-paired-text">No paired reading is available yet.</p>
-          <a class="guide-link-button study-paired-link" href="/clock" hidden>Open paired study</a>
-        </article>
-        <article class="guide-card">
-          <p class="study-section-label">Solomonic setting</p>
-          <h2 class="study-solomonic-title">—</h2>
-          <p class="study-solomonic-text">
-            The study page will show the pentacle meaning, virtue, and why it was brought into today’s counsel.
-          </p>
-        </article>
-      </section>
-
-      <section class="guide-panel" aria-label="Cross references">
+      <section class="guide-panel study-stack-panel" aria-label="Reading stack">
         <div class="study-panel-top">
           <div>
-            <p class="study-section-label">Cross references</p>
-            <h2>Where this passage shows up</h2>
+            <p class="study-section-label">Reading stack</p>
+            <h2>Move from anchor into context</h2>
           </div>
-          <p class="study-panel-summary">
-            The clock already knows some of the surrounding context. This section makes those relationships readable.
+          <p class="study-panel-summary study-depth-summary">
+            Anchor first, then widen into context, cross references, and discussion.
           </p>
         </div>
-        <div class="guide-grid study-detail-grid">
-          <article class="guide-card">
-            <h3>Solomonic correspondences</h3>
-            <ul class="guide-list study-related-pentacles">
-              <li>No related pentacles loaded yet.</li>
+
+        <div class="study-depth-nav" role="tablist" aria-label="Study depth">
+          <button
+            type="button"
+            class="guide-link-button study-depth-button is-active"
+            id="study-tab-anchor"
+            role="tab"
+            aria-selected="true"
+            aria-controls="study-depth-anchor"
+            data-depth-button="anchor"
+          >
+            Anchor
+          </button>
+          <button
+            type="button"
+            class="guide-link-button study-depth-button"
+            id="study-tab-context"
+            role="tab"
+            aria-selected="false"
+            aria-controls="study-depth-context"
+            data-depth-button="context"
+          >
+            Context
+          </button>
+          <button
+            type="button"
+            class="guide-link-button study-depth-button"
+            id="study-tab-crossrefs"
+            role="tab"
+            aria-selected="false"
+            aria-controls="study-depth-crossrefs"
+            data-depth-button="crossrefs"
+          >
+            Cross References
+          </button>
+          <button
+            type="button"
+            class="guide-link-button study-depth-button"
+            id="study-tab-discuss"
+            role="tab"
+            aria-selected="false"
+            aria-controls="study-depth-discuss"
+            data-depth-button="discuss"
+          >
+            Discuss
+          </button>
+        </div>
+
+        <section
+          id="study-depth-anchor"
+          class="study-depth-panel study-depth-panel--active"
+          role="tabpanel"
+          aria-labelledby="study-tab-anchor"
+          data-depth-panel="anchor"
+        >
+          <div class="study-reading-top">
+            <div>
+              <p class="study-section-label">Anchor reading</p>
+              <h2 class="study-anchor-heading">Select a passage from the clock</h2>
+            </div>
+            <p class="study-reading-status" aria-live="polite">Waiting for a passage reference.</p>
+          </div>
+          <article class="study-anchor-text">The anchor excerpt will appear here.</article>
+          <article class="guide-card study-why-card">
+            <p class="study-section-label">Why this matters today</p>
+            <p class="study-why-text">
+              The study page will explain why the anchor belongs to today’s counsel.
+            </p>
+            <ul class="guide-list study-why-list">
+              <li>Domain, virtue, and ruler context will appear here.</li>
             </ul>
           </article>
-          <article class="guide-card">
-            <h3>Themes and source links</h3>
-            <div class="study-theme-list">
-              <span class="wisdom-tag">waiting for passage</span>
-            </div>
-            <div class="study-source-links">
-              <p class="study-source-note">Source links will appear here when they are available.</p>
-            </div>
-          </article>
-        </div>
-      </section>
+        </section>
 
-      <section class="guide-panel" aria-label="Study prompts">
-        <div class="study-panel-top">
-          <div>
-            <p class="study-section-label">Study prompts</p>
-            <h2>Questions that take the passage seriously</h2>
+        <section
+          id="study-depth-context"
+          class="study-depth-panel"
+          role="tabpanel"
+          aria-labelledby="study-tab-context"
+          data-depth-panel="context"
+          hidden
+        >
+          <div class="study-reading-top">
+            <div>
+              <p class="study-section-label">Broader passage</p>
+              <h2 class="study-context-heading">Open a passage to widen the reading</h2>
+            </div>
+            <p class="study-reading-status study-context-status">Waiting for a broader passage.</p>
           </div>
-          <p class="study-panel-summary">
-            These prompts are generated from the live context, so the page can move from reading into reflection and action.
-          </p>
-        </div>
-        <ul class="guide-list study-prompts">
-          <li>Open a passage from the clock to generate focused prompts.</li>
-        </ul>
+          <article class="study-expanded-text">The wider reading context will appear here.</article>
+          <div class="guide-grid study-detail-grid">
+            <article class="guide-card">
+              <p class="study-section-label">Paired reading</p>
+              <h2 class="study-paired-ref">—</h2>
+              <p class="study-paired-text">No paired reading is available yet.</p>
+              <a class="guide-link-button study-paired-link" href="/clock" hidden>Open paired study</a>
+            </article>
+            <article class="guide-card">
+              <p class="study-section-label">How to read this layer</p>
+              <p class="study-context-note">
+                The context layer widens the anchor so the passage can be read in sequence rather than as an isolated line.
+              </p>
+            </article>
+          </div>
+        </section>
+
+        <section
+          id="study-depth-crossrefs"
+          class="study-depth-panel"
+          role="tabpanel"
+          aria-labelledby="study-tab-crossrefs"
+          data-depth-panel="crossrefs"
+          hidden
+        >
+          <div class="guide-grid study-detail-grid">
+            <article class="guide-card">
+              <p class="study-section-label">Solomonic setting</p>
+              <h2 class="study-solomonic-title">—</h2>
+              <p class="study-solomonic-text">
+                The study page will show the pentacle meaning, virtue, and why it was brought into today’s counsel.
+              </p>
+            </article>
+            <article class="guide-card">
+              <h3>Solomonic correspondences</h3>
+              <ul class="guide-list study-related-pentacles">
+                <li>No related pentacles loaded yet.</li>
+              </ul>
+            </article>
+            <article class="guide-card">
+              <h3>Themes and source links</h3>
+              <div class="study-theme-list">
+                <span class="wisdom-tag">waiting for passage</span>
+              </div>
+              <div class="study-source-links">
+                <p class="study-source-note">Source links will appear here when they are available.</p>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section
+          id="study-depth-discuss"
+          class="study-depth-panel"
+          role="tabpanel"
+          aria-labelledby="study-tab-discuss"
+          data-depth-panel="discuss"
+          hidden
+        >
+          <div class="guide-grid study-detail-grid">
+            <article class="guide-card">
+              <div class="study-panel-top">
+                <div>
+                  <p class="study-section-label">Study prompts</p>
+                  <h2>Questions that take the passage seriously</h2>
+                </div>
+                <p class="study-panel-summary">
+                  These prompts are generated from the live context, so the page can move from reading into reflection and action.
+                </p>
+              </div>
+              <ul class="guide-list study-prompts">
+                <li>Open a passage from the clock to generate focused prompts.</li>
+              </ul>
+            </article>
+            <article class="guide-card study-discuss-card">
+              <p class="study-section-label">Conversation handoff</p>
+              <h3 class="study-discuss-title">Take this into Pericope</h3>
+              <p class="study-discuss-text">
+                Use the reading stack first, then carry the strongest question into guided conversation.
+              </p>
+              <div class="study-reading-actions">
+                <button type="button" class="guide-link-button guide-link-button--primary study-discuss-panel-button">
+                  Discuss In Pericope
+                </button>
+                <a class="guide-link-button study-return-link" href="/clock">Back to the Clock</a>
+              </div>
+            </article>
+          </div>
+        </section>
       </section>
 
       <footer class="clock-footer">

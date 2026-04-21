@@ -2604,6 +2604,11 @@ svg[data-mode="timeline"] .history-preview {
   gap: 0.95rem;
 }
 
+.study-stack-panel {
+  display: grid;
+  gap: 1rem;
+}
+
 .study-reading-top,
 .study-panel-top {
   display: flex;
@@ -2643,6 +2648,54 @@ svg[data-mode="timeline"] .history-preview {
   flex-wrap: wrap;
   gap: 0.55rem;
   margin-top: 0.2rem;
+}
+
+.study-depth-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+}
+
+.study-depth-button {
+  min-width: 8rem;
+}
+
+.study-depth-button.is-active {
+  border-color: rgba(250, 204, 21, 0.56);
+  background: rgba(250, 204, 21, 0.14);
+  color: #fde68a;
+}
+
+.study-depth-panel {
+  display: none;
+  gap: 1rem;
+}
+
+.study-depth-panel.study-depth-panel--active {
+  display: grid;
+}
+
+.study-why-card,
+.study-discuss-card {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.study-why-text,
+.study-context-note,
+.study-discuss-text {
+  margin: 0;
+  color: #d7dfeb;
+  line-height: 1.65;
+}
+
+.study-why-list {
+  margin-top: 0;
+}
+
+.study-discuss-title {
+  margin: 0;
+  color: #f8fafc;
 }
 
 .wisdom-hero {
