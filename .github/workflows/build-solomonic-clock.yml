@@ -91,7 +91,7 @@ jobs:
           image_ref = os.environ['IMAGE_REF']
           try:
               source_version = subprocess.check_output(
-                  ['git', 'describe', '--tags', '--always', '--dirty'],
+                  ['git', 'describe', '--tags', '--always'],
                   text=True,
               ).strip()
           except Exception:
@@ -132,7 +132,7 @@ jobs:
           FORTRESS_WORKFLOW_TOKEN: ${{ secrets.FORTRESS_WORKFLOW_TOKEN }}
         run: |
           set -euo pipefail
-          SOURCE_VERSION="$(git describe --tags --always --dirty 2>/dev/null || printf '%s' "${GITHUB_SHA}")"
+          SOURCE_VERSION="$(git describe --tags --always 2>/dev/null || printf '%s' "${GITHUB_SHA}")"
           curl -fsS -X POST \
             -H "Accept: application/vnd.github+json" \
             -H "Authorization: Bearer ${FORTRESS_WORKFLOW_TOKEN}" \
