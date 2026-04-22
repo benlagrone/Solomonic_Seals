@@ -47,6 +47,7 @@ SOLOMONIC_PERICOPE_API_BASE=http://augustine-corpus-live:8001
 Notes:
 - Keep `SOLOMONIC_HOST_PORT` on loopback only. nginx is the public edge.
 - If guided prompts are not in use yet, the shared secret can remain blank.
+- The production image includes `docs/source_texts/Psalms.txt`, so `SOLOMONIC_PSALM_SOURCE_MODE=pericope_first` can fall back to local English Psalms when the Pericope corpus route is unavailable.
 
 ## 3. Start the application container
 

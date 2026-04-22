@@ -105,13 +105,45 @@ function sanitizeInlinePassageText(text) {
 }
 
 function formatPassageBlockText(text) {
-  return String(text || "")
+  const blocks = [];
+  let currentVerse = "";
+
+  const flushVerse = () => {
+    const clean = currentVerse.replace(/\s+/g, " ").trim();
+    if (clean) {
+      blocks.push(clean);
+    }
+    currentVerse = "";
+  };
+
+  String(text || "")
     .replace(/\r\n?/g, "\n")
     .split("\n")
     .map((line) => line.trim())
     .filter(Boolean)
-    .join("\n\n")
-    .trim();
+    .forEach((line) => {
+      if (/^chapter\s+\d+\b/i.test(line)) {
+        flushVerse();
+        blocks.push(line);
+        return;
+      }
+
+      if (/^\d+\s+/.test(line)) {
+        flushVerse();
+        currentVerse = line;
+        return;
+      }
+
+      if (currentVerse) {
+        currentVerse = `${currentVerse} ${line}`;
+        return;
+      }
+
+      blocks.push(line.replace(/\s+/g, " "));
+    });
+
+  flushVerse();
+  return blocks.join("\n\n").trim();
 }
 
 function withTerminalPunctuation(text) {

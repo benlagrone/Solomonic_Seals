@@ -74,5 +74,11 @@ Outputs use a simple header block (Sources + Retrieved date) followed by normali
     - Output: docs/source_texts/raziel_esotericarchives.txt
     - Status: ✅ Pulled
 
+12) Local Pericope Psalms corpus (King James Version, public domain)
+    - Source path: AugustineCorpus/texts/david_texts/Psalms.txt
+    - Extract: full Psalms text, chapter/verse formatted
+    - Output: docs/source_texts/Psalms.txt
+    - Status: Pulled from local corpus for production fallback
+
 ## Open questions
 - None.

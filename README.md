@@ -36,6 +36,8 @@ Clock-specific envs:
 - `SOLOMONIC_PERICOPE_API_BASE` — defaults to `http://host.docker.internal:8001` in the standalone compose file; the control-plane stack uses the internal corpus DNS name instead
 - `SOLOMONIC_SITE_URL` — optional canonical site URL for sitemap/canonical metadata (defaults to the incoming request host)
 
+The image also includes `docs/source_texts/Psalms.txt` as a public-domain English Psalms fallback. If Pericope corpus lookup is unavailable, `/api/psalm` and Psalm study expansions still resolve from this local source.
+
 To regenerate the dataset manually inside the container:
 
 ```bash

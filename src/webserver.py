@@ -58,6 +58,67 @@ DEFAULT_PSALM_LOOKUP_NUMBERING = "auto"
 VALID_PSALM_LOOKUP_NUMBERINGS = {"auto", "vulgate", "hebrew"}
 SCRIPTURE_CHAPTER_LINE_RE = re.compile(r"(?im)^\s*chapter\s+(\d+)\b")
 SCRIPTURE_VERSE_LINE_RE = re.compile(r"(?m)^\s*(\d+)\s+")
+LATIN_PSALM_MARKERS = {
+    "adiutus",
+    "adulescentiae",
+    "beatus",
+    "caeli",
+    "caelos",
+    "canticum",
+    "conglutinati",
+    "contremesce",
+    "dedit",
+    "delectare",
+    "domine",
+    "domini",
+    "domino",
+    "dominus",
+    "egressus",
+    "eius",
+    "erit",
+    "escam",
+    "facie",
+    "gentes",
+    "ioth",
+    "laudabile",
+    "memor",
+    "misericordia",
+    "misericordiam",
+    "misericordiae",
+    "pacti",
+    "psalmi",
+    "psalmis",
+    "psalmus",
+    "quare",
+    "sempiternum",
+    "spera",
+    "teth",
+    "timentibus",
+    "tribus",
+    "tuam",
+    "victori",
+}
+ENGLISH_PSALM_MARKERS = {
+    "and",
+    "be",
+    "for",
+    "god",
+    "hath",
+    "he",
+    "him",
+    "his",
+    "lord",
+    "shall",
+    "that",
+    "the",
+    "thee",
+    "them",
+    "thou",
+    "thy",
+    "unto",
+    "will",
+    "with",
+}
 BOOK_PARTIAL_API_PATH = "/api/pericope/book-partial"
 PERICOPE_HISTORY_SESSIONS_API_PATH = "/api/pericope/history-sessions"
 CLIENT_ERRORS_API_PATH = "/api/client-errors"
@@ -1015,13 +1076,38 @@ def _build_psalm_lookup_chapter_payload(
     if lookup is None:
         return None, error or "Psalms source unavailable."
 
-    chapter_map = lookup.get(chapter)
-    if not chapter_map:
-        return None, f"Psalm {chapter} not found in configured Psalms source."
+    lookup_numbering = _PSALM_LOOKUP_NUMBERING or _infer_psalm_lookup_numbering(
+        lookup,
+        _PSALM_LOOKUP_SOURCE,
+    )
+    spans, span_error = _resolve_reference_spans(chapter, lookup_numbering)
+    if spans is None:
+        return None, span_error or "Unable to resolve Psalm numbering map."
 
-    ordered = [text for _verse, text in sorted(chapter_map.items())]
-    if not ordered:
-        return None, f"Psalm {chapter} not found in configured Psalms source."
+    entries, collect_error = _collect_spans_text(lookup, spans)
+    if entries is None:
+        return None, collect_error or f"Psalm {chapter} not found in configured Psalms source."
+
+    resolved_reference = ", ".join(span.label() for span in spans)
+    response_meta = {
+        "requested_numbering": "vulgate",
+        "lookup_numbering": lookup_numbering,
+        "resolved_reference": resolved_reference,
+    }
+    ordered = [f"{verse} {text}" for _chapter, verse, text in entries]
+    content = "\n".join(ordered).strip()
+    resolved_via = "psalm_lookup_fallback"
+    if _looks_like_latin_scripture_text(content):
+        fallback_payload = _build_psalm_api_fallback_payload(
+            chapter,
+            None,
+            response_meta,
+            reason="latin_psalm_source",
+        )
+        if fallback_payload is None:
+            return None, "Configured Psalms source returned Latin text and no English fallback was available."
+        content = fallback_payload["text"]
+        resolved_via = fallback_payload["source"]
 
     return (
         {
@@ -1030,8 +1116,9 @@ def _build_psalm_lookup_chapter_payload(
             "source": os.environ.get("SOLOMONIC_PERICOPE_SOURCE", "Psalms.txt"),
             "chapter": str(chapter),
             "reference": reference or f"Psalm {chapter}",
-            "content": "\n".join(ordered),
-            "resolved_via": "psalm_lookup_fallback",
+            "content": content,
+            "numbering": response_meta,
+            "resolved_via": resolved_via,
         },
         None,
     )
@@ -1041,17 +1128,23 @@ def _build_psalm_api_fallback_payload(
     chapter: int,
     verse: int | None,
     response_meta: dict[str, Any],
+    reason: str = "scripture_mapping",
 ) -> dict[str, Any] | None:
-    excerpt = _load_scripture_excerpt(chapter, str(verse) if verse is not None else None)
+    excerpt = _load_scripture_excerpt(
+        chapter,
+        str(verse) if verse is not None else None,
+        allow_lookup=reason != "latin_psalm_source",
+    )
     if not excerpt or excerpt == "Psalm excerpt unavailable.":
         return None
 
     payload: dict[str, Any] = {
         "chapter": chapter,
         "text": excerpt,
-        "source": "scripture_mappings_fallback",
+        "source": "scripture_mappings_english",
         "numbering": response_meta,
         "fallback": True,
+        "fallback_reason": reason,
     }
     if verse is not None:
         payload["verse"] = verse
@@ -1073,6 +1166,27 @@ def _build_book_partial_payload(
     if resolver is None:
         return None, f"Unsupported book_partial kind: {kind or 'unknown'}.", HTTPStatus.BAD_REQUEST
 
+    if kind == "psalm":
+        chapter_raw = payload.get("chapter")
+        if chapter_raw in {None, ""} and requested_reference:
+            _book, parsed_chapter, _verse_spec = _parse_scripture_reference(
+                requested_reference.replace("Psalm ", "Psalms ", 1)
+            )
+            chapter_raw = parsed_chapter
+        try:
+            chapter = int(chapter_raw)
+        except (TypeError, ValueError):
+            chapter = -1
+        if chapter > 0:
+            fallback_payload, fallback_error = _build_psalm_lookup_chapter_payload(chapter, requested_reference)
+            if fallback_payload is not None:
+                fallback_payload["requested_reference"] = requested_reference
+                fallback_payload["kind"] = kind
+                return fallback_payload, None, HTTPStatus.OK
+            # Keep the original resolver path available if the dedicated Psalm lookup is unavailable.
+            payload = dict(payload)
+            payload["_psalm_lookup_error"] = fallback_error
+
     target, error, status = resolver(payload)
     if target is None:
         if kind == "psalm":
@@ -1087,7 +1201,7 @@ def _build_book_partial_payload(
                     fallback_payload["requested_reference"] = requested_reference
                     fallback_payload["kind"] = kind
                     return fallback_payload, None, HTTPStatus.OK
-                error = fallback_error or error
+                error = fallback_error or payload.get("_psalm_lookup_error") or error
         return None, error or "Unable to resolve book_partial target.", status
 
     remote_payload, remote_error = _fetch_book_partial_from_pericope(target)
@@ -2017,6 +2131,50 @@ def _strip_translation_meta(text: str) -> str:
     return clean.strip()
 
 
+def _looks_like_latin_scripture_text(text: str) -> bool:
+    words = re.findall(r"[a-z]+", str(text or "").lower())
+    if not words:
+        return False
+
+    latin_hits = sum(1 for word in words if word in LATIN_PSALM_MARKERS)
+    if latin_hits < 2:
+        return False
+
+    english_hits = sum(1 for word in words if word in ENGLISH_PSALM_MARKERS)
+    return latin_hits >= 4 or latin_hits > english_hits
+
+
+def _extract_numbered_scripture_verse(excerpt: str, verse: str | None) -> str:
+    if verse in {None, ""}:
+        return ""
+
+    try:
+        target_verse = str(int(str(verse).strip()))
+    except (TypeError, ValueError):
+        return ""
+
+    collecting = False
+    parts: list[str] = []
+    for raw_line in str(excerpt or "").splitlines():
+        line = raw_line.strip()
+        if not line:
+            continue
+
+        verse_match = re.match(r"^(\d+)\s+(.*)$", line)
+        if verse_match:
+            if collecting:
+                break
+            if verse_match.group(1) == target_verse:
+                collecting = True
+                parts.append(verse_match.group(2).strip())
+            continue
+
+        if collecting:
+            parts.append(line)
+
+    return re.sub(r"\s+", " ", " ".join(parts)).strip()
+
+
 def _flatten_pentacles(groups: list[dict[str, Any]]) -> list[dict[str, Any]]:
     flattened: list[dict[str, Any]] = []
     for group_index, group in enumerate(groups):
@@ -2142,7 +2300,12 @@ def _expand_verse_specification(spec: str) -> list[str]:
     return verses
 
 
-def _load_scripture_excerpt(chapter: int, verse: str | None = None) -> str:
+def _load_scripture_excerpt(
+    chapter: int,
+    verse: str | None = None,
+    max_length: int = 900,
+    allow_lookup: bool = True,
+) -> str:
     scripture_payload, _ = _read_json_file(SCRIPTURE_MAPPINGS_PATH)
     if scripture_payload:
         entry = (scripture_payload.get("psalms") or {}).get(str(chapter))
@@ -2151,7 +2314,11 @@ def _load_scripture_excerpt(chapter: int, verse: str | None = None) -> str:
                 str(entry.get("translation_excerpt") or entry.get("latin_excerpt") or "").strip()
             )
             if excerpt:
-                return _to_snippet(excerpt)
+                verse_excerpt = _extract_numbered_scripture_verse(excerpt, verse)
+                return _to_snippet(verse_excerpt or excerpt, max_length)
+
+    if not allow_lookup:
+        return "Psalm excerpt unavailable."
 
     lookup, _ = _load_psalm_lookup()
     if lookup is None:
@@ -2169,12 +2336,12 @@ def _load_scripture_excerpt(chapter: int, verse: str | None = None) -> str:
         if resolved is not None:
             text = chapter_map.get(resolved)
             if text:
-                return _to_snippet(text)
+                return _to_snippet(text, max_length)
 
     ordered = [text for _, text in sorted(chapter_map.items())]
     if not ordered:
         return "Psalm excerpt unavailable."
-    return _to_snippet(" ".join(ordered))
+    return _to_snippet(" ".join(ordered), max_length)
 
 
 def _resolve_life_focus_domain(
@@ -3271,6 +3438,20 @@ class ClockRequestHandler(SimpleHTTPRequestHandler):
 
             lookup, error = _load_psalm_lookup()
             if lookup is None:
+                response_meta = {
+                    "requested_numbering": "vulgate",
+                    "lookup_numbering": "unavailable",
+                    "resolved_reference": str(chapter),
+                }
+                fallback_payload = _build_psalm_api_fallback_payload(
+                    chapter,
+                    verse,
+                    response_meta,
+                    reason="psalm_lookup_unavailable",
+                )
+                if fallback_payload is not None:
+                    self._send_json(fallback_payload, HTTPStatus.OK, send_body=send_body)
+                    return True
                 self._send_json(
                     {"error": error or "Psalms source unavailable."},
                     HTTPStatus.NOT_FOUND,
@@ -3313,10 +3494,22 @@ class ClockRequestHandler(SimpleHTTPRequestHandler):
                     return True
 
                 ordered_text = [text for _chapter, _verse, text in entries]
+                response_text = "\n".join(ordered_text)
+                if _looks_like_latin_scripture_text(response_text):
+                    fallback_payload = _build_psalm_api_fallback_payload(
+                        chapter,
+                        None,
+                        response_meta,
+                        reason="latin_psalm_source",
+                    )
+                    if fallback_payload is not None:
+                        self._send_json(fallback_payload, HTTPStatus.OK, send_body=send_body)
+                        return True
+
                 self._send_json(
                     {
                         "chapter": chapter,
-                        "text": "\n".join(ordered_text),
+                        "text": response_text,
                         "source": _PSALM_LOOKUP_SOURCE,
                         "numbering": response_meta,
                     },
@@ -3351,6 +3544,17 @@ class ClockRequestHandler(SimpleHTTPRequestHandler):
                     send_body=send_body,
                 )
                 return True
+
+            if _looks_like_latin_scripture_text(verse_text):
+                fallback_payload = _build_psalm_api_fallback_payload(
+                    chapter,
+                    verse,
+                    response_meta,
+                    reason="latin_psalm_source",
+                )
+                if fallback_payload is not None:
+                    self._send_json(fallback_payload, HTTPStatus.OK, send_body=send_body)
+                    return True
 
             self._send_json(
                 {

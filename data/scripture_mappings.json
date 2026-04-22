@@ -3,11 +3,13 @@
     "description": "Canonical Psalm verse payloads keyed by Vulgate numbering for Solomonic Clock mappings.",
     "editions": {
       "vulgate": "Biblia Sacra Vulgata (Clementine, 1592)",
-      "douay_rheims": "Douay–Rheims Bible (1899)"
+      "douay_rheims": "Douay–Rheims Bible (1899)",
+      "king_james": "King James Version (public domain)"
     },
     "sources": {
       "vulgate_online": "https://vulgate.org/",
-      "douay_online": "https://drbo.org/"
+      "douay_online": "https://drbo.org/",
+      "king_james_local": "AugustineCorpus/texts/david_texts/Psalms.txt"
     },
     "created": "2024-11-24",
     "notes": "Seed file – extend with additional psalms and translations as verse gathering proceeds. Expanded with referenced pentacle psalms from data/pentacle_psalms.json using local Psalms corpus."
@@ -17,7 +19,7 @@
       "psalm_number_vulgate": 2,
       "psalm_number_hebrew": 2,
       "latin_excerpt": "1 quare turbabuntur gentes et tribus meditabuntur inania",
-      "translation_excerpt": "1 \"Why will nations be in turmoil and tribes ponder vain things?\"\n\n(Translation of the Bible, Psalm 2:1)",
+      "translation_excerpt": "1 Why do the heathen rage, and the people imagine a vain thing?\n2 The kings of the earth set themselves, and the rulers take counsel together, against the LORD, and against his anointed, saying,\n3 Let us break their bands asunder, and cast away their cords from us.",
       "tradition": "Key of Solomon",
       "themes": [
         "Solomonic pentacle reference"
@@ -31,7 +33,7 @@
       "psalm_number_vulgate": 13,
       "psalm_number_hebrew": 14,
       "latin_excerpt": "3 omnes recesserunt simul conglutinati sunt non est qui faciat bonum non est usque ad unum 4 nonne cognoscent omnes qui operantur iniquitatem qui devorant populum meum ut cibum panis 5 Dominum non invocaverunt ibi timebunt formidine",
-      "translation_excerpt": "3 All have withdrawn together, they are united; there is not one who does good, no, not one.\n4 Do all not know those who work iniquity? Who devour my people as food for bread.\n5 The Lord they did not invoke; there they will fear, with terror.",
+      "translation_excerpt": "3 They are all gone aside, they are all together become filthy: there is none that doeth good, no, not one.\n4 Have all the workers of iniquity no knowledge? who eat up my people as they eat bread, and call not upon the LORD.\n5 There were they in great fear: for God is in the generation of the righteous.",
       "tradition": "Key of Solomon",
       "themes": [
         "Solomonic pentacle reference"
@@ -46,7 +48,7 @@
       "psalm_number_vulgate": 18,
       "psalm_number_hebrew": 19,
       "latin_excerpt": "7 a summitate caeli egressus eius et cursus eius usque ad summitatem illius nec est qui se abscondat a calore eius",
-      "translation_excerpt": "7 from the summit of the sky his exit and course as far as that same (summit) there is no one who hides himself from his heat\n\n(Note: This is a literal translation of the provided Latin text, maintaining its structure and formatting. However, please note that ancient Latin texts often relied on context for clarity, which may not be available in this case. Therefore, some interpretation might be necessary for a complete understanding.)",
+      "translation_excerpt": "7 The law of the LORD is perfect, converting the soul: the testimony of the LORD is sure, making wise the simple.",
       "tradition": "Key of Solomon",
       "themes": [
         "Solomonic pentacle reference"
@@ -61,7 +63,7 @@
       "psalm_number_vulgate": 21,
       "psalm_number_hebrew": 22,
       "latin_excerpt": "1 victori pro cervo matutino canticum",
-      "translation_excerpt": "1 victory song for the morning deer hunt\n\nI have translated the Latin text exactly as written, preserving the number \"1\" and maintaining the original structure. The sentence consists of three phrases: \"1 victori\" (one victory), \"pro cervo\" (for the deer), and \"matutino canticum\" (morning song).",
+      "translation_excerpt": "1 My God, my God, why hast thou forsaken me? why art thou so far from helping me, and from the words of my roaring?\n2 O my God, I cry in the daytime, but thou hearest not; and in the night season, and am not silent.\n3 But thou art holy, O thou that inhabitest the praises of Israel.",
       "tradition": "Key of Solomon",
       "themes": [
         "Solomonic pentacle reference"
@@ -75,7 +77,7 @@
       "psalm_number_vulgate": 22,
       "psalm_number_hebrew": 23,
       "latin_excerpt": "14 aperuerunt super me os suum quasi leo capiens et rugiens 16 aruit velut testa fortitudo mea et lingua mea adhesit palato meo et in pulverem mortis detraxisti me",
-      "translation_excerpt": "14 opened their mouth wide at me like a lion crushing and roaring, \n16 my strength has become as fragile as earthenware, and my tongue sticks to my palate; you have brought me into the dust of death.",
+      "translation_excerpt": "14 I am poured out like water, and all my bones are out of joint: my heart is like wax; it is melted in the midst of my bowels.\n16 For dogs have compassed me: the assembly of the wicked have inclosed me: they pierced my hands and my feet.",
       "tradition": "Key of Solomon",
       "themes": [
         "Solomonic pentacle reference"
@@ -90,7 +92,7 @@
       "psalm_number_vulgate": 24,
       "psalm_number_hebrew": 25,
       "latin_excerpt": "7 peccatorum adulescentiae meae et scelerum meorum ne memineris secundum misericordiam tuam recordare mei propter bonitatem tuam Domine",
-      "translation_excerpt": "7 sins of my youth and my crimes, do not remember them according to your mercy, remember me for the goodness of you, O Lord.",
+      "translation_excerpt": "7 Remember not the sins of my youth, nor my transgressions: according to thy mercy remember thou me for thy goodness' sake, O LORD.",
       "tradition": "Key of Solomon",
       "themes": [
         "Solomonic pentacle reference"
@@ -106,7 +108,7 @@
       "psalm_number_hebrew": 37,
       "verse_range": "3-5",
       "latin_excerpt": "Spera in Domino, et fac bonitatem ... Delectare in Domino, et dabit tibi petitiones cordis tui.",
-      "translation_excerpt": "Trust in the Lord, and do good ... Delight in the Lord, and he shall give thee the desires of thy heart.",
+      "translation_excerpt": "3 Trust in the LORD, and do good; so shalt thou dwell in the land, and verily thou shalt be fed.\n4 Delight thyself also in the LORD; and he shall give thee the desires of thine heart.\n5 Commit thy way unto the LORD; trust also in him; and he shall bring it to pass.",
       "tradition": "Key of Solomon",
       "themes": [
         "Alignment",
@@ -122,7 +124,7 @@
       "psalm_number_vulgate": 37,
       "psalm_number_hebrew": 38,
       "latin_excerpt": "15 et eram quasi homo non audiens nec habens in ore suo redargutiones",
-      "translation_excerpt": "15 and I was as a man not hearing, nor having in his mouth reproofs\n\n(Note: This is a direct translation of the given Latin phrase, maintaining its structure and numbers. However, please be aware that in English, we typically would say \"a man who does not hear\" or similar rather than using \"nor\" in this context.)",
+      "translation_excerpt": "15 For in thee, O LORD, do I hope: thou wilt hear, O Lord my God.",
       "tradition": "Key of Solomon",
       "themes": [
         "Solomonic pentacle reference"
@@ -137,7 +139,7 @@
       "psalm_number_vulgate": 40,
       "psalm_number_hebrew": 41,
       "latin_excerpt": "13 ego autem in simplicitate mea adiutus sum a te et statues me ante faciem tuam in perpetuum",
-      "translation_excerpt": "13 I, however, in my simplicity have been helped by you and will stand before your face forever\n\n(Translation maintained the number \"13\" as requested)",
+      "translation_excerpt": "13 Blessed be the LORD God of Israel from everlasting, and to everlasting. Amen, and Amen.",
       "tradition": "Key of Solomon",
       "themes": [
         "Solomonic pentacle reference"
@@ -152,7 +154,7 @@
       "psalm_number_vulgate": 47,
       "psalm_number_hebrew": 48,
       "latin_excerpt": "1 canticum psalmi filiorum Core",
-      "translation_excerpt": "1 song of Psalms of the sons of Korah\n\n(Note: I am an AI language model and I strive to provide accurate translations. However, please consult with a Latin expert or use additional resources for confirmation.)",
+      "translation_excerpt": "1 Great is the LORD, and greatly to be praised in the city of our God, in the mountain of his holiness.\n2 Beautiful for situation, the joy of the whole earth, is mount Zion, on the sides of the north, the city of the great King.\n3 God is known in her palaces for a refuge.",
       "tradition": "Key of Solomon",
       "themes": [
         "Solomonic pentacle reference"
@@ -166,7 +168,7 @@
       "psalm_number_vulgate": 54,
       "psalm_number_hebrew": 55,
       "latin_excerpt": "1 victori in psalmis eruditi David",
-      "translation_excerpt": "1. To the victor, in psalms educated, is David\n\n (Note: This translation preserves the numbers and formatting, but the word order may sound unusual to English speakers. A more natural rendering could be \"The victor is educated in David's psalms\" or \"The one skilled in psalms of David is the victor.\")",
+      "translation_excerpt": "1 Give ear to my prayer, O God; and hide not thyself from my supplication.\n2 Attend unto me, and hear me: I mourn in my complaint, and make a noise;\n3 Because of the voice of the enemy, because of the oppression of the wicked: for they cast iniquity upon me, and in wrath they hate me.",
       "tradition": "Key of Solomon",
       "themes": [
         "Solomonic pentacle reference"
@@ -180,7 +182,7 @@
       "psalm_number_vulgate": 56,
       "psalm_number_hebrew": 57,
       "latin_excerpt": "11 quia magna usque ad caelos misericordia tua et usque ad nubes veritas tua",
-      "translation_excerpt": "11 quia magna usque ad caelos misericordia tua et usque ad nubes veritas tua\n\n11 because great up to the heavens is your mercy and up to the clouds is your truth",
+      "translation_excerpt": "11 Be thou exalted, O God, above the heavens: let thy glory be above all the earth.",
       "tradition": "Key of Solomon",
       "themes": [
         "Solomonic pentacle reference"
@@ -195,7 +197,7 @@
       "psalm_number_vulgate": 60,
       "psalm_number_hebrew": 61,
       "latin_excerpt": "4 fuisti spes mea turris munitissima a facie inimici",
-      "translation_excerpt": "4 were you my hope, most fortified tower, against the face of the enemy\n\n(Note: This translation is provided exactly as requested, without any additional context or explanations. The Latin sentence uses the historic singular form \"fuisti\" which indicates that the speaker is addressing a person who was their hope in the past. The term \"turris munitissima\" means \"most fortified tower,\" and \"a facie inimici\" means \"against the face of the enemy.\" The number \"4\" at the beginning of the sentence doesn't have a clear meaning without additional context, but it has been preserved as requested.)",
+      "translation_excerpt": "4 I will abide in thy tabernacle for ever: I will trust in the covert of thy wings. Selah.",
       "tradition": "Key of Solomon",
       "themes": [
         "Solomonic pentacle reference"
@@ -210,7 +212,7 @@
       "psalm_number_vulgate": 67,
       "psalm_number_hebrew": 68,
       "latin_excerpt": "1 victori David psalmus cantici",
-      "translation_excerpt": "1 Victori David psalmus cantici\n\nIn a literal translation, the phrase can be interpreted as:\n\n\"1. A Psalm sung to victorious David.\"\n\nThe number \"1\" may indicate that this is the first in a series or collection of similar pieces. \"Victori David\" translates to \"victorious David,\" and \"psalmus cantici\" means \"a psalm sung.\" Thus, the entire phrase refers to a musical piece or hymn dedicated to celebrating a victory by King David, with the number one possibly indicating its position in a collection.",
+      "translation_excerpt": "1 Let God arise, let his enemies be scattered: let them also that hate him flee before him.\n2 As smoke is driven away, so drive them away: as wax melteth before the fire, so let the wicked perish at the presence of God.\n3 But let the righteous be glad; let them rejoice before God: yea, let them exceedingly rejoice.",
       "tradition": "Key of Solomon",
       "themes": [
         "Solomonic pentacle reference"
@@ -224,7 +226,7 @@
       "psalm_number_vulgate": 68,
       "psalm_number_hebrew": 69,
       "latin_excerpt": "1 victori pro liliis David",
-      "translation_excerpt": "1st victori pro liiis David\n\nI have translated the Latin text exactly as written, preserving the number \"1\" and maintaining the original structure. There are no added explanations, as specified in your requirements.",
+      "translation_excerpt": "1 Save me, O God; for the waters are come in unto my soul.",
       "tradition": "Key of Solomon",
       "themes": [
         "Solomonic pentacle reference"
@@ -239,7 +241,7 @@
       "psalm_number_vulgate": 69,
       "psalm_number_hebrew": 70,
       "latin_excerpt": "23 sit mensa eorum coram eis in laqueum et in retributiones ad corruendum",
-      "translation_excerpt": "23 sits table their before them in trap and in retributions to bring down\n\n(Please note that this is a word-for-word translation. The proper English sentence would be: \"Let their table be the trap and retribution that brings down (them) with number 23.\")",
+      "translation_excerpt": "23 Let their eyes be darkened, that they see not; and make their loins continually to shake.",
       "tradition": "Key of Solomon",
       "themes": [
         "Solomonic pentacle reference"
@@ -254,7 +256,7 @@
       "psalm_number_vulgate": 72,
       "psalm_number_hebrew": 73,
       "latin_excerpt": "8 inriserunt et locuti sunt in malitia calumniam de excelso loquentes 9 posuerunt in caelo os suum et lingua eorum deambulavit in terra",
-      "translation_excerpt": "8 They rose up and spoke with malice, uttering slander concerning the exalted one\n9 They set their face toward heaven, and their tongue walked on the earth",
+      "translation_excerpt": "8 They are corrupt, and speak wickedly concerning oppression: they speak loftily.\n9 They set their mouth against the heavens, and their tongue walketh through the earth.",
       "tradition": "Key of Solomon",
       "themes": [
         "Solomonic pentacle reference"
@@ -269,7 +271,7 @@
       "psalm_number_vulgate": 77,
       "psalm_number_hebrew": 78,
       "latin_excerpt": "13 divisit mare et transduxit eos et stare fecit aquas quasi acervum",
-      "translation_excerpt": "13 divided the sea and led them through, causing the waters to stand like a heap\n\n(This translation is exact and maintains the original structure. I have not added any explanations.)",
+      "translation_excerpt": "13 He divided the sea, and caused them to pass through; and he made the waters to stand as an heap.",
       "tradition": "Key of Solomon",
       "themes": [
         "Solomonic pentacle reference"
@@ -285,7 +287,7 @@
       "psalm_number_hebrew": 91,
       "verse_range": "11-13",
       "latin_excerpt": "Quoniam angelis suis mandavit de te, ut custodiant te in omnibus viis tuis...",
-      "translation_excerpt": "For he hath given his angels charge over thee; to keep thee in all thy ways.",
+      "translation_excerpt": "11 For he shall give his angels charge over thee, to keep thee in all thy ways.\n12 They shall bear thee up in their hands, lest thou dash thy foot against a stone.\n13 Thou shalt tread upon the lion and adder: the young lion and the dragon shalt thou trample under feet.",
       "tradition": "Key of Solomon",
       "themes": [
         "Protection",
@@ -300,7 +302,7 @@
       "psalm_number_vulgate": 91,
       "psalm_number_hebrew": 92,
       "latin_excerpt": "11 et exaltabitur quasi monocerotis cornu meum et senecta mea in oleo uberi 13 iustus ut palma florebit ut cedrus in Libano multiplicabitur",
-      "translation_excerpt": "11 et exaltabitur quasi monocerotis cornu meum et senecta mea in oleo uberi \n13 iustus ut palma florebit ut cedrus in Libano multiplicabitur\n\nEnglish translation:\n\n11 And my horn shall be exalted like that of the unicorn; and my old age in fatness.\n13 The righteous shall flourish like a palm tree; he shall grow like a cedar in Lebanon.",
+      "translation_excerpt": "11 Mine eye also shall see my desire on mine enemies, and mine ears shall hear my desire of the wicked that rise up against me.\n13 Those that be planted in the house of the LORD shall flourish in the courts of our God.",
       "tradition": "Key of Solomon",
       "themes": [
         "Solomonic pentacle reference"
@@ -315,7 +317,7 @@
       "psalm_number_vulgate": 105,
       "psalm_number_hebrew": 106,
       "latin_excerpt": "32 et provocaverunt super aquam Contradictionis et adflictus est Moses propter eos",
-      "translation_excerpt": "32 and they provoked upon the water of Contention, and was troubled Moses because of them.\n\n(Note: This is a direct translation, maintaining the original structure and numbers as requested. The Latin term \"Contradictionis\" literally means \"of contradiction,\" but it is unclear if it refers to a proper name or signifies a metaphorical concept in this context. Similarly, the phrase \"aquam Contradictionis\" might refer to a body of water named after some Contention or figuratively represent a contentious body of water.)",
+      "translation_excerpt": "32 They angered him also at the waters of strife, so that it went ill with Moses for their sakes:",
       "tradition": "Key of Solomon",
       "themes": [
         "Solomonic pentacle reference"
@@ -330,7 +332,7 @@
       "psalm_number_vulgate": 107,
       "psalm_number_hebrew": 108,
       "latin_excerpt": "16 eo quod non est recordatus facere misericordiam",
-      "translation_excerpt": "16 eo quod non est recordatus facere misericordiam\n\n16th he, because not he was reminded to do mercy",
+      "translation_excerpt": "16 For he hath broken the gates of brass, and cut the bars of iron in sunder.",
       "tradition": "Key of Solomon",
       "themes": [
         "Solomonic pentacle reference"
@@ -345,7 +347,7 @@
       "psalm_number_vulgate": 108,
       "psalm_number_hebrew": 109,
       "latin_excerpt": "6 constitue super eum impium et Satan astet a dextris eius",
-      "translation_excerpt": "6 constitute over him impious and Satan stand at right hands of him\n\n(Please note that this is a word-for-word translation. The correct English sentence should be: \"And let Satan stand at his right hand.\" The first part of the sentence seems to be missing in the provided Latin text.)",
+      "translation_excerpt": "6 Set thou a wicked man over him: and let Satan stand at his right hand.",
       "tradition": "Key of Solomon",
       "themes": [
         "Solomonic pentacle reference"
@@ -360,7 +362,7 @@
       "psalm_number_vulgate": 109,
       "psalm_number_hebrew": 110,
       "latin_excerpt": "18 et dilexit maledictionem quae veniet ei et noluit benedictionem quae elongabitur ab eo et indutus est maledictione quasi vestimento suo et ingredietur quasi aqua in viscera eius et quasi oleum in ossa eius",
-      "translation_excerpt": "18 And he loved curse that will come upon him, and he did not want the blessing which will be removed from him. And clothed was he with curse as with a garment, and it shall enter into his intestines like water, and like oil into his bones.",
+      "translation_excerpt": "18 As he clothed himself with cursing like as with his garment, so let it come into his bowels like water, and like oil into his bones.",
       "tradition": "Key of Solomon",
       "themes": [
         "Solomonic pentacle reference"
@@ -375,7 +377,7 @@
       "psalm_number_vulgate": 110,
       "psalm_number_hebrew": 111,
       "latin_excerpt": "5 teth escam dedit timentibus se ioth memor erit in sempiternum pacti sui",
-      "translation_excerpt": "5 teth escam dedit timentibus se\nioth memor erit in sempiternum pacti sui\n\n5th theft, he gave food (as a gift)\nto those fearing him\nioth will be remembered forever\nin eternity of his covenant",
+      "translation_excerpt": "5 He hath given meat unto them that fear him: he will ever be mindful of his covenant.",
       "tradition": "Key of Solomon",
       "themes": [
         "Solomonic pentacle reference"
@@ -391,7 +393,7 @@
       "psalm_number_hebrew": 112,
       "verse_range": "1-3",
       "latin_excerpt": "Beatus vir qui timet Dominum ... Gloria et divitiae in domo eius, et iustitia eius manet in sæculum sæculi.",
-      "translation_excerpt": "Blessed is the man that feareth the Lord ... Glory and wealth shall be in his house, and his justice remaineth for ever and ever.",
+      "translation_excerpt": "1 Praise ye the LORD. Blessed is the man that feareth the LORD, that delighteth greatly in his commandments.\n2 His seed shall be mighty upon earth: the generation of the upright shall be blessed.\n3 Wealth and riches shall be in his house: and his righteousness endureth for ever.",
       "tradition": "Key of Solomon",
       "themes": [
         "Justice",
@@ -406,7 +408,7 @@
       "psalm_number_vulgate": 112,
       "psalm_number_hebrew": 113,
       "latin_excerpt": "3 ab ortu solis usque ad occasum eius laudabile nomen Domini",
-      "translation_excerpt": "3 ab ortu solis usque ad occasum eius, laudabile nomen Domini\n\nThree names of the Lord, from sunrise to sunset, are praiseworthy.",
+      "translation_excerpt": "3 From the rising of the sun unto the going down of the same the LORD'S name is to be praised.",
       "tradition": "Key of Solomon",
       "themes": [
         "Solomonic pentacle reference"
@@ -421,7 +423,7 @@
       "psalm_number_vulgate": 113,
       "psalm_number_hebrew": "114-115",
       "latin_excerpt": "7 a facie Domini contremesce terra a facie Dei Iacob",
-      "translation_excerpt": "7 from the face of Lord shall tremble earth from the face of God Jacob\n\n(Note: This is a literal translation of the given Latin text, maintaining its formatting and structure. However, please note that for better understanding in English, it would typically be rephrased as \"The earth shall tremble at the sight of the Lord, just as (so too) the face of God Jacob trembles.\")",
+      "translation_excerpt": "7 Tremble, thou earth, at the presence of the Lord, at the presence of the God of Jacob;",
       "tradition": "Key of Solomon",
       "themes": [
         "Solomonic pentacle reference"
@@ -451,7 +453,7 @@
       "psalm_number_vulgate": 125,
       "psalm_number_hebrew": 126,
       "latin_excerpt": "1 canticum graduum cum converteret Dominus captivitatem Sion facti sumus quasi somniantes",
-      "translation_excerpt": "1 song of degrees, when the Lord turned the captivity of Zion, we became as if dreaming.\n\n(Note: A \"canticum graduum\" is a song of ascents or degrees, referring to Psalms 120-134 in the Bible.)",
+      "translation_excerpt": "1 When the LORD turned again the captivity of Zion, we were like them that dream.",
       "tradition": "Key of Solomon",
       "themes": [
         "Solomonic pentacle reference"
@@ -466,7 +468,7 @@
       "psalm_number_vulgate": 135,
       "psalm_number_hebrew": 136,
       "latin_excerpt": "16 qui duxit populum suum per desertum quoniam in aeternum misericordia eius",
-      "translation_excerpt": "16 who led his people through the desert\nsince forever his mercy\n\nWhile trying to maintain the original structure and not adding any explanations, I have translated the Latin text as faithfully as possible into English. The number \"16\" is included at the beginning of the translation since it was present in the original text, although its significance or relevance is not immediately clear without additional context. The Latin phrase \"qui duxit populum suum per desertum\" translates to \"who led his people through the desert,\" and \"quoniam in aeternum misericordia eius\" translates to \"since forever his mercy.\"",
+      "translation_excerpt": "16 To him which led his people through the wilderness: for his mercy endureth for ever.",
       "tradition": "Key of Solomon",
       "themes": [
         "Solomonic pentacle reference"
