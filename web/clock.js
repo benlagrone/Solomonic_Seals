@@ -6705,7 +6705,7 @@ function getScriptureReaderKindLabel(kind) {
 
 function getScriptureReaderDefaultStatus(kind) {
   if (SCRIPTURE_READER_SUPPORTED) {
-    return `Showing ${getScriptureReaderKindLabel(kind)}. Use Listen to hear it aloud.`;
+    return `Showing ${getScriptureReaderKindLabel(kind)}. Use the play button to hear it aloud.`;
   }
   return `Showing ${getScriptureReaderKindLabel(kind)}. Audio depends on browser speech support.`;
 }
@@ -6783,6 +6783,31 @@ function getScriptureReaderSpeechText(reference, text) {
   return [cleanReference, cleanText].filter(Boolean).join(". ");
 }
 
+const PLAYER_BUTTON_ICONS = Object.freeze({
+  play: '<span class="player-button-icon" aria-hidden="true">&#9658;</span>',
+  stop: '<span class="player-button-icon" aria-hidden="true">&#9632;</span>',
+});
+
+function setPlayerButtonIcon(button, icon, label) {
+  if (!button) {
+    return;
+  }
+
+  if (button.dataset.playerIcon !== icon) {
+    button.innerHTML = PLAYER_BUTTON_ICONS[icon] || PLAYER_BUTTON_ICONS.play;
+    button.dataset.playerIcon = icon;
+  }
+  button.setAttribute("aria-label", label);
+  button.title = label;
+}
+
+function getBundleAudioLabel(kind, sentenceCase = false) {
+  if (kind === "wisdom") {
+    return sentenceCase ? "Wisdom audio" : "wisdom audio";
+  }
+  return sentenceCase ? "Psalm audio" : "psalm audio";
+}
+
 function cancelSpeechPlaybackState() {
   scriptureReaderSpeechToken += 1;
   bundleSpeechToken += 1;
@@ -6826,8 +6851,13 @@ function renderBundleAudioControls() {
     const audioContent = getBundleAudioContent(kind);
     const isSpeaking = bundleAudioState.speaking && bundleAudioState.kind === kind;
     elements.listen.disabled = !SCRIPTURE_READER_SUPPORTED || !audioContent || isSpeaking;
-    elements.listen.textContent = isSpeaking ? "Playing…" : "Listen";
     elements.stop.disabled = !SCRIPTURE_READER_SUPPORTED || !isSpeaking;
+    setPlayerButtonIcon(
+      elements.listen,
+      "play",
+      isSpeaking ? `${getBundleAudioLabel(kind, true)} playing` : `Play ${getBundleAudioLabel(kind)}`
+    );
+    setPlayerButtonIcon(elements.stop, "stop", `Stop ${getBundleAudioLabel(kind)}`);
   });
 }
 
@@ -6983,8 +7013,13 @@ function renderScriptureReader(force = false) {
   scriptureReaderElements.study.hidden = !sourceState?.previewRef;
   scriptureReaderElements.study.disabled = !sourceState?.previewRef;
   scriptureReaderElements.listen.disabled = !canListen || scriptureReaderState.speaking;
-  scriptureReaderElements.listen.textContent = scriptureReaderState.speaking ? "Playing…" : "Listen";
   scriptureReaderElements.stop.disabled = !SCRIPTURE_READER_SUPPORTED || !scriptureReaderState.speaking;
+  setPlayerButtonIcon(
+    scriptureReaderElements.listen,
+    "play",
+    scriptureReaderState.speaking ? "Scripture audio playing" : "Play scripture audio"
+  );
+  setPlayerButtonIcon(scriptureReaderElements.stop, "stop", "Stop scripture audio");
 }
 
 async function toggleScriptureReaderExpansion() {

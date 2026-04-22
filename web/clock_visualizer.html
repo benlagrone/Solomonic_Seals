@@ -275,8 +275,22 @@
           <div class="scripture-reader-actions">
             <button type="button" class="action-button scripture-reader-toggle">Read Full Passage</button>
             <button type="button" class="action-button scripture-reader-study">Study Passage</button>
-            <button type="button" class="action-button action-button--accent scripture-reader-listen">Listen</button>
-            <button type="button" class="action-button scripture-reader-stop">Stop</button>
+            <button
+              type="button"
+              class="action-button action-button--accent scripture-reader-listen player-icon-button"
+              aria-label="Play scripture audio"
+              title="Play scripture audio"
+            >
+              <span class="player-button-icon" aria-hidden="true">&#9658;</span>
+            </button>
+            <button
+              type="button"
+              class="action-button scripture-reader-stop player-icon-button"
+              aria-label="Stop scripture audio"
+              title="Stop scripture audio"
+            >
+              <span class="player-button-icon" aria-hidden="true">&#9632;</span>
+            </button>
           </div>
         </section>
         <section class="providence-timeline" hidden aria-label="Providence timeline">
@@ -468,11 +482,11 @@
                 <button type="button" class="bundle-expand bundle-psalm-expand" data-bundle-kind="psalm">
                   Read Full Passage
                 </button>
-                <button type="button" class="bundle-listen bundle-psalm-listen" data-bundle-kind="psalm">
-                  Listen
+                <button type="button" class="bundle-listen bundle-psalm-listen" data-bundle-kind="psalm" aria-label="Play psalm audio" title="Play psalm audio">
+                  <span class="player-button-icon" aria-hidden="true">&#9658;</span>
                 </button>
-                <button type="button" class="bundle-stop bundle-psalm-stop" data-bundle-kind="psalm">
-                  Stop
+                <button type="button" class="bundle-stop bundle-psalm-stop" data-bundle-kind="psalm" aria-label="Stop psalm audio" title="Stop psalm audio">
+                  <span class="player-button-icon" aria-hidden="true">&#9632;</span>
                 </button>
                 <button type="button" class="bundle-study bundle-psalm-study" data-bundle-kind="psalm">
                   Study Passage
@@ -490,11 +504,11 @@
                 <button type="button" class="bundle-expand bundle-wisdom-expand" data-bundle-kind="wisdom">
                   Read Full Passage
                 </button>
-                <button type="button" class="bundle-listen bundle-wisdom-listen" data-bundle-kind="wisdom">
-                  Listen
+                <button type="button" class="bundle-listen bundle-wisdom-listen" data-bundle-kind="wisdom" aria-label="Play wisdom audio" title="Play wisdom audio">
+                  <span class="player-button-icon" aria-hidden="true">&#9658;</span>
                 </button>
-                <button type="button" class="bundle-stop bundle-wisdom-stop" data-bundle-kind="wisdom">
-                  Stop
+                <button type="button" class="bundle-stop bundle-wisdom-stop" data-bundle-kind="wisdom" aria-label="Stop wisdom audio" title="Stop wisdom audio">
+                  <span class="player-button-icon" aria-hidden="true">&#9632;</span>
                 </button>
                 <button type="button" class="bundle-study bundle-wisdom-study" data-bundle-kind="wisdom">
                   Study Passage
