@@ -6,7 +6,27 @@ const SCRIPTURE_MAPPINGS_PATH = "/data/scripture_mappings.json";
 const PENTACLE_PSALMS_PATH = "/data/pentacle_psalms.json";
 const PENTACLES_PATH = "/data/pentacles.json";
 const CLOCK_PATH = "/clock";
-const PERICOPE_CHAT_URL = String(document.body?.dataset?.pericopeChatUrl || "https://pericopeai.com/chat").trim();
+const DOC = typeof document !== "undefined" ? document : null;
+const SCRIPTURE_INITIAL_FRAME_REMOTE_URL = "https://assets.pericopeai.com/scriptorium-initials/v1/frame-gold.svg";
+const SCRIPTURE_INITIAL_FRAME_LOCAL_URL = "/asset-library/scriptorium-initials/v1/frame-gold.svg";
+const PERICOPE_CHAT_URL = String(DOC?.body?.dataset?.pericopeChatUrl || "https://pericopeai.com/chat").trim();
+
+function isLoopbackHost(hostname = typeof window !== "undefined" ? window.location.hostname : "") {
+  const normalized = String(hostname || "").trim().toLowerCase();
+  return normalized === "localhost"
+    || normalized === "127.0.0.1"
+    || normalized === "::1";
+}
+
+function configureScriptureInitialAssetUrl() {
+  if (!DOC?.documentElement) {
+    return;
+  }
+  const targetUrl = isLoopbackHost() ? SCRIPTURE_INITIAL_FRAME_LOCAL_URL : SCRIPTURE_INITIAL_FRAME_REMOTE_URL;
+  DOC.documentElement.style.setProperty("--scripture-initial-frame-url", `url("${targetUrl}")`);
+}
+
+configureScriptureInitialAssetUrl();
 
 const WISDOM_CONTENT_BY_RULER = {
   Sun: {
@@ -52,37 +72,37 @@ const FALLBACK_DAILY_PSALM_BY_RULER = {
 const STUDY_DEPTHS = ["anchor", "context", "crossrefs", "discuss"];
 
 const elements = {
-  title: document.querySelector(".study-page-title"),
-  intro: document.querySelector(".study-page-intro"),
-  primaryRef: document.querySelector(".study-primary-ref"),
-  originLine: document.querySelector(".study-origin-line"),
-  contextSummary: document.querySelector(".study-context-summary"),
-  contextList: document.querySelector(".study-context-list"),
-  depthSummary: document.querySelector(".study-depth-summary"),
-  depthButtons: Array.from(document.querySelectorAll("[data-depth-button]")),
-  depthPanels: Array.from(document.querySelectorAll("[data-depth-panel]")),
-  anchorHeading: document.querySelector(".study-anchor-heading"),
-  readingStatus: document.querySelector(".study-reading-status"),
-  anchorText: document.querySelector(".study-anchor-text"),
-  whyText: document.querySelector(".study-why-text"),
-  whyList: document.querySelector(".study-why-list"),
-  contextHeading: document.querySelector(".study-context-heading"),
-  contextStatus: document.querySelector(".study-context-status"),
-  contextNote: document.querySelector(".study-context-note"),
-  expandedText: document.querySelector(".study-expanded-text"),
-  pairedRef: document.querySelector(".study-paired-ref"),
-  pairedText: document.querySelector(".study-paired-text"),
-  pairedLink: document.querySelector(".study-paired-link"),
-  solomonicTitle: document.querySelector(".study-solomonic-title"),
-  solomonicText: document.querySelector(".study-solomonic-text"),
-  relatedPentacles: document.querySelector(".study-related-pentacles"),
-  themeList: document.querySelector(".study-theme-list"),
-  sourceLinks: document.querySelector(".study-source-links"),
-  prompts: document.querySelector(".study-prompts"),
-  discussButton: document.querySelector(".study-discuss-button"),
-  discussPanelButton: document.querySelector(".study-discuss-panel-button"),
-  discussTitle: document.querySelector(".study-discuss-title"),
-  discussText: document.querySelector(".study-discuss-text"),
+  title: DOC?.querySelector(".study-page-title"),
+  primaryRef: DOC?.querySelector(".study-primary-ref"),
+  originLine: DOC?.querySelector(".study-origin-line"),
+  contextSummary: DOC?.querySelector(".study-context-summary"),
+  contextList: DOC?.querySelector(".study-context-list"),
+  depthButtons: Array.from(DOC?.querySelectorAll("[data-depth-button]") || []),
+  depthPanels: Array.from(DOC?.querySelectorAll("[data-depth-panel]") || []),
+  anchorHeading: DOC?.querySelector(".study-anchor-heading"),
+  readingStatus: DOC?.querySelector(".study-reading-status"),
+  anchorText: DOC?.querySelector(".study-anchor-text"),
+  whyText: DOC?.querySelector(".study-why-text"),
+  whyList: DOC?.querySelector(".study-why-list"),
+  contextHeading: DOC?.querySelector(".study-context-heading"),
+  contextStatus: DOC?.querySelector(".study-context-status"),
+  expandedText: DOC?.querySelector(".study-expanded-text"),
+  pairedRef: DOC?.querySelector(".study-paired-ref"),
+  pairedText: DOC?.querySelector(".study-paired-text"),
+  pairedLink: DOC?.querySelector(".study-paired-link"),
+  solomonicTitle: DOC?.querySelector(".study-solomonic-title"),
+  solomonicText: DOC?.querySelector(".study-solomonic-text"),
+  relatedPentacles: DOC?.querySelector(".study-related-pentacles"),
+  themeList: DOC?.querySelector(".study-theme-list"),
+  sourceLinks: DOC?.querySelector(".study-source-links"),
+  crossrefList: DOC?.querySelector(".study-crossref-list"),
+  prompts: DOC?.querySelector(".study-prompts"),
+  practiceText: DOC?.querySelector(".study-practice-text"),
+  reflectionText: DOC?.querySelector(".study-reflection-text"),
+  carryPromptText: DOC?.querySelector(".study-carry-prompt-text"),
+  discussButton: DOC?.querySelector(".study-discuss-button"),
+  discussPanelButton: DOC?.querySelector(".study-discuss-panel-button"),
+  discussTitle: DOC?.querySelector(".study-discuss-title"),
 };
 
 function sentenceCase(text) {
@@ -91,6 +111,14 @@ function sentenceCase(text) {
     return "";
   }
   return `${clean.charAt(0).toUpperCase()}${clean.slice(1)}`;
+}
+
+function lowerSentence(text) {
+  const clean = String(text || "").trim();
+  if (!clean) {
+    return "";
+  }
+  return `${clean.charAt(0).toLowerCase()}${clean.slice(1)}`;
 }
 
 function sanitizeInlinePassageText(text) {
@@ -144,6 +172,62 @@ function formatPassageBlockText(text) {
 
   flushVerse();
   return blocks.join("\n\n").trim();
+}
+
+function splitScriptureInitialText(text) {
+  const value = String(text || "");
+  let prefix = "";
+  let remainder = value;
+
+  const chapterMatch = remainder.match(/^(\s*chapter\s+\d+\b[^\n]*\n+\n*)/i);
+  if (chapterMatch) {
+    prefix = chapterMatch[1];
+    remainder = remainder.slice(prefix.length);
+  }
+
+  const initialIndex = remainder.search(/[A-Za-z]/);
+  if (initialIndex < 0) {
+    return null;
+  }
+
+  return {
+    prefix: prefix + remainder.slice(0, initialIndex),
+    initial: remainder.charAt(initialIndex),
+    suffix: remainder.slice(initialIndex + 1),
+  };
+}
+
+function renderScriptureBlock(element, text, { decorate = true, compact = false } = {}) {
+  if (!element) {
+    return;
+  }
+
+  const value = String(text || "");
+  const parts = splitScriptureInitialText(value);
+  const shouldDecorate = decorate && parts && value.trim().length > 12;
+
+  element.textContent = "";
+  element.classList.toggle("scripture-illumination", Boolean(shouldDecorate));
+  element.classList.toggle("scripture-illumination--compact", Boolean(shouldDecorate && compact));
+  element.classList.toggle("has-illuminated-initial", Boolean(shouldDecorate));
+
+  if (!shouldDecorate || !parts) {
+    element.textContent = value;
+    return;
+  }
+
+  if (parts.prefix) {
+    element.appendChild(document.createTextNode(parts.prefix));
+  }
+
+  const initial = document.createElement("span");
+  initial.className = "illuminated-initial";
+  initial.textContent = parts.initial;
+  element.appendChild(initial);
+
+  if (parts.suffix) {
+    element.appendChild(document.createTextNode(parts.suffix));
+  }
 }
 
 function withTerminalPunctuation(text) {
@@ -200,6 +284,64 @@ function expandVerseSpecification(spec) {
   }
   const numeric = clean.replace(/[^0-9]/g, "");
   return numeric ? [numeric] : [];
+}
+
+function formatReadablePsalmReference(entry) {
+  const chapter = Number.parseInt(entry?.number ?? entry?.psalm, 10);
+  if (Number.isNaN(chapter) || chapter <= 0) {
+    return "";
+  }
+  const verseSpec = String(entry?.verses || "").trim();
+  return `Psalm ${chapter}${verseSpec ? `:${verseSpec}` : ""}`;
+}
+
+function extractVersePassageText(text, verseSpec = "") {
+  const verses = new Set(expandVerseSpecification(verseSpec));
+  if (!verses.size) {
+    return "";
+  }
+
+  const blocks = String(text || "")
+    .replace(/\r\n?/g, "\n")
+    .split(/\n{2,}/)
+    .map((block) => block.trim())
+    .filter(Boolean);
+
+  const matches = blocks.filter((block) => {
+    if (/^chapter\s+\d+\b/i.test(block)) {
+      return false;
+    }
+    const verseMatch = block.match(/^(\d+)\s+/);
+    return Boolean(verseMatch && verses.has(verseMatch[1]));
+  });
+
+  return matches.join("\n\n").trim();
+}
+
+function buildStudyReference(kind, chapter, verseSpec = "", fallbackReference = "") {
+  if (kind !== "psalm" && kind !== "wisdom") {
+    return String(fallbackReference || "").trim();
+  }
+
+  const parsedChapter = Number.parseInt(chapter, 10);
+  if (Number.isNaN(parsedChapter) || parsedChapter <= 0) {
+    return String(fallbackReference || "").trim();
+  }
+
+  const referencePrefix = kind === "psalm" ? "Psalm" : String(fallbackReference || "").trim().split(/\s+/)[0] || "Proverbs";
+  return `${referencePrefix} ${parsedChapter}${verseSpec ? `:${verseSpec}` : ""}`.trim();
+}
+
+function dedupeCrossReferenceItems(items) {
+  const seen = new Set();
+  return items.filter((item) => {
+    const key = `${item.kind || "unknown"}|${String(item.reference || "").trim()}`;
+    if (!item.reference || seen.has(key)) {
+      return false;
+    }
+    seen.add(key);
+    return true;
+  });
 }
 
 function slugifyIdPart(value) {
@@ -318,14 +460,17 @@ function buildStudyUrl(study, overrides = {}) {
       params.set(key, clean);
     }
   });
-  return `${window.location.pathname}?${params.toString()}`;
+  const pathname = typeof window !== "undefined" && window.location?.pathname
+    ? window.location.pathname
+    : CLOCK_PATH.replace(/\/clock$/, "/scripture-study");
+  return `${pathname}?${params.toString()}`;
 }
 
 function renderContext(study, paired) {
   elements.primaryRef.textContent = study.reference || "Open this page from the clock";
   elements.originLine.textContent = study.origin
-    ? `Opened from ${study.origin.replace(/-/g, " ")}.`
-    : "Opened from the clock’s study actions.";
+    ? sentenceCase(study.origin.replace(/-/g, " "))
+    : "Clock";
 
   const contextBits = [];
   if (study.dayText || study.rulerText) {
@@ -342,9 +487,8 @@ function renderContext(study, paired) {
     contextBits.push(`${study.planet} Pentacle #${study.pentacle}`);
   }
 
-  elements.contextSummary.textContent = contextBits.length
-    ? `This study page keeps the clock’s current frame in view: ${contextBits.join(" • ")}.`
-    : "This study page keeps the current clock frame visible while you read the passage more deeply.";
+  elements.contextSummary.textContent = contextBits.join(" • ");
+  elements.contextSummary.hidden = !contextBits.length;
 
   const rows = [
     study.reference ? `Anchor: ${study.reference}` : "",
@@ -392,10 +536,9 @@ function bindDepthControls(study) {
 }
 
 function buildWhyToday(study, paired, solomonicRecord) {
-  const domain = String(study.domain || "today's active field").toLowerCase();
-  const virtue = String(study.virtue || "the needed virtue").toLowerCase();
-  const ruler = study.rulerText ? `${study.rulerText} day` : "today";
-  const summary = `${study.reference || "This passage"} belongs to ${ruler} because the clock is reading ${domain} through ${virtue}, not as an isolated verse but as counsel for one concrete decision.`;
+  const summary = [study.dayText, study.rulerText, study.domain, study.virtue]
+    .filter(Boolean)
+    .join(" • ");
 
   const bullets = [];
   if (study.dayText || study.rulerText) {
@@ -405,10 +548,10 @@ function buildWhyToday(study, paired, solomonicRecord) {
     bullets.push(`Moral emphasis: ${[study.domain, study.virtue].filter(Boolean).join(" • ")}.`);
   }
   if (paired?.reference) {
-    bullets.push(`Paired with ${paired.reference} so the reading has a second witness.`);
+    bullets.push(`Paired: ${paired.reference}.`);
   }
   if (solomonicRecord?.name || (study.planet && study.pentacle)) {
-    bullets.push(`Held inside ${solomonicRecord?.name || `${study.planet} Pentacle #${study.pentacle}`}, so the symbolic frame stays subordinate to the scripture but still interprets the day.`);
+    bullets.push(`Setting: ${solomonicRecord?.name || `${study.planet} Pentacle #${study.pentacle}`}.`);
   }
 
   return { summary, bullets: bullets.slice(0, 4) };
@@ -436,9 +579,12 @@ function buildPairedReading(study) {
 
   const fallbackPsalm = FALLBACK_DAILY_PSALM_BY_RULER[study.rulerText];
   if (study.psalmRef) {
+    const parsedPsalm = parseScriptureReference(study.psalmRef);
     return {
       kind: "psalm",
       reference: study.psalmRef,
+      chapter: parsedPsalm?.chapter || "",
+      verseSpec: parsedPsalm?.verseSpec || "",
       preview: "",
     };
   }
@@ -480,7 +626,7 @@ function renderPairedReading(study, paired) {
   elements.pairedRef.textContent = paired.reference;
   elements.pairedText.textContent = paired.preview
     ? toSnippet(paired.preview, 280)
-    : "Open this paired reading to continue the cross-reference path.";
+    : "Open paired study.";
   elements.pairedLink.hidden = false;
   elements.pairedLink.textContent = "Open paired study";
   elements.pairedLink.href = buildStudyUrl(study, {
@@ -501,7 +647,7 @@ function renderThemesAndLinks(study, scriptureMappings) {
   if (study.kind !== "psalm" || !study.chapter) {
     const note = document.createElement("p");
     note.className = "study-source-note";
-    note.textContent = "This reading is using the live wisdom source path rather than the bundled psalm map.";
+    note.textContent = "Live wisdom source.";
     elements.sourceLinks.appendChild(note);
     return;
   }
@@ -510,7 +656,7 @@ function renderThemesAndLinks(study, scriptureMappings) {
   if (!entry) {
     const note = document.createElement("p");
     note.className = "study-source-note";
-    note.textContent = "No bundled theme or source links are available for this psalm yet.";
+    note.textContent = "No bundled links.";
     elements.sourceLinks.appendChild(note);
     return;
   }
@@ -534,7 +680,7 @@ function renderThemesAndLinks(study, scriptureMappings) {
   if (!linkEntries.length) {
     const note = document.createElement("p");
     note.className = "study-source-note";
-    note.textContent = "No external source links are bundled for this psalm.";
+    note.textContent = "No external links.";
     elements.sourceLinks.appendChild(note);
     return;
   }
@@ -555,7 +701,7 @@ function renderRelatedPentacles(study, pentaclePsalmPayload, pentaclesPayload) {
 
   if (study.kind !== "psalm" || !study.chapter) {
     const item = document.createElement("li");
-    item.textContent = "Psalm-linked pentacle correspondences appear here when the active study is a psalm.";
+    item.textContent = "Shown for psalm study.";
     elements.relatedPentacles.appendChild(item);
     return;
   }
@@ -565,7 +711,7 @@ function renderRelatedPentacles(study, pentaclePsalmPayload, pentaclesPayload) {
 
   if (!related.length) {
     const item = document.createElement("li");
-    item.textContent = "No pentacle correspondences are bundled for this psalm yet.";
+    item.textContent = "No bundled correspondences.";
     elements.relatedPentacles.appendChild(item);
     return;
   }
@@ -580,6 +726,132 @@ function renderRelatedPentacles(study, pentaclePsalmPayload, pentaclesPayload) {
   });
 }
 
+function buildCrossReferenceItems(study, paired, pentaclePsalmPayload, pentaclesPayload) {
+  const items = [];
+
+  if (paired?.reference) {
+    items.push({
+      kind: paired.kind,
+      reference: paired.reference,
+      description: "Daily paired reading.",
+      href: buildStudyUrl(study, {
+        kind: paired.kind,
+        reference: paired.reference,
+        chapter: paired.chapter || "",
+        verseSpec: paired.verseSpec || "",
+        preview: paired.preview || "",
+        origin: "paired-reading",
+        depth: "anchor",
+      }),
+      label: "Open paired study",
+    });
+  }
+
+  if (study.planet && Number.isInteger(study.pentacle)) {
+    const activePentacle = Array.isArray(pentaclePsalmPayload?.pentacles)
+      ? pentaclePsalmPayload.pentacles.find((entry) =>
+        String(entry?.planet || "").trim().toLowerCase() === String(study.planet || "").trim().toLowerCase()
+        && Number.parseInt(entry?.pentacle, 10) === study.pentacle)
+      : null;
+
+    const pentacleRecord = pentaclesPayload?.pentacles?.[
+      `${String(study.planet || "").trim().toLowerCase()}_${String(study.pentacle).trim()}`
+    ] || null;
+
+    (activePentacle?.psalms || []).forEach((entry) => {
+      const reference = formatReadablePsalmReference(entry);
+      if (!reference || reference === study.reference || reference === paired?.reference) {
+        return;
+      }
+
+      items.push({
+        kind: "psalm",
+        reference,
+        description: pentacleRecord?.purpose
+          ? `${pentacleRecord.name || `${study.planet} Pentacle #${study.pentacle}`} • ${sentenceCase(pentacleRecord.purpose)}.`
+          : `Also cited under ${study.planet} Pentacle #${study.pentacle}.`,
+        href: buildStudyUrl(study, {
+          kind: "psalm",
+          reference,
+          chapter: Number.parseInt(entry?.number ?? entry?.psalm, 10) || "",
+          verseSpec: String(entry?.verses || "").trim(),
+          preview: "",
+          origin: "solomonic-crossref",
+          depth: "anchor",
+        }),
+        label: "Open study",
+      });
+    });
+  }
+
+  if (study.kind === "wisdom" && study.psalmRef && study.psalmRef !== paired?.reference) {
+    const parsedPsalm = parseScriptureReference(study.psalmRef);
+    items.push({
+      kind: "psalm",
+      reference: study.psalmRef,
+      description: "Clock psalm pair.",
+      href: buildStudyUrl(study, {
+        kind: "psalm",
+        reference: study.psalmRef,
+        chapter: parsedPsalm?.chapter || "",
+        verseSpec: parsedPsalm?.verseSpec || "",
+        preview: "",
+        origin: "clock-psalm-pair",
+        depth: "anchor",
+      }),
+      label: "Open psalm study",
+    });
+  }
+
+  return dedupeCrossReferenceItems(items).slice(0, 6);
+}
+
+function renderCrossReferenceItems(items) {
+  if (!elements.crossrefList) {
+    return;
+  }
+
+  elements.crossrefList.innerHTML = "";
+
+  if (!items.length) {
+    const item = DOC?.createElement("li");
+    if (!item) {
+      return;
+    }
+    item.textContent = "No linked readings.";
+    elements.crossrefList.appendChild(item);
+    return;
+  }
+
+  items.forEach((entry) => {
+    const item = DOC?.createElement("li");
+    const header = DOC?.createElement("div");
+    const title = DOC?.createElement("p");
+    const note = DOC?.createElement("p");
+    const action = DOC?.createElement("a");
+    if (!item || !header || !title || !note || !action) {
+      return;
+    }
+
+    item.className = "study-crossref-item";
+    header.className = "study-crossref-header";
+    title.className = "study-crossref-title";
+    note.className = "study-crossref-note";
+    action.className = "guide-link-button";
+
+    title.textContent = entry.reference;
+    note.textContent = entry.description;
+    action.textContent = entry.label || "Open study";
+    action.href = entry.href || CLOCK_PATH;
+
+    header.appendChild(title);
+    item.appendChild(header);
+    item.appendChild(note);
+    item.appendChild(action);
+    elements.crossrefList.appendChild(item);
+  });
+}
+
 function renderSolomonicSetting(study, pentaclesPayload) {
   const lookupKey = study.planet && study.pentacle
     ? `${study.planet.toLowerCase()}_${study.pentacle}`
@@ -588,42 +860,78 @@ function renderSolomonicSetting(study, pentaclesPayload) {
 
   if (!record) {
     elements.solomonicTitle.textContent = "No live pentacle context";
-    elements.solomonicText.textContent = "Open this page from a live clock passage to see the related pentacle meaning and why it belongs to today’s counsel.";
+    elements.solomonicText.textContent = "No Solomonic context.";
     return null;
   }
 
   elements.solomonicTitle.textContent = `${record.name || `${study.planet} Pentacle #${study.pentacle}`}`;
   const parts = [];
   if (record.purpose) {
-    parts.push(`Traditional meaning: ${withTerminalPunctuation(sentenceCase(record.purpose))}`);
-  }
-  if (study.domain || study.virtue) {
-    parts.push(
-      `Today's reading: It was surfaced because the day leans toward ${String(study.domain || "the current field").toLowerCase()} through ${String(study.virtue || "its active virtue").toLowerCase()}.`
-    );
+    parts.push(sentenceCase(record.purpose));
   }
   if (record.virtue) {
-    parts.push(`Associated virtue: ${record.virtue}.`);
+    parts.push(record.virtue);
   }
-  elements.solomonicText.textContent = parts.join(" ");
+  if (study.domain || study.virtue) {
+    parts.push([study.domain, study.virtue].filter(Boolean).join(" • "));
+  }
+  elements.solomonicText.textContent = parts.filter(Boolean).join(" • ");
   return record;
 }
 
-function buildStudyPrompts(study, paired, solomonicRecord) {
+function buildPracticePlan(study, paired, solomonicRecord) {
+  const domainText = String(study.domain || "today's active field").trim();
+  const virtueText = String(study.virtue || solomonicRecord?.virtue || "attention").trim();
+  const reference = study.reference || "this passage";
+  const pairedText = paired?.reference ? ` Check it against ${paired.reference}.` : "";
+  const solomonicText = solomonicRecord?.purpose
+    ? ` ${sentenceCase(solomonicRecord.purpose)}.`
+    : "";
+
+  return {
+    practice: domainText && virtueText
+      ? `Do one ${lowerSentence(virtueText)} act in ${lowerSentence(domainText)} today. Let ${reference} govern it.${pairedText}${solomonicText}`
+      : `Do one act that obeys ${reference} today.${pairedText}${solomonicText}`,
+    reflection: `What did you do? Where did it resist? Did ${reference} hold?`,
+    carryPrompt: domainText && virtueText
+      ? `Turn ${reference} into one ${lowerSentence(virtueText)} act in ${lowerSentence(domainText)} today${paired?.reference ? `. Use ${paired.reference} as witness` : ""}.`
+      : `Turn ${reference} into one concrete act today${paired?.reference ? `. Use ${paired.reference} as witness` : ""}.`,
+  };
+}
+
+function renderPracticePlan(plan) {
+  if (elements.practiceText) {
+    elements.practiceText.textContent = plan?.practice || "Open a passage from the clock to generate one concrete practice.";
+  }
+  if (elements.reflectionText) {
+    elements.reflectionText.textContent = plan?.reflection || "The study page will suggest an evening review once live context is available.";
+  }
+  if (elements.carryPromptText) {
+    elements.carryPromptText.textContent = plan?.carryPrompt || "The strongest Pericope handoff prompt will appear here once a live passage is loaded.";
+  }
+}
+
+function buildStudyPrompts(study, paired, solomonicRecord, practicePlan) {
   const prompts = [];
   if (study.reference) {
-    prompts.push(`What changes if I read ${study.reference} as counsel for ${String(study.domain || "today’s active field").toLowerCase()} rather than as a disconnected proof text?`);
+    prompts.push(`Where does ${study.reference} press on the real decision in front of me?`);
   }
   if (paired?.reference) {
     prompts.push(`How does ${paired.reference} sharpen or correct the way I am reading ${study.reference} today?`);
   }
   if (solomonicRecord?.purpose) {
-    prompts.push(`What concrete act would make the ${String(solomonicRecord.purpose).toLowerCase()} of this pentacle visible in one real decision today?`);
+    prompts.push(`What one act would show ${String(solomonicRecord.purpose).toLowerCase()} in a real decision today?`);
   }
   if (!prompts.length) {
     prompts.push("Open a live scripture anchor from the clock to generate passage-specific prompts.");
   }
-  return prompts.slice(0, 3).map((prompt) => withTerminalPunctuation(prompt));
+  return dedupeCrossReferenceItems(
+    prompts.map((prompt, index) => ({
+      kind: "prompt",
+      reference: `prompt-${index}`,
+      description: withTerminalPunctuation(prompt),
+    }))
+  ).slice(0, 3).map((entry) => entry.description);
 }
 
 function renderStudyPrompts(prompts) {
@@ -640,7 +948,7 @@ async function loadAnchorTexts(study) {
     return {
       anchorText: "Open this page from the clock’s scripture surfaces to load a live passage.",
       expandedText: "",
-      contextStatus: "Waiting for a broader passage.",
+      contextStatus: "Context",
     };
   }
 
@@ -653,25 +961,27 @@ async function loadAnchorTexts(study) {
       anchorText: anchorText || "Unable to load the anchored verses.",
       expandedText: expandedText || "",
       contextStatus: expandedText
-        ? "Showing the surrounding psalm so the anchor can be read in sequence."
-        : "Only the anchor verses are available right now.",
+        ? "Context"
+        : "Anchor only",
     };
   }
 
   const previewText = study.preview || "";
   const expandedText = formatPassageBlockText(await fetchBookPartial("wisdom", study.reference));
+  const anchorFromContext = extractVersePassageText(expandedText, study.verseSpec);
   return {
-    anchorText: previewText || toSnippet(expandedText, 260) || "Unable to load the anchored passage.",
+    anchorText: anchorFromContext || previewText || toSnippet(expandedText, 260) || "Unable to load the anchored passage.",
     expandedText,
     contextStatus: expandedText
-      ? "Showing the broader wisdom passage for context."
-      : "Only the anchor excerpt is available right now.",
+      ? "Context"
+      : "Anchor only",
   };
 }
 
-function bindDiscussAction(study, prompts) {
+function bindDiscussAction(study, prompts, handoffPrompt = "") {
   const launch = () => {
-    const message = prompts[0]
+    const message = handoffPrompt
+      || prompts[0]
       || `Help me study ${study.reference || "this passage"} in the context of today’s counsel.`;
     const params = new URLSearchParams({
       mode: "guided",
@@ -689,6 +999,7 @@ function bindDiscussAction(study, prompts) {
 
 function renderWhyToday(whyToday) {
   elements.whyText.textContent = whyToday.summary;
+  elements.whyText.hidden = !whyToday.summary;
   elements.whyList.innerHTML = "";
   whyToday.bullets.forEach((line) => {
     const item = document.createElement("li");
@@ -717,8 +1028,10 @@ async function buildStudyPayload(study) {
     ? { ...paired, preview: paired.preview || pairedPreview || "" }
     : null;
   const solomonicRecord = renderSolomonicSetting(study, pentaclesPayload);
+  const practicePlan = buildPracticePlan(study, pairedWithPreview, solomonicRecord);
   const whyToday = buildWhyToday(study, pairedWithPreview, solomonicRecord);
-  const prompts = buildStudyPrompts(study, pairedWithPreview, solomonicRecord);
+  const prompts = buildStudyPrompts(study, pairedWithPreview, solomonicRecord, practicePlan);
+  const crossrefs = buildCrossReferenceItems(study, pairedWithPreview, pentaclePsalmPayload, pentaclesPayload);
 
   return {
     paired: pairedWithPreview,
@@ -727,6 +1040,8 @@ async function buildStudyPayload(study) {
     pentaclesPayload,
     reading,
     solomonicRecord,
+    practicePlan,
+    crossrefs,
     whyToday,
     prompts,
   };
@@ -741,23 +1056,21 @@ async function initialiseStudyPage() {
   renderContext(study, paired);
   renderPairedReading(study, paired);
 
-  elements.depthSummary.textContent = "Anchor first, then widen into context, cross references, and discussion.";
   elements.contextHeading.textContent = study.reference || "Open a passage to widen the reading";
-  elements.contextStatus.textContent = "Waiting for a broader passage.";
+  elements.contextStatus.textContent = "Context";
 
   if (!study.reference) {
-    bindDiscussAction(study, []);
+    bindDiscussAction(study, [], "");
     return;
   }
 
   elements.title.textContent = `${study.reference} | Scripture Study`;
-  elements.intro.textContent = `Read ${study.reference} as more than a small preview card: hold the anchor, the broader passage, the paired reading, and the live clock context together.`;
   elements.anchorHeading.textContent = study.reference;
   elements.contextHeading.textContent = study.reference;
-  elements.readingStatus.textContent = "Loading the anchor...";
-  elements.contextStatus.textContent = "Loading the broader passage...";
-  elements.anchorText.textContent = "Loading passage…";
-  elements.expandedText.textContent = "Loading broader context…";
+  elements.readingStatus.textContent = "Loading…";
+  elements.contextStatus.textContent = "Loading…";
+  renderScriptureBlock(elements.anchorText, "Loading passage…", { decorate: false });
+  renderScriptureBlock(elements.expandedText, "Loading broader context…", { decorate: false });
 
   try {
     const payload = await buildStudyPayload(study);
@@ -765,34 +1078,55 @@ async function initialiseStudyPage() {
     renderPairedReading(study, payload.paired);
     renderThemesAndLinks(study, payload.scriptureMappings);
     renderRelatedPentacles(study, payload.pentaclePsalmPayload, payload.pentaclesPayload);
+    renderCrossReferenceItems(payload.crossrefs);
+    renderPracticePlan(payload.practicePlan);
     renderWhyToday(payload.whyToday);
     renderStudyPrompts(payload.prompts);
-    bindDiscussAction(study, payload.prompts);
+    bindDiscussAction(study, payload.prompts, payload.practicePlan?.carryPrompt || "");
 
-    elements.anchorText.textContent = payload.reading.anchorText;
-    elements.expandedText.textContent = payload.reading.expandedText || "No broader context is available for this passage yet.";
-    elements.readingStatus.textContent = "Showing the anchor. Keep the exact wording in view before widening the reading.";
+    renderScriptureBlock(elements.anchorText, payload.reading.anchorText);
+    renderScriptureBlock(
+      elements.expandedText,
+      payload.reading.expandedText || "No broader context is available for this passage yet.",
+      { decorate: Boolean(payload.reading.expandedText) }
+    );
+    elements.readingStatus.textContent = "Anchor";
     elements.contextStatus.textContent = payload.reading.contextStatus;
-    elements.contextNote.textContent = payload.reading.expandedText
-      ? "This layer widens the anchor into its surrounding passage so the reading can be tested in sequence and tone."
-      : "Only the anchor text is available right now, so stay with the exact cited wording.";
-    elements.depthSummary.textContent = `Use ${study.reference} as the anchor, then widen into context, correspondences, and discussion without losing the original reference.`;
     elements.discussTitle.textContent = payload.solomonicRecord?.name
       ? `Discuss ${payload.solomonicRecord.name} and ${study.reference}`
       : `Discuss ${study.reference}`;
-    elements.discussText.textContent = payload.prompts[0]
-      || "Use the reading stack first, then carry the strongest question into guided conversation.";
   } catch (error) {
     console.error("Failed to initialise scripture study page", error);
     elements.readingStatus.textContent = "Unable to load the deeper study view right now.";
     elements.contextStatus.textContent = "Context could not be loaded.";
-    elements.anchorText.textContent = study.preview || "The study page could not load the requested passage.";
-    elements.expandedText.textContent = "The broader passage is unavailable right now.";
-    elements.contextNote.textContent = "Stay with the anchor and use Pericope if you need help working with the passage while the deeper study surface is unavailable.";
-    bindDiscussAction(study, [
-      `Help me work with ${study.reference || "this passage"} even though the full study page did not load correctly.`,
-    ]);
+    renderScriptureBlock(
+      elements.anchorText,
+      study.preview || "The study page could not load the requested passage.",
+      { decorate: Boolean(study.preview) }
+    );
+    renderScriptureBlock(elements.expandedText, "The broader passage is unavailable right now.", { decorate: false });
+    renderCrossReferenceItems([]);
+    renderPracticePlan(null);
+    bindDiscussAction(
+      study,
+      [],
+      `Help me work with ${study.reference || "this passage"} even though the full study page did not load correctly.`
+    );
   }
 }
 
-initialiseStudyPage();
+if (typeof globalThis !== "undefined") {
+  globalThis.__scriptureStudyTest = {
+    buildPairedReading,
+    buildCrossReferenceItems,
+    buildPracticePlan,
+    expandVerseSpecification,
+    extractVersePassageText,
+    formatPassageBlockText,
+    parseScriptureReference,
+  };
+}
+
+if (typeof window !== "undefined" && DOC) {
+  initialiseStudyPage();
+}

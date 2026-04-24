@@ -1,5 +1,8 @@
 :root {
   color-scheme: dark;
+  --scripture-serif: Georgia, "Times New Roman", serif;
+  --scripture-initial-font: "Times New Roman", Georgia, serif;
+  --scripture-initial-frame-url: url("https://assets.pericopeai.com/scriptorium-initials/v1/frame-gold.svg");
 }
 
 body {
@@ -573,6 +576,78 @@ body[data-daily-opening="open"] {
   white-space: pre-wrap;
   max-height: 24rem;
   overflow: auto;
+}
+
+.scripture-illumination {
+  font-family: var(--scripture-serif);
+  letter-spacing: 0.01em;
+}
+
+.scripture-illumination.has-illuminated-initial::after {
+  content: "";
+  display: block;
+  clear: both;
+}
+
+.illuminated-initial {
+  --initial-size: 3.2rem;
+  position: relative;
+  float: left;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--initial-size);
+  height: var(--initial-size);
+  margin: 0.12rem 0.72rem 0.12rem 0;
+  border: 1px solid rgba(250, 204, 21, 0.58);
+  border-radius: 0.24rem;
+  background-image:
+    var(--scripture-initial-frame-url),
+    linear-gradient(135deg, rgba(250, 204, 21, 0.2), rgba(96, 165, 250, 0.1) 48%, rgba(2, 6, 23, 0.84));
+  background-color: rgba(15, 23, 42, 0.88);
+  background-repeat: no-repeat, no-repeat;
+  background-position: center, center;
+  background-size: cover, cover;
+  box-shadow:
+    inset 0 0 0 1px rgba(254, 243, 199, 0.18),
+    inset 0 0 18px rgba(250, 204, 21, 0.12),
+    0 10px 24px rgba(2, 6, 23, 0.32);
+  color: #fef3c7;
+  font-family: var(--scripture-initial-font);
+  font-size: calc(var(--initial-size) * 0.6);
+  font-weight: 700;
+  line-height: 1;
+  text-shadow: 0 2px 8px rgba(2, 6, 23, 0.6);
+}
+
+.illuminated-initial::before,
+.illuminated-initial::after {
+  content: "";
+  position: absolute;
+  width: 0.58rem;
+  height: 0.58rem;
+  border-color: rgba(147, 197, 253, 0.5);
+  pointer-events: none;
+}
+
+.illuminated-initial::before {
+  top: 0.28rem;
+  left: 0.28rem;
+  border-top: 1px solid;
+  border-left: 1px solid;
+}
+
+.illuminated-initial::after {
+  right: 0.28rem;
+  bottom: 0.28rem;
+  border-right: 1px solid;
+  border-bottom: 1px solid;
+}
+
+.scripture-illumination--compact .illuminated-initial {
+  --initial-size: 2.35rem;
+  margin: 0.08rem 0.56rem 0.08rem 0;
+  border-color: rgba(250, 204, 21, 0.42);
 }
 
 .scripture-reader-text.loading {
@@ -2666,6 +2741,42 @@ svg[data-mode="timeline"] .history-preview {
   gap: 0.65rem;
 }
 
+.study-crossref-list {
+  display: grid;
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.study-crossref-item {
+  display: grid;
+  gap: 0.55rem;
+  padding: 0.9rem 1rem;
+  border-radius: 0.95rem;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  background: rgba(15, 23, 42, 0.48);
+}
+
+.study-crossref-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.study-crossref-title {
+  margin: 0;
+  color: #f8fafc;
+  font-weight: 600;
+}
+
+.study-crossref-note {
+  margin: 0;
+  color: #d7dfeb;
+  line-height: 1.6;
+}
+
 .study-theme-list {
   display: flex;
   flex-wrap: wrap;
@@ -2699,14 +2810,18 @@ svg[data-mode="timeline"] .history-preview {
 }
 
 .study-why-card,
-.study-discuss-card {
+.study-discuss-card,
+.study-practice-card {
   display: grid;
   gap: 0.75rem;
 }
 
 .study-why-text,
 .study-context-note,
-.study-discuss-text {
+.study-discuss-text,
+.study-practice-text,
+.study-reflection-text,
+.study-carry-prompt-text {
   margin: 0;
   color: #d7dfeb;
   line-height: 1.65;

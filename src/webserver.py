@@ -25,6 +25,7 @@ from functools import partial
 from http import HTTPStatus
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+from posixpath import normpath
 from typing import Any
 from urllib.parse import parse_qs, urlparse
 from urllib.error import HTTPError, URLError
@@ -41,6 +42,7 @@ LOCAL_SOURCE_TEXTS_DIR = REPO_ROOT / "docs" / "source_texts"
 DEFAULT_AUGUSTINE_CORPUS_ROOT = Path(
     "/Users/benjaminlagrone/Documents/projects/pericopeai.com/AugustineCorpus"
 )
+PERICOPEAI_ASSETS_PUBLIC_ROOT = REPO_ROOT.parent / "pericopeai-assets" / "public"
 DEFAULT_AUGUSTINE_AUTHOR_INDEX_PATH = DEFAULT_AUGUSTINE_CORPUS_ROOT / "author_index.json"
 DEFAULT_EXTERNAL_PSALMS_PATH = Path(
     "/Users/benjaminlagrone/Documents/projects/pericopeai.com/AugustineCorpus/texts/david_texts/Psalms.txt"
@@ -3134,6 +3136,20 @@ class ClockRequestHandler(SimpleHTTPRequestHandler):
 
     def __init__(self, *args: Any, directory: str | None = None, **kwargs: Any) -> None:
         super().__init__(*args, directory=directory, **kwargs)
+
+    def translate_path(self, path: str) -> str:  # type: ignore[override]
+        parsed = urlparse(path)
+        request_path = parsed.path or "/"
+        asset_prefix = "/asset-library/"
+        if request_path.startswith(asset_prefix):
+            relative = normpath(request_path[len(asset_prefix):]).lstrip("/")
+            candidate = (PERICOPEAI_ASSETS_PUBLIC_ROOT / relative).resolve()
+            try:
+                candidate.relative_to(PERICOPEAI_ASSETS_PUBLIC_ROOT.resolve())
+            except ValueError:
+                return str(REPO_ROOT / "__invalid_asset_path__")
+            return str(candidate)
+        return super().translate_path(path)
 
     def end_headers(self) -> None:
         request_path = urlparse(getattr(self, "path", "")).path

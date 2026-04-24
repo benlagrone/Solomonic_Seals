@@ -299,12 +299,22 @@ const DAILY_OPENING_DISMISSED_STORAGE_KEY = "truevineos-daily-opening-dismissed-
 const HISTORY_SYNC_API_PATH = "/api/history/sync";
 const PERICOPE_HISTORY_SESSIONS_API_PATH = "/api/pericope/history-sessions";
 const SCRIPTURE_STUDY_PATH = "/scripture-study";
+const SCRIPTURE_INITIAL_FRAME_REMOTE_URL = "https://assets.pericopeai.com/scriptorium-initials/v1/frame-gold.svg";
+const SCRIPTURE_INITIAL_FRAME_LOCAL_URL = "/asset-library/scriptorium-initials/v1/frame-gold.svg";
 
 function isLoopbackHost(hostname = window.location.hostname) {
   const normalized = String(hostname || "").trim().toLowerCase();
   return normalized === "localhost"
     || normalized === "127.0.0.1"
     || normalized === "::1";
+}
+
+function configureScriptureInitialAssetUrl() {
+  if (typeof document === "undefined") {
+    return;
+  }
+  const targetUrl = isLoopbackHost() ? SCRIPTURE_INITIAL_FRAME_LOCAL_URL : SCRIPTURE_INITIAL_FRAME_REMOTE_URL;
+  document.documentElement.style.setProperty("--scripture-initial-frame-url", `url("${targetUrl}")`);
 }
 
 const HISTORY_CLIENT_ID_STORAGE_KEY = "truevineos-history-client-id";
@@ -392,6 +402,7 @@ const CLIENT_ERROR_DEDUPE_WINDOW_MS = 90_000;
 const SCRIPTURE_READER_SUPPORTED = typeof window !== "undefined"
   && typeof window.SpeechSynthesisUtterance === "function"
   && "speechSynthesis" in window;
+configureScriptureInitialAssetUrl();
 const scriptureReaderState = {
   kind: "psalm",
   expanded: false,
@@ -3443,7 +3454,11 @@ function updateHistoryPanel(now, derived, referenceMap) {
   drawerElements.historyReviewWarning.textContent = weeklyReview.warning;
   drawerElements.historyReviewCarry.textContent = weeklyReview.carryForward;
   drawerElements.historyReviewScriptureRef.textContent = weeklyReview.scriptureRef;
-  drawerElements.historyReviewScriptureText.textContent = sanitizeInlinePassageText(weeklyReview.scriptureText);
+  renderScriptureTextBlock(
+    drawerElements.historyReviewScriptureText,
+    sanitizeInlinePassageText(weeklyReview.scriptureText),
+    { compact: true }
+  );
   if (
     document.activeElement !== drawerElements.historyReviewNote
     || historyReviewAutofillKey !== selectedEntry.dateKey
@@ -6554,7 +6569,10 @@ function restoreBundlePreview(kind) {
   }
   if (elements.text) {
     elements.text.classList.remove("loading", "error");
-    elements.text.textContent = state.previewText;
+    renderScriptureTextBlock(elements.text, state.previewText, {
+      decorate: kind === "psalm" || kind === "wisdom",
+      compact: true,
+    });
   }
   if (elements.button) {
     const canExpand = Boolean(state.expandAvailable);
@@ -6587,7 +6605,7 @@ async function toggleBundleExpansion(kind) {
   elements.button.disabled = true;
   elements.text.classList.remove("error");
   elements.text.classList.add("loading");
-  elements.text.textContent = "Loading expanded passage…";
+  renderScriptureTextBlock(elements.text, "Loading expanded passage…", { decorate: false });
 
   try {
     const expandedText = await resolveExpandedBundleText(kind, requestState);
@@ -6598,7 +6616,10 @@ async function toggleBundleExpansion(kind) {
 
     requestState.expanded = true;
     elements.text.classList.remove("loading", "error");
-    elements.text.textContent = expandedText || "No expanded text returned.";
+    renderScriptureTextBlock(elements.text, expandedText || "No expanded text returned.", {
+      decorate: kind === "psalm" || kind === "wisdom",
+      compact: true,
+    });
     elements.button.textContent = requestState.collapseLabel || "Show Summary";
     elements.button.disabled = false;
   } catch (error) {
@@ -6612,7 +6633,10 @@ async function toggleBundleExpansion(kind) {
       requestState.expanded = true;
       requestState.expandedText = fallbackText;
       elements.text.classList.remove("loading", "error");
-      elements.text.textContent = fallbackText;
+      renderScriptureTextBlock(elements.text, fallbackText, {
+        decorate: kind === "psalm" || kind === "wisdom",
+        compact: true,
+      });
       elements.button.textContent = requestState.collapseLabel || "Show Summary";
       elements.button.disabled = false;
       return;
@@ -6621,7 +6645,7 @@ async function toggleBundleExpansion(kind) {
     requestState.expanded = false;
     elements.text.classList.remove("loading");
     elements.text.classList.add("error");
-    elements.text.textContent = `${requestState.previewText}\n\nUnable to load expanded passage.`;
+    renderScriptureTextBlock(elements.text, `${requestState.previewText}\n\nUnable to load expanded passage.`, { decorate: false });
     elements.button.textContent = "Retry Expansion";
     elements.button.disabled = false;
     reportClientError("bundle_expansion_failed", {
@@ -6705,7 +6729,7 @@ function getScriptureReaderKindLabel(kind) {
 
 function getScriptureReaderDefaultStatus(kind) {
   if (SCRIPTURE_READER_SUPPORTED) {
-    return `Showing ${getScriptureReaderKindLabel(kind)}. Use the play button to hear it aloud.`;
+    return `Showing ${getScriptureReaderKindLabel(kind)}. Use Listen to hear it aloud.`;
   }
   return `Showing ${getScriptureReaderKindLabel(kind)}. Audio depends on browser speech support.`;
 }
@@ -6783,31 +6807,6 @@ function getScriptureReaderSpeechText(reference, text) {
   return [cleanReference, cleanText].filter(Boolean).join(". ");
 }
 
-const PLAYER_BUTTON_ICONS = Object.freeze({
-  play: '<span class="player-button-icon" aria-hidden="true">&#9658;</span>',
-  stop: '<span class="player-button-icon" aria-hidden="true">&#9632;</span>',
-});
-
-function setPlayerButtonIcon(button, icon, label) {
-  if (!button) {
-    return;
-  }
-
-  if (button.dataset.playerIcon !== icon) {
-    button.innerHTML = PLAYER_BUTTON_ICONS[icon] || PLAYER_BUTTON_ICONS.play;
-    button.dataset.playerIcon = icon;
-  }
-  button.setAttribute("aria-label", label);
-  button.title = label;
-}
-
-function getBundleAudioLabel(kind, sentenceCase = false) {
-  if (kind === "wisdom") {
-    return sentenceCase ? "Wisdom audio" : "wisdom audio";
-  }
-  return sentenceCase ? "Psalm audio" : "psalm audio";
-}
-
 function cancelSpeechPlaybackState() {
   scriptureReaderSpeechToken += 1;
   bundleSpeechToken += 1;
@@ -6851,13 +6850,8 @@ function renderBundleAudioControls() {
     const audioContent = getBundleAudioContent(kind);
     const isSpeaking = bundleAudioState.speaking && bundleAudioState.kind === kind;
     elements.listen.disabled = !SCRIPTURE_READER_SUPPORTED || !audioContent || isSpeaking;
+    elements.listen.textContent = isSpeaking ? "Playing…" : "Listen";
     elements.stop.disabled = !SCRIPTURE_READER_SUPPORTED || !isSpeaking;
-    setPlayerButtonIcon(
-      elements.listen,
-      "play",
-      isSpeaking ? `${getBundleAudioLabel(kind, true)} playing` : `Play ${getBundleAudioLabel(kind)}`
-    );
-    setPlayerButtonIcon(elements.stop, "stop", `Stop ${getBundleAudioLabel(kind)}`);
   });
 }
 
@@ -7002,7 +6996,9 @@ function renderScriptureReader(force = false) {
   scriptureReaderElements.ref.textContent = display.reference;
   scriptureReaderElements.text.classList.toggle("loading", display.tone === "loading");
   scriptureReaderElements.text.classList.toggle("error", display.tone === "error");
-  scriptureReaderElements.text.textContent = display.text;
+  renderScriptureTextBlock(scriptureReaderElements.text, display.text, {
+    decorate: !display.tone,
+  });
 
   scriptureReaderElements.toggle.hidden = !canExpand;
   scriptureReaderElements.toggle.disabled = !canExpand || scriptureReaderState.loading;
@@ -7013,13 +7009,8 @@ function renderScriptureReader(force = false) {
   scriptureReaderElements.study.hidden = !sourceState?.previewRef;
   scriptureReaderElements.study.disabled = !sourceState?.previewRef;
   scriptureReaderElements.listen.disabled = !canListen || scriptureReaderState.speaking;
+  scriptureReaderElements.listen.textContent = scriptureReaderState.speaking ? "Playing…" : "Listen";
   scriptureReaderElements.stop.disabled = !SCRIPTURE_READER_SUPPORTED || !scriptureReaderState.speaking;
-  setPlayerButtonIcon(
-    scriptureReaderElements.listen,
-    "play",
-    scriptureReaderState.speaking ? "Scripture audio playing" : "Play scripture audio"
-  );
-  setPlayerButtonIcon(scriptureReaderElements.stop, "stop", "Stop scripture audio");
 }
 
 async function toggleScriptureReaderExpansion() {
@@ -7237,6 +7228,34 @@ function sanitizeInlinePassageText(text) {
     .join(" ")
     .replace(/\s+/g, " ")
     .trim();
+}
+
+function renderScriptureTextBlock(element, text, { decorate = true, compact = false } = {}) {
+  if (!element) {
+    return;
+  }
+
+  const value = String(text || "");
+  const initialIndex = value.search(/[A-Za-z]/);
+  const shouldDecorate = decorate && initialIndex >= 0 && value.trim().length > 12;
+
+  element.textContent = "";
+  element.classList.toggle("scripture-illumination", shouldDecorate);
+  element.classList.toggle("scripture-illumination--compact", shouldDecorate && compact);
+  element.classList.toggle("has-illuminated-initial", shouldDecorate);
+
+  if (!shouldDecorate) {
+    element.textContent = value;
+    return;
+  }
+
+  element.appendChild(document.createTextNode(value.slice(0, initialIndex)));
+
+  const initial = document.createElement("span");
+  initial.className = "illuminated-initial";
+  initial.textContent = value.charAt(initialIndex);
+  element.appendChild(initial);
+  element.appendChild(document.createTextNode(value.slice(initialIndex + 1)));
 }
 
 function lowerSentence(text) {
@@ -8482,9 +8501,12 @@ function setRuleScripturePreview(target, reference, text, { loading = false, err
 
   target.container.hidden = false;
   target.ref.textContent = reference;
-  target.text.textContent = text;
   target.text.classList.toggle("loading", loading);
   target.text.classList.toggle("error", error);
+  renderScriptureTextBlock(target.text, text, {
+    decorate: !loading && !error,
+    compact: true,
+  });
 }
 
 function clearRuleScripturePreview(target) {
@@ -8494,8 +8516,8 @@ function clearRuleScripturePreview(target) {
 
   target.container.hidden = true;
   target.ref.textContent = "—";
-  target.text.textContent = "—";
   target.text.classList.remove("loading", "error");
+  renderScriptureTextBlock(target.text, "—", { decorate: false });
 }
 
 function setDailyOpeningAnchorPreview(reference, text, {
@@ -8513,9 +8535,11 @@ function setDailyOpeningAnchorPreview(reference, text, {
   }
 
   drawerElements.dailyOpeningAnchorRef.textContent = reference || "Today's anchor";
-  drawerElements.dailyOpeningAnchorText.textContent = text || "No passage available.";
   drawerElements.dailyOpeningAnchorText.classList.toggle("loading", loading);
   drawerElements.dailyOpeningAnchorText.classList.toggle("error", error);
+  renderScriptureTextBlock(drawerElements.dailyOpeningAnchorText, text || "No passage available.", {
+    decorate: !loading && !error,
+  });
   drawerElements.dailyOpeningAnchorToggle.hidden = !expandable;
   drawerElements.dailyOpeningAnchorToggle.textContent = expanded ? "Show Less" : "Read More";
   drawerElements.dailyOpeningAnchorToggle.setAttribute("aria-expanded", expanded ? "true" : "false");
@@ -9269,7 +9293,9 @@ function updateDailyContentBundle(timeState, referenceMap, psalmMetadata) {
   };
   const sanitizedWisdomText = sanitizeInlinePassageText(wisdom.text);
   drawerElements.bundleWisdomRef.textContent = wisdom.ref;
-  drawerElements.bundleWisdomText.textContent = sanitizedWisdomText;
+  renderScriptureTextBlock(drawerElements.bundleWisdomText, sanitizedWisdomText, {
+    compact: true,
+  });
   configureBundleExpansion("wisdom", {
     reference: wisdom.ref,
     text: sanitizedWisdomText,
@@ -9316,7 +9342,7 @@ function updateDailyContentBundle(timeState, referenceMap, psalmMetadata) {
   setTranslationBadge(drawerElements.bundlePsalmRef, "");
   drawerElements.bundlePsalmText.classList.remove("error", "loading");
   drawerElements.bundlePsalmText.classList.add("loading");
-  drawerElements.bundlePsalmText.textContent = loadingPsalmText;
+  renderScriptureTextBlock(drawerElements.bundlePsalmText, loadingPsalmText, { decorate: false });
   configureBundleExpansion("psalm", {
     reference: displayPsalmReference,
     text: loadingPsalmText,
@@ -9343,7 +9369,7 @@ function updateDailyContentBundle(timeState, referenceMap, psalmMetadata) {
     updateBundlePreviewState("psalm", { text: nextText });
     if (!bundleExpansionState.psalm?.expanded) {
       drawerElements.bundlePsalmText.classList.remove("loading", "error");
-      drawerElements.bundlePsalmText.textContent = nextText;
+      renderScriptureTextBlock(drawerElements.bundlePsalmText, nextText, { compact: true });
     }
   }).catch((error) => {
     console.error("Failed to fetch daily bundle psalm excerpt", error);
@@ -9364,7 +9390,7 @@ function updateDailyContentBundle(timeState, referenceMap, psalmMetadata) {
     if (!bundleExpansionState.psalm?.expanded) {
       drawerElements.bundlePsalmText.classList.remove("loading");
       drawerElements.bundlePsalmText.classList.add("error");
-      drawerElements.bundlePsalmText.textContent = errorText;
+      renderScriptureTextBlock(drawerElements.bundlePsalmText, errorText, { decorate: false });
     }
   });
 }
