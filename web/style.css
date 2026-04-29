@@ -2,7 +2,7 @@
   color-scheme: dark;
   --scripture-serif: Georgia, "Times New Roman", serif;
   --scripture-initial-font: "Times New Roman", Georgia, serif;
-  --scripture-initial-frame-url: url("https://assets.pericopeai.com/scriptorium-initials/v1/frame-gold.svg");
+  --scripture-initial-frame-url: url("/asset-library/scriptorium-initials/v1/frame-gold.svg");
 }
 
 body {
@@ -648,6 +648,62 @@ body[data-daily-opening="open"] {
   --initial-size: 2.35rem;
   margin: 0.08rem 0.56rem 0.08rem 0;
   border-color: rgba(250, 204, 21, 0.42);
+}
+
+.scriptorium-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.58rem;
+  max-width: 100%;
+}
+
+.scriptorium-label::before {
+  content: attr(data-initial);
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.78rem;
+  height: 1.78rem;
+  border: 1px solid rgba(250, 204, 21, 0.5);
+  border-radius: 0.38rem;
+  background-image:
+    var(--scripture-initial-frame-url),
+    linear-gradient(135deg, rgba(250, 204, 21, 0.24), rgba(96, 165, 250, 0.12) 52%, rgba(2, 6, 23, 0.86));
+  background-color: rgba(15, 23, 42, 0.88);
+  background-repeat: no-repeat, no-repeat;
+  background-position: center, center;
+  background-size: cover, cover;
+  box-shadow:
+    inset 0 0 0 1px rgba(254, 243, 199, 0.16),
+    inset 0 0 14px rgba(250, 204, 21, 0.1);
+  color: #fef3c7;
+  font-family: var(--scripture-initial-font);
+  font-size: 0.92rem;
+  font-weight: 700;
+  line-height: 1;
+  text-shadow: 0 2px 6px rgba(2, 6, 23, 0.56);
+}
+
+.scriptorium-label--hero {
+  gap: 0.72rem;
+}
+
+.scriptorium-label--hero::before {
+  width: 2.2rem;
+  height: 2.2rem;
+  font-size: 1.08rem;
+}
+
+.scriptorium-label--compact {
+  gap: 0.48rem;
+}
+
+.scriptorium-label--compact::before {
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 0.32rem;
+  font-size: 0.78rem;
 }
 
 .scripture-reader-text.loading {
@@ -2312,6 +2368,111 @@ svg[data-mode="timeline"] .history-preview {
 .home-footer,
 .home-card {
   border-radius: 1.2rem;
+}
+
+.home-hero,
+.home-card,
+.home-section,
+.home-footer,
+.home-metrics li,
+.home-step,
+.home-faq-item,
+.guide-hero,
+.guide-panel,
+.guide-card,
+.guide-step,
+.study-anchor-text,
+.study-expanded-text,
+.study-crossref-item,
+.wisdom-source-card,
+.wisdom-starter-list li {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.home-hero::before,
+.home-hero::after,
+.home-card::before,
+.home-card::after,
+.home-section::before,
+.home-section::after,
+.home-footer::before,
+.home-footer::after,
+.home-metrics li::before,
+.home-metrics li::after,
+.home-step::before,
+.home-step::after,
+.home-faq-item::before,
+.home-faq-item::after,
+.guide-hero::before,
+.guide-hero::after,
+.guide-panel::before,
+.guide-panel::after,
+.guide-card::before,
+.guide-card::after,
+.guide-step::before,
+.guide-step::after,
+.study-anchor-text::before,
+.study-anchor-text::after,
+.study-expanded-text::before,
+.study-expanded-text::after,
+.study-crossref-item::before,
+.study-crossref-item::after,
+.wisdom-source-card::before,
+.wisdom-source-card::after,
+.wisdom-starter-list li::before,
+.wisdom-starter-list li::after {
+  content: "";
+  position: absolute;
+  width: 1.05rem;
+  height: 1.05rem;
+  border-color: rgba(250, 204, 21, 0.38);
+  pointer-events: none;
+}
+
+.home-hero::before,
+.home-card::before,
+.home-section::before,
+.home-footer::before,
+.home-metrics li::before,
+.home-step::before,
+.home-faq-item::before,
+.guide-hero::before,
+.guide-panel::before,
+.guide-card::before,
+.guide-step::before,
+.study-anchor-text::before,
+.study-expanded-text::before,
+.study-crossref-item::before,
+.wisdom-source-card::before,
+.wisdom-starter-list li::before {
+  top: 0.9rem;
+  left: 0.9rem;
+  border-top: 1px solid;
+  border-left: 1px solid;
+}
+
+.home-hero::after,
+.home-card::after,
+.home-section::after,
+.home-footer::after,
+.home-metrics li::after,
+.home-step::after,
+.home-faq-item::after,
+.guide-hero::after,
+.guide-panel::after,
+.guide-card::after,
+.guide-step::after,
+.study-anchor-text::after,
+.study-expanded-text::after,
+.study-crossref-item::after,
+.wisdom-source-card::after,
+.wisdom-starter-list li::after {
+  right: 0.9rem;
+  bottom: 0.9rem;
+  border-right: 1px solid rgba(147, 197, 253, 0.38);
+  border-bottom: 1px solid rgba(147, 197, 253, 0.38);
 }
 
 .home-card,
