@@ -2,7 +2,7 @@
   color-scheme: dark;
   --scripture-serif: Georgia, "Times New Roman", serif;
   --scripture-initial-font: "Times New Roman", Georgia, serif;
-  --scripture-initial-frame-url: url("/asset-library/scriptorium-initials/v1/frame-gold.svg");
+  --scripture-initial-frame-url: url("/web/assets/scriptorium-initials/v1/frame-gold.svg");
 }
 
 body {

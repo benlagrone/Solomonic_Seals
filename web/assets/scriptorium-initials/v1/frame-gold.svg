@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Illuminated initial frame">
+  <defs>
+    <linearGradient id="panel" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2b1a08"/>
+      <stop offset="0.52" stop-color="#101828"/>
+      <stop offset="1" stop-color="#0b1220"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f8e7a9"/>
+      <stop offset="0.42" stop-color="#d8b25a"/>
+      <stop offset="1" stop-color="#8d6323"/>
+    </linearGradient>
+  </defs>
+  <rect x="6" y="6" width="116" height="116" rx="10" fill="url(#panel)" stroke="url(#gold)" stroke-width="4"/>
+  <rect x="13" y="13" width="102" height="102" rx="6" fill="none" stroke="#f6d985" stroke-opacity="0.38" stroke-width="1.5"/>
+  <path d="M26 20h76M26 108h76M20 26v76M108 26v76" stroke="#7c5b28" stroke-width="1.5" stroke-linecap="round"/>
+  <path d="M33 22c7 0 11 5 11 11-6 0-11-5-11-11zm62 0c0 6-5 11-11 11 0-6 5-11 11-11zM33 106c0-6 5-11 11-11 0 6-5 11-11 11zm62 0c-7 0-11-5-11-11 6 0 11 5 11 11z" fill="#bf6b45" fill-opacity="0.78"/>
+  <path d="M24 40h10M24 64h8M24 88h10M94 40h10M96 64h8M94 88h10" stroke="#9cc2f5" stroke-opacity="0.55" stroke-width="2" stroke-linecap="round"/>
+  <path d="M41 24c6 7 11 10 23 10s17-3 23-10M41 104c6-7 11-10 23-10s17 3 23 10" fill="none" stroke="#d7b45a" stroke-width="1.5" stroke-linecap="round"/>
+  <circle cx="64" cy="64" r="30" fill="none" stroke="#f6d985" stroke-opacity="0.22" stroke-width="1.2"/>
+</svg>
