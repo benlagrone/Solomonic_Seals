@@ -205,6 +205,10 @@ const drawerElements = {
   surfaceLensLabel: document.querySelector(".surface-lens-label"),
   surfaceLensTitle: document.querySelector(".surface-lens-title"),
   surfaceLensBody: document.querySelector(".surface-lens-body"),
+  surfaceLensQuestion: document.querySelector(".surface-lens-question"),
+  surfaceLensRing: document.querySelector(".surface-lens-ring"),
+  surfaceLensCta: document.querySelector(".surface-lens-cta"),
+  surfaceLensStack: document.querySelector(".surface-lens-stack"),
   surfaceRule: document.querySelector(".surface-rule"),
   surfaceRuleVirtue: document.querySelector(".surface-rule-virtue"),
   surfaceRuleDomain: document.querySelector(".surface-rule-domain"),
@@ -811,38 +815,38 @@ const AVAILABLE_PRESENTATIONS = new Set(Object.keys(PRESENTATION_DEFINITIONS));
 const LENS_DEFINITIONS = {
   base: {
     title: "Daily Guidance",
-    subtitle: () => getBaseDrawerSubtitleText(),
-    status: () => "Base lens keeps the clock primary and surfaces current guidance, life-balance state, and clear next action.",
+    subtitle: () => "Guidance, rule of life, and the next concrete act are foregrounded.",
+    status: () => "Question: what should I do today?",
     focusRing: null,
   },
   scripture: {
     title: "Scripture Lens",
-    subtitle: () => `${getBaseDrawerSubtitleText()} Reading depth, verse mappings, and provenance are foregrounded.`,
-    status: "See today's psalm, wisdom anchor, and selection notes.",
+    subtitle: () => "Anchor text, paired reading, and study depth are foregrounded.",
+    status: "Question: what does today's text actually say?",
     focusRing: "core",
     focusLabel: "Scripture Anchor",
     focusColor: "#facc15",
   },
   ritual: {
     title: "Ritual Lens",
-    subtitle: () => "Planetary day, weekly arc, timing cues, and practical devotional use are foregrounded.",
-    status: "Ritual lens emphasizes timing, focus, and the day’s practical devotional posture.",
+    subtitle: () => "Planetary hour, timing cues, and enactment sequence are foregrounded.",
+    status: "Question: when and how should I enact this?",
     focusRing: "planetary",
     focusLabel: "Timing Ring",
     focusColor: "#60a5fa",
   },
   esoteric: {
     title: "Esoteric Lens",
-    subtitle: () => "Pentacle correspondences, symbolic profile, and hidden structural logic are foregrounded.",
-    status: () => "Esoteric lens is an explicit opt-in for historical-symbol study and does not replace the guidance-first reading.",
+    subtitle: () => "Pentacle correspondences, spirit sector, and provenance are foregrounded.",
+    status: () => "Question: what symbolic system maps this day?",
     focusRing: "spirit",
     focusLabel: "Correspondence Ring",
     focusColor: "#c4b5fd",
   },
   history: {
     title: "History Lens",
-    subtitle: () => "Timeline mode is foregrounded here. Saved practice, completion, reflection, and launch states are shown on the outer arc.",
-    status: "History lens shifts attention toward temporal continuity and lets you revisit recorded days instead of only reading the weekly arc.",
+    subtitle: () => "Recorded days, continuity, and repeated patterns are foregrounded.",
+    status: "Question: how has this pattern unfolded over time?",
     focusRing: "history",
     focusLabel: "History Arc",
     focusColor: "#4ade80",
@@ -1061,7 +1065,7 @@ function applyPresentationState() {
 function applyLensState() {
   const lensDefinition = getLensDefinition(uiState.lens);
   const modeDefinition = getModeDefinition(uiState.mode);
-  uiState.focusedRing = modeDefinition.focusRing || lensDefinition.focusRing || null;
+  uiState.focusedRing = lensDefinition.focusRing || (uiState.lens === "base" ? modeDefinition.focusRing : null) || null;
   document.body.dataset.lens = uiState.lens;
   document.body.dataset.mode = uiState.mode;
   svg.attr("data-lens", uiState.lens);
@@ -3139,7 +3143,10 @@ function updateCenterLabels(coreName, timeState, referenceMap, now, derived, lif
     ? active.planetary.themes.join(" • ")
     : null;
   const weeklyEntry = buildWeeklyArcEntry(now, selectedDayOffset, derived, referenceMap);
-  const modePresentation = getModePresentation(timeState, referenceMap, now, derived, lifeState);
+  const selectedHistoryEntry = buildHistoryTimelineEntry(now, selectedDayOffset, derived, referenceMap);
+  const modePresentation = uiState.lens === "base"
+    ? getModePresentation(timeState, referenceMap, now, derived, lifeState)
+    : null;
 
   centerDayLabel.text(`${dayLabel.dayText} – ${dayLabel.rulerText} • ${clockText}`);
 
@@ -3194,9 +3201,17 @@ function updateCenterLabels(coreName, timeState, referenceMap, now, derived, lif
   }
 
   if (uiState.lens === "history") {
-    centerTitleLabel.text(weeklyEntry.dateLabel);
-    centerSpiritLabel.text(`${weeklyEntry.rulerText} • ${weeklyEntry.psalmRef}`);
-    centerPentacleLabel.text(toSnippet(weeklyEntry.focus, 76));
+    centerTitleLabel.text(selectedHistoryEntry.dateLabel);
+    centerSpiritLabel.text(
+      selectedHistoryEntry.hasRecord
+        ? `${selectedHistoryEntry.statusBadges.join(" • ") || "Saved"} • ${selectedHistoryEntry.scriptureRef || weeklyEntry.psalmRef}`
+        : `${weeklyEntry.rulerText} • ${weeklyEntry.psalmRef}`
+    );
+    centerPentacleLabel.text(
+      selectedHistoryEntry.hasRecord
+        ? toSnippet(selectedHistoryEntry.summaryLine, 76)
+        : toSnippet(weeklyEntry.focus, 76)
+    );
     return;
   }
 
@@ -6224,6 +6239,25 @@ function getScriptureSourceVerseSpec(source) {
   ).trim();
 }
 
+function getScriptureSourceDisplayReference(source, { expanded = false } = {}) {
+  const fallbackReference = String(source?.previewRef || source?.request?.reference || "Today's psalm").trim();
+  if (getScriptureSourceKind(source) !== "psalm") {
+    return fallbackReference;
+  }
+
+  const chapter = getScriptureSourceChapter(source);
+  if (Number.isNaN(chapter) || chapter <= 0) {
+    return fallbackReference;
+  }
+
+  const verseSpec = getScriptureSourceVerseSpec(source);
+  const depth = expanded
+    ? String(source?.expandedDepth || "long").trim() || "long"
+    : String(source?.previewDepth || readingDepth).trim() || readingDepth;
+  const meta = getPsalmPassageMeta(chapter, verseSpec, depth);
+  return formatPsalmDisplayReference(fallbackReference, meta);
+}
+
 function buildPsalmScriptureSource({
   reference,
   chapter,
@@ -6565,7 +6599,7 @@ function restoreBundlePreview(kind) {
   }
 
   if (elements.ref) {
-    elements.ref.textContent = state.previewRef;
+    elements.ref.textContent = getScriptureSourceDisplayReference(state, { expanded: false }) || state.previewRef;
   }
   if (elements.text) {
     elements.text.classList.remove("loading", "error");
@@ -6764,7 +6798,9 @@ function getScriptureReaderSourceSignature(kind, sourceState) {
 }
 
 function getScriptureReaderDisplayState(kind, sourceState) {
-  const reference = String(
+  const reference = getScriptureSourceDisplayReference(sourceState, {
+    expanded: scriptureReaderState.expanded,
+  }) || String(
     sourceState?.previewRef || (kind === "wisdom" ? "Today's wisdom passage" : "Today's psalm")
   ).trim();
   let text = String(sourceState?.previewText || "Loading today's passage…").trim();
@@ -7839,7 +7875,7 @@ function updateDailyOpening(context) {
   if (!context) {
     drawerElements.dailyOpeningOverlay.hidden = true;
     document.body.dataset.dailyOpening = "closed";
-    setDailyOpeningAnchorPreview("Today's anchor", "—", { expandable: false, expanded: false });
+    setDailyOpeningAnchorPreview("Today's anchor", "—", { expandable: false, expanded: false, source: null });
     return;
   }
 
@@ -8494,13 +8530,13 @@ function updateRuleOfLifePanels(rule) {
   updateRuleScripturePreview(rule);
 }
 
-function setRuleScripturePreview(target, reference, text, { loading = false, error = false } = {}) {
+function setRuleScripturePreview(target, reference, text, { loading = false, error = false, source = null, expanded = false } = {}) {
   if (!target?.container || !target?.ref || !target?.text) {
     return;
   }
 
   target.container.hidden = false;
-  target.ref.textContent = reference;
+  target.ref.textContent = getScriptureSourceDisplayReference(source, { expanded }) || reference;
   target.text.classList.toggle("loading", loading);
   target.text.classList.toggle("error", error);
   renderScriptureTextBlock(target.text, text, {
@@ -8525,6 +8561,7 @@ function setDailyOpeningAnchorPreview(reference, text, {
   error = false,
   expandable = false,
   expanded = false,
+  source = null,
 } = {}) {
   if (
     !drawerElements.dailyOpeningAnchorRef ||
@@ -8534,7 +8571,7 @@ function setDailyOpeningAnchorPreview(reference, text, {
     return;
   }
 
-  drawerElements.dailyOpeningAnchorRef.textContent = reference || "Today's anchor";
+  drawerElements.dailyOpeningAnchorRef.textContent = getScriptureSourceDisplayReference(source, { expanded }) || reference || "Today's anchor";
   drawerElements.dailyOpeningAnchorText.classList.toggle("loading", loading);
   drawerElements.dailyOpeningAnchorText.classList.toggle("error", error);
   renderScriptureTextBlock(drawerElements.dailyOpeningAnchorText, text || "No passage available.", {
@@ -8598,6 +8635,7 @@ function updateDailyOpeningAnchorPreview(context) {
     setDailyOpeningAnchorPreview("Today's anchor", "No passage available.", {
       expandable: false,
       expanded: false,
+      source: null,
     });
     return;
   }
@@ -8610,6 +8648,7 @@ function updateDailyOpeningAnchorPreview(context) {
       loading: true,
       expandable: Boolean(source.request || source.localExpandedText),
       expanded: dailyOpeningAnchorExpanded,
+      source,
     }
   );
 
@@ -8624,6 +8663,7 @@ function updateDailyOpeningAnchorPreview(context) {
     setDailyOpeningAnchorPreview(anchorRef, passageText || "No passage returned.", {
       expandable: Boolean(source.request || source.localExpandedText),
       expanded: dailyOpeningAnchorExpanded,
+      source,
     });
   }).catch((error) => {
     console.error("Failed to fetch daily opening scripture anchor", error);
@@ -8642,6 +8682,7 @@ function updateDailyOpeningAnchorPreview(context) {
       expandable: Boolean(source.request || source.localExpandedText),
       expanded: dailyOpeningAnchorExpanded,
       error: true,
+      source,
     });
   });
 }
@@ -8685,7 +8726,7 @@ function updateRuleScripturePreview(rule) {
 
   const requestId = ++currentRulePsalmRequestId;
   previewTargets.forEach((target) => {
-    setRuleScripturePreview(target, source.previewRef, "Loading psalm excerpt…", { loading: true });
+    setRuleScripturePreview(target, source.previewRef, "Loading psalm excerpt…", { loading: true, source });
   });
 
   resolveScriptureSourceRawText(source, { expanded: false }).then((rawText) => {
@@ -8698,7 +8739,7 @@ function updateRuleScripturePreview(rule) {
         expanded: false,
         previewLength: target.maxLength,
       });
-      setRuleScripturePreview(target, source.previewRef, preview || "No psalm text returned.");
+      setRuleScripturePreview(target, source.previewRef, preview || "No psalm text returned.", { source });
     });
   }).catch((error) => {
     console.error("Failed to fetch rule-of-life psalm excerpt", error);
@@ -8714,9 +8755,158 @@ function updateRuleScripturePreview(rule) {
       message: error?.message || "Rule of Life scripture preview failed to load.",
     });
     previewTargets.forEach((target) => {
-      setRuleScripturePreview(target, source.previewRef, "Unable to fetch psalm excerpt.", { error: true });
+      setRuleScripturePreview(target, source.previewRef, "Unable to fetch psalm excerpt.", { error: true, source });
     });
   });
+}
+
+function updateSurfaceLensStack(items) {
+  if (!drawerElements.surfaceLensStack) {
+    return;
+  }
+
+  const labels = Array.isArray(items)
+    ? items.map((item) => String(item || "").trim()).filter(Boolean).slice(0, 4)
+    : [];
+
+  drawerElements.surfaceLensStack.innerHTML = "";
+  labels.forEach((label) => {
+    const chip = document.createElement("span");
+    chip.className = "surface-lens-stack-item";
+    chip.textContent = label;
+    drawerElements.surfaceLensStack.appendChild(chip);
+  });
+}
+
+function buildLensSurfaceView(timeState, referenceMap, now, derived, lifeState) {
+  const dayLabel = timeState?.dayLabel;
+  const activePentacle = timeState?.active?.pentacle || null;
+  const activeSpirit = timeState?.active?.spirit || null;
+  const activePlanetary = timeState?.active?.planetary || null;
+  const pentacleKey = getPentacleKey(activePentacle);
+  const pentacleRecord = pentacleKey ? referenceMap.get(pentacleKey) : null;
+  const primaryPsalm = getPrimaryPsalmEntry(pentacleRecord);
+  const readablePsalm = formatReadablePsalmReference(primaryPsalm);
+  const hourRule = dayLabel ? getPlanetaryHourRuler(now, dayLabel.rulerText) : null;
+  const nextHourRule = dayLabel ? getNextPlanetaryHourRuler(now, dayLabel.rulerText) : null;
+  const wisdom = dayLabel ? WISDOM_CONTENT_BY_RULER[dayLabel.rulerText] : null;
+  const correspondences = dayLabel ? (PLANETARY_CORRESPONDENCES[dayLabel.rulerText] || {}) : {};
+  const weeklyEntry = buildWeeklyArcEntry(now, selectedDayOffset, derived, referenceMap);
+  const ruleOfLife = buildRuleOfLife(timeState, referenceMap, now, derived, lifeState);
+  const recentEntries = getRecordedHistoryEntries(now, derived, referenceMap, 7);
+  const selectedHistoryEntry = buildHistoryTimelineEntry(now, selectedDayOffset, derived, referenceMap);
+  const themeText = Array.isArray(activePlanetary?.themes) && activePlanetary.themes.length
+    ? activePlanetary.themes.slice(0, 3).join(" • ")
+    : "";
+  const activePentacleLabel = activePentacle
+    ? `${activePentacle.planet} Pentacle #${activePentacle.pentacle.index}`
+    : weeklyEntry.pentacleLabel;
+
+  if (uiState.lens === "scripture") {
+    return {
+      label: "Scripture Lens",
+      title: wisdom?.ref
+        ? `Anchor • ${wisdom.ref}`
+        : readablePsalm
+          ? `Psalm Pair • ${readablePsalm}`
+          : "Scripture Anchor",
+      body: wisdom?.text
+        ? readablePsalm
+          ? `${toSnippet(wisdom.text, 108)} Pair it with ${readablePsalm}.`
+          : toSnippet(wisdom.text, 128)
+        : readablePsalm
+          ? `Hold ${readablePsalm} in view, then widen into the study page for context.`
+          : "Anchor text, paired reading, and study depth will gather here.",
+      question: "What does today's text actually say?",
+      ring: "Core / anchor",
+      cta: "Open scripture study",
+      stack: ["Anchor", "Context", "Psalm Pair"],
+      ruleOfLife: null,
+    };
+  }
+
+  if (uiState.lens === "ritual") {
+    const bodyParts = [];
+    if (themeText) {
+      bodyParts.push(themeText);
+    }
+    if (nextHourRule?.ruler) {
+      bodyParts.push(`Next: ${nextHourRule.ruler}`);
+    }
+    if (ruleOfLife?.morning) {
+      bodyParts.push(toSnippet(ruleOfLife.morning, 88));
+    }
+    return {
+      label: "Ritual Lens",
+      title: hourRule?.ruler
+        ? `Hour ${String(hourRule.hourIndex).padStart(2, "0")} • ${hourRule.ruler}`
+        : "Ritual Timing",
+      body: bodyParts.join(". ") || "Timing cues, enactment sequence, and closeout prompts gather here.",
+      question: "When and how should I enact this?",
+      ring: "Planetary timing",
+      cta: ruleOfLife ? "Open and close the day" : "Adopt timed practice",
+      stack: ["Hour", "Rule", "Closeout"],
+      ruleOfLife,
+    };
+  }
+
+  if (uiState.lens === "esoteric") {
+    const spiritLabel = activeSpirit?.spirit ? `${activeSpirit.spirit} • ${activeSpirit.zodiac} ${activeSpirit.degrees}` : "";
+    const sourceLabel = [correspondences.angel, correspondences.metal].filter(Boolean).join(" • ");
+    return {
+      label: "Esoteric Lens",
+      title: activePentacleLabel || "Correspondence Study",
+      body: [spiritLabel, sourceLabel, activePentacle?.pentacle?.focus ? toSnippet(activePentacle.pentacle.focus, 72) : ""]
+        .filter(Boolean)
+        .join(". ") || "Pentacle correspondences and provenance gather here.",
+      question: "What symbolic system maps this day?",
+      ring: "Spirit / correspondence",
+      cta: "Inspect provenance",
+      stack: ["Pentacle", "Spirit", "Sources"],
+      ruleOfLife: null,
+    };
+  }
+
+  if (uiState.lens === "history") {
+    return {
+      label: "History Lens",
+      title: recentEntries.length
+        ? `Recorded Day • ${selectedHistoryEntry.dateLabel}`
+        : "Providence Map",
+      body: recentEntries.length
+        ? selectedHistoryEntry.hasRecord
+          ? `${selectedHistoryEntry.titleLine}. ${toSnippet(selectedHistoryEntry.summaryLine, 112)}`
+          : `${recentEntries.length} recorded ${recentEntries.length === 1 ? "day" : "days"} in view. Select a saved node or timeline card.`
+        : "No recorded trail yet. Open the day, act, reflect, and close it to begin continuity.",
+      question: "How has this pattern unfolded over time?",
+      ring: "Outer history arc",
+      cta: recentEntries.length ? "Revisit recorded day" : "Begin recording days",
+      stack: ["History", "Patterns", "Continuity"],
+      ruleOfLife: null,
+    };
+  }
+
+  const focusedDomain = lifeState?.focusedDomain;
+  const weakestDomain = lifeState?.weakestDomain;
+  const weakestText = weakestDomain
+    ? `Repair ${weakestDomain.name.toLowerCase()} before the day closes.`
+    : "";
+  return {
+    label: "Daily Guidance",
+    title: ruleOfLife
+      ? `${ruleOfLife.domain} • ${ruleOfLife.virtue}`
+      : focusedDomain
+        ? `${focusedDomain.name} • ${focusedDomain.virtue}`
+        : `${weeklyEntry.rulerText} Guidance`,
+    body: ruleOfLife?.summary
+      || [weeklyEntry.tone, weakestText].filter(Boolean).join(" ")
+      || "Guidance, rule of life, and weekly arc gather here.",
+    question: "What should I do today?",
+    ring: "Whole clock",
+    cta: ruleOfLife ? "Adopt today's practice" : "Open daily opening",
+    stack: ["Guidance", "Rule Of Life", "Weekly Arc"],
+    ruleOfLife,
+  };
 }
 
 async function retrievePsalmPassage(chapter, verseSpec, depth = readingDepth) {
@@ -9024,120 +9214,64 @@ function updateSurfacePanel(timeState, referenceMap, now, derived, lifeState) {
   }
 
   const lensDefinition = getLensDefinition(uiState.lens);
-  const dayLabel = timeState?.dayLabel;
-  const activePentacle = timeState?.active?.pentacle || null;
-  const activeSpirit = timeState?.active?.spirit || null;
-  const activePlanetary = timeState?.active?.planetary || null;
-  const pentacleKey = getPentacleKey(activePentacle);
-  const pentacleRecord = pentacleKey ? referenceMap.get(pentacleKey) : null;
-  const primaryPsalm = getPrimaryPsalmEntry(pentacleRecord);
-  const readablePsalm = formatReadablePsalmReference(primaryPsalm);
-  const hourRule = dayLabel ? getPlanetaryHourRuler(now, dayLabel.rulerText) : null;
-  const wisdom = dayLabel ? WISDOM_CONTENT_BY_RULER[dayLabel.rulerText] : null;
-  const correspondences = dayLabel ? (PLANETARY_CORRESPONDENCES[dayLabel.rulerText] || {}) : {};
-  const weeklyEntry = buildWeeklyArcEntry(now, selectedDayOffset, derived, referenceMap);
+  const surfaceView = buildLensSurfaceView(timeState, referenceMap, now, derived, lifeState);
+  const modePresentation = uiState.lens === "base"
+    ? getModePresentation(timeState, referenceMap, now, derived, lifeState)
+    : null;
 
-  const modePresentation = getModePresentation(timeState, referenceMap, now, derived, lifeState);
   drawerElements.surfaceLensLabel.textContent = modePresentation
-    ? `${lensDefinition.title} • ${modePresentation.surfaceLabel}`
-    : lensDefinition.title;
+    ? `${surfaceView.label} • ${modePresentation.surfaceLabel}`
+    : surfaceView.label || lensDefinition.title;
+  drawerElements.surfaceLensTitle.textContent = modePresentation?.surfaceTitle || surfaceView.title;
+  drawerElements.surfaceLensBody.textContent = modePresentation?.surfaceBody || surfaceView.body;
 
-  if (modePresentation) {
-    drawerElements.surfaceLensTitle.textContent = modePresentation.surfaceTitle;
-    drawerElements.surfaceLensBody.textContent = modePresentation.surfaceBody;
-    updateRuleOfLifePanels(modePresentation.ruleOfLife || null);
-    return;
+  if (drawerElements.surfaceLensQuestion) {
+    drawerElements.surfaceLensQuestion.textContent = surfaceView.question;
+  }
+  if (drawerElements.surfaceLensRing) {
+    drawerElements.surfaceLensRing.textContent = surfaceView.ring;
+  }
+  if (drawerElements.surfaceLensCta) {
+    drawerElements.surfaceLensCta.textContent = surfaceView.cta;
   }
 
-  updateRuleOfLifePanels(null);
-
-  if (uiState.lens === "scripture") {
-    drawerElements.surfaceLensTitle.textContent = wisdom?.ref
-      ? "Wisdom Anchor"
-      : readablePsalm
-        ? "Psalm Pairing"
-        : "Scripture Anchor";
-    if (wisdom?.ref && readablePsalm) {
-      drawerElements.surfaceLensBody.textContent = `Today's wisdom anchor: ${wisdom.ref}. Mapped psalm: ${readablePsalm}.`;
-    } else if (wisdom?.ref) {
-      drawerElements.surfaceLensBody.textContent = `Today's wisdom anchor: ${wisdom.ref}.`;
-    } else if (readablePsalm) {
-      drawerElements.surfaceLensBody.textContent = `Today's mapped psalm: ${readablePsalm}.`;
-    } else {
-      drawerElements.surfaceLensBody.textContent = "Today's scripture mapping appears here.";
-    }
-    return;
-  }
-
-  if (uiState.lens === "ritual") {
-    drawerElements.surfaceLensTitle.textContent = hourRule?.ruler
-      ? `Hour of ${hourRule.ruler}`
-      : "Ritual Timing";
-    drawerElements.surfaceLensBody.textContent = Array.isArray(activePlanetary?.themes) && activePlanetary.themes.length
-      ? activePlanetary.themes.join(" • ")
-      : "Day themes and practical timing are pulled forward here.";
-    return;
-  }
-
-  if (uiState.lens === "esoteric") {
-    drawerElements.surfaceLensTitle.textContent = [correspondences.angel, correspondences.metal]
-      .filter(Boolean)
-      .join(" • ") || "Esoteric Correspondences";
-    drawerElements.surfaceLensBody.textContent = activeSpirit
-      ? `${activeSpirit.spirit} rules the active sector in ${activeSpirit.zodiac} ${activeSpirit.degrees}.`
-      : "Symbolic correspondences are foregrounded here.";
-    return;
-  }
-
-  if (uiState.lens === "history") {
-    const recentEntries = getRecordedHistoryEntries(now, derived, referenceMap, 7);
-    const selectedHistoryEntry = buildHistoryTimelineEntry(now, selectedDayOffset, derived, referenceMap);
-    drawerElements.surfaceLensTitle.textContent = recentEntries.length
-      ? `Providence Map • ${selectedHistoryEntry.dateLabel}`
-      : "Providence Map";
-    drawerElements.surfaceLensBody.textContent = recentEntries.length
-      ? `${recentEntries.length} recorded ${recentEntries.length === 1 ? "day" : "days"} in view. Select an outer node or timeline card to revisit ${selectedHistoryEntry.dateLabel.toLowerCase()}.`
-      : "No recorded trail yet. Faint guide nodes mark the recent week so you can begin the map by opening and closing the day.";
-    return;
-  }
-
-  if (lifeState?.focusedDomain && lifeState?.weakestDomain) {
-    drawerElements.surfaceLensTitle.textContent = `${lifeState.focusedDomain.name} • ${lifeState.focusedDomain.virtue}`;
-    drawerElements.surfaceLensBody.textContent = `Focus today leans toward ${lifeState.focusedDomain.name.toLowerCase()}. Weakest domain: ${lifeState.weakestDomain.name} (${lifeState.weakestDomain.score}%).`;
-    return;
-  }
-
-  drawerElements.surfaceLensTitle.textContent = activePentacle
-    ? uiState.presentationMode === "guidance"
-      ? "Current Guidance"
-      : `${activePentacle.planet} #${activePentacle.pentacle.index}`
-    : "Current Guidance";
-  drawerElements.surfaceLensBody.textContent = activePentacle?.pentacle?.focus
-    ? toSnippet(activePentacle.pentacle.focus, 96)
-    : "The clock surface summarizes the active day, scripture anchor, and present focus.";
+  updateSurfaceLensStack(surfaceView.stack);
+  updateRuleOfLifePanels(modePresentation?.ruleOfLife || surfaceView.ruleOfLife || null);
 }
 
 function getLensAnnotations(timeState, referenceMap, now, radii) {
   const dayLabel = timeState?.dayLabel;
   const activePentacle = timeState?.active?.pentacle || null;
   const activeSpirit = timeState?.active?.spirit || null;
-  const activePlanetary = timeState?.active?.planetary || null;
   const pentacleKey = getPentacleKey(activePentacle);
   const pentacleRecord = pentacleKey ? referenceMap.get(pentacleKey) : null;
   const primaryPsalm = formatReadablePsalmReference(getPrimaryPsalmEntry(pentacleRecord));
   const hourRule = dayLabel ? getPlanetaryHourRuler(now, dayLabel.rulerText) : null;
+  const nextHourRule = dayLabel ? getNextPlanetaryHourRuler(now, dayLabel.rulerText) : null;
   const correspondences = dayLabel ? (PLANETARY_CORRESPONDENCES[dayLabel.rulerText] || {}) : {};
 
   if (uiState.lens === "scripture") {
-    return [];
+    return [
+      { text: "Anchor", radius: radii.core + 24, angle: -102, color: "#facc15" },
+      { text: primaryPsalm ? "Psalm Pair" : "Context", radius: radii.core + 24, angle: -18, color: "#fde68a" },
+      { text: "Study", radius: radii.core + 48, angle: -60, color: "#fef08a" },
+    ];
   }
 
   if (uiState.lens === "ritual") {
-    return [];
+    return [
+      { text: hourRule?.ruler ? `Hour ${String(hourRule.hourIndex).padStart(2, "0")}` : "This Hour", radius: radii.planetary + 28, angle: -120, color: "#60a5fa" },
+      { text: "Enact", radius: radii.planetary + 28, angle: -56, color: "#93c5fd" },
+      { text: nextHourRule?.ruler ? `Next ${nextHourRule.ruler}` : "Close", radius: radii.planetary + 28, angle: 8, color: "#bfdbfe" },
+    ];
   }
 
   if (uiState.lens === "esoteric") {
-    return [];
+    return [
+      { text: activeSpirit?.spirit || "Spirit", radius: radii.spirit + 24, angle: -132, color: "#c4b5fd" },
+      { text: correspondences.angel ? `Angel ${correspondences.angel}` : "Pentacle", radius: radii.spirit + 24, angle: -64, color: "#ddd6fe" },
+      { text: correspondences.metal || "Source", radius: radii.spirit + 24, angle: 4, color: "#ede9fe" },
+    ];
   }
 
   if (uiState.lens === "history") {
@@ -9362,6 +9496,9 @@ function updateDailyContentBundle(timeState, referenceMap, psalmMetadata) {
       return;
     }
     const nextText = text || "No psalm text returned.";
+    if (bundleExpansionState.psalm && drawerElements.bundlePsalmRef) {
+      drawerElements.bundlePsalmRef.textContent = getScriptureSourceDisplayReference(bundleExpansionState.psalm, { expanded: false }) || displayPsalmReference;
+    }
     setTranslationBadge(
       drawerElements.bundlePsalmRef,
       getPsalmPassageTranslationNote(chapter, bundleVerseSpec, readingDepth)
@@ -9385,6 +9522,9 @@ function updateDailyContentBundle(timeState, referenceMap, psalmMetadata) {
       message: error?.message || "Daily bundle psalm preview failed to load.",
     });
     const errorText = "Unable to fetch psalm excerpt.";
+    if (bundleExpansionState.psalm && drawerElements.bundlePsalmRef) {
+      drawerElements.bundlePsalmRef.textContent = getScriptureSourceDisplayReference(bundleExpansionState.psalm, { expanded: false }) || displayPsalmReference;
+    }
     setTranslationBadge(drawerElements.bundlePsalmRef, "");
     updateBundlePreviewState("psalm", { text: errorText });
     if (!bundleExpansionState.psalm?.expanded) {
@@ -9536,6 +9676,64 @@ function getBundledPsalmNote(chapter) {
 
 function getPsalmTextMeta(chapter, verse = null) {
   return psalmTextMetaCache.get(`${chapter}:${verse ?? ""}`) || null;
+}
+
+function getPsalmPassageMeta(chapter, verseSpec = "", depth = readingDepth) {
+  if (depth === "long" || !verseSpec) {
+    return getPsalmTextMeta(chapter) || null;
+  }
+
+  const versesToFetch = selectVersesForDepth(verseSpec, depth);
+  for (const verse of versesToFetch) {
+    const meta = getPsalmTextMeta(chapter, verse);
+    if (meta) {
+      return meta;
+    }
+  }
+
+  return getPsalmTextMeta(chapter) || null;
+}
+
+function formatPsalmResolvedReference(reference) {
+  const clean = String(reference || "").replace(/\s+/g, " ").trim();
+  if (!clean) {
+    return "";
+  }
+  return /^Psalm\s+/i.test(clean) ? clean : `Psalm ${clean}`;
+}
+
+function formatPsalmDisplayReference(reference, meta) {
+  const requested = String(reference || "").replace(/\s+/g, " ").trim();
+  const resolvedRaw = String(meta?.resolvedReference || "").replace(/\s+/g, " ").trim();
+  const lookupNumbering = String(meta?.numbering?.lookup_numbering || "").trim().toLowerCase();
+  if (!requested) {
+    return formatPsalmResolvedReference(resolvedRaw);
+  }
+
+  const resolved = formatPsalmResolvedReference(resolvedRaw);
+  if (!resolved) {
+    return requested;
+  }
+
+  const requestedComparable = requested
+    .replace(/^Psalm\s+/i, "")
+    .replace(/\s*•.*$/, "")
+    .trim()
+    .toLowerCase();
+  const resolvedComparable = resolved
+    .replace(/^Psalm\s+/i, "")
+    .trim()
+    .toLowerCase();
+  if (!resolvedComparable || requestedComparable === resolvedComparable) {
+    return requested;
+  }
+
+  const numberingLabel = lookupNumbering === "hebrew"
+    ? "Hebrew"
+    : lookupNumbering === "vulgate"
+      ? "Vulgate"
+      : "Lookup";
+  return `${requested} (${numberingLabel} ${resolvedComparable})`;
 }
 
 function getPsalmPassageTranslationNote(chapter, verseSpec, depth = readingDepth) {

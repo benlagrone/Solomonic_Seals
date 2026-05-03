@@ -1399,6 +1399,35 @@ body[data-daily-opening="open"] {
   pointer-events: none;
 }
 
+body[data-lens="base"] .clock-surface-panel {
+  border-color: rgba(250, 204, 21, 0.22);
+  box-shadow: 0 12px 28px rgba(2, 6, 23, 0.28);
+}
+
+body[data-lens="scripture"] .clock-surface-panel {
+  border-color: rgba(250, 204, 21, 0.42);
+  background: linear-gradient(180deg, rgba(33, 25, 5, 0.82), rgba(15, 23, 42, 0.64));
+  box-shadow: 0 16px 34px rgba(120, 87, 0, 0.26);
+}
+
+body[data-lens="ritual"] .clock-surface-panel {
+  border-color: rgba(96, 165, 250, 0.42);
+  background: linear-gradient(180deg, rgba(8, 25, 42, 0.84), rgba(15, 23, 42, 0.62));
+  box-shadow: 0 16px 34px rgba(29, 78, 216, 0.2);
+}
+
+body[data-lens="esoteric"] .clock-surface-panel {
+  border-color: rgba(196, 181, 253, 0.42);
+  background: linear-gradient(180deg, rgba(30, 18, 52, 0.84), rgba(15, 23, 42, 0.64));
+  box-shadow: 0 16px 34px rgba(109, 40, 217, 0.2);
+}
+
+body[data-lens="history"] .clock-surface-panel {
+  border-color: rgba(74, 222, 128, 0.42);
+  background: linear-gradient(180deg, rgba(11, 32, 24, 0.84), rgba(15, 23, 42, 0.64));
+  box-shadow: 0 16px 34px rgba(21, 128, 61, 0.2);
+}
+
 .surface-lens-label,
 .surface-lens-title,
 .surface-lens-body {
@@ -1423,6 +1452,61 @@ body[data-daily-opening="open"] {
   margin-top: 0.28rem;
   font-size: 0.82rem;
   line-height: 1.42;
+  color: #cbd5f5;
+}
+
+.surface-lens-grid {
+  margin-top: 0.72rem;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.42rem;
+}
+
+.surface-lens-card {
+  padding: 0.45rem 0.5rem;
+  border-radius: 0.82rem;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  background: rgba(15, 23, 42, 0.48);
+  text-align: left;
+}
+
+.surface-lens-card-label,
+.surface-lens-card-value {
+  margin: 0;
+}
+
+.surface-lens-card-label {
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #93c5fd;
+}
+
+.surface-lens-card-value {
+  margin-top: 0.22rem;
+  font-size: 0.76rem;
+  line-height: 1.32;
+  color: #f8fafc;
+}
+
+.surface-lens-stack {
+  margin-top: 0.55rem;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.38rem;
+}
+
+.surface-lens-stack-item {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.22rem 0.48rem;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  background: rgba(15, 23, 42, 0.5);
+  font-size: 0.65rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   color: #cbd5f5;
 }
 
@@ -1536,6 +1620,26 @@ body[data-daily-opening="open"] {
 
 .surface-rule-scripture-text.error {
   color: #fca5a5;
+}
+
+body[data-lens="scripture"] .surface-lens-card-label,
+body[data-lens="scripture"] .surface-lens-stack-item {
+  color: #fde68a;
+}
+
+body[data-lens="ritual"] .surface-lens-card-label,
+body[data-lens="ritual"] .surface-lens-stack-item {
+  color: #bfdbfe;
+}
+
+body[data-lens="esoteric"] .surface-lens-card-label,
+body[data-lens="esoteric"] .surface-lens-stack-item {
+  color: #ddd6fe;
+}
+
+body[data-lens="history"] .surface-lens-card-label,
+body[data-lens="history"] .surface-lens-stack-item {
+  color: #bbf7d0;
 }
 
 svg#clock {

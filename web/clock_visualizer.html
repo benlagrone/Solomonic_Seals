@@ -32,7 +32,7 @@
       gtag("config", "G-138HFD1QQP");
     </script>
     <link rel="icon" href='data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="12" fill="%23020617"/><circle cx="32" cy="32" r="20" fill="none" stroke="%23facc15" stroke-width="4"/><circle cx="32" cy="32" r="6" fill="%23facc15"/></svg>' />
-    <link rel="stylesheet" href="/web/style.css?v=20260429-ornament3" />
+    <link rel="stylesheet" href="/web/style.css?v=20260502-lens1" />
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
@@ -147,6 +147,25 @@
             <p class="surface-lens-label">Base Lens</p>
             <p class="surface-lens-title">Current Guidance</p>
             <p class="surface-lens-body">The clock remains primary. Guidance is summarized here on the instrument surface.</p>
+            <div class="surface-lens-grid" aria-label="Lens summary">
+              <article class="surface-lens-card">
+                <p class="surface-lens-card-label">Question</p>
+                <p class="surface-lens-card-value surface-lens-question">What should I do today?</p>
+              </article>
+              <article class="surface-lens-card">
+                <p class="surface-lens-card-label">Ring</p>
+                <p class="surface-lens-card-value surface-lens-ring">Whole clock</p>
+              </article>
+              <article class="surface-lens-card">
+                <p class="surface-lens-card-label">Action</p>
+                <p class="surface-lens-card-value surface-lens-cta">Adopt today&apos;s practice</p>
+              </article>
+            </div>
+            <div class="surface-lens-stack" aria-label="Primary modules">
+              <span class="surface-lens-stack-item">Guidance</span>
+              <span class="surface-lens-stack-item">Rule Of Life</span>
+              <span class="surface-lens-stack-item">Weekly Arc</span>
+            </div>
             <section class="surface-rule" hidden aria-label="Rule of life">
               <div class="surface-rule-meta">
                 <p class="surface-rule-chip">Virtue <strong class="surface-rule-virtue">—</strong></p>
@@ -442,7 +461,7 @@
             </div>
             <ul class="history-log-list"></ul>
           </section>
-          <section class="daily-profile drawer-section" data-lenses="base ritual esoteric" aria-label="Today's profile">
+          <section class="daily-profile drawer-section" data-lenses="base esoteric" aria-label="Today's profile">
             <p class="profile-heading">Daily Profile</p>
             <p class="profile-day">—</p>
             <p class="profile-pentacle">—</p>
@@ -472,7 +491,7 @@
             <p class="explain-heading">Why This Was Selected</p>
             <ul class="explain-list"></ul>
           </section>
-          <section class="daily-bundle drawer-section" data-lenses="scripture ritual esoteric" aria-label="Daily content bundle">
+          <section class="daily-bundle drawer-section" data-lenses="scripture ritual" aria-label="Daily content bundle">
             <p class="bundle-heading">Daily Content Bundle</p>
             <article class="bundle-item">
               <p class="bundle-label">Psalm</p>
@@ -532,7 +551,7 @@
               </div>
             </article>
           </section>
-          <section class="psalm-panel drawer-section" data-lenses="scripture ritual esoteric" aria-label="Psalm correspondences">
+          <section class="psalm-panel drawer-section" data-lenses="scripture esoteric" aria-label="Psalm correspondences">
             <div class="psalm-summary">
               <p class="psalm-planet">—</p>
               <p class="psalm-focus">Select a pentacle to view its verses.</p>
@@ -559,7 +578,7 @@
     <script type="module">
       import Keycloak from "https://cdn.jsdelivr.net/npm/keycloak-js@26.0.2/+esm";
       window.Keycloak = Keycloak;
-      import("/web/clock.js?v=20260423-illum1");
+      import("/web/clock.js?v=20260502-lens1");
     </script>
   </body>
 </html>
