@@ -248,19 +248,40 @@ const drawerElements = {
   actionPericopeFreeform: document.querySelector(".action-pericope-freeform"),
   actionCopy: document.querySelector(".action-copy"),
   actionStatus: document.querySelector(".action-loop-status"),
+  reflectionPrimaryLabel: document.querySelector(".reflection-primary-label"),
   reflectionSection: document.querySelector(".reflection-capture"),
   reflectionInput: document.querySelector(".reflection-input"),
   reflectionSave: document.querySelector(".reflection-save"),
   reflectionClear: document.querySelector(".reflection-clear"),
   closingSection: document.querySelector(".closing-capture"),
+  closingKicker: document.querySelector(".closing-kicker"),
+  closingSummaryLabel: document.querySelector(".closing-summary-label"),
   closingSummaryInput: document.querySelector(".closing-summary-input"),
   closingGratitudeInput: document.querySelector("#closing-gratitude-input"),
   closingDifficultyInput: document.querySelector("#closing-difficulty-input"),
+  closingCarryLabel: document.querySelector(".closing-carry-label"),
   closingCarryInput: document.querySelector("#closing-carry-input"),
   closingSave: document.querySelector(".closing-save"),
   closingClear: document.querySelector(".closing-clear"),
+  lensDeepPanel: document.querySelector(".lens-deep-panel"),
+  lensDeepKicker: document.querySelector(".lens-deep-kicker"),
+  lensDeepTitle: document.querySelector(".lens-deep-title"),
+  lensDeepSummary: document.querySelector(".lens-deep-summary"),
+  lensDeepFooter: document.querySelector(".lens-deep-footer"),
+  lensDeepCardLabel1: document.querySelector(".lens-deep-card-label-1"),
+  lensDeepCardLabel2: document.querySelector(".lens-deep-card-label-2"),
+  lensDeepCardLabel3: document.querySelector(".lens-deep-card-label-3"),
+  lensDeepCardValue1: document.querySelector(".lens-deep-card-value-1"),
+  lensDeepCardValue2: document.querySelector(".lens-deep-card-value-2"),
+  lensDeepCardValue3: document.querySelector(".lens-deep-card-value-3"),
+  lensDeepCardDetail1: document.querySelector(".lens-deep-card-detail-1"),
+  lensDeepCardDetail2: document.querySelector(".lens-deep-card-detail-2"),
+  lensDeepCardDetail3: document.querySelector(".lens-deep-card-detail-3"),
 };
 const scriptureReaderElements = {
+  panel: document.querySelector(".scripture-reader-panel"),
+  kicker: document.querySelector(".scripture-reader-kicker"),
+  title: document.querySelector(".scripture-reader-title"),
   ref: document.querySelector(".scripture-reader-ref"),
   text: document.querySelector(".scripture-reader-text"),
   status: document.querySelector(".scripture-reader-status"),
@@ -3133,6 +3154,7 @@ function updateCenterLabels(coreName, timeState, referenceMap, now, derived, lif
 
   const { dayLabel, clockText, active } = timeState;
   const hourRule = getPlanetaryHourRuler(now, dayLabel.rulerText);
+  const nextHourRule = getNextPlanetaryHourRuler(now, dayLabel.rulerText);
   const pentacleKey = getPentacleKey(active.pentacle);
   const pentacleRecord = pentacleKey ? referenceMap.get(pentacleKey) : null;
   const primaryPsalm = getPrimaryPsalmEntry(pentacleRecord);
@@ -3144,6 +3166,7 @@ function updateCenterLabels(coreName, timeState, referenceMap, now, derived, lif
     : null;
   const weeklyEntry = buildWeeklyArcEntry(now, selectedDayOffset, derived, referenceMap);
   const selectedHistoryEntry = buildHistoryTimelineEntry(now, selectedDayOffset, derived, referenceMap);
+  const ruleOfLife = buildRuleOfLife(timeState, referenceMap, now, derived, lifeState);
   const modePresentation = uiState.lens === "base"
     ? getModePresentation(timeState, referenceMap, now, derived, lifeState)
     : null;
@@ -3159,26 +3182,36 @@ function updateCenterLabels(coreName, timeState, referenceMap, now, derived, lif
 
   if (uiState.lens === "scripture") {
     centerTitleLabel.text(readablePsalm || coreName);
-    centerSpiritLabel.text(wisdom?.ref ? `Wisdom anchor • ${wisdom.ref}` : "Scripture lens");
+    centerSpiritLabel.text(
+      [wisdom?.ref ? `Anchor • ${wisdom.ref}` : "", readablePsalm ? `Pair • ${readablePsalm}` : ""]
+        .filter(Boolean)
+        .join(" • ") || "Scripture lens"
+    );
     centerPentacleLabel.text(
-      active.pentacle
-        ? uiState.presentationMode === "guidance"
-          ? `Mapped focus • ${toSnippet(active.pentacle.pentacle.focus, 72)}`
-          : uiState.presentationMode === "historical_symbols"
-            ? `Historical key • ${active.pentacle.planet} #${active.pentacle.pentacle.index} • ${toSnippet(active.pentacle.pentacle.focus, 72)}`
-            : `Mapped via ${active.pentacle.planet} #${active.pentacle.pentacle.index} • ${toSnippet(active.pentacle.pentacle.focus, 72)}`
-        : "No active pentacle mapping available."
+      wisdom?.text
+        ? `${toSnippet(wisdom.text, 72)} ${readablePsalm ? `Keep ${readablePsalm} beside it.` : "Widen into study when you need context."}`
+        : active.pentacle
+          ? `Study through ${active.pentacle.planet} #${active.pentacle.pentacle.index} without losing the original line.`
+          : "No active pentacle mapping available."
     );
     return;
   }
 
   if (uiState.lens === "ritual") {
     centerTitleLabel.text(hourRule?.ruler ? `Hour of ${hourRule.ruler}` : coreName);
-    centerSpiritLabel.text(ritualThemes ? `Themes • ${ritualThemes}` : "Ritual lens");
+    centerSpiritLabel.text(
+      nextHourRule?.ruler
+        ? `This hour • ${ritualThemes || hourRule?.ruler || "Current"} • Next ${nextHourRule.ruler}`
+        : ritualThemes
+          ? `Themes • ${ritualThemes}`
+          : "Ritual lens"
+    );
     centerPentacleLabel.text(
-      active.pentacle?.pentacle?.focus
-        ? `Practice focus • ${toSnippet(active.pentacle.pentacle.focus, 72)}`
-        : "Practice focus unavailable."
+      ruleOfLife?.evening
+        ? `Open with ${toSnippet(ruleOfLife.morning, 42)} Close with ${toSnippet(ruleOfLife.evening, 42)}`
+        : active.pentacle?.pentacle?.focus
+          ? `Practice focus • ${toSnippet(active.pentacle.pentacle.focus, 72)}`
+          : "Practice focus unavailable."
     );
     return;
   }
@@ -3193,9 +3226,11 @@ function updateCenterLabels(coreName, timeState, referenceMap, now, derived, lif
         : "No active spirit sector."
     );
     centerPentacleLabel.text(
-      [correspondences.color, active.pentacle ? `${active.pentacle.planet} #${active.pentacle.pentacle.index}` : ""]
-        .filter(Boolean)
-        .join(" • ") || "Esoteric lens"
+      active.pentacle?.pentacle?.focus
+        ? `Traditional reading • ${toSnippet(active.pentacle.pentacle.focus, 74)}`
+        : [correspondences.color, active.pentacle ? `${active.pentacle.planet} #${active.pentacle.pentacle.index}` : ""]
+          .filter(Boolean)
+          .join(" • ") || "Esoteric lens"
     );
     return;
   }
@@ -3209,8 +3244,10 @@ function updateCenterLabels(coreName, timeState, referenceMap, now, derived, lif
     );
     centerPentacleLabel.text(
       selectedHistoryEntry.hasRecord
-        ? toSnippet(selectedHistoryEntry.summaryLine, 76)
-        : toSnippet(weeklyEntry.focus, 76)
+        ? selectedHistoryEntry.closingCarryForward
+          ? `Carry forward • ${toSnippet(selectedHistoryEntry.closingCarryForward, 72)}`
+          : toSnippet(selectedHistoryEntry.summaryLine, 76)
+        : `No record yet • ${toSnippet(weeklyEntry.focus, 68)}`
     );
     return;
   }
@@ -6762,10 +6799,11 @@ function getScriptureReaderKindLabel(kind) {
 }
 
 function getScriptureReaderDefaultStatus(kind) {
-  if (SCRIPTURE_READER_SUPPORTED) {
-    return `Showing ${getScriptureReaderKindLabel(kind)}. Use Listen to hear it aloud.`;
-  }
-  return `Showing ${getScriptureReaderKindLabel(kind)}. Audio depends on browser speech support.`;
+  return getScriptureReaderFrameCopy(kind).status || (
+    SCRIPTURE_READER_SUPPORTED
+      ? `Showing ${getScriptureReaderKindLabel(kind)}. Use Listen to hear it aloud.`
+      : `Showing ${getScriptureReaderKindLabel(kind)}. Audio depends on browser speech support.`
+  );
 }
 
 function setScriptureReaderStatus(message, { error = false } = {}) {
@@ -6971,6 +7009,9 @@ function stopScriptureReaderPlayback({ announce = true } = {}) {
 
 function renderScriptureReader(force = false) {
   if (
+    !scriptureReaderElements.panel ||
+    !scriptureReaderElements.kicker ||
+    !scriptureReaderElements.title ||
     !scriptureReaderElements.ref ||
     !scriptureReaderElements.text ||
     !scriptureReaderElements.toggle ||
@@ -6989,6 +7030,15 @@ function renderScriptureReader(force = false) {
     sourceState = getScriptureReaderSourceState(kind);
   }
 
+  const frameCopy = getScriptureReaderFrameCopy(kind);
+  scriptureReaderElements.panel.hidden = frameCopy.hidden;
+  if (frameCopy.hidden) {
+    if (scriptureReaderState.speaking) {
+      stopScriptureReaderPlayback({ announce: false });
+    }
+    return;
+  }
+
   const sourceSignature = getScriptureReaderSourceSignature(kind, sourceState);
   if (sourceSignature !== scriptureReaderState.sourceSignature) {
     scriptureReaderState.sourceSignature = sourceSignature;
@@ -6998,7 +7048,7 @@ function renderScriptureReader(force = false) {
     if (scriptureReaderState.speaking) {
       stopScriptureReaderPlayback({ announce: false });
     }
-    setScriptureReaderStatus(getScriptureReaderDefaultStatus(kind));
+    setScriptureReaderStatus(frameCopy.status);
   }
 
   const canExpand = Boolean(sourceState?.expandAvailable);
@@ -7010,12 +7060,16 @@ function renderScriptureReader(force = false) {
     && !/^unable\b/i.test(display.text)
     && Boolean(getScriptureReaderSpeechText(display.reference, display.text));
   const renderKey = [
+    uiState.lens,
     kind,
     sourceSignature,
     scriptureReaderState.expanded ? "expanded" : "preview",
     scriptureReaderState.loading ? "loading" : "idle",
     scriptureReaderState.error || "ok",
     scriptureReaderState.speaking ? "speaking" : "silent",
+    frameCopy.kicker,
+    frameCopy.title,
+    frameCopy.status,
     display.reference,
     display.tone,
     display.text.length,
@@ -7028,7 +7082,13 @@ function renderScriptureReader(force = false) {
   }
   lastScriptureReaderKey = renderKey;
 
+  if (!scriptureReaderState.loading && !scriptureReaderState.error && !scriptureReaderState.speaking) {
+    setScriptureReaderStatus(frameCopy.status);
+  }
+
   syncScriptureReaderTabs();
+  scriptureReaderElements.kicker.textContent = frameCopy.kicker;
+  scriptureReaderElements.title.textContent = frameCopy.title;
   scriptureReaderElements.ref.textContent = display.reference;
   scriptureReaderElements.text.classList.toggle("loading", display.tone === "loading");
   scriptureReaderElements.text.classList.toggle("error", display.tone === "error");
@@ -8778,6 +8838,468 @@ function updateSurfaceLensStack(items) {
   });
 }
 
+function getLensDeepCardElements() {
+  return [
+    {
+      label: drawerElements.lensDeepCardLabel1,
+      value: drawerElements.lensDeepCardValue1,
+      detail: drawerElements.lensDeepCardDetail1,
+    },
+    {
+      label: drawerElements.lensDeepCardLabel2,
+      value: drawerElements.lensDeepCardValue2,
+      detail: drawerElements.lensDeepCardDetail2,
+    },
+    {
+      label: drawerElements.lensDeepCardLabel3,
+      value: drawerElements.lensDeepCardValue3,
+      detail: drawerElements.lensDeepCardDetail3,
+    },
+  ];
+}
+
+function getFirstParagraph(text) {
+  return String(text || "")
+    .split(/\n{2,}/)
+    .map((part) => String(part || "").trim())
+    .find(Boolean) || "";
+}
+
+function buildLensDeepView(context, timeState, referenceMap, now, derived, lifeState) {
+  const dayLabel = timeState?.dayLabel || null;
+  const activePentacle = timeState?.active?.pentacle || null;
+  const activeSpirit = timeState?.active?.spirit || null;
+  const pentacleKey = getPentacleKey(activePentacle);
+  const pentacleRecord = pentacleKey ? referenceMap.get(pentacleKey) : null;
+  const primaryPsalm = getPrimaryPsalmEntry(pentacleRecord);
+  const readablePsalm = formatReadablePsalmReference(primaryPsalm);
+  const wisdom = dayLabel ? WISDOM_CONTENT_BY_RULER[dayLabel.rulerText] : null;
+  const correspondences = dayLabel ? (PLANETARY_CORRESPONDENCES[dayLabel.rulerText] || {}) : {};
+  const hourRule = dayLabel ? getPlanetaryHourRuler(now, dayLabel.rulerText) : null;
+  const nextHourRule = dayLabel ? getNextPlanetaryHourRuler(now, dayLabel.rulerText) : null;
+  const weeklyEntry = buildWeeklyArcEntry(now, selectedDayOffset, derived, referenceMap);
+  const selectedHistoryEntry = buildHistoryTimelineEntry(now, selectedDayOffset, derived, referenceMap);
+  const weeklySummary = buildWeeklyHistorySummary(now, derived, referenceMap);
+  const weeklyReview = buildWeeklyReview(weeklySummary, selectedHistoryEntry);
+  const rule = context?.ruleOfLife || null;
+  const solomonicBundle = buildSolomonicBundleContent(timeState);
+  const activePentacleLabel = activePentacle
+    ? `${activePentacle.planet} Pentacle #${activePentacle.pentacle.index}`
+    : "Active figure unavailable";
+  const ritualThemes = Array.isArray(timeState?.active?.planetary?.themes) && timeState.active.planetary.themes.length
+    ? timeState.active.planetary.themes.join(" • ")
+    : "";
+
+  if (uiState.lens === "scripture") {
+    return {
+      kicker: "Scripture Path",
+      title: "Hold the anchor, then widen the reading",
+      summary: "Keep the line, the paired psalm, and the study movement together instead of treating them as separate pages.",
+      footer: "Read exactly first. Let the symbol serve the text, not replace it.",
+      cards: [
+        {
+          label: "Anchor",
+          value: wisdom?.ref || readablePsalm || "Daily anchor",
+          detail: wisdom?.text ? toSnippet(sanitizeInlinePassageText(wisdom.text), 120) : "The anchor text will gather here.",
+        },
+        {
+          label: "Psalm Pair",
+          value: readablePsalm || context?.psalmRef || "Pair unavailable",
+          detail: activePentacle?.pentacle?.focus
+            ? `Mapped through ${toSnippet(activePentacle.pentacle.focus, 98)}`
+            : "Hold the paired psalm beside the anchor before widening into study.",
+        },
+        {
+          label: "Study Movement",
+          value: "Anchor → Context → Cross References",
+          detail: "Open the study page from the anchor when you need the broader passage, context, and linked readings.",
+        },
+      ],
+    };
+  }
+
+  if (uiState.lens === "ritual") {
+    return {
+      kicker: "Ritual Sequence",
+      title: "Use the day as a sequence, not an atmosphere",
+      summary: "Track the present hour, the next handoff, and the evening close so the lens changes what you actually do.",
+      footer: "Timing only matters when it changes action now, at the next handoff, or at the close.",
+      cards: [
+        {
+          label: "This Hour",
+          value: hourRule?.ruler ? `Hour ${String(hourRule.hourIndex).padStart(2, "0")} • ${hourRule.ruler}` : "Current hour unavailable",
+          detail: ritualThemes || context?.guidanceTone || "This hour's themes will appear here.",
+        },
+        {
+          label: "Next Handoff",
+          value: nextHourRule?.ruler ? `Next • ${nextHourRule.ruler}` : "Next hour unavailable",
+          detail: rule?.midday || "Prepare the next handoff before the clock takes it from abstraction into pressure.",
+        },
+        {
+          label: "Close",
+          value: rule?.evening ? "Evening rule ready" : "Close the day intentionally",
+          detail: rule?.evening || "Name the act, the resistance, and the repair before the day disappears into mood.",
+        },
+      ],
+    };
+  }
+
+  if (uiState.lens === "esoteric") {
+    return {
+      kicker: "Correspondence Study",
+      title: "Read the figure as provenance and correspondence",
+      summary: "Keep the symbolic layer secondary and force it back into text, moral clarity, and one practical test.",
+      footer: "A usable figure clarifies action. Decorative obscurity does not.",
+      cards: [
+        {
+          label: "Figure",
+          value: activePentacleLabel,
+          detail: solomonicBundle.previewText || "The active figure's practical reading will appear here.",
+        },
+        {
+          label: "Sector",
+          value: activeSpirit?.spirit ? `${activeSpirit.spirit} • ${activeSpirit.zodiac} ${activeSpirit.degrees}` : "Sector unavailable",
+          detail: activeSpirit?.rank
+            ? `Rank • ${activeSpirit.rank}`
+            : "The active spirit sector and degree band will appear here.",
+        },
+        {
+          label: "Provenance",
+          value: [correspondences.angel, correspondences.metal].filter(Boolean).join(" • ") || "Source notes",
+          detail: getFirstParagraph(solomonicBundle.expandedText) || "Historical and editorial notes stay secondary to readable guidance.",
+        },
+      ],
+    };
+  }
+
+  if (uiState.lens === "history") {
+    return {
+      kicker: "Continuity Review",
+      title: "Read selected days as a trail, not as isolated moods",
+      summary: "Compare openings, completions, reflections, and closeouts so the trail can correct tomorrow's opening.",
+      footer: "History is only useful when it changes the next opening.",
+      cards: [
+        {
+          label: "Selected Day",
+          value: selectedHistoryEntry.dateLabel,
+          detail: selectedHistoryEntry.hasRecord
+            ? `${selectedHistoryEntry.statusBadges.join(" • ") || "Saved"} • ${toSnippet(selectedHistoryEntry.summaryLine, 108)}`
+            : `No saved record yet. ${selectedHistoryEntry.rulerText} still leans toward ${selectedHistoryEntry.displayFocus}.`,
+        },
+        {
+          label: "Pattern",
+          value: weeklySummary.patterns[0] || "No strong pattern yet",
+          detail: toSnippet(weeklySummary.narrative, 118),
+        },
+        {
+          label: "Carry Forward",
+          value: weeklyReview.carryForward || selectedHistoryEntry.closingCarryForward || "No carry-forward note yet",
+          detail: weeklyReview.scriptureRef
+            ? `${weeklyReview.scriptureRef} • ${toSnippet(sanitizeInlinePassageText(weeklyReview.scriptureText), 96)}`
+            : "Receive or revise the weekly direction before tomorrow's opening.",
+        },
+      ],
+    };
+  }
+
+  return {
+    kicker: "Daily Practice Frame",
+    title: "Turn guidance into one act, one repair, and one horizon",
+    summary: "Use the clock to choose a next act, keep the weakest domain in view, and hold the week in front of today's mood.",
+    footer: "If guidance does not become one act, the clock is just ornament.",
+    cards: [
+      {
+        label: "Next Act",
+        value: rule ? `${rule.domain} • ${rule.virtue}` : context?.label || "Daily act unavailable",
+        detail: rule?.morning || context?.guidanceTone || "Today's next act will appear here.",
+      },
+      {
+        label: "Repair",
+        value: rule?.weakestDomain || lifeState?.weakestDomain?.name || "Keep the whole wheel in view",
+        detail: rule?.repairNote || "Name what most needs repair before the day closes.",
+      },
+      {
+        label: "Week",
+        value: `${weeklyEntry.dateLabel} • ${weeklyEntry.rulerText}`,
+        detail: `${toSnippet(weeklyEntry.focus, 96)} • ${weeklyEntry.psalmRef}`,
+      },
+    ],
+  };
+}
+
+function updateLensDeepPanel(context, timeState, referenceMap, now, derived, lifeState) {
+  if (
+    !drawerElements.lensDeepPanel ||
+    !drawerElements.lensDeepKicker ||
+    !drawerElements.lensDeepTitle ||
+    !drawerElements.lensDeepSummary ||
+    !drawerElements.lensDeepFooter
+  ) {
+    return;
+  }
+
+  const view = buildLensDeepView(context, timeState, referenceMap, now, derived, lifeState);
+  const cards = getLensDeepCardElements();
+
+  drawerElements.lensDeepKicker.textContent = view.kicker;
+  drawerElements.lensDeepTitle.textContent = view.title;
+  drawerElements.lensDeepSummary.textContent = view.summary;
+  drawerElements.lensDeepFooter.textContent = view.footer;
+
+  cards.forEach((elements, index) => {
+    const card = view.cards[index] || { label: "—", value: "—", detail: "—" };
+    if (elements.label) {
+      elements.label.textContent = card.label;
+    }
+    if (elements.value) {
+      elements.value.textContent = card.value;
+    }
+    if (elements.detail) {
+      elements.detail.textContent = card.detail;
+    }
+  });
+}
+
+function getLensActionCopy(context, state = {}) {
+  const rule = state.rule || context?.ruleOfLife || null;
+  const psalmRef = rule?.psalmRef || context?.psalmRef || "today's anchor";
+  const selectedDay = context?.dayDisplay || context?.dateKey || "this day";
+  const activeFigure = context?.activePentacleLabel || "the active figure";
+  const summarySnippet = toSnippet(state.closingSummary || state.closingCarryForward || context?.guidanceTone || "", 104);
+
+  if (uiState.lens === "scripture") {
+    return {
+      openLabel: "Daily Opening",
+      openedLabel: "Revisit Opening",
+      adoptLabel: "Carry This Text",
+      adoptedLabel: "Text Carried",
+      reflectLabel: "Write Scripture Note",
+      closeLabel: "Close The Reading",
+      closedLabel: "Revisit Close",
+      guidedIdle: "Discuss This Passage",
+      guidedReflection: "Bring Passage Note To Pericope",
+      guidedClosing: "Bring Passage Review To Pericope",
+      freeformIdle: "Ask About The Text",
+      freeformActive: "Ask Freely About This Passage",
+      reflectionLabel: "Passage Note",
+      reflectionPlaceholder: `What line from ${psalmRef} held, resisted, or corrected you today?`,
+      closingKicker: "Scripture Close",
+      closingSummaryLabel: "Passage Summary",
+      closingSummaryPlaceholder: `Name what ${psalmRef} became once the day tested it.`,
+      closingCarryLabel: "Carry The Line",
+      closingCarryPlaceholder: "What line should remain active tomorrow?",
+      notOpenedStatus: `Begin with Daily Opening, then hold ${psalmRef} before you choose a practice.`,
+      completedWithReflectionStatus: `Completed: ${context.label}. Keep the note with the passage before you widen the reading.`,
+      completedPendingStatus: `Completed: ${context.label}. Add a scripture note or open the study page to widen the reading.`,
+      closedWithSummaryStatus: summarySnippet ? `Reading closed: ${summarySnippet}` : "The reading has been closed for this day.",
+      closedGenericStatus: "The reading has been closed. Reopen it if you want to revise the note or carry-forward line.",
+      adoptedStatus: rule
+        ? `Carrying text into action: ${rule.morning}`
+        : `A scripture-guided act is active for ${selectedDay}.`,
+      suggestedStatus: rule
+        ? `Suggested next step: ${rule.morning} Keep ${psalmRef} in view while you do it.`
+        : `Hold ${psalmRef} in view, then ask Pericope or the study page to deepen it.`,
+    };
+  }
+
+  if (uiState.lens === "ritual") {
+    return {
+      openLabel: "Open The Day",
+      openedLabel: "Revisit Opening",
+      adoptLabel: "Adopt This Sequence",
+      adoptedLabel: "Sequence Chosen",
+      reflectLabel: "Record The Hour",
+      closeLabel: "Close The Day",
+      closedLabel: "Revisit Closing",
+      guidedIdle: "Discuss This Timing",
+      guidedReflection: "Bring Hour Note To Pericope",
+      guidedClosing: "Bring Ritual Close To Pericope",
+      freeformIdle: "Ask About Timing",
+      freeformActive: "Ask Freely About This Timing",
+      reflectionLabel: "Hour Note",
+      reflectionPlaceholder: "What changed because you acted now instead of later?",
+      closingKicker: "Ritual Close",
+      closingSummaryLabel: "Sequence Summary",
+      closingSummaryPlaceholder: "Name what the day became once you actually enacted it.",
+      closingCarryLabel: "Carry The Rule",
+      closingCarryPlaceholder: "What should be timed differently or repeated tomorrow?",
+      notOpenedStatus: rule
+        ? `Open the day first, then use the rule: ${rule.summary}`
+        : "Open the day before you treat timing as actionable counsel.",
+      completedWithReflectionStatus: `Completed: ${context.label}. Keep the hour note with the act while the sequence is still fresh.`,
+      completedPendingStatus: `Completed: ${context.label}. Record how the act landed before the timing disappears into memory.`,
+      closedWithSummaryStatus: summarySnippet ? `Ritual closed: ${summarySnippet}` : "The ritual closeout has been saved.",
+      closedGenericStatus: "The day has been closed. Reopen it if you need to revise the sequence note.",
+      adoptedStatus: rule
+        ? `Active sequence: ${rule.morning}`
+        : `A timed practice is active for ${selectedDay}.`,
+      suggestedStatus: rule
+        ? `Suggested next move: ${rule.morning} Let the hour decide the pace, not just the theme.`
+        : "Choose one timed act or ask Pericope to help sequence the day.",
+    };
+  }
+
+  if (uiState.lens === "esoteric") {
+    return {
+      openLabel: "Open The Day",
+      openedLabel: "Revisit Opening",
+      adoptLabel: "Test This Figure",
+      adoptedLabel: "Figure Tested",
+      reflectLabel: "Test The Figure",
+      closeLabel: "Close The Reading",
+      closedLabel: "Revisit Close",
+      guidedIdle: "Discuss This Figure",
+      guidedReflection: "Bring Figure Note To Pericope",
+      guidedClosing: "Bring Figure Review To Pericope",
+      freeformIdle: "Ask About The Figure",
+      freeformActive: "Ask Freely About This Figure",
+      reflectionLabel: "Figure Note",
+      reflectionPlaceholder: `Did ${activeFigure} clarify action, or only decorate the reading?`,
+      closingKicker: "Correspondence Close",
+      closingSummaryLabel: "Figure Summary",
+      closingSummaryPlaceholder: "Name what the symbolic layer actually clarified by the end of the day.",
+      closingCarryLabel: "Carry The Test",
+      closingCarryPlaceholder: "What symbolic insight is worth carrying forward, and what should be dropped?",
+      notOpenedStatus: "Begin with Daily Opening before you read the figure symbolically.",
+      completedWithReflectionStatus: `Completed: ${context.label}. Keep the figure note tied to concrete action, not just atmosphere.`,
+      completedPendingStatus: `Completed: ${context.label}. Note whether the symbolic layer clarified action or only added ornament.`,
+      closedWithSummaryStatus: summarySnippet ? `Figure review closed: ${summarySnippet}` : "The figure review has been saved.",
+      closedGenericStatus: "The symbolic review has been closed. Reopen it if you want to test the figure again against the day.",
+      adoptedStatus: rule
+        ? `Testing figure through action: ${rule.morning}`
+        : `A symbolic test is active for ${selectedDay}.`,
+      suggestedStatus: rule
+        ? `Suggested test: ${rule.morning} Force the figure back into one moral action.`
+        : "Choose one concrete act that tests the figure instead of merely admiring it.",
+    };
+  }
+
+  if (uiState.lens === "history") {
+    return {
+      openLabel: "Open This Day",
+      openedLabel: "Review Opening",
+      adoptLabel: "Receive This Day",
+      adoptedLabel: "Day Received",
+      reflectLabel: "Review Selected Day",
+      closeLabel: "Review Closeout",
+      closedLabel: "Revisit Closeout",
+      guidedIdle: "Discuss This Day",
+      guidedReflection: "Bring This Day To Pericope",
+      guidedClosing: "Bring Carry Forward To Pericope",
+      freeformIdle: "Ask About The Trail",
+      freeformActive: "Ask Freely About This Day",
+      reflectionLabel: "Continuity Note",
+      reflectionPlaceholder: "What repeats, what shifted, and what should the next opening remember?",
+      closingKicker: "Continuity Close",
+      closingSummaryLabel: "Selected Day Summary",
+      closingSummaryPlaceholder: "Name what this selected day became in the larger trail.",
+      closingCarryLabel: "Carry Into Tomorrow",
+      closingCarryPlaceholder: "What should the next opening inherit from this day?",
+      notOpenedStatus: `Open or review ${selectedDay} before you decide what this pattern means.`,
+      completedWithReflectionStatus: `Completed: ${context.label}. Compare this day with the rest of the trail before you move on.`,
+      completedPendingStatus: `Completed: ${context.label}. Add a continuity note so this day can correct the next opening.`,
+      closedWithSummaryStatus: summarySnippet ? `Trail note saved: ${summarySnippet}` : "The selected day has been closed into the trail.",
+      closedGenericStatus: "The selected day has been closed. Reopen it if you need to revise the carry-forward line.",
+      adoptedStatus: rule
+        ? `Selected day received: ${rule.morning}`
+        : `A selected-day practice is active for ${selectedDay}.`,
+      suggestedStatus: rule
+        ? `Suggested next move: ${rule.morning} Compare it against the recorded trail before the day is closed.`
+        : "Select a recorded day, then compare its opening, action, and closeout before you generalize the pattern.",
+    };
+  }
+
+  return {
+    openLabel: "Daily Opening",
+    openedLabel: "Revisit Opening",
+    adoptLabel: "Adopt Today’s Practice",
+    adoptedLabel: "Practice Chosen",
+    reflectLabel: "Reflect Tonight",
+    closeLabel: "Close The Day",
+    closedLabel: "Revisit Closing",
+    guidedIdle: "Start Guided Chat",
+    guidedReflection: "Bring Reflection To Pericope",
+    guidedClosing: "Bring Closing To Pericope",
+    freeformIdle: "Ask Freely",
+    freeformActive: "Ask Freely About This Day",
+    reflectionLabel: "Evening Reflection",
+    reflectionPlaceholder: "What happened today? What held? What failed? What needs repair tomorrow?",
+    closingKicker: "Daily Closing",
+    closingSummaryLabel: "Closing Summary",
+    closingSummaryPlaceholder: "Name what this day became and how you actually walked through it.",
+    closingCarryLabel: "Carry Forward",
+    closingCarryPlaceholder: "What should be remembered, repaired, or carried into tomorrow?",
+    notOpenedStatus: rule
+      ? `Begin with Daily Opening: ${rule.summary}`
+      : "Begin with Daily Opening before choosing a practice.",
+    completedWithReflectionStatus: `Completed: ${context.label}. Bring the reflection to Pericope when you want counsel.`,
+    completedPendingStatus: `Completed: ${context.label}. Add an evening note or ask Pericope to close the loop.`,
+    closedWithSummaryStatus: summarySnippet ? `Day closed: ${summarySnippet}` : "The day has been closed.",
+    closedGenericStatus: "The day has been closed. Reopen the closing if you want to revise the examen.",
+    adoptedStatus: rule
+      ? `Active practice: ${rule.morning} Ask Pericope if you want help applying it.`
+      : `A daily practice is active for ${context.dateKey}.`,
+    suggestedStatus: rule
+      ? `Suggested next step: ${rule.morning} Ask Pericope to deepen it.`
+      : "Choose one concrete practice to make the day actionable, or ask Pericope for guidance.",
+  };
+}
+
+function getScriptureReaderFrameCopy(kind) {
+  const passageLabel = kind === "wisdom" ? "wisdom passage" : "psalm";
+
+  if (uiState.lens === "scripture") {
+    return {
+      hidden: false,
+      kicker: "Scripture Lens",
+      title: "Anchor, pair, and study the day’s text",
+      status: SCRIPTURE_READER_SUPPORTED
+        ? `Showing today’s ${passageLabel}. Keep the line in view, then widen into study when needed.`
+        : `Showing today’s ${passageLabel}. Audio depends on browser speech support.`,
+    };
+  }
+
+  if (uiState.lens === "ritual") {
+    return {
+      hidden: false,
+      kicker: "Ritual Reading",
+      title: "Read the passages that govern the hour",
+      status: SCRIPTURE_READER_SUPPORTED
+        ? `Showing today’s ${passageLabel}. Read it as timing counsel, then act.`
+        : `Showing today’s ${passageLabel}. Audio depends on browser speech support.`,
+    };
+  }
+
+  if (uiState.lens === "esoteric") {
+    return {
+      hidden: false,
+      kicker: "Texts Behind The Figure",
+      title: "Keep text beside the correspondence layer",
+      status: SCRIPTURE_READER_SUPPORTED
+        ? `Showing today’s ${passageLabel}. Keep the text beside the figure so the symbol does not float free.`
+        : `Showing today’s ${passageLabel}. Audio depends on browser speech support.`,
+    };
+  }
+
+  if (uiState.lens === "history") {
+    return {
+      hidden: true,
+      kicker: "History Reading",
+      title: "Selected-day texts",
+      status: "",
+    };
+  }
+
+  return {
+    hidden: false,
+    kicker: "Daily Reading",
+    title: "Read and hear today’s passages",
+    status: SCRIPTURE_READER_SUPPORTED
+      ? `Showing today’s ${passageLabel}. Use Listen to hear it aloud.`
+      : `Showing today’s ${passageLabel}. Audio depends on browser speech support.`,
+  };
+}
+
 function buildLensSurfaceView(timeState, referenceMap, now, derived, lifeState) {
   const dayLabel = timeState?.dayLabel;
   const activePentacle = timeState?.active?.pentacle || null;
@@ -9025,19 +9547,30 @@ function updateActionLoop(context) {
   const rule = context?.ruleOfLife || null;
   const reflectionLaunchReady = shouldLaunchReflectionPrompt(context, reflectionText);
   const closingLaunchReady = !reflection && (closingSummary || closingCarryForward || closed);
+  const lensCopy = getLensActionCopy(context, {
+    opened,
+    closed,
+    adopted,
+    completed,
+    reflection,
+    closingSummary,
+    closingCarryForward,
+    rule,
+  });
 
-  drawerElements.actionDailyOpening.textContent = opened ? "Revisit Opening" : "Daily Opening";
+  drawerElements.actionDailyOpening.textContent = opened ? lensCopy.openedLabel : lensCopy.openLabel;
   drawerElements.actionDailyOpening.setAttribute("aria-pressed", uiState.dailyOpeningOpen ? "true" : "false");
-  drawerElements.actionAdopt.textContent = adopted ? "Practice Chosen" : "Adopt Today’s Practice";
+  drawerElements.actionAdopt.textContent = adopted ? lensCopy.adoptedLabel : lensCopy.adoptLabel;
   drawerElements.actionComplete.textContent = completed ? "Completed Today" : "Mark Complete";
-  drawerElements.actionCloseDay.textContent = closed ? "Revisit Closing" : "Close The Day";
+  drawerElements.actionReflect.textContent = lensCopy.reflectLabel;
+  drawerElements.actionCloseDay.textContent = closed ? lensCopy.closedLabel : lensCopy.closeLabel;
   drawerElements.actionCloseDay.setAttribute("aria-pressed", uiState.closingOpen ? "true" : "false");
   drawerElements.actionPericopeGuided.textContent = reflectionLaunchReady
-    ? (closingLaunchReady ? "Bring Closing To Pericope" : "Bring Reflection To Pericope")
-    : "Start Guided Chat";
+    ? (closingLaunchReady ? lensCopy.guidedClosing : lensCopy.guidedReflection)
+    : lensCopy.guidedIdle;
   drawerElements.actionPericopeFreeform.textContent = (reflection || closingSummary)
-    ? "Ask Freely About This Day"
-    : "Ask Freely";
+    ? lensCopy.freeformActive
+    : lensCopy.freeformIdle;
   if (drawerElements.actionCopy) {
     drawerElements.actionCopy.textContent = "Copy Guided Prompt";
   }
@@ -9057,6 +9590,28 @@ function updateActionLoop(context) {
     drawerElements.closingCarryInput.value = closingCarryForward;
   }
 
+  if (drawerElements.reflectionPrimaryLabel) {
+    drawerElements.reflectionPrimaryLabel.textContent = lensCopy.reflectionLabel;
+  }
+  if (drawerElements.reflectionInput) {
+    drawerElements.reflectionInput.placeholder = lensCopy.reflectionPlaceholder;
+  }
+  if (drawerElements.closingKicker) {
+    drawerElements.closingKicker.textContent = lensCopy.closingKicker;
+  }
+  if (drawerElements.closingSummaryLabel) {
+    drawerElements.closingSummaryLabel.textContent = lensCopy.closingSummaryLabel;
+  }
+  if (drawerElements.closingSummaryInput) {
+    drawerElements.closingSummaryInput.placeholder = lensCopy.closingSummaryPlaceholder;
+  }
+  if (drawerElements.closingCarryLabel) {
+    drawerElements.closingCarryLabel.textContent = lensCopy.closingCarryLabel;
+  }
+  if (drawerElements.closingCarryInput) {
+    drawerElements.closingCarryInput.placeholder = lensCopy.closingCarryPlaceholder;
+  }
+
   if (actionNotice && actionNotice.expiresAt > Date.now()) {
     drawerElements.actionStatus.textContent = actionNotice.text;
     return;
@@ -9064,39 +9619,33 @@ function updateActionLoop(context) {
   actionNotice = null;
 
   if (!opened) {
-    drawerElements.actionStatus.textContent = context.ruleOfLife
-      ? `Begin with Daily Opening: ${context.ruleOfLife.summary}`
-      : "Begin with Daily Opening before choosing a practice.";
+    drawerElements.actionStatus.textContent = lensCopy.notOpenedStatus;
     return;
   }
 
   if (completed) {
     drawerElements.actionStatus.textContent = reflection
-      ? `Completed: ${context.label}. Bring the reflection to Pericope when you want counsel.`
-      : `Completed: ${context.label}. Add an evening note or ask Pericope to close the loop.`;
+      ? lensCopy.completedWithReflectionStatus
+      : lensCopy.completedPendingStatus;
     if (closed && closingSummary) {
-      drawerElements.actionStatus.textContent = `Day closed: ${toSnippet(closingSummary, 104)}`;
+      drawerElements.actionStatus.textContent = lensCopy.closedWithSummaryStatus;
     }
     return;
   }
 
   if (closed) {
     drawerElements.actionStatus.textContent = closingSummary
-      ? `Day closed: ${toSnippet(closingSummary, 104)}`
-      : "The day has been closed. Reopen the closing if you want to revise the examen.";
+      ? lensCopy.closedWithSummaryStatus
+      : lensCopy.closedGenericStatus;
     return;
   }
 
   if (adopted) {
-    drawerElements.actionStatus.textContent = rule
-      ? `Active practice: ${rule.morning} Ask Pericope if you want help applying it.`
-      : `A daily practice is active for ${context.dateKey}.`;
+    drawerElements.actionStatus.textContent = lensCopy.adoptedStatus;
     return;
   }
 
-  drawerElements.actionStatus.textContent = rule
-    ? `Suggested next step: ${rule.morning} Ask Pericope to deepen it.`
-    : "Choose one concrete practice to make the day actionable, or ask Pericope for guidance.";
+  drawerElements.actionStatus.textContent = lensCopy.suggestedStatus;
 }
 
 function getModePresentation(timeState, referenceMap, now, derived, lifeState) {
@@ -10220,6 +10769,7 @@ function renderClock(data, referenceMap, psalmMetadata, pentacleData, lifeDomain
     currentActionLoopContext = buildActionLoopContext(timeState, referenceMap, displayNow, derived, lifeState);
     updateDailyOpening(currentActionLoopContext);
     updateActionLoop(currentActionLoopContext);
+    updateLensDeepPanel(currentActionLoopContext, timeState, referenceMap, now, derived, lifeState);
     updateDailyGuidance(timeState);
     updateWeeklyArcPanel(now, derived, referenceMap);
     updateHistoryPanel(now, derived, referenceMap);

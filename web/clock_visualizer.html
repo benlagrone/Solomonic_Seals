@@ -32,7 +32,7 @@
       gtag("config", "G-138HFD1QQP");
     </script>
     <link rel="icon" href='data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="12" fill="%23020617"/><circle cx="32" cy="32" r="20" fill="none" stroke="%23facc15" stroke-width="4"/><circle cx="32" cy="32" r="6" fill="%23facc15"/></svg>' />
-    <link rel="stylesheet" href="/web/style.css?v=20260502-lens1" />
+    <link rel="stylesheet" href="/web/style.css?v=20260507-lens2" />
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
@@ -207,7 +207,7 @@
           </div>
           <p class="action-loop-status" aria-live="polite">Choose one concrete practice to make the day actionable.</p>
           <section class="reflection-capture" hidden aria-label="Reflection capture">
-            <label class="reflection-label" for="reflection-input">Evening Reflection</label>
+            <label class="reflection-label reflection-primary-label" for="reflection-input">Evening Reflection</label>
             <textarea
               id="reflection-input"
               class="reflection-input"
@@ -221,7 +221,7 @@
           </section>
           <section class="closing-capture" hidden aria-label="Daily closing">
             <p class="closing-kicker">Daily Closing</p>
-            <label class="reflection-label" for="closing-summary-input">Closing Summary</label>
+            <label class="reflection-label closing-summary-label" for="closing-summary-input">Closing Summary</label>
             <textarea
               id="closing-summary-input"
               class="reflection-input closing-summary-input"
@@ -248,7 +248,7 @@
                 ></textarea>
               </div>
             </div>
-            <label class="reflection-label" for="closing-carry-input">Carry Forward</label>
+            <label class="reflection-label closing-carry-label" for="closing-carry-input">Carry Forward</label>
             <textarea
               id="closing-carry-input"
               class="reflection-input closing-mini-input"
@@ -260,6 +260,35 @@
               <button type="button" class="action-button closing-clear">Clear Closing</button>
             </div>
           </section>
+        </section>
+        <section class="lens-deep-panel" aria-label="Lens deep focus">
+          <div class="lens-deep-top">
+            <div>
+              <p class="lens-deep-kicker">Lens Focus</p>
+              <h2 class="lens-deep-title">Turn today into a usable reading</h2>
+            </div>
+            <p class="lens-deep-summary" aria-live="polite">
+              Move from the selected lens into a deeper, lens-owned path below the clock.
+            </p>
+          </div>
+          <div class="lens-deep-grid">
+            <article class="lens-deep-card">
+              <p class="lens-deep-card-label lens-deep-card-label-1">Focus</p>
+              <p class="lens-deep-card-value lens-deep-card-value-1">—</p>
+              <p class="lens-deep-card-detail lens-deep-card-detail-1">—</p>
+            </article>
+            <article class="lens-deep-card">
+              <p class="lens-deep-card-label lens-deep-card-label-2">Second Movement</p>
+              <p class="lens-deep-card-value lens-deep-card-value-2">—</p>
+              <p class="lens-deep-card-detail lens-deep-card-detail-2">—</p>
+            </article>
+            <article class="lens-deep-card">
+              <p class="lens-deep-card-label lens-deep-card-label-3">Third Movement</p>
+              <p class="lens-deep-card-value lens-deep-card-value-3">—</p>
+              <p class="lens-deep-card-detail lens-deep-card-detail-3">—</p>
+            </article>
+          </div>
+          <p class="lens-deep-footer">—</p>
         </section>
         <section class="scripture-reader-panel" aria-label="Scripture reader">
           <div class="scripture-reader-top">
@@ -578,7 +607,7 @@
     <script type="module">
       import Keycloak from "https://cdn.jsdelivr.net/npm/keycloak-js@26.0.2/+esm";
       window.Keycloak = Keycloak;
-      import("/web/clock.js?v=20260502-lens1");
+      import("/web/clock.js?v=20260507-lens2");
     </script>
   </body>
 </html>
