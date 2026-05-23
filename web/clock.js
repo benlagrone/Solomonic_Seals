@@ -36,7 +36,8 @@ const tooltip = (() => {
 const svg = d3
   .select("#clock")
   .attr("width", WIDTH)
-  .attr("height", HEIGHT);
+  .attr("height", HEIGHT)
+  .on("click", (event) => openClockDrawerFromFallback(event));
 
 const sealDefs = svg.append("defs").attr("class", "seal-sprite-defs");
 
@@ -127,6 +128,16 @@ const drawerElements = {
   drawer: document.querySelector(".drawer"),
   drawerBody: document.querySelector(".drawer-body"),
   drawerToggle: document.querySelector(".drawer-toggle"),
+  drawerControls: document.querySelector(".drawer-controls"),
+  primaryDrawerButton: document.querySelector(".primary-drawer-button"),
+  selectedClockSection: document.querySelector(".selected-clock-section"),
+  selectedClockTitle: document.querySelector(".selected-clock-title"),
+  selectedClockSummary: document.querySelector(".selected-clock-summary"),
+  selectedClockRhythm: document.querySelector(".selected-clock-rhythm"),
+  selectedClockTrack: document.querySelector(".selected-clock-track"),
+  selectedClockMeditation: document.querySelector(".selected-clock-meditation"),
+  selectedClockPractice: document.querySelector(".selected-clock-practice"),
+  selectedClockReflection: document.querySelector(".selected-clock-reflection"),
   planet: document.querySelector(".psalm-planet"),
   focus: document.querySelector(".psalm-focus"),
   list: document.querySelector(".psalm-list"),
@@ -228,6 +239,7 @@ const drawerElements = {
   ruleScriptureRef: document.querySelector(".rule-scripture-ref"),
   ruleScriptureText: document.querySelector(".rule-scripture-text"),
   dailyOpeningOverlay: document.querySelector(".daily-opening-overlay"),
+  dailyOpeningCard: document.querySelector(".daily-opening-card"),
   dailyOpeningDay: document.querySelector(".daily-opening-day"),
   dailyOpeningFocus: document.querySelector(".daily-opening-focus"),
   dailyOpeningSummary: document.querySelector(".daily-opening-summary"),
@@ -405,6 +417,7 @@ const uiState = {
   mode: "guidance",
   focusedRing: null,
   drawerOpen: false,
+  selectedClockElement: null,
   reflectionOpen: false,
   closingOpen: false,
   dailyOpeningOpen: false,
@@ -954,7 +967,7 @@ const PLANETARY_DAY_GUIDANCE = {
   },
   Saturn: {
     tone: "Discipline, structure, and enduring work are favored.",
-    activities: ["Set limits and simplify commitments.", "Complete long-term maintenance work.", "Focus on serious, patient progress."],
+    activities: ["Set limits and simplify commitments.", "Return to long-term maintenance work.", "Focus on serious, patient formation."],
   },
 };
 const PLANETARY_CORRESPONDENCES = {
@@ -1152,9 +1165,14 @@ function applyDrawerState() {
   }
 
   drawerElements.drawer.classList.toggle("is-collapsed", !uiState.drawerOpen);
+  drawerElements.drawer.setAttribute("aria-hidden", uiState.drawerOpen ? "false" : "true");
   drawerElements.drawerBody.hidden = !uiState.drawerOpen;
   drawerElements.drawerToggle.setAttribute("aria-expanded", uiState.drawerOpen ? "true" : "false");
-  drawerElements.drawerToggle.textContent = uiState.drawerOpen ? "Hide Details" : "Show Details";
+  drawerElements.drawerToggle.textContent = "×";
+  document.body.dataset.drawerOpen = uiState.drawerOpen ? "true" : "false";
+  if (drawerElements.primaryDrawerButton) {
+    drawerElements.primaryDrawerButton.setAttribute("aria-expanded", uiState.drawerOpen ? "true" : "false");
+  }
 }
 
 function setLens(nextLens) {
@@ -1215,6 +1233,260 @@ function setDrawerOpen(nextValue) {
   }
   uiState.drawerOpen = normalized;
   applyDrawerState();
+}
+
+function moveElementIntoDrawer(element, target, before = null) {
+  if (!element || !target || element.parentElement === target) {
+    return;
+  }
+  target.insertBefore(element, before);
+}
+
+function setupDrawerContentMigration() {
+  const target = drawerElements.drawerControls;
+  if (!target) {
+    return;
+  }
+
+  [
+    document.querySelector(".account-bar"),
+    document.querySelector(".daily-opening-card"),
+    document.querySelector(".presentation-bar"),
+    document.querySelector(".presentation-status"),
+    document.querySelector(".lens-bar"),
+    document.querySelector(".lens-status"),
+    document.querySelector(".clock-surface-panel"),
+    document.querySelector(".action-loop"),
+    document.querySelector(".lens-deep-panel"),
+    document.querySelector(".scripture-reader-panel"),
+  ].forEach((element) => moveElementIntoDrawer(element, target));
+}
+
+function getClockElementKey(layerName, datum) {
+  const rawName = datum?.name || datum?.shortLabel || datum?.title || datum?.modeKey || datum?.spirit || datum?.zodiac || datum?.planet || datum?.id || "clock";
+  return `${layerName}:${slugifyIdPart(rawName) || "element"}`;
+}
+
+function getClockElementTitle(layerName, datum) {
+  if (layerName === "core") {
+    return datum?.name || "Clock Center";
+  }
+  if (layerName === "mode") {
+    return datum?.title || "Clock Mode";
+  }
+  if (layerName === "life") {
+    return datum?.name ? `${datum.name} Track` : "Life Track";
+  }
+  if (layerName === "spirit") {
+    return datum?.spirit ? `${datum.spirit} Sector` : "Spirit Sector";
+  }
+  if (layerName === "planetary") {
+    return datum?.name ? `${datum.name} Track` : "Planetary Track";
+  }
+  if (layerName === "celestial") {
+    return datum?.name ? `${datum.name} Seal` : "Celestial Seal";
+  }
+  return datum?.name || "Clock";
+}
+
+function describeClockElement(layerName, datum) {
+  if (layerName === "core") {
+    return "Current time, seal, scripture, and guidance focus.";
+  }
+  if (layerName === "mode") {
+    return datum?.description || "Clock mode selected.";
+  }
+  if (layerName === "life") {
+    return [getReverseFibonacciRhythmLabel(datum?.score), datum?.virtue, datum?.status].filter(Boolean).join(" • ");
+  }
+  if (layerName === "spirit") {
+    return [datum?.zodiac, datum?.degrees, datum?.spirit].filter(Boolean).join(" • ");
+  }
+  if (layerName === "planetary") {
+    const count = Array.isArray(datum?.pentacles) ? datum.pentacles.length : 0;
+    return count ? `${count} pentacle ${count === 1 ? "path" : "paths"} in this planetary rhythm.` : "Planetary rhythm selected.";
+  }
+  if (layerName === "celestial") {
+    return datum?.theme || datum?.description || "Celestial seal selected.";
+  }
+  return "Clock element selected.";
+}
+
+function buildSelectedClockJourney(layerName, datum) {
+  const title = getClockElementTitle(layerName, datum);
+  const description = describeClockElement(layerName, datum);
+  const rhythm = layerName === "life"
+    ? getReverseFibonacciRhythmLabel(datum?.score)
+    : layerName === "planetary"
+      ? "Rhythm 68"
+      : layerName === "spirit"
+        ? "Rhythm 32"
+        : layerName === "mode"
+          ? "Golden Return"
+          : "Daily";
+  const track = layerName === "life"
+    ? (datum?.virtue || "Formation")
+    : layerName === "planetary"
+      ? "Planetary practice"
+      : layerName === "spirit"
+        ? "Sector discernment"
+        : layerName === "celestial"
+          ? "Seal meditation"
+          : layerName === "mode"
+            ? "Clock lens"
+            : "Whole clock";
+
+  if (layerName === "life") {
+    const domain = String(datum?.name || title || "this domain").toLowerCase();
+    return {
+      title,
+      summary: `${description || title}. This is a returning track, not a completion score.`,
+      rhythm,
+      track,
+      meditation: `Attend to ${domain} as a rhythm of care. The goal is return, repair, and steadiness, not final perfection.`,
+      practice: `Choose one visible act for ${domain} and make it small enough to complete before the next turn of the day.`,
+      reflection: `Where does ${domain} ask for repeated attention rather than a one-time fix?`,
+    };
+  }
+
+  if (layerName === "planetary") {
+    const planet = String(datum?.name || title || "this planet");
+    return {
+      title,
+      summary: `${description || title} Use this track to translate the planetary rhythm into practice.`,
+      rhythm,
+      track,
+      meditation: `${planet} names the tone of action. Receive it as discipline for the present hour, not as spectacle.`,
+      practice: `Let the ${planet.toLowerCase()} track shape one concrete decision, repair, message, or restraint today.`,
+      reflection: `What does the ${planet.toLowerCase()} rhythm reveal about how you are acting under pressure?`,
+    };
+  }
+
+  if (layerName === "spirit") {
+    const sector = String(datum?.spirit || title || "this sector");
+    return {
+      title,
+      summary: `${description || title}. Treat this sector as a focused examination point.`,
+      rhythm,
+      track,
+      meditation: `${sector} marks a narrow gate of attention. Look for the shadow, correction, and virtue implied by this part of the wheel.`,
+      practice: "Name one impulse to restrain and one virtue to practice before you move to the next task.",
+      reflection: `What did this sector expose that the broader day would have let you ignore?`,
+    };
+  }
+
+  if (layerName === "celestial") {
+    return {
+      title,
+      summary: `${description || title}. Hold this seal as a meditation anchor inside the larger clock.`,
+      rhythm: "Golden Return",
+      track,
+      meditation: "Let the seal gather attention back toward prayer, wisdom, and ordered action.",
+      practice: "Pause before acting and write the smallest faithful next step.",
+      reflection: "What becomes clearer when the seal is treated as an anchor rather than decoration?",
+    };
+  }
+
+  return {
+    title,
+    summary: description || "The clock center gathers time, guidance, and the active track.",
+    rhythm,
+    track,
+    meditation: "Return to the center before choosing the next act.",
+    practice: "Take one action that makes the current guidance visible in the day.",
+    reflection: "Did the clock change what you did, or only what you noticed?",
+  };
+}
+
+function updateSelectedClockDrawer(layerName, datum) {
+  const journey = buildSelectedClockJourney(layerName, datum);
+  if (drawerElements.headerTitle) {
+    drawerElements.headerTitle.textContent = journey.title;
+  }
+  if (drawerElements.subtitle) {
+    drawerElements.subtitle.textContent = journey.summary;
+  }
+  if (drawerElements.selectedClockTitle) {
+    drawerElements.selectedClockTitle.textContent = journey.title;
+  }
+  if (drawerElements.selectedClockSummary) {
+    drawerElements.selectedClockSummary.textContent = journey.summary;
+  }
+  if (drawerElements.selectedClockRhythm) {
+    drawerElements.selectedClockRhythm.textContent = journey.rhythm;
+  }
+  if (drawerElements.selectedClockTrack) {
+    drawerElements.selectedClockTrack.textContent = journey.track;
+  }
+  if (drawerElements.selectedClockMeditation) {
+    drawerElements.selectedClockMeditation.textContent = journey.meditation;
+  }
+  if (drawerElements.selectedClockPractice) {
+    drawerElements.selectedClockPractice.textContent = journey.practice;
+  }
+  if (drawerElements.selectedClockReflection) {
+    drawerElements.selectedClockReflection.textContent = journey.reflection;
+  }
+}
+
+function clearNativeSvgFocus(event) {
+  const target = event?.currentTarget;
+  if (target && typeof target.blur === "function" && event?.type === "click") {
+    target.blur();
+  }
+}
+
+function handleClockElementSelection(layerName, datum, event = null) {
+  event?.stopPropagation?.();
+  clearNativeSvgFocus(event);
+  const key = getClockElementKey(layerName, datum);
+  const alreadySelected = uiState.selectedClockElement === key;
+  uiState.selectedClockElement = alreadySelected ? null : key;
+
+  if (alreadySelected) {
+    setDrawerOpen(false);
+  } else {
+    updateSelectedClockDrawer(layerName, datum);
+    setDrawerOpen(true);
+  }
+}
+
+function updateSelectedClockElementStyles() {
+  ["core", "celestial", "planetary", "spirit"].forEach((layerName) => {
+    ringGroups[layerName]
+      .selectAll("path.ring-path")
+      .classed("is-selected", (datum) => uiState.selectedClockElement === getClockElementKey(layerName, datum));
+    ringGroups[layerName]
+      .selectAll("circle.ring-path")
+      .classed("is-selected", (datum) => uiState.selectedClockElement === getClockElementKey(layerName, datum));
+  });
+  lifeWheelGroup
+    .selectAll("g.life-wheel-segment")
+    .classed("is-selected", (datum) => uiState.selectedClockElement === getClockElementKey("life", datum));
+}
+
+function openClockDrawerFromFallback(event = null) {
+  if (event?.defaultPrevented) {
+    return;
+  }
+  handleClockElementSelection("core", { name: "Clock Center" }, event);
+}
+
+function getReverseFibonacciRhythmLabel(value) {
+  const score = Number(value);
+  if (!Number.isFinite(score)) {
+    return "Golden Return";
+  }
+  if (score >= 80) {
+    return "Rhythm 80";
+  }
+  if (score >= 68) {
+    return "Rhythm 68";
+  }
+  if (score >= 32) {
+    return "Rhythm 32";
+  }
+  return "Golden Return";
 }
 
 function updateLensFocusOverlay(radii) {
@@ -1343,11 +1615,20 @@ function updateCenterModeControl(radii) {
   segments.style("cursor", "pointer");
   segments
     .select("path.center-mode-hit")
-    .on("click", (_event, entry) => setMode(entry.modeKey))
+    .on("click", (event, entry) => {
+      event.stopPropagation();
+      clearNativeSvgFocus(event);
+      setMode(entry.modeKey);
+      updateSelectedClockDrawer("mode", entry);
+      setDrawerOpen(true);
+    })
     .on("keydown", (event, entry) => {
       if (event.key === "Enter" || event.key === " ") {
         event.preventDefault();
+        event.stopPropagation();
         setMode(entry.modeKey);
+        updateSelectedClockDrawer("mode", entry);
+        setDrawerOpen(true);
       }
     });
 
@@ -1391,12 +1672,15 @@ function setupLensControls() {
 }
 
 function setupDrawerToggle() {
-  if (!drawerElements.drawerToggle) {
+  if (!drawerElements.drawerToggle && !drawerElements.primaryDrawerButton) {
     return;
   }
 
-  drawerElements.drawerToggle.addEventListener("click", () => {
+  drawerElements.drawerToggle?.addEventListener("click", () => {
     setDrawerOpen(!uiState.drawerOpen);
+  });
+  drawerElements.primaryDrawerButton?.addEventListener("click", () => {
+    setDrawerOpen(true);
   });
 
   applyDrawerState();
@@ -2004,7 +2288,8 @@ function setupDailyOpeningControls() {
   }
 
   drawerElements.actionDailyOpening.addEventListener("click", () => {
-    uiState.dailyOpeningOpen = true;
+    uiState.dailyOpeningOpen = !uiState.dailyOpeningOpen;
+    setDrawerOpen(true);
     requestAnimationFrame(() => {
       drawerElements.dailyOpeningIntent?.focus();
     });
@@ -3064,12 +3349,26 @@ function drawArcRing(layerName, items, outerRadius, color, tooltipFormatter) {
     .selectAll("path")
     .data(data)
     .join("path")
-    .attr("class", `ring-path ring-${layerName}`)
+    .attr("class", (datum) => [
+      "ring-path",
+      `ring-${layerName}`,
+      uiState.selectedClockElement === getClockElementKey(layerName, datum) ? "is-selected" : "",
+    ].filter(Boolean).join(" "))
     .attr("d", arc)
     .attr("fill", color)
     .attr("fill-opacity", layerName === "spirit" ? 0.55 : 0.38)
     .attr("stroke", "rgba(12, 19, 33, 0.9)")
-    .attr("stroke-width", layerName === "spirit" ? 0.5 : 1.2);
+    .attr("stroke-width", layerName === "spirit" ? 0.5 : 1.2)
+    .attr("role", "button")
+    .attr("tabindex", 0)
+    .attr("aria-label", (datum) => `Open ${getClockElementTitle(layerName, datum)}`)
+    .on("click", (event, datum) => handleClockElementSelection(layerName, datum, event))
+    .on("keydown", (event, datum) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        handleClockElementSelection(layerName, datum, event);
+      }
+    });
 
   if (tooltipFormatter) {
     bindTooltip(selection, tooltipFormatter);
@@ -3084,11 +3383,22 @@ function drawCore(coreInfo, radius, color) {
     .selectAll("circle")
     .data([coreInfo])
     .join("circle")
+    .attr("class", "ring-path ring-core")
     .attr("r", radius)
     .attr("fill", color)
     .attr("fill-opacity", 0.18)
     .attr("stroke", color)
-    .attr("stroke-width", 2);
+    .attr("stroke-width", 2)
+    .attr("role", "button")
+    .attr("tabindex", 0)
+    .attr("aria-label", (datum) => `Open ${getClockElementTitle("core", datum)}`)
+    .on("click", (event, datum) => handleClockElementSelection("core", datum, event))
+    .on("keydown", (event, datum) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        handleClockElementSelection("core", datum, event);
+      }
+    });
 
   centerGroup.raise();
 }
@@ -3308,7 +3618,7 @@ function updateDailyGuidance(timeState) {
   const guidance = PLANETARY_DAY_GUIDANCE[rulerText];
   drawerElements.guidanceDay.textContent = `${dayText} (${rulerText})`;
   drawerElements.guidanceTone.textContent =
-    guidance?.tone || "Use this day for steady, intentional progress with focused attention.";
+    guidance?.tone || "Use this day for steady, intentional practice with focused attention.";
 
   drawerElements.guidanceList.innerHTML = "";
   const activities = guidance?.activities || ["Review priorities.", "Do one high-value task deeply.", "End with reflection."];
@@ -3537,7 +3847,7 @@ function updateHistoryPanel(now, derived, referenceMap) {
     const li = document.createElement("li");
     li.textContent = badge;
     li.className = selectedEntry.hasRecord ? "history-meta-pill is-recorded" : "history-meta-pill";
-    if (badge === "Completed") {
+    if (badge === "Practiced") {
       li.classList.add("is-complete");
     } else if (badge === "Adopted") {
       li.classList.add("is-adopted");
@@ -3647,7 +3957,7 @@ function getProvidenceGuideCopy(entries, selectedEntry) {
     return `Brighter outer nodes are recorded days. Faint guide nodes preserve the missing days so gaps in closure and repetition stay visible while you browse ${selectedEntry.dateLabel}.`;
   }
 
-  return "Select an outer node or timeline card to compare openings, completion, review, and carry-forward across the trail.";
+  return "Select an outer node or timeline card to compare openings, practice, review, and carry-forward across the trail.";
 }
 
 function updateProvidenceTimeline(now, derived, referenceMap) {
@@ -5359,7 +5669,18 @@ function updateLifeWheel(timeState, radii, lifeConfig) {
       "life-wheel-segment",
       domain.isFocused ? "is-focused" : "",
       domain.isWeakest ? "is-weakest" : "",
-    ].filter(Boolean).join(" "));
+    ].filter(Boolean).join(" "))
+    .attr("role", "button")
+    .attr("tabindex", 0)
+    .attr("aria-label", (domain) => `Open ${getClockElementTitle("life", domain)}`)
+    .style("cursor", "pointer")
+    .on("click", (event, domain) => handleClockElementSelection("life", domain, event))
+    .on("keydown", (event, domain) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        handleClockElementSelection("life", domain, event);
+      }
+    });
 
   segments
     .append("path")
@@ -5412,7 +5733,7 @@ function updateLifeWheel(timeState, radii, lifeConfig) {
     .attr("fill", "#cbd5f5")
     .attr("text-anchor", (domain) => (Math.abs(domain.labelPoint.x) < 14 ? "middle" : domain.labelPoint.x > 0 ? "start" : "end"))
     .attr("y", 10)
-    .text((domain) => `${domain.score}%`);
+    .text((domain) => getReverseFibonacciRhythmLabel(domain.score));
 
   bindTooltip(
     segments,
@@ -5422,7 +5743,7 @@ function updateLifeWheel(timeState, radii, lifeConfig) {
         : domain.isWeakest
           ? "Weakest domain"
           : "Life domain";
-      return `${domain.name} • ${domain.score}% • ${domain.virtue} • ${status}`;
+      return `${domain.name} • ${getReverseFibonacciRhythmLabel(domain.score)} • ${domain.virtue} • ${status}`;
     }
   );
 
@@ -8082,12 +8403,11 @@ function updateDailyOpening(context) {
   drawerElements.actionDailyOpening.textContent = opened ? "Revisit Opening" : "Daily Opening";
   drawerElements.actionDailyOpening.setAttribute("aria-pressed", uiState.dailyOpeningOpen ? "true" : "false");
 
-  if (!opened && !uiState.dailyOpeningOpen && getDailyOpeningDismissedDate() !== context.dateKey) {
-    uiState.dailyOpeningOpen = true;
+  drawerElements.dailyOpeningOverlay.hidden = true;
+  if (drawerElements.dailyOpeningCard) {
+    drawerElements.dailyOpeningCard.hidden = !uiState.dailyOpeningOpen;
   }
-
-  drawerElements.dailyOpeningOverlay.hidden = !uiState.dailyOpeningOpen;
-  document.body.dataset.dailyOpening = uiState.dailyOpeningOpen ? "open" : "closed";
+  document.body.dataset.dailyOpening = "closed";
 }
 
 function getHistoryEntryStatusBadges(entry) {
@@ -8096,7 +8416,7 @@ function getHistoryEntryStatusBadges(entry) {
     badges.push("Opened");
   }
   if (entry.completed) {
-    badges.push("Completed");
+    badges.push("Practiced");
   } else if (entry.adopted) {
     badges.push("Adopted");
   }
@@ -8143,16 +8463,16 @@ function getHistoryEntryRecordColor(entry) {
 
 function getHistoryEntryOutcomeLabel(entry) {
   if (entry.closed && entry.completed && entry.hasReflection) {
-    return "Completed, reflected, and closed";
+    return "Practiced, reflected, and closed";
   }
   if (entry.closed && entry.completed) {
-    return "Completed and closed";
+    return "Practiced and closed";
   }
   if (entry.completed && !entry.closed) {
-    return "Completed but left open";
+    return "Practiced but left open";
   }
   if (entry.adopted && !entry.completed) {
-    return "Adopted but unfinished";
+    return "Adopted and awaiting return";
   }
   if (entry.closed && entry.hasReflection) {
     return "Reflected and closed";
@@ -8202,16 +8522,16 @@ function getHistoryEntryPatternLabel(bucket, count) {
     return `${count} ${count === 1 ? "day closed cleanly" : "days closed cleanly"}, so action and review stayed together.`;
   }
   if (bucket === "completed_open") {
-    return `${count} ${count === 1 ? "day completed the act but stayed open" : "days completed the act but stayed open"}, so execution outran review.`;
+    return `${count} ${count === 1 ? "day practiced but stayed open" : "days practiced but stayed open"}, so execution outran review.`;
   }
   if (bucket === "unfinished_after_adoption") {
-    return `${count} adopted ${count === 1 ? "day remained unfinished" : "days remained unfinished"}, so intention is outrunning follow-through.`;
+    return `${count} adopted ${count === 1 ? "day awaited return" : "days awaited return"}, so intention is outrunning follow-through.`;
   }
   if (bucket === "reflection_without_close") {
     return `${count} ${count === 1 ? "day reflected without a close" : "days reflected without a close"}, so insight formed without being sealed.`;
   }
   if (bucket === "closed_without_completion") {
-    return `${count} ${count === 1 ? "day closed without a completed act" : "days closed without a completed act"}, so review arrived before execution.`;
+    return `${count} ${count === 1 ? "day closed without a marked practice" : "days closed without a marked practice"}, so review arrived before execution.`;
   }
   if (bucket === "conversation_heavy") {
     return `${count} ${count === 1 ? "day leaned on conversation" : "days leaned on conversation"}, so discernment keeps asking for dialogue instead of isolation.`;
@@ -8275,10 +8595,10 @@ function buildHistoryTimelineEntry(baseDate, offset, derived, referenceMap) {
     : "";
   const actionLine = completed
     ? morningPracticeSnippet
-      ? `Completed practice: ${morningPracticeSnippet}`
+      ? `Practiced: ${morningPracticeSnippet}`
       : rule?.summary
-        ? `Completed the chosen ${String(rule.domain || "practice").toLowerCase()} step`
-        : "Completed the chosen practice"
+        ? `Practiced the chosen ${String(rule.domain || "practice").toLowerCase()} step`
+        : "Practiced the chosen step"
     : adopted
       ? morningPracticeSnippet
         ? `Adopted practice: ${morningPracticeSnippet} but did not finish it`
@@ -8602,7 +8922,7 @@ function buildWeeklyHistorySummary(baseDate, derived, referenceMap) {
     patterns.push(`${unclosedCount} recorded ${unclosedCount === 1 ? "day was" : "days were"} left open without a full closing, so review may be trailing behind action.`);
   }
   if (cleanCloseCount >= 2) {
-    patterns.push(`${cleanCloseCount} ${cleanCloseCount === 1 ? "day reached" : "days reached"} both completion and closure, so the week already contains a pattern worth repeating rather than only problems worth naming.`);
+    patterns.push(`${cleanCloseCount} ${cleanCloseCount === 1 ? "day reached" : "days reached"} both practice and closure, so the week already contains a pattern worth repeating rather than only problems worth naming.`);
   }
   if (launchDayCount >= 2) {
     patterns.push(`Pericope entered on ${launchDayCount} recorded ${launchDayCount === 1 ? "day" : "days"}, which means the trail is already carrying live conversation history instead of only private notes.`);
@@ -8614,7 +8934,7 @@ function buildWeeklyHistorySummary(baseDate, derived, referenceMap) {
     patterns.push(`${topScripture.label} reappeared ${topScripture.count} times, so the same scriptural thread is staying near the center of the week.`);
   }
   if (topCarry && topCarry.count >= 2) {
-    patterns.push(`Carry-forward language repeated ${topCarry.count} times, which means the week keeps handing the same unfinished work into the next opening.`);
+    patterns.push(`Carry-forward language repeated ${topCarry.count} times, which means the week keeps handing the same unresolved work into the next opening.`);
   }
   if (!patterns.length && reflectedCount >= 2) {
     patterns.push(`Reflection held on ${reflectedCount} recorded days, which is enough to begin seeing a stable rhythm rather than isolated entries.`);
@@ -9287,7 +9607,7 @@ function buildLensDeepView(context, timeState, referenceMap, now, derived, lifeS
     return {
       kicker: "Continuity Review",
       title: "Read selected days as a trail, not as isolated moods",
-      summary: "Compare openings, completions, reflections, and closeouts so the trail can correct tomorrow's opening.",
+      summary: "Compare openings, practices, reflections, and closeouts so the trail can correct tomorrow's opening.",
       footer: "History is only useful when it changes the next opening.",
       cards: [
         {
@@ -9400,8 +9720,8 @@ function getLensActionCopy(context, state = {}) {
       closingCarryLabel: "Carry The Line",
       closingCarryPlaceholder: "What line should remain active tomorrow?",
       notOpenedStatus: `Begin with Daily Opening, then hold ${psalmRef} before you choose a practice.`,
-      completedWithReflectionStatus: `Completed: ${context.label}. Keep the note with the passage before you widen the reading.`,
-      completedPendingStatus: `Completed: ${context.label}. Add a scripture note or open the study page to widen the reading.`,
+      completedWithReflectionStatus: `Practiced: ${context.label}. Keep the note with the passage before you widen the reading.`,
+      completedPendingStatus: `Practiced: ${context.label}. Add a scripture note or open the study page to widen the reading.`,
       closedWithSummaryStatus: summarySnippet ? `Reading closed: ${summarySnippet}` : "The reading has been closed for this day.",
       closedGenericStatus: "The reading has been closed. Reopen it if you want to revise the note or carry-forward line.",
       adoptedStatus: rule
@@ -9437,8 +9757,8 @@ function getLensActionCopy(context, state = {}) {
       notOpenedStatus: rule
         ? `Open the day first, then use the rule: ${rule.summary}`
         : "Open the day before you treat timing as actionable counsel.",
-      completedWithReflectionStatus: `Completed: ${context.label}. Keep the hour note with the act while the sequence is still fresh.`,
-      completedPendingStatus: `Completed: ${context.label}. Record how the act landed before the timing disappears into memory.`,
+      completedWithReflectionStatus: `Practiced: ${context.label}. Keep the hour note with the act while the sequence is still fresh.`,
+      completedPendingStatus: `Practiced: ${context.label}. Record how the act landed before the timing disappears into memory.`,
       closedWithSummaryStatus: summarySnippet ? `Ritual closed: ${summarySnippet}` : "The ritual closeout has been saved.",
       closedGenericStatus: "The day has been closed. Reopen it if you need to revise the sequence note.",
       adoptedStatus: rule
@@ -9472,8 +9792,8 @@ function getLensActionCopy(context, state = {}) {
       closingCarryLabel: "Carry The Test",
       closingCarryPlaceholder: "What symbolic insight is worth carrying forward, and what should be dropped?",
       notOpenedStatus: "Begin with Daily Opening before you read the figure symbolically.",
-      completedWithReflectionStatus: `Completed: ${context.label}. Keep the figure note tied to concrete action, not just atmosphere.`,
-      completedPendingStatus: `Completed: ${context.label}. Note whether the symbolic layer clarified action or only added ornament.`,
+      completedWithReflectionStatus: `Practiced: ${context.label}. Keep the figure note tied to concrete action, not just atmosphere.`,
+      completedPendingStatus: `Practiced: ${context.label}. Note whether the symbolic layer clarified action or only added ornament.`,
       closedWithSummaryStatus: summarySnippet ? `Figure review closed: ${summarySnippet}` : "The figure review has been saved.",
       closedGenericStatus: "The symbolic review has been closed. Reopen it if you want to test the figure again against the day.",
       adoptedStatus: rule
@@ -9507,8 +9827,8 @@ function getLensActionCopy(context, state = {}) {
       closingCarryLabel: "Carry Into Tomorrow",
       closingCarryPlaceholder: "What should the next opening inherit from this day?",
       notOpenedStatus: `Open or review ${selectedDay} before you decide what this pattern means.`,
-      completedWithReflectionStatus: `Completed: ${context.label}. Compare this day with the rest of the trail before you move on.`,
-      completedPendingStatus: `Completed: ${context.label}. Add a continuity note so this day can correct the next opening.`,
+      completedWithReflectionStatus: `Practiced: ${context.label}. Compare this day with the rest of the trail before you move on.`,
+      completedPendingStatus: `Practiced: ${context.label}. Add a continuity note so this day can correct the next opening.`,
       closedWithSummaryStatus: summarySnippet ? `Trail note saved: ${summarySnippet}` : "The selected day has been closed into the trail.",
       closedGenericStatus: "The selected day has been closed. Reopen it if you need to revise the carry-forward line.",
       adoptedStatus: rule
@@ -9543,8 +9863,8 @@ function getLensActionCopy(context, state = {}) {
     notOpenedStatus: rule
       ? `Begin with Daily Opening: ${rule.summary}`
       : "Begin with Daily Opening before choosing a practice.",
-    completedWithReflectionStatus: `Completed: ${context.label}. Bring the reflection to Pericope when you want counsel.`,
-    completedPendingStatus: `Completed: ${context.label}. Add an evening note or ask Pericope to close the loop.`,
+    completedWithReflectionStatus: `Practiced: ${context.label}. Bring the reflection to Pericope when you want counsel.`,
+    completedPendingStatus: `Practiced: ${context.label}. Add an evening note or ask Pericope to close the loop.`,
     closedWithSummaryStatus: summarySnippet ? `Day closed: ${summarySnippet}` : "The day has been closed.",
     closedGenericStatus: "The day has been closed. Reopen the closing if you want to revise the examen.",
     adoptedStatus: rule
@@ -9872,7 +10192,7 @@ function updateActionLoop(context) {
   drawerElements.actionDailyOpening.textContent = opened ? lensCopy.openedLabel : lensCopy.openLabel;
   drawerElements.actionDailyOpening.setAttribute("aria-pressed", uiState.dailyOpeningOpen ? "true" : "false");
   drawerElements.actionAdopt.textContent = adopted ? lensCopy.adoptedLabel : lensCopy.adoptLabel;
-  drawerElements.actionComplete.textContent = completed ? "Completed Today" : "Mark Complete";
+  drawerElements.actionComplete.textContent = completed ? "Practiced Today" : "Mark Practice";
   drawerElements.actionReflect.textContent = lensCopy.reflectLabel;
   drawerElements.actionCloseDay.textContent = closed ? lensCopy.closedLabel : lensCopy.closeLabel;
   drawerElements.actionCloseDay.setAttribute("aria-pressed", uiState.closingOpen ? "true" : "false");
@@ -10146,12 +10466,8 @@ function getLensAnnotations(timeState, referenceMap, now, radii) {
 }
 
 function updateLensAnnotations(timeState, referenceMap, now, radii) {
-  const annotations = getLensAnnotations(timeState, referenceMap, now, radii);
   lensAnnotationGroup.selectAll("*").remove();
-
-  if (!annotations.length) {
-    return;
-  }
+  return;
 
   const nodes = lensAnnotationGroup
     .selectAll("g.lens-annotation")
@@ -10976,6 +11292,7 @@ async function fetchJsonResource(url, label) {
 }
 
 async function initialiseClock() {
+  setupDrawerContentMigration();
   setupAccountControls();
   setupPresentationControls();
   setupLensControls();
@@ -11064,6 +11381,7 @@ function renderClock(data, referenceMap, psalmMetadata, pentacleData, lifeDomain
     highlightLayer("spirit", timeState.indices.spirit);
     highlightLayer("planetary", timeState.indices.planetary);
     highlightLayer("celestial", timeState.indices.celestial);
+    updateSelectedClockElementStyles();
     updatePlanetaryRingPresentation(layers.planetary.groups, radii.planetary, timeState.active.pentacle);
     updateActiveSealFocus(timeState.active.pentacle, pentacleData, referenceMap);
     updateCenterModeControl(radii);
