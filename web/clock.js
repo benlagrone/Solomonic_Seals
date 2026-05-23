@@ -422,11 +422,12 @@ const bundledPsalmMap = new Map();
 const PSALM_API_ENDPOINT = "/api/psalm";
 const BOOK_PARTIAL_API_ENDPOINT = "/api/pericope/book-partial";
 const CLIENT_ERRORS_API_ENDPOINT = "/api/client-errors";
+const VIBEVOICE_TTS_JOBS_API_ENDPOINT = "/api/vibevoice/tts/jobs";
 const ENABLE_REMOTE_SCRIPTURE_FETCH = true;
 const CLIENT_ERROR_DEDUPE_WINDOW_MS = 90_000;
 const SCRIPTURE_READER_SUPPORTED = typeof window !== "undefined"
-  && typeof window.SpeechSynthesisUtterance === "function"
-  && "speechSynthesis" in window;
+  && typeof window.fetch === "function"
+  && typeof window.Audio === "function";
 configureScriptureInitialAssetUrl();
 const scriptureReaderState = {
   kind: "psalm",
@@ -440,6 +441,10 @@ const scriptureReaderState = {
 const bundleAudioState = {
   kind: "",
   speaking: false,
+};
+const vibeVoicePlaybackState = {
+  audio: null,
+  cancel: null,
 };
 
 function toClientErrorSnippet(value, maxLength = 240) {
@@ -3521,7 +3526,7 @@ function updateHistoryPanel(now, derived, referenceMap) {
 
   drawerElements.historyCurrentDay.textContent = `${selectedEntry.dateLabel} (${selectedEntry.rulerText})${selectedEntry.isToday ? " • Today" : ""}`;
   drawerElements.historyCurrentSummary.textContent = selectedEntry.hasRecord
-    ? `${selectedEntry.titleLine}. ${selectedEntry.summaryLine}`
+    ? selectedEntry.continuityLine
     : `No saved entry for this day yet. ${selectedEntry.rulerText} still leans toward ${selectedEntry.focus.toLowerCase()}.`;
 
   drawerElements.historyCurrentMeta.innerHTML = "";
@@ -3601,12 +3606,12 @@ function updateHistoryPanel(now, derived, referenceMap) {
     day.textContent = entry.dateLabel;
     const state = document.createElement("span");
     state.className = "history-log-state";
-    state.textContent = entry.statusBadges.join(" • ") || "Saved";
+    state.textContent = entry.outcomeLabel || entry.statusBadges.join(" • ") || "Saved";
     top.append(day, state);
 
     const summary = document.createElement("p");
     summary.className = "history-log-summary";
-    summary.textContent = entry.summaryLine;
+    summary.textContent = entry.trailLine || entry.summaryLine;
 
     button.append(top, summary);
     li.appendChild(button);
@@ -3631,18 +3636,18 @@ function getProvidenceGuideCopy(entries, selectedEntry) {
   const ghostCount = entries.filter((entry) => entry.isGhost).length;
 
   if (!recordedCount) {
-    return "No recorded days yet. The faint outer nodes mark the last week so you can start the trail by opening, reflecting on, or closing today.";
+    return "No recorded days yet. The faint outer nodes mark the recent week so you can start a readable trail by opening, acting, reflecting, and closing today.";
   }
 
   if (recordedCount < 3) {
-    return `${recordedCount} saved ${recordedCount === 1 ? "day is" : "days are"} visible. Faint guide nodes fill the recent week so the map stays readable while the trail is still sparse.`;
+    return `${recordedCount} saved ${recordedCount === 1 ? "day is" : "days are"} visible. Use the selected card to compare what opened, what carried through, and what was left unresolved while the trail is still short.`;
   }
 
   if (ghostCount) {
-    return `Brighter outer nodes are recorded days. Faint guide nodes keep the recent week legible while you browse ${selectedEntry.dateLabel}.`;
+    return `Brighter outer nodes are recorded days. Faint guide nodes preserve the missing days so gaps in closure and repetition stay visible while you browse ${selectedEntry.dateLabel}.`;
   }
 
-  return "Select an outer node or a timeline card to revisit a recorded day. Brighter nodes indicate stronger completion and closure.";
+  return "Select an outer node or timeline card to compare openings, completion, review, and carry-forward across the trail.";
 }
 
 function updateProvidenceTimeline(now, derived, referenceMap) {
@@ -3672,7 +3677,7 @@ function updateProvidenceTimeline(now, derived, referenceMap) {
   const guideCopy = getProvidenceGuideCopy(entries, selectedEntry);
   const key = JSON.stringify({
     selectedOffset: selectedDayOffset,
-    entries: entries.map((entry) => `${entry.dateKey}:${entry.statusBadges.join(",")}:${entry.summaryLine}:${entry.hasRecord ? 1 : 0}`),
+    entries: entries.map((entry) => `${entry.dateKey}:${entry.statusBadges.join(",")}:${entry.outcomeLabel}:${entry.trailLine}:${entry.carryLine}:${entry.hasRecord ? 1 : 0}`),
   });
 
   if (key === lastProvidenceTimelineKey) {
@@ -3682,8 +3687,8 @@ function updateProvidenceTimeline(now, derived, referenceMap) {
   lastProvidenceTimelineKey = key;
 
   drawerElements.providenceTimelineSummary.textContent = selectedEntry.hasRecord
-    ? `${recordedCount} recorded ${recordedCount === 1 ? "day" : "days"} in view • ${closedCount} closed. Selected ${selectedEntry.dateLabel}: ${selectedEntry.summaryLine}`
-    : `${recordedCount} recorded ${recordedCount === 1 ? "day" : "days"} in view. ${selectedEntry.dateLabel} has no saved record yet; ${selectedEntry.rulerText} still leans toward ${selectedEntry.displayFocus}.`;
+    ? `${recordedCount} recorded ${recordedCount === 1 ? "day" : "days"} in view • ${closedCount} closed. Selected ${selectedEntry.dateLabel}: ${selectedEntry.outcomeLabel.toLowerCase()}.`
+    : `${recordedCount} recorded ${recordedCount === 1 ? "day" : "days"} in view. ${selectedEntry.dateLabel} has no saved record yet; compare it against the nearest closed day before you generalize the pattern.`;
   drawerElements.providenceMapGuide.textContent = guideCopy;
 
   drawerElements.providenceToday.disabled = selectedDayOffset === 0;
@@ -3733,13 +3738,13 @@ function updateProvidenceTimeline(now, derived, referenceMap) {
     const summary = document.createElement("p");
     summary.className = "providence-timeline-card-summary";
     summary.textContent = entry.hasRecord
-      ? entry.summaryLine
+      ? entry.trailLine || entry.summaryLine
       : `No saved record yet. ${entry.displayFocus}`;
 
     const meta = document.createElement("p");
     meta.className = "providence-timeline-card-meta";
     meta.textContent = entry.hasRecord
-      ? `${entry.titleLine} • ${entry.launchCount ? `${entry.launchCount} launch${entry.launchCount === 1 ? "" : "es"}` : "No launches"}`
+      ? `${entry.outcomeLabel} • ${entry.carryLine || (entry.launchCount ? `${entry.launchCount} launch${entry.launchCount === 1 ? "" : "es"}` : "No carry-forward saved")}`
       : `${entry.rulerText} guidance • ${entry.pentacleLabel}`;
 
     button.append(top, badges, summary, meta);
@@ -6801,8 +6806,8 @@ function getScriptureReaderKindLabel(kind) {
 function getScriptureReaderDefaultStatus(kind) {
   return getScriptureReaderFrameCopy(kind).status || (
     SCRIPTURE_READER_SUPPORTED
-      ? `Showing ${getScriptureReaderKindLabel(kind)}. Use Listen to hear it aloud.`
-      : `Showing ${getScriptureReaderKindLabel(kind)}. Audio depends on browser speech support.`
+      ? `Showing ${getScriptureReaderKindLabel(kind)}. Use Speak to generate VibeVoice audio.`
+      : `Showing ${getScriptureReaderKindLabel(kind)}. Audio depends on browser audio support.`
   );
 }
 
@@ -6887,9 +6892,101 @@ function cancelSpeechPlaybackState() {
   scriptureReaderState.speaking = false;
   bundleAudioState.kind = "";
   bundleAudioState.speaking = false;
-  if (SCRIPTURE_READER_SUPPORTED) {
-    window.speechSynthesis.cancel();
+  if (vibeVoicePlaybackState.audio) {
+    vibeVoicePlaybackState.audio.pause();
+    vibeVoicePlaybackState.audio.removeAttribute("src");
+    vibeVoicePlaybackState.audio.load();
+    vibeVoicePlaybackState.audio = null;
   }
+  if (typeof vibeVoicePlaybackState.cancel === "function") {
+    vibeVoicePlaybackState.cancel();
+    vibeVoicePlaybackState.cancel = null;
+  }
+}
+
+function waitForVibeVoicePoll(ms) {
+  return new Promise((resolve) => {
+    window.setTimeout(resolve, ms);
+  });
+}
+
+async function fetchVibeVoiceJson(endpoint, options = {}) {
+  const response = await fetch(endpoint, {
+    ...options,
+    headers: {
+      Accept: "application/json",
+      ...(options.headers || {}),
+    },
+  });
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(payload?.error || payload?.detail || `VibeVoice request failed (${response.status}).`);
+  }
+  return payload;
+}
+
+async function requestVibeVoiceAudio({ speechText, token, tokenType }) {
+  const createPayload = await fetchVibeVoiceJson(VIBEVOICE_TTS_JOBS_API_ENDPOINT, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      text: speechText,
+    }),
+  });
+  const jobId = String(createPayload?.job_id || "").trim();
+  if (!jobId) {
+    throw new Error("VibeVoice did not return a job id.");
+  }
+
+  let job = createPayload;
+  for (let attempt = 0; attempt < 80; attempt += 1) {
+    const activeToken = tokenType === "bundle" ? bundleSpeechToken : scriptureReaderSpeechToken;
+    if (token !== activeToken) {
+      return null;
+    }
+    if (job.status === "completed") {
+      const audioUrl = String(job.proxy_audio_url || job.audio_url || "").trim();
+      if (!audioUrl) {
+        throw new Error("VibeVoice completed without an audio URL.");
+      }
+      return audioUrl;
+    }
+    if (job.status === "failed") {
+      throw new Error(job.detail || "VibeVoice audio generation failed.");
+    }
+    await waitForVibeVoicePoll(3000);
+    job = await fetchVibeVoiceJson(`${VIBEVOICE_TTS_JOBS_API_ENDPOINT}/${encodeURIComponent(jobId)}`);
+  }
+
+  throw new Error("VibeVoice audio generation timed out.");
+}
+
+async function playVibeVoiceAudioUrl(audioUrl, token, tokenType) {
+  const activeToken = tokenType === "bundle" ? bundleSpeechToken : scriptureReaderSpeechToken;
+  if (token !== activeToken) {
+    return false;
+  }
+
+  const audio = new Audio(audioUrl);
+  vibeVoicePlaybackState.audio = audio;
+  try {
+    await new Promise((resolve, reject) => {
+      vibeVoicePlaybackState.cancel = resolve;
+      audio.onended = resolve;
+      audio.onerror = () => reject(new Error("VibeVoice audio playback failed."));
+      audio.play().catch(reject);
+    });
+  } finally {
+    if (vibeVoicePlaybackState.audio === audio) {
+      vibeVoicePlaybackState.audio = null;
+    }
+    if (vibeVoicePlaybackState.cancel) {
+      vibeVoicePlaybackState.cancel = null;
+    }
+  }
+  return true;
 }
 
 function getBundleAudioContent(kind) {
@@ -6924,7 +7021,7 @@ function renderBundleAudioControls() {
     const audioContent = getBundleAudioContent(kind);
     const isSpeaking = bundleAudioState.speaking && bundleAudioState.kind === kind;
     elements.listen.disabled = !SCRIPTURE_READER_SUPPORTED || !audioContent || isSpeaking;
-    elements.listen.textContent = isSpeaking ? "Playing…" : "Listen";
+    elements.listen.textContent = isSpeaking ? "Speaking…" : "Speak";
     elements.stop.disabled = !SCRIPTURE_READER_SUPPORTED || !isSpeaking;
   });
 }
@@ -6943,7 +7040,7 @@ function stopBundleAudioPlayback() {
   renderBundleAudioControls();
 }
 
-function speakBundlePassage(kind) {
+async function speakBundlePassage(kind) {
   if (!SCRIPTURE_READER_SUPPORTED) {
     renderBundleAudioControls();
     return;
@@ -6963,32 +7060,38 @@ function speakBundlePassage(kind) {
   renderScriptureReader(true);
 
   const token = ++bundleSpeechToken;
-  const utterance = new SpeechSynthesisUtterance(
-    getScriptureReaderSpeechText(audioContent.reference, audioContent.text)
-  );
-  utterance.rate = 0.96;
-  utterance.pitch = 1;
-  utterance.onend = () => {
-    if (token !== bundleSpeechToken) {
-      return;
-    }
-    bundleAudioState.kind = "";
-    bundleAudioState.speaking = false;
-    renderBundleAudioControls();
-  };
-  utterance.onerror = () => {
-    if (token !== bundleSpeechToken) {
-      return;
-    }
-    bundleAudioState.kind = "";
-    bundleAudioState.speaking = false;
-    renderBundleAudioControls();
-  };
+  const speechText = getScriptureReaderSpeechText(audioContent.reference, audioContent.text);
 
   bundleAudioState.kind = kind;
   bundleAudioState.speaking = true;
   renderBundleAudioControls();
-  window.speechSynthesis.speak(utterance);
+
+  try {
+    const audioUrl = await requestVibeVoiceAudio({ speechText, token, tokenType: "bundle" });
+    if (!audioUrl || token !== bundleSpeechToken) {
+      return;
+    }
+    renderBundleAudioControls();
+    await playVibeVoiceAudioUrl(audioUrl, token, "bundle");
+    if (token !== bundleSpeechToken) {
+      return;
+    }
+    bundleAudioState.kind = "";
+    bundleAudioState.speaking = false;
+    renderBundleAudioControls();
+  } catch (error) {
+    console.error("Failed to play bundle VibeVoice audio", error);
+    if (token !== bundleSpeechToken) {
+      return;
+    }
+    bundleAudioState.kind = "";
+    bundleAudioState.speaking = false;
+    renderBundleAudioControls();
+    reportClientError("vibevoice_bundle_audio_failed", {
+      kind,
+      message: error?.message || "Bundle VibeVoice audio failed.",
+    });
+  }
 }
 
 function syncScriptureReaderTabs() {
@@ -7074,7 +7177,7 @@ function renderScriptureReader(force = false) {
     display.tone,
     display.text.length,
     canExpand ? "expand" : "no-expand",
-    canListen ? "listen" : "no-listen",
+    canListen ? "speak" : "no-speak",
   ].join("|");
 
   if (!force && renderKey === lastScriptureReaderKey) {
@@ -7105,7 +7208,7 @@ function renderScriptureReader(force = false) {
   scriptureReaderElements.study.hidden = !sourceState?.previewRef;
   scriptureReaderElements.study.disabled = !sourceState?.previewRef;
   scriptureReaderElements.listen.disabled = !canListen || scriptureReaderState.speaking;
-  scriptureReaderElements.listen.textContent = scriptureReaderState.speaking ? "Playing…" : "Listen";
+  scriptureReaderElements.listen.textContent = scriptureReaderState.speaking ? "Speaking…" : "Speak";
   scriptureReaderElements.stop.disabled = !SCRIPTURE_READER_SUPPORTED || !scriptureReaderState.speaking;
 }
 
@@ -7180,7 +7283,7 @@ function selectScriptureReaderKind(kind) {
   renderScriptureReader(true);
 }
 
-function speakScriptureReaderPassage() {
+async function speakScriptureReaderPassage() {
   if (!SCRIPTURE_READER_SUPPORTED) {
     setScriptureReaderStatus("Audio is not available in this browser.", { error: true });
     renderScriptureReader(true);
@@ -7201,30 +7304,38 @@ function speakScriptureReaderPassage() {
   renderBundleAudioControls();
   const token = ++scriptureReaderSpeechToken;
 
-  const utterance = new SpeechSynthesisUtterance(speechText);
-  utterance.rate = 0.96;
-  utterance.pitch = 1;
-  utterance.onend = () => {
+  scriptureReaderState.speaking = true;
+  setScriptureReaderStatus(`Generating VibeVoice audio for ${display.reference}.`);
+  renderScriptureReader(true);
+
+  try {
+    const audioUrl = await requestVibeVoiceAudio({ speechText, token, tokenType: "reader" });
+    if (!audioUrl || token !== scriptureReaderSpeechToken) {
+      return;
+    }
+    setScriptureReaderStatus(`Playing ${display.reference}.`);
+    renderScriptureReader(true);
+    await playVibeVoiceAudioUrl(audioUrl, token, "reader");
     if (token !== scriptureReaderSpeechToken) {
       return;
     }
     scriptureReaderState.speaking = false;
     setScriptureReaderStatus(`Finished reading ${display.reference}.`);
     renderScriptureReader(true);
-  };
-  utterance.onerror = () => {
+  } catch (error) {
+    console.error("Failed to play scripture reader VibeVoice audio", error);
     if (token !== scriptureReaderSpeechToken) {
       return;
     }
     scriptureReaderState.speaking = false;
-    setScriptureReaderStatus("Audio playback failed.", { error: true });
+    setScriptureReaderStatus(error?.message || "VibeVoice audio playback failed.", { error: true });
     renderScriptureReader(true);
-  };
-
-  scriptureReaderState.speaking = true;
-  setScriptureReaderStatus(`Reading ${display.reference} aloud.`);
-  renderScriptureReader(true);
-  window.speechSynthesis.speak(utterance);
+    reportClientError("vibevoice_scripture_reader_audio_failed", {
+      kind,
+      reference: display.reference,
+      message: error?.message || "Scripture reader VibeVoice audio failed.",
+    });
+  }
 }
 
 function setupScriptureReaderControls() {
@@ -8030,6 +8141,87 @@ function getHistoryEntryRecordColor(entry) {
   return "#64748b";
 }
 
+function getHistoryEntryOutcomeLabel(entry) {
+  if (entry.closed && entry.completed && entry.hasReflection) {
+    return "Completed, reflected, and closed";
+  }
+  if (entry.closed && entry.completed) {
+    return "Completed and closed";
+  }
+  if (entry.completed && !entry.closed) {
+    return "Completed but left open";
+  }
+  if (entry.adopted && !entry.completed) {
+    return "Adopted but unfinished";
+  }
+  if (entry.closed && entry.hasReflection) {
+    return "Reflected and closed";
+  }
+  if (entry.hasReflection) {
+    return "Reflected without closure";
+  }
+  if (entry.opened) {
+    return "Opened but not carried through";
+  }
+  if (entry.launchCount) {
+    return "Discussed in Pericope";
+  }
+  return "No recorded outcome";
+}
+
+function getHistoryEntryPatternBucket(entry) {
+  if (entry.closed && entry.completed) {
+    return "clean_close";
+  }
+  if (entry.completed && !entry.closed) {
+    return "completed_open";
+  }
+  if (entry.adopted && !entry.completed) {
+    return "unfinished_after_adoption";
+  }
+  if (entry.hasReflection && !entry.closed) {
+    return "reflection_without_close";
+  }
+  if (entry.closed && !entry.completed) {
+    return "closed_without_completion";
+  }
+  if (entry.launchCount) {
+    return "conversation_heavy";
+  }
+  if (entry.opened) {
+    return "opened_only";
+  }
+  return "light_record";
+}
+
+function getHistoryEntryPatternLabel(bucket, count) {
+  if (!count) {
+    return "";
+  }
+  if (bucket === "clean_close") {
+    return `${count} ${count === 1 ? "day closed cleanly" : "days closed cleanly"}, so action and review stayed together.`;
+  }
+  if (bucket === "completed_open") {
+    return `${count} ${count === 1 ? "day completed the act but stayed open" : "days completed the act but stayed open"}, so execution outran review.`;
+  }
+  if (bucket === "unfinished_after_adoption") {
+    return `${count} adopted ${count === 1 ? "day remained unfinished" : "days remained unfinished"}, so intention is outrunning follow-through.`;
+  }
+  if (bucket === "reflection_without_close") {
+    return `${count} ${count === 1 ? "day reflected without a close" : "days reflected without a close"}, so insight formed without being sealed.`;
+  }
+  if (bucket === "closed_without_completion") {
+    return `${count} ${count === 1 ? "day closed without a completed act" : "days closed without a completed act"}, so review arrived before execution.`;
+  }
+  if (bucket === "conversation_heavy") {
+    return `${count} ${count === 1 ? "day leaned on conversation" : "days leaned on conversation"}, so discernment keeps asking for dialogue instead of isolation.`;
+  }
+  if (bucket === "opened_only") {
+    return `${count} ${count === 1 ? "day only opened" : "days only opened"}, so the trail keeps starting without being carried through.`;
+  }
+  return "";
+}
+
 function buildHistoryTimelineEntry(baseDate, offset, derived, referenceMap) {
   const weeklyEntry = buildWeeklyArcEntry(baseDate, offset, derived, referenceMap);
   const targetDate = new Date(baseDate);
@@ -8069,6 +8261,72 @@ function buildHistoryTimelineEntry(baseDate, offset, derived, referenceMap) {
   const launchSummary = latestLaunch
     ? `${latestLaunch.mode === "freeform" ? "Freeform" : "Guided"} • ${latestLaunch.promptId || "clock launch"}`
     : "";
+  const openingLine = opened
+    ? openingIntention
+      ? `Opened with ${toInlineSnippet(openingIntention, 132)}`
+      : rule?.summary
+        ? `Opened under ${toInlineSnippet(rule.summary, 132)}`
+        : entry.activeFocus
+          ? `Opened with ${String(entry.activeFocus).toLowerCase()} in view`
+          : "Opened the day"
+    : "";
+  const morningPracticeSnippet = rule?.morning
+    ? toInlineSnippet(rule.morning, 128).replace(/[.!?]+$/u, "")
+    : "";
+  const actionLine = completed
+    ? morningPracticeSnippet
+      ? `Completed practice: ${morningPracticeSnippet}`
+      : rule?.summary
+        ? `Completed the chosen ${String(rule.domain || "practice").toLowerCase()} step`
+        : "Completed the chosen practice"
+    : adopted
+      ? morningPracticeSnippet
+        ? `Adopted practice: ${morningPracticeSnippet} but did not finish it`
+        : "Adopted the practice but did not finish it"
+      : "";
+  const reflectionLine = hasReflection
+    ? `Reflected on ${toInlineSnippet(reflection, 128)}`
+    : "";
+  const closingSource = closingSummary || closingCarryForward || closingDifficulty || closingGratitude;
+  const closingLine = closed
+    ? closingSource
+      ? `Closed with ${toInlineSnippet(closingSource, 132)}`
+      : "Closed the day"
+    : opened || adopted || completed || hasReflection
+      ? "Left the day without a full close"
+      : "";
+  const carryLine = closingCarryForward
+    ? `Carry forward • ${toInlineSnippet(closingCarryForward, 132)}`
+    : rule?.evening
+      ? `Carry forward • ${toInlineSnippet(rule.evening, 132)}`
+      : "";
+  const outcomeLabel = getHistoryEntryOutcomeLabel({ opened, closed, adopted, completed, hasReflection, launchCount });
+  const trailSegments = [
+    openingLine,
+    actionLine,
+    closed ? closingLine : "",
+    !closed && (completed || adopted || hasReflection) ? closingLine : "",
+  ].filter(Boolean);
+  if (!trailSegments.length && reflectionLine) {
+    trailSegments.push(reflectionLine);
+  }
+  if (!trailSegments.length && launchCount) {
+    trailSegments.push(`${launchCount} ${launchCount === 1 ? "launch recorded" : "launches recorded"}`);
+  }
+  const trailLine = trailSegments.join(" • ");
+  const continuityLine = hasRecord
+    ? withTerminalPunctuation(
+      `${outcomeLabel}. ${trailLine || toInlineSnippet(summaryLine, 180) || "The day was recorded without a readable summary yet."}`
+    )
+    : "";
+  const reviewTrailLine = [
+    openingLine,
+    actionLine,
+    reflectionLine,
+    closingLine,
+    carryLine,
+  ].filter(Boolean).join(" • ");
+  const patternBucket = getHistoryEntryPatternBucket({ opened, closed, adopted, completed, hasReflection, launchCount });
 
   return {
     ...weeklyEntry,
@@ -8090,6 +8348,16 @@ function buildHistoryTimelineEntry(baseDate, offset, derived, referenceMap) {
     recordColor,
     titleLine,
     summaryLine,
+    outcomeLabel,
+    patternBucket,
+    openingLine,
+    actionLine,
+    reflectionLine,
+    closingLine,
+    carryLine,
+    trailLine,
+    continuityLine,
+    reviewTrailLine,
     reflection,
     reflectionSnippet: toInlineSnippet(reflection, 180),
     closingSummary,
@@ -8260,20 +8528,28 @@ function buildWeeklyHistorySummary(baseDate, derived, referenceMap) {
   const incompleteCount = recordedEntries.filter((entry) => entry.adopted && !entry.completed).length;
   const unclosedCount = recordedEntries.filter((entry) => !entry.closed).length;
   const launchCount = recordedEntries.reduce((sum, entry) => sum + entry.launchCount, 0);
+  const launchDayCount = recordedEntries.filter((entry) => entry.launchCount > 0).length;
+  const cleanCloseCount = recordedEntries.filter((entry) => entry.closed && entry.completed).length;
 
   const virtueCounts = new Map();
   const domainCounts = new Map();
   const scriptureCounts = new Map();
+  const outcomeCounts = new Map();
+  const carryCounts = new Map();
 
   recordedEntries.forEach((entry) => {
     incrementCount(virtueCounts, entry.ruleVirtue);
     incrementCount(domainCounts, entry.ruleDomain);
     incrementCount(scriptureCounts, entry.scriptureRef);
+    incrementCount(outcomeCounts, entry.patternBucket);
+    incrementCount(carryCounts, entry.closingCarryForward || entry.entry.closingCarryForward || entry.entry.ruleOfLife?.evening || "");
   });
 
   const topVirtue = pickTopCount(virtueCounts);
   const topDomain = pickTopCount(domainCounts);
   const topScripture = pickTopCount(scriptureCounts);
+  const topOutcome = pickTopCount(outcomeCounts);
+  const topCarry = pickTopCount(carryCounts);
 
   const narrativeParts = [
     `${recordedEntries.length} recorded ${recordedEntries.length === 1 ? "day" : "days"}`,
@@ -8295,16 +8571,29 @@ function buildWeeklyHistorySummary(baseDate, derived, referenceMap) {
   }
 
   let narrative = `${narrativeParts.join(", ")} this week.`;
-  if (topVirtue) {
-    narrative += ` ${topVirtue.label} was the clearest virtue emphasis.`;
+  if (cleanCloseCount === recordedEntries.length && recordedEntries.length >= 3) {
+    narrative += " The week mostly held action and review together instead of splitting them apart.";
+  } else if (cleanCloseCount >= 2 && unclosedCount >= 2) {
+    narrative += " The week split between days that carried through cleanly and days that never fully closed.";
+  } else if (topOutcome?.label) {
+    const outcomeLine = getHistoryEntryPatternLabel(topOutcome.label, topOutcome.count);
+    if (outcomeLine) {
+      narrative += ` ${outcomeLine}`;
+    }
   }
   if (topDomain) {
     narrative += ` ${topDomain.label} kept returning as the field of practice.`;
+  }
+  if (topVirtue) {
+    narrative += ` ${topVirtue.label} was the clearest virtue emphasis.`;
   }
 
   const patterns = [];
   if (topDomain && topDomain.count >= 2) {
     patterns.push(`${topDomain.label} appeared on ${topDomain.count} recorded days, so the same field of life kept asking for attention.`);
+  }
+  if (topVirtue && topVirtue.count >= 2) {
+    patterns.push(`${topVirtue.label} returned on ${topVirtue.count} recorded days, so the same virtue kept demanding repeat practice rather than a one-off insight.`);
   }
   if (incompleteCount >= 2) {
     patterns.push(`${incompleteCount} adopted ${incompleteCount === 1 ? "day remained" : "days remained"} incomplete, which suggests resistance after intention was set.`);
@@ -8312,11 +8601,20 @@ function buildWeeklyHistorySummary(baseDate, derived, referenceMap) {
   if (unclosedCount >= 2) {
     patterns.push(`${unclosedCount} recorded ${unclosedCount === 1 ? "day was" : "days were"} left open without a full closing, so review may be trailing behind action.`);
   }
+  if (cleanCloseCount >= 2) {
+    patterns.push(`${cleanCloseCount} ${cleanCloseCount === 1 ? "day reached" : "days reached"} both completion and closure, so the week already contains a pattern worth repeating rather than only problems worth naming.`);
+  }
+  if (launchDayCount >= 2) {
+    patterns.push(`Pericope entered on ${launchDayCount} recorded ${launchDayCount === 1 ? "day" : "days"}, which means the trail is already carrying live conversation history instead of only private notes.`);
+  }
   if (launchCount >= 3) {
     patterns.push(`You leaned on Pericope ${launchCount} times this week, which signals a recurring need for guided conversation rather than isolated questions.`);
   }
   if (topScripture && topScripture.count >= 2) {
     patterns.push(`${topScripture.label} reappeared ${topScripture.count} times, so the same scriptural thread is staying near the center of the week.`);
+  }
+  if (topCarry && topCarry.count >= 2) {
+    patterns.push(`Carry-forward language repeated ${topCarry.count} times, which means the week keeps handing the same unfinished work into the next opening.`);
   }
   if (!patterns.length && reflectedCount >= 2) {
     patterns.push(`Reflection held on ${reflectedCount} recorded days, which is enough to begin seeing a stable rhythm rather than isolated entries.`);
@@ -8335,6 +8633,9 @@ function buildWeeklyHistorySummary(baseDate, derived, referenceMap) {
   if (launchCount) {
     metaItems.push(`${launchCount} ${launchCount === 1 ? "launch" : "launches"}`);
   }
+  if (cleanCloseCount) {
+    metaItems.push(`${cleanCloseCount} clean ${cleanCloseCount === 1 ? "close" : "closes"}`);
+  }
   if (topVirtue) {
     metaItems.push(`Virtue • ${topVirtue.label}`);
   }
@@ -8348,11 +8649,13 @@ function buildWeeklyHistorySummary(baseDate, derived, referenceMap) {
       recorded: recordedEntries.map((entry) => `${entry.dateKey}:${entry.entry.updatedAt || entry.entry.closingUpdatedAt || entry.entry.reflectionUpdatedAt || entry.entry.completedAt || entry.entry.adoptedAt || ""}:${entry.launchCount}`),
       topVirtue: topVirtue?.label || "",
       topDomain: topDomain?.label || "",
+      topOutcome: topOutcome?.label || "",
+      topCarry: topCarry?.label || "",
     }),
     windowLabel,
     narrative,
     metaItems,
-    patterns: patterns.slice(0, 3),
+    patterns: patterns.slice(0, 4),
     entries,
     recordedEntries,
     closedCount,
@@ -8362,12 +8665,18 @@ function buildWeeklyHistorySummary(baseDate, derived, referenceMap) {
     incompleteCount,
     unclosedCount,
     launchCount,
+    launchDayCount,
+    cleanCloseCount,
     topVirtue: topVirtue?.label || "",
     topVirtueCount: topVirtue?.count || 0,
     topDomain: topDomain?.label || "",
     topDomainCount: topDomain?.count || 0,
     topScripture: topScripture?.label || "",
     topScriptureCount: topScripture?.count || 0,
+    topOutcome: topOutcome?.label || "",
+    topOutcomeCount: topOutcome?.count || 0,
+    topCarry: topCarry?.label || "",
+    topCarryCount: topCarry?.count || 0,
   };
 }
 
@@ -8409,6 +8718,8 @@ function buildWeeklyReview(summary, selectedEntry) {
     warning = "The week weakened after intention was set, so do not confuse naming a practice with actually carrying it through.";
   } else if ((summary?.unclosedCount || 0) >= 2) {
     warning = "Several recorded days stayed open, so review is trailing behind action and needs to be restored deliberately.";
+  } else if ((summary?.topOutcome || "") === "completed_open" && (summary?.topOutcomeCount || 0) >= 2) {
+    warning = "Execution repeatedly outran closure, so the next week needs review to arrive before momentum dissipates.";
   } else if ((summary?.topDomainCount || 0) >= 3 && summary?.topDomain) {
     warning = `${summary.topDomain} kept returning, so avoid treating that field of life as solved just because it is familiar.`;
   }
@@ -8983,7 +9294,7 @@ function buildLensDeepView(context, timeState, referenceMap, now, derived, lifeS
           label: "Selected Day",
           value: selectedHistoryEntry.dateLabel,
           detail: selectedHistoryEntry.hasRecord
-            ? `${selectedHistoryEntry.statusBadges.join(" • ") || "Saved"} • ${toSnippet(selectedHistoryEntry.summaryLine, 108)}`
+            ? `${selectedHistoryEntry.outcomeLabel} • ${toSnippet(selectedHistoryEntry.trailLine || selectedHistoryEntry.summaryLine, 132)}`
             : `No saved record yet. ${selectedHistoryEntry.rulerText} still leans toward ${selectedHistoryEntry.displayFocus}.`,
         },
         {
@@ -9254,8 +9565,8 @@ function getScriptureReaderFrameCopy(kind) {
       kicker: "Scripture Lens",
       title: "Anchor, pair, and study the day’s text",
       status: SCRIPTURE_READER_SUPPORTED
-        ? `Showing today’s ${passageLabel}. Keep the line in view, then widen into study when needed.`
-        : `Showing today’s ${passageLabel}. Audio depends on browser speech support.`,
+        ? `Showing today’s ${passageLabel}. Keep the line in view, then generate VibeVoice audio when needed.`
+        : `Showing today’s ${passageLabel}. Audio depends on browser audio support.`,
     };
   }
 
@@ -9266,7 +9577,7 @@ function getScriptureReaderFrameCopy(kind) {
       title: "Read the passages that govern the hour",
       status: SCRIPTURE_READER_SUPPORTED
         ? `Showing today’s ${passageLabel}. Read it as timing counsel, then act.`
-        : `Showing today’s ${passageLabel}. Audio depends on browser speech support.`,
+        : `Showing today’s ${passageLabel}. Audio depends on browser audio support.`,
     };
   }
 
@@ -9277,7 +9588,7 @@ function getScriptureReaderFrameCopy(kind) {
       title: "Keep text beside the correspondence layer",
       status: SCRIPTURE_READER_SUPPORTED
         ? `Showing today’s ${passageLabel}. Keep the text beside the figure so the symbol does not float free.`
-        : `Showing today’s ${passageLabel}. Audio depends on browser speech support.`,
+        : `Showing today’s ${passageLabel}. Audio depends on browser audio support.`,
     };
   }
 
@@ -9295,8 +9606,8 @@ function getScriptureReaderFrameCopy(kind) {
     kicker: "Daily Reading",
     title: "Read and hear today’s passages",
     status: SCRIPTURE_READER_SUPPORTED
-      ? `Showing today’s ${passageLabel}. Use Listen to hear it aloud.`
-      : `Showing today’s ${passageLabel}. Audio depends on browser speech support.`,
+      ? `Showing today’s ${passageLabel}. Use Speak to generate VibeVoice audio.`
+      : `Showing today’s ${passageLabel}. Audio depends on browser audio support.`,
   };
 }
 
@@ -9397,7 +9708,7 @@ function buildLensSurfaceView(timeState, referenceMap, now, derived, lifeState) 
         : "Providence Map",
       body: recentEntries.length
         ? selectedHistoryEntry.hasRecord
-          ? `${selectedHistoryEntry.titleLine}. ${toSnippet(selectedHistoryEntry.summaryLine, 112)}`
+          ? `${selectedHistoryEntry.outcomeLabel}. ${toSnippet(selectedHistoryEntry.trailLine || selectedHistoryEntry.summaryLine, 128)}`
           : `${recentEntries.length} recorded ${recentEntries.length === 1 ? "day" : "days"} in view. Select a saved node or timeline card.`
         : "No recorded trail yet. Open the day, act, reflect, and close it to begin continuity.",
       question: "How has this pattern unfolded over time?",

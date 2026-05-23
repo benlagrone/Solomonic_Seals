@@ -32,7 +32,7 @@
       gtag("config", "G-138HFD1QQP");
     </script>
     <link rel="icon" href='data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="12" fill="%23020617"/><circle cx="32" cy="32" r="20" fill="none" stroke="%23facc15" stroke-width="4"/><circle cx="32" cy="32" r="6" fill="%23facc15"/></svg>' />
-    <link rel="stylesheet" href="/web/style.css?v=20260507-lens2" />
+    <link rel="stylesheet" href="/web/style.css?v=20260523-speech1" />
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
@@ -325,11 +325,11 @@
             <button type="button" class="action-button scripture-reader-study">Study Passage</button>
             <button
               type="button"
-              class="action-button action-button--accent scripture-reader-listen player-icon-button"
-              aria-label="Play scripture audio"
-              title="Play scripture audio"
+              class="action-button action-button--accent scripture-reader-listen"
+              aria-label="Generate and play scripture speech"
+              title="Generate and play scripture speech"
             >
-              <span class="player-button-icon" aria-hidden="true">&#9658;</span>
+              Speak
             </button>
             <button
               type="button"
@@ -486,7 +486,7 @@
             </article>
             <div class="history-log-top">
               <p class="history-log-label">Recent entries</p>
-              <p class="history-log-note">Saved opening, practice, reflection, closing, and launch states appear here.</p>
+              <p class="history-log-note">Openings, practices, reflections, closes, and Pericope launches are condensed here into readable day summaries.</p>
             </div>
             <ul class="history-log-list"></ul>
           </section>
@@ -530,8 +530,8 @@
                 <button type="button" class="bundle-expand bundle-psalm-expand" data-bundle-kind="psalm">
                   Read Full Passage
                 </button>
-                <button type="button" class="bundle-listen bundle-psalm-listen" data-bundle-kind="psalm" aria-label="Play psalm audio" title="Play psalm audio">
-                  <span class="player-button-icon" aria-hidden="true">&#9658;</span>
+                <button type="button" class="bundle-listen bundle-psalm-listen" data-bundle-kind="psalm" aria-label="Generate and play psalm speech" title="Generate and play psalm speech">
+                  Speak
                 </button>
                 <button type="button" class="bundle-stop bundle-psalm-stop" data-bundle-kind="psalm" aria-label="Stop psalm audio" title="Stop psalm audio">
                   <span class="player-button-icon" aria-hidden="true">&#9632;</span>
@@ -552,8 +552,8 @@
                 <button type="button" class="bundle-expand bundle-wisdom-expand" data-bundle-kind="wisdom">
                   Read Full Passage
                 </button>
-                <button type="button" class="bundle-listen bundle-wisdom-listen" data-bundle-kind="wisdom" aria-label="Play wisdom audio" title="Play wisdom audio">
-                  <span class="player-button-icon" aria-hidden="true">&#9658;</span>
+                <button type="button" class="bundle-listen bundle-wisdom-listen" data-bundle-kind="wisdom" aria-label="Generate and play wisdom speech" title="Generate and play wisdom speech">
+                  Speak
                 </button>
                 <button type="button" class="bundle-stop bundle-wisdom-stop" data-bundle-kind="wisdom" aria-label="Stop wisdom audio" title="Stop wisdom audio">
                   <span class="player-button-icon" aria-hidden="true">&#9632;</span>
@@ -607,7 +607,7 @@
     <script type="module">
       import Keycloak from "https://cdn.jsdelivr.net/npm/keycloak-js@26.0.2/+esm";
       window.Keycloak = Keycloak;
-      import("/web/clock.js?v=20260507-lens2");
+      import("/web/clock.js?v=20260523-speech1");
     </script>
   </body>
 </html>

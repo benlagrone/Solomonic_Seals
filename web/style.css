@@ -4003,14 +4003,20 @@ svg[data-mode="timeline"] .history-preview {
   border-radius: 999px;
   display: inline-grid;
   place-items: center;
-  width: 2rem;
   min-width: 2rem;
   height: 2rem;
-  padding: 0;
+  padding: 0 0.72rem;
   font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
   line-height: 1;
   cursor: pointer;
   transition: border-color 150ms ease, color 150ms ease, background 150ms ease, opacity 150ms ease;
+}
+
+.bundle-stop {
+  width: 2rem;
+  padding: 0;
 }
 
 .bundle-listen {
