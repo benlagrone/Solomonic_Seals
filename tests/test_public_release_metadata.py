@@ -66,9 +66,32 @@ class PublicReleaseMetadataTests(unittest.TestCase):
             ):
                 html = handler._render_public_template(template_path, "/")
 
-        self.assertIn("version=dev", html)
+        self.assertIn("version=0.0.0-dev", html)
         self.assertIn("release=local", html)
         self.assertIn("released_at=Built locally", html)
+
+    def test_render_public_template_does_not_use_release_as_version(self) -> None:
+        handler = self._make_handler()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            template_path = Path(tmpdir) / "page.html"
+            template_path.write_text(
+                "<p>version=__APP_VERSION__ release=__APP_RELEASE__</p>",
+                encoding="utf-8",
+            )
+
+            with patch.dict(
+                os.environ,
+                {
+                    "SOLOMONIC_APP_VERSION": "",
+                    "SOLOMONIC_RELEASE": "018f7e3e-87bc-7420-a7a2-4a53e44d43c9",
+                    "SOLOMONIC_RELEASED_AT": "",
+                },
+                clear=False,
+            ):
+                html = handler._render_public_template(template_path, "/")
+
+        self.assertIn("version=0.0.0-dev", html)
+        self.assertIn("release=018f7e3e-87bc-7420-a7a2-4a53e44d43c9", html)
 
 
 if __name__ == "__main__":
