@@ -1,0 +1,76 @@
+# VibeVoice Speech Integration
+
+The clock's Scripture Reader and Daily Content Bundle generate speech through the Fortress LAN VibeVoice API. Browser code never receives the Fortress token. The browser calls this app's same-origin proxy, and `src/webserver.py` adds the token server-side.
+
+## Runtime Configuration
+
+Set these environment variables before starting the Solomonic server:
+
+```text
+SOLOMONIC_VIBEVOICE_API_BASE=http://100.100.97.30:8011
+SOLOMONIC_VIBEVOICE_API_TOKEN=<shared Fortress voice token>
+```
+
+For Contabo/IPsec deployments, use:
+
+```text
+SOLOMONIC_VIBEVOICE_API_BASE=http://192.168.0.126:8011
+```
+
+The proxy also accepts `VIBEVOICE_API_TOKEN` as a fallback token env var.
+
+## Token Retrieval
+
+Follow the Fortress LAN handoff guide:
+
+```text
+/Users/benjaminlagrone/Documents/projects/fortress-lan/docs/voice-api-secrets.md
+```
+
+That document says an operator with SSH access retrieves the token from Fortress's server-local `.env`, then provisions it into this app's secret store. Do not commit or paste the real token into source, browser JavaScript, logs, docs, or chat.
+
+## Local Test Command
+
+Start the local server with the token injected from Fortress without printing it:
+
+```bash
+TOKEN=$(ssh -o BatchMode=yes -o ConnectTimeout=10 master-benjamin@100.100.97.30 \
+  "cd /home/master-benjamin/Projects/fortress-lan && sed -n 's/^VIBEVOICE_API_TOKEN=//p' .env")
+
+PYTHONPYCACHEPREFIX=/private/tmp/solomonic_pycache \
+SOLOMONIC_VIBEVOICE_API_BASE=http://100.100.97.30:8011 \
+SOLOMONIC_VIBEVOICE_API_TOKEN="$TOKEN" \
+python3 src/webserver.py --host 127.0.0.1 --port 8099
+```
+
+Then open:
+
+```text
+http://127.0.0.1:8099/clock
+```
+
+Press `Speak` in the Scripture Reader or Daily Content Bundle.
+
+## Proxy Endpoints
+
+- `POST /api/vibevoice/tts/jobs`
+- `GET /api/vibevoice/tts/jobs/{job_id}`
+- `GET /api/vibevoice/audio?url=<encoded /files/... URL>`
+
+The frontend sends only text. The backend constructs the Fortress payload with:
+
+- `project_id`: `solomonic-seals`
+- `mode`: `single`
+- `speaker_name`: `Carter`
+- `cfg_scale`: `1.5`
+- `output_subdir`: `audio/vibevoice`
+
+## Verified Result
+
+On 2026-05-23, local proxy testing succeeded through the Tailscale route:
+
+- Created job: `vv-20260523-160229-18c4`
+- Status: `completed`
+- Audio proxy response: `200 OK`
+- Content type: `audio/x-wav`
+- Content length: `153644`

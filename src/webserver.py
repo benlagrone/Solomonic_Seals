@@ -27,7 +27,7 @@ from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from posixpath import normpath
 from typing import Any
-from urllib.parse import parse_qs, urlparse
+from urllib.parse import parse_qs, quote, unquote, urlparse
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 from xml.sax.saxutils import escape as xml_escape
@@ -124,6 +124,17 @@ ENGLISH_PSALM_MARKERS = {
 BOOK_PARTIAL_API_PATH = "/api/pericope/book-partial"
 PERICOPE_HISTORY_SESSIONS_API_PATH = "/api/pericope/history-sessions"
 CLIENT_ERRORS_API_PATH = "/api/client-errors"
+VIBEVOICE_TTS_JOBS_API_PATH = "/api/vibevoice/tts/jobs"
+VIBEVOICE_AUDIO_API_PATH = "/api/vibevoice/audio"
+VIBEVOICE_API_BASE_ENV = "SOLOMONIC_VIBEVOICE_API_BASE"
+VIBEVOICE_API_TOKEN_ENV = "SOLOMONIC_VIBEVOICE_API_TOKEN"
+FORTRESS_VIBEVOICE_API_TOKEN_ENV = "VIBEVOICE_API_TOKEN"
+VIBEVOICE_PROJECT_ID_ENV = "SOLOMONIC_VIBEVOICE_PROJECT_ID"
+VIBEVOICE_SPEAKER_ENV = "SOLOMONIC_VIBEVOICE_SPEAKER"
+DEFAULT_VIBEVOICE_API_BASE = "http://192.168.0.126:8011"
+DEFAULT_VIBEVOICE_PROJECT_ID = "solomonic-seals"
+DEFAULT_VIBEVOICE_SPEAKER = "Carter"
+MAX_VIBEVOICE_TEXT_LENGTH = 6000
 KEY_OF_SOLOMON_SOURCE = "key_of_solomon_esotericarchives.txt"
 KEY_OF_SOLOMON_BOOK = "Key of Solomon, Book II"
 SOLOMONIC_PENTACLE_PLANETS = ("Saturn", "Jupiter", "Mars", "Sun", "Venus", "Mercury", "Moon")
@@ -180,9 +191,16 @@ DEFAULT_AUTH_URL = "https://auth.pericopeai.com"
 DEFAULT_AUTH_REALM = "pericope"
 DEFAULT_AUTH_CLIENT_ID = "pericope-web"
 DEFAULT_PERICOPE_API_BASE = "https://pericopeai.com/api/v1"
-DEFAULT_APP_VERSION = "dev"
+DEFAULT_APP_VERSION = "0.0.0-dev"
 DEFAULT_APP_RELEASE = "local"
 DEFAULT_APP_RELEASED_AT = "Built locally"
+SEMVER_RE = re.compile(
+    r"^(0|[1-9]\d*)\."
+    r"(0|[1-9]\d*)\."
+    r"(0|[1-9]\d*)"
+    r"(?:-((?:0|[1-9A-Za-z-][0-9A-Za-z-]*)(?:\.(?:0|[1-9A-Za-z-][0-9A-Za-z-]*))*))?"
+    r"(?:\+([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?$"
+)
 _AUTH_USERINFO_CACHE_LOCK = threading.Lock()
 _AUTH_USERINFO_CACHE: dict[str, dict[str, Any]] = {}
 PUBLIC_PAGE_TEMPLATES = {
@@ -1239,7 +1257,8 @@ def _clean_release_text(value: Any) -> str:
 
 def _normalize_app_version(value: Any) -> str:
     version = _clean_release_text(value)
-    return re.sub(r"^v(?=[0-9])", "", version, flags=re.IGNORECASE)
+    version = re.sub(r"^v(?=[0-9])", "", version, flags=re.IGNORECASE)
+    return version if SEMVER_RE.fullmatch(version) else ""
 
 
 def _format_release_timestamp(value: Any) -> str:
@@ -1265,7 +1284,7 @@ def _resolve_public_release_metadata() -> dict[str, str]:
     released_at = _format_release_timestamp(os.environ.get(APP_RELEASED_AT_ENV))
 
     return {
-        "version": version or _normalize_app_version(release) or DEFAULT_APP_VERSION,
+        "version": version or DEFAULT_APP_VERSION,
         "release": release or DEFAULT_APP_RELEASE,
         "released_at": released_at or DEFAULT_APP_RELEASED_AT,
     }
@@ -1752,6 +1771,127 @@ def _fetch_pericope_json(path: str, token: str, *, timeout: float = 6.0) -> dict
         raise ValueError("Pericope continuity response was not a JSON object.")
 
     return payload
+
+
+def _resolve_vibevoice_api_base_url() -> str:
+    return (os.environ.get(VIBEVOICE_API_BASE_ENV, "").strip() or DEFAULT_VIBEVOICE_API_BASE).rstrip("/")
+
+
+def _resolve_vibevoice_api_token() -> str:
+    return (
+        os.environ.get(VIBEVOICE_API_TOKEN_ENV, "").strip()
+        or os.environ.get(FORTRESS_VIBEVOICE_API_TOKEN_ENV, "").strip()
+    )
+
+
+def _build_vibevoice_proxy_audio_url(audio_url: Any) -> str:
+    clean_url = str(audio_url or "").strip()
+    if not clean_url.startswith("/"):
+        return ""
+    return f"{VIBEVOICE_AUDIO_API_PATH}?url={quote(clean_url, safe='')}"
+
+
+def _fetch_vibevoice_json(
+    path: str,
+    *,
+    payload: dict[str, Any] | None = None,
+    timeout: float = 20.0,
+) -> dict[str, Any]:
+    clean_path = str(path or "").strip()
+    if not clean_path.startswith("/"):
+        clean_path = f"/{clean_path}"
+
+    body: bytes | None = None
+    headers = {"Accept": "application/json"}
+    token = _resolve_vibevoice_api_token()
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+    method = "GET"
+    if payload is not None:
+        body = json.dumps(payload).encode("utf-8")
+        headers["Content-Type"] = "application/json"
+        method = "POST"
+
+    request = Request(
+        f"{_resolve_vibevoice_api_base_url()}{clean_path}",
+        data=body,
+        headers=headers,
+        method=method,
+    )
+    try:
+        with urlopen(request, timeout=timeout) as response:
+            response_payload = json.loads(response.read().decode("utf-8"))
+    except HTTPError as exc:
+        detail = exc.read().decode("utf-8", errors="replace").strip()
+        raise ValueError(
+            f"VibeVoice request failed ({exc.code}){f': {detail}' if detail else ''}."
+        ) from exc
+    except URLError as exc:
+        raise ValueError(f"VibeVoice service unavailable: {exc.reason}") from exc
+    except Exception as exc:  # pragma: no cover - unexpected decode/network failures
+        raise ValueError(f"VibeVoice request failed: {exc}") from exc
+
+    if not isinstance(response_payload, dict):
+        raise ValueError("VibeVoice response was not a JSON object.")
+    if response_payload.get("audio_url"):
+        response_payload["proxy_audio_url"] = _build_vibevoice_proxy_audio_url(response_payload.get("audio_url"))
+    return response_payload
+
+
+def _vibevoice_error_status(error: ValueError) -> HTTPStatus:
+    message = str(error)
+    if "VibeVoice request failed (401)" in message:
+        return HTTPStatus.UNAUTHORIZED
+    if "VibeVoice request failed (403)" in message:
+        return HTTPStatus.FORBIDDEN
+    return HTTPStatus.BAD_GATEWAY
+
+
+def _build_vibevoice_job_payload(payload: dict[str, Any]) -> tuple[dict[str, Any] | None, str | None, HTTPStatus]:
+    text = re.sub(r"\s+", " ", str(payload.get("text", "") or "")).strip()
+    if not text:
+        return None, "Missing required field: text.", HTTPStatus.BAD_REQUEST
+    if len(text) > MAX_VIBEVOICE_TEXT_LENGTH:
+        text = text[:MAX_VIBEVOICE_TEXT_LENGTH].rsplit(" ", 1)[0].strip() or text[:MAX_VIBEVOICE_TEXT_LENGTH]
+
+    speaker_name = str(
+        payload.get("speaker_name")
+        or os.environ.get(VIBEVOICE_SPEAKER_ENV)
+        or DEFAULT_VIBEVOICE_SPEAKER
+    ).strip()
+    if not speaker_name:
+        speaker_name = DEFAULT_VIBEVOICE_SPEAKER
+
+    project_id = str(os.environ.get(VIBEVOICE_PROJECT_ID_ENV, "") or DEFAULT_VIBEVOICE_PROJECT_ID).strip()
+    request_payload = {
+        "project_id": project_id,
+        "mode": "single",
+        "speaker_name": speaker_name,
+        "turns": [
+            {
+                "speaker": "narrator",
+                "text": text,
+            }
+        ],
+        "cfg_scale": payload.get("cfg_scale", 1.5),
+        "output_subdir": "audio/vibevoice",
+    }
+
+    try:
+        return _fetch_vibevoice_json("/v1/tts/jobs", payload=request_payload, timeout=20), None, HTTPStatus.ACCEPTED
+    except ValueError as exc:
+        return None, str(exc), _vibevoice_error_status(exc)
+
+
+def _build_vibevoice_job_status_payload(job_id: str) -> tuple[dict[str, Any] | None, str | None, HTTPStatus]:
+    clean_job_id = str(job_id or "").strip()
+    if not re.fullmatch(r"[A-Za-z0-9_.:-]+", clean_job_id):
+        return None, "Invalid VibeVoice job id.", HTTPStatus.BAD_REQUEST
+
+    try:
+        return _fetch_vibevoice_json(f"/v1/tts/jobs/{clean_job_id}", timeout=10), None, HTTPStatus.OK
+    except ValueError as exc:
+        return None, str(exc), _vibevoice_error_status(exc)
 
 
 def _build_history_actor_payload(actor: dict[str, Any]) -> dict[str, Any]:
@@ -3186,6 +3326,20 @@ class ClockRequestHandler(SimpleHTTPRequestHandler):
         if send_body:
             self.wfile.write(encoded)
 
+    def _send_binary(
+        self,
+        body: bytes,
+        status: HTTPStatus,
+        content_type: str,
+        send_body: bool = True,
+    ) -> None:
+        self.send_response(status)
+        self.send_header("Content-Type", content_type)
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        if send_body:
+            self.wfile.write(body)
+
     def _resolve_site_url(self) -> str:
         configured = os.environ.get(SITE_URL_ENV, "").strip()
         if configured:
@@ -3305,6 +3459,7 @@ class ClockRequestHandler(SimpleHTTPRequestHandler):
             BOOK_PARTIAL_API_PATH,
             HISTORY_SYNC_API_PATH,
             CLIENT_ERRORS_API_PATH,
+            VIBEVOICE_TTS_JOBS_API_PATH,
         }:
             self.send_error(HTTPStatus.NOT_FOUND, "Unknown API route")
             return
@@ -3343,6 +3498,8 @@ class ClockRequestHandler(SimpleHTTPRequestHandler):
             response_payload, error, status = _build_history_sync_post_payload(self.headers, payload)
         elif request_path == CLIENT_ERRORS_API_PATH:
             response_payload, error, status = _build_client_error_post_payload(payload)
+        elif request_path == VIBEVOICE_TTS_JOBS_API_PATH:
+            response_payload, error, status = _build_vibevoice_job_payload(payload)
         else:
             response_payload, error, status = _build_guided_prompts_payload(payload)
 
@@ -3352,6 +3509,8 @@ class ClockRequestHandler(SimpleHTTPRequestHandler):
                 if request_path == BOOK_PARTIAL_API_PATH
                 else "Unable to record client error event."
                 if request_path == CLIENT_ERRORS_API_PATH
+                else "Unable to create VibeVoice audio job."
+                if request_path == VIBEVOICE_TTS_JOBS_API_PATH
                 else "Unable to build guided prompts payload."
             )
             self._send_json({"error": error or fallback_error}, status)
@@ -3585,6 +3744,68 @@ class ClockRequestHandler(SimpleHTTPRequestHandler):
                 HTTPStatus.OK,
                 send_body=send_body,
             )
+            return True
+
+        if normalized_path.startswith(f"{VIBEVOICE_TTS_JOBS_API_PATH}/"):
+            job_id = normalized_path.removeprefix(f"{VIBEVOICE_TTS_JOBS_API_PATH}/")
+            response_payload, error, status = _build_vibevoice_job_status_payload(job_id)
+            if response_payload is None:
+                self._send_json({"error": error or "Unable to load VibeVoice audio job."}, status, send_body=send_body)
+                return True
+
+            self._send_json(response_payload, status, send_body=send_body)
+            return True
+
+        if normalized_path == VIBEVOICE_AUDIO_API_PATH:
+            query = parse_qs(parsed_url.query)
+            audio_url = unquote((query.get("url") or [""])[0]).strip()
+            if not audio_url.startswith("/files/") or ".." in audio_url:
+                self._send_json({"error": "Invalid VibeVoice audio URL."}, HTTPStatus.BAD_REQUEST, send_body=send_body)
+                return True
+
+            request = Request(
+                f"{_resolve_vibevoice_api_base_url()}{audio_url}",
+                headers={
+                    "Accept": "audio/wav,audio/*;q=0.9,*/*;q=0.1",
+                    **(
+                        {"Authorization": f"Bearer {_resolve_vibevoice_api_token()}"}
+                        if _resolve_vibevoice_api_token()
+                        else {}
+                    ),
+                },
+            )
+            try:
+                with urlopen(request, timeout=60) as response:
+                    audio_body = response.read()
+                    content_type = response.headers.get_content_type() or "audio/wav"
+            except HTTPError as exc:
+                detail = exc.read().decode("utf-8", errors="replace").strip()
+                self._send_json(
+                    {"error": f"VibeVoice audio download failed ({exc.code}){f': {detail}' if detail else ''}."},
+                    HTTPStatus.UNAUTHORIZED
+                    if exc.code == HTTPStatus.UNAUTHORIZED
+                    else HTTPStatus.FORBIDDEN
+                    if exc.code == HTTPStatus.FORBIDDEN
+                    else HTTPStatus.BAD_GATEWAY,
+                    send_body=send_body,
+                )
+                return True
+            except URLError as exc:
+                self._send_json(
+                    {"error": f"VibeVoice audio unavailable: {exc.reason}"},
+                    HTTPStatus.BAD_GATEWAY,
+                    send_body=send_body,
+                )
+                return True
+            except Exception as exc:  # pragma: no cover - unexpected network failures
+                self._send_json(
+                    {"error": f"VibeVoice audio download failed: {exc}"},
+                    HTTPStatus.BAD_GATEWAY,
+                    send_body=send_body,
+                )
+                return True
+
+            self._send_binary(audio_body, HTTPStatus.OK, content_type, send_body=send_body)
             return True
 
         if normalized_path == HISTORY_SYNC_API_PATH:
