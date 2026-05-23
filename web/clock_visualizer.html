@@ -46,6 +46,7 @@
     </script>
   </head>
   <body
+    class="clock-page"
     data-pericope-chat-url="https://pericopeai.com/chat"
     data-auth-url="__AUTH_URL__"
     data-auth-realm="__AUTH_REALM__"
@@ -98,6 +99,16 @@
           Read the day through Scripture-first counsel, daily practice, and the live clock. Start here if
           you want the instrument surface, the rule of life, and Psalm correspondences in one place.
         </p>
+        <button
+          type="button"
+          class="primary-drawer-button"
+          aria-expanded="false"
+          aria-controls="drawer-body"
+          aria-label="Open clock drawer"
+          title="Open clock drawer"
+        >
+          Details
+        </button>
         <section class="account-bar" aria-label="Account and history sync">
           <div class="account-copy">
             <p class="account-kicker">Account</p>
@@ -198,7 +209,7 @@
           <div class="action-loop-bar">
             <button type="button" class="action-button action-daily-opening">Daily Opening</button>
             <button type="button" class="action-button action-adopt">Adopt Today&apos;s Practice</button>
-            <button type="button" class="action-button action-complete">Mark Complete</button>
+            <button type="button" class="action-button action-complete">Mark Practice</button>
             <button type="button" class="action-button action-reflect">Reflect Tonight</button>
             <button type="button" class="action-button action-close-day">Close The Day</button>
             <button type="button" class="action-button action-button--accent action-pericope-guided">Start Guided Chat</button>
@@ -383,12 +394,42 @@
               <h2>Psalm Correspondences</h2>
               <p class="drawer-subtitle">Today's scripture, guidance, and practice details.</p>
             </div>
-            <button type="button" class="drawer-toggle" aria-expanded="true" aria-controls="drawer-body">
-              Hide Details
+            <button type="button" class="drawer-toggle" aria-expanded="false" aria-controls="drawer-body" aria-label="Close clock drawer">
+              ×
             </button>
           </div>
         </header>
         <div class="drawer-body" id="drawer-body">
+          <section class="selected-clock-section drawer-section" aria-label="Selected clock element">
+            <p class="selected-clock-kicker">Selected Track</p>
+            <h3 class="selected-clock-title">Daily Guidance</h3>
+            <p class="selected-clock-summary">Click a clock element to open its track, rhythm, meditation, and practice.</p>
+            <dl class="selected-clock-meta">
+              <div>
+                <dt>Rhythm</dt>
+                <dd class="selected-clock-rhythm">Daily</dd>
+              </div>
+              <div>
+                <dt>Track</dt>
+                <dd class="selected-clock-track">Whole clock</dd>
+              </div>
+            </dl>
+            <div class="selected-clock-journey">
+              <article>
+                <p>Meditation</p>
+                <span class="selected-clock-meditation">Let the current hour name what deserves attention before the day scatters it.</span>
+              </article>
+              <article>
+                <p>Practice</p>
+                <span class="selected-clock-practice">Choose one concrete act and carry it through the next turn of the day.</span>
+              </article>
+              <article>
+                <p>Reflection</p>
+                <span class="selected-clock-reflection">What changed when you treated the clock as a guide rather than a display?</span>
+              </article>
+            </div>
+          </section>
+          <section class="drawer-section drawer-controls" aria-label="Clock controls"></section>
           <section class="daily-guidance drawer-section" data-lenses="base ritual" aria-label="Today's planetary guidance">
             <p class="guidance-heading">Today's Planetary Guidance</p>
             <p class="guidance-day">—</p>

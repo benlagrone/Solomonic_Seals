@@ -11,6 +11,7 @@ body {
   background: #0b0b0b;
   color: #e5e7eb;
   font-family: "Inter", "Segoe UI", sans-serif;
+  overflow-x: hidden;
 }
 
 body[data-daily-opening="open"] {
@@ -20,31 +21,40 @@ body[data-daily-opening="open"] {
 .layout {
   display: flex;
   justify-content: center;
-  align-items: flex-start;
-  padding: 1.5rem;
-  gap: 1.5rem;
+  align-items: stretch;
+  min-height: 100dvh;
+  padding: 0;
+  gap: 0;
 }
 
 .page {
-  padding: 1.5rem 1.5rem 3rem;
-  width: min(960px, 100%);
+  position: relative;
+  box-sizing: border-box;
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr);
+  align-items: center;
+  min-height: 100dvh;
+  padding: clamp(0.8rem, 2.2vh, 1.4rem) clamp(0.9rem, 2.4vw, 1.5rem);
+  width: min(1040px, 100%);
   text-align: center;
-  background: rgba(12, 12, 12, 0.7);
-  border-radius: 1rem;
-  border: 1px solid rgba(148, 163, 184, 0.1);
-  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.35);
+  background: transparent;
+  border-radius: 0;
+  border: 0;
+  box-shadow: none;
 }
 
 .title {
-  margin: 0 0 1.5rem;
+  align-self: end;
+  margin: 0 0 0.45rem;
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: #facc15;
+  font-size: clamp(1.2rem, 3vh, 2rem);
 }
 
 .page-actions {
-  display: flex;
+  display: none;
   justify-content: center;
   flex-wrap: wrap;
   gap: 0.65rem;
@@ -164,11 +174,12 @@ body[data-daily-opening="open"] {
 }
 
 .page-intro {
+  align-self: start;
   max-width: 44rem;
-  margin: 0 auto 1rem;
+  margin: 0 auto clamp(0.35rem, 1.3vh, 0.8rem);
   color: #d7dfeb;
   font-size: 0.96rem;
-  line-height: 1.56;
+  line-height: 1.42;
 }
 
 .clock-wrapper {
@@ -176,6 +187,110 @@ body[data-daily-opening="open"] {
   display: flex;
   justify-content: center;
   align-items: center;
+  align-self: stretch;
+  min-height: 0;
+}
+
+.clock-wrapper #clock {
+  display: block;
+  width: min(92vw, 88dvh, 800px);
+  height: min(92vw, 88dvh, 800px);
+  max-width: 100%;
+  max-height: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+
+svg#clock,
+svg#clock *,
+svg#clock *:focus,
+svg#clock *:focus-visible {
+  outline: none !important;
+}
+
+.ring-path {
+  cursor: pointer;
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: filter 0.18s ease, stroke-width 0.18s ease, fill-opacity 0.18s ease;
+}
+
+.ring-path:hover,
+.ring-path:focus-visible {
+  outline: none;
+}
+
+.ring-path.is-selected {
+  animation: clock-touch-bounce 260ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  stroke: rgba(250, 204, 21, 0.92);
+  stroke-width: 3;
+  fill-opacity: 0.68;
+}
+
+.life-wheel-segment {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.life-wheel-segment.is-selected {
+  animation: clock-touch-bounce 260ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.life-wheel-segment:focus,
+.life-wheel-segment:focus-visible,
+.center-mode-segment:focus,
+.center-mode-segment:focus-visible,
+.center-mode-hit:focus,
+.center-mode-hit:focus-visible {
+  outline: none;
+}
+
+.life-wheel-segment.is-selected .life-wheel-track,
+.life-wheel-segment.is-selected .life-wheel-fill {
+  stroke: rgba(250, 204, 21, 0.92);
+  stroke-width: 2.4;
+}
+
+@keyframes clock-touch-bounce {
+  0% {
+    transform: scale(1);
+  }
+  45% {
+    transform: scale(1.025);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.primary-drawer-button {
+  position: fixed;
+  top: clamp(0.7rem, 1.8vh, 1.1rem);
+  right: clamp(0.7rem, 1.8vw, 1.25rem);
+  z-index: 32;
+  border: 1px solid rgba(250, 204, 21, 0.44);
+  background: rgba(15, 23, 42, 0.86);
+  color: #fde68a;
+  border-radius: 999px;
+  padding: 0.48rem 0.78rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 0 10px 26px rgba(2, 6, 23, 0.34);
+  transition: border-color 0.18s ease, background 0.18s ease, transform 0.18s ease, opacity 0.18s ease;
+}
+
+.primary-drawer-button:hover,
+.primary-drawer-button:focus-visible {
+  border-color: rgba(250, 204, 21, 0.78);
+  background: rgba(30, 41, 59, 0.92);
+  transform: translateY(-1px);
+  outline: none;
+}
+
+body[data-drawer-open="true"] .primary-drawer-button {
+  opacity: 0;
+  pointer-events: none;
 }
 
 .daily-opening-overlay {
@@ -211,6 +326,18 @@ body[data-daily-opening="open"] {
     linear-gradient(180deg, rgba(15, 23, 42, 0.95), rgba(2, 6, 23, 0.92));
   box-shadow: 0 28px 70px rgba(2, 6, 23, 0.45);
   text-align: left;
+}
+
+.drawer-controls .daily-opening-card {
+  width: auto;
+  padding: 1rem;
+  border-radius: 0.85rem;
+  box-shadow: none;
+  text-align: left;
+}
+
+.drawer-controls .daily-opening-card[hidden] {
+  display: none;
 }
 
 .daily-opening-kicker,
@@ -2442,44 +2569,40 @@ svg[data-mode="timeline"] .history-preview {
 }
 
 .tooltip {
-  position: absolute;
-  pointer-events: none;
-  padding: 0.6rem 0.9rem;
-  border-radius: 0.5rem;
-  background: rgba(15, 15, 15, 0.88);
-  border: 1px solid rgba(148, 163, 184, 0.4);
-  color: #f8fafc;
-  font-size: 0.85rem;
-  line-height: 1.3;
-  backdrop-filter: blur(6px);
-  transform: translate(-50%, -140%);
-  opacity: 0;
-  transition: opacity 0.2s ease;
+  display: none;
 }
 
 .tooltip.visible {
-  opacity: 1;
+  opacity: 0;
 }
 
 .drawer {
-  width: min(320px, 90vw);
-  background: rgba(17, 24, 39, 0.85);
-  border-radius: 1rem;
+  position: fixed;
+  top: 0;
+  right: 0;
+  z-index: 36;
+  box-sizing: border-box;
+  width: min(390px, 92vw);
+  height: 100dvh;
+  background: rgba(17, 24, 39, 0.96);
+  border-radius: 0;
   border: 1px solid rgba(59, 130, 246, 0.25);
+  border-top: 0;
+  border-right: 0;
+  border-bottom: 0;
   box-shadow: 0 24px 50px rgba(15, 23, 42, 0.45);
-  padding: 1.5rem 1.25rem;
-  position: sticky;
-  top: 1.5rem;
-  max-height: calc(100vh - 3rem);
+  padding: 1.05rem 1rem 1.35rem;
+  max-height: 100dvh;
   overflow-y: auto;
-  transition: width 0.2s ease, padding 0.2s ease, opacity 0.2s ease, border-color 0.2s ease;
+  transform: translateX(0);
+  transition: transform 0.22s ease, opacity 0.2s ease, border-color 0.2s ease;
 }
 
 .drawer.is-collapsed {
-  width: min(230px, 90vw);
-  padding-bottom: 1rem;
-  opacity: 0.88;
+  transform: translateX(calc(100% + 2px));
+  opacity: 0;
   border-color: rgba(148, 163, 184, 0.16);
+  pointer-events: none;
 }
 
 .drawer-header-top {
@@ -2507,8 +2630,10 @@ svg[data-mode="timeline"] .history-preview {
   background: rgba(15, 23, 42, 0.7);
   color: #cbd5f5;
   border-radius: 999px;
-  padding: 0.42rem 0.72rem;
-  font-size: 0.72rem;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  font-size: 1.1rem;
   line-height: 1;
   white-space: nowrap;
   cursor: pointer;
@@ -2519,6 +2644,150 @@ svg[data-mode="timeline"] .history-preview {
   border-color: rgba(250, 204, 21, 0.5);
   color: #f8fafc;
   background: rgba(250, 204, 21, 0.08);
+}
+
+.drawer-controls {
+  display: grid;
+  gap: 1rem;
+}
+
+.drawer-controls .account-bar,
+.drawer-controls .clock-surface-panel,
+.drawer-controls .action-loop,
+.drawer-controls .lens-deep-panel,
+.drawer-controls .scripture-reader-panel {
+  position: static;
+  inset: auto;
+  transform: none;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  overflow: hidden;
+  pointer-events: auto;
+}
+
+.drawer,
+.drawer * {
+  min-width: 0;
+}
+
+.drawer-body {
+  display: grid;
+  gap: 1rem;
+}
+
+.drawer-section {
+  box-sizing: border-box;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.drawer-controls .surface-lens-grid,
+.drawer-controls .lens-deep-grid {
+  grid-template-columns: 1fr;
+}
+
+.drawer-controls .surface-lens-stack {
+  justify-content: flex-start;
+}
+
+.drawer-controls .clock-surface-panel {
+  text-align: left;
+  backdrop-filter: none;
+}
+
+.selected-clock-section {
+  padding: 0.95rem 1rem;
+  border-radius: 0.9rem;
+  border: 1px solid rgba(250, 204, 21, 0.22);
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.82), rgba(15, 23, 42, 0.52));
+}
+
+.selected-clock-kicker,
+.selected-clock-title,
+.selected-clock-summary,
+.selected-clock-meta,
+.selected-clock-journey p,
+.selected-clock-journey span {
+  margin: 0;
+}
+
+.selected-clock-kicker {
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #facc15;
+}
+
+.selected-clock-title {
+  margin-top: 0.28rem;
+  font-size: 1.08rem;
+  color: #f8fafc;
+}
+
+.selected-clock-summary {
+  margin-top: 0.38rem;
+  color: #cbd5f5;
+  line-height: 1.48;
+}
+
+.selected-clock-meta {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.55rem;
+  margin-top: 0.8rem;
+}
+
+.selected-clock-meta div,
+.selected-clock-journey article {
+  padding: 0.7rem 0.75rem;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  background: rgba(2, 6, 23, 0.32);
+}
+
+.selected-clock-meta dt,
+.selected-clock-journey p {
+  font-size: 0.66rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #93c5fd;
+}
+
+.selected-clock-meta dd {
+  margin: 0.24rem 0 0;
+  color: #f8fafc;
+  font-weight: 600;
+}
+
+.selected-clock-journey {
+  display: grid;
+  gap: 0.6rem;
+  margin-top: 0.75rem;
+}
+
+.selected-clock-journey span {
+  display: block;
+  margin-top: 0.28rem;
+  color: #e2e8f0;
+  line-height: 1.5;
+}
+
+.clock-page .clock-footer {
+  display: none;
+}
+
+.drawer-controls .presentation-bar,
+.drawer-controls .lens-bar {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.drawer-controls .presentation-status,
+.drawer-controls .lens-status {
+  margin: -0.35rem 0 0;
+  text-align: left;
 }
 
 .guide-page {
@@ -4138,14 +4407,14 @@ svg[data-mode="timeline"] .history-preview {
 
 @media (max-width: 1100px) {
   .layout {
-    flex-direction: column;
+    flex-direction: row;
     align-items: stretch;
   }
 
   .drawer {
-    position: static;
-    width: auto;
-    max-height: none;
+    position: fixed;
+    width: min(390px, 92vw);
+    max-height: 100dvh;
   }
 }
 
