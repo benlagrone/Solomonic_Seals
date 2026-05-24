@@ -17,6 +17,13 @@ Goal: build one coherent roadmap for product experience, scripture alignment, an
 - Instrument-style motion: use restrained solar drift, hour-ring stepping, active-sector glow, and a subtle center-seal pulse so the clock feels alive without becoming theatrical.
 - Historical timeline: annotate the yearly ring with publication dates, festivals, or related milestones.
 
+Status update (May 24, 2026):
+- Published the clock-centered drawer redesign to production. The primary view is now constrained to the header, subheader, clock, and small drawer trigger; controls, sign-in, lenses, daily action loop, scripture reader, and selected-track details are drawer-owned.
+- Clock elements now act as journey entry points: selecting a ring or life domain opens the drawer, changes selected-track content, and clicking the already-selected element closes the drawer.
+- Selected clock emphasis is SVG stroke/fill plus a small touch bounce, with native SVG focus rectangles suppressed so the old square highlight does not return.
+- Percentage/progress framing is superseded for the primary journey. Tracks use reverse-Fibonacci rhythm labels (`Golden Return`, `Rhythm 32`, `Rhythm 68`, `Rhythm 80`) and practice/return language instead of implying perfect completion.
+- Added `tests/test_clock_drawer_contract.mjs` and wired it into CI to catch regressions in drawer ownership, click-selection wiring, non-rectangular selection styling, and rhythm-label pacing.
+
 ### SVG Seal Rendering Track (Advise-Only)
 
 Detailed render handoff: see `docs/pentacle_svg_system.md`.
