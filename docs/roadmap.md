@@ -24,6 +24,12 @@ Status update (May 24, 2026):
 - Percentage/progress framing is superseded for the primary journey. Tracks use reverse-Fibonacci rhythm labels (`Golden Return`, `Rhythm 32`, `Rhythm 68`, `Rhythm 80`) and practice/return language instead of implying perfect completion.
 - Added `tests/test_clock_drawer_contract.mjs` and wired it into CI to catch regressions in drawer ownership, click-selection wiring, non-rectangular selection styling, and rhythm-label pacing.
 
+Status update (May 27, 2026):
+- Started Journey Tracks v1 by making life-wheel aspects canonical formation tracks instead of generic drawer copy.
+- Added the missing `Work` domain beside Mind, Body, Relations, Stewardship, Vocation, Household, and Contemplation.
+- Track selection, practice, and reflection now persist into the daily history object under `selectedJourneyTrackId` and `journeyTracks`; account users sync through the existing history sync path, while guests receive daily browser-local state.
+- The selected drawer track now displays whether it is a guest daily track or account-synced track history, plus selected/practiced/reflected state for today.
+
 ### SVG Seal Rendering Track (Advise-Only)
 
 Detailed render handoff: see `docs/pentacle_svg_system.md`.

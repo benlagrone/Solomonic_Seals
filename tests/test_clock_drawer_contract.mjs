@@ -27,6 +27,7 @@ function extractCssBlock(selector) {
 assertIncludes(html, 'class="clock-page"', "clock page class should scope the primary instrument layout");
 assertIncludes(html, 'class="primary-drawer-button"', "primary view should expose only the small drawer trigger");
 assertIncludes(html, 'class="selected-clock-section drawer-section"', "drawer should own selected clock content");
+assertIncludes(html, 'class="selected-clock-state"', "selected clock content should disclose daily/account track state");
 assertIncludes(html, 'class="drawer-section drawer-controls"', "drawer should own migrated controls");
 
 [
@@ -44,6 +45,10 @@ assertIncludes(html, 'class="drawer-section drawer-controls"', "drawer should ow
 });
 
 assertIncludes(js, "function handleClockElementSelection", "clock elements need a central click-selection handler");
+assertIncludes(js, "const JOURNEY_TRACK_LIBRARY", "life aspects should have canonical journey track copy");
+assertIncludes(js, "function patchJourneyTrackState", "journey track state should persist through daily history");
+assertIncludes(js, "selectedJourneyTrackId", "selected journey track should be stored with the daily entry");
+assertIncludes(js, "journeyTracks", "daily history should include per-track selected/practiced/reflected state");
 assertIncludes(js, "updateSelectedClockDrawer(layerName, datum);", "clock clicks should update drawer content");
 assertIncludes(js, "setDrawerOpen(true);", "selecting a clock element should open the drawer");
 assertIncludes(js, "setDrawerOpen(false);", "clicking the selected element should close the drawer");
@@ -57,6 +62,19 @@ assertIncludes(js, 'return "Rhythm 68";', "journey pacing should include 68 rhyt
 assertIncludes(js, 'return "Rhythm 32";', "journey pacing should include 32 rhythm");
 assertIncludes(js, 'return "Golden Return";', "journey pacing should include golden return fallback");
 assert.ok(!/selected-clock-[\w-]+["'][^]*?\b\d{1,3}%/.test(html), "selected track copy should not use percent completion");
+
+[
+  "household",
+  "work",
+  "body",
+  "mind",
+  "relationships",
+  "stewardship",
+  "vocation",
+  "contemplation",
+].forEach((trackId) => {
+  assertIncludes(js, `${trackId}: {`, `${trackId} journey track should be defined`);
+});
 
 const svgFocusBlock = extractCssBlock(`svg#clock,
 svg#clock *,

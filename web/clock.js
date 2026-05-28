@@ -138,6 +138,7 @@ const drawerElements = {
   selectedClockMeditation: document.querySelector(".selected-clock-meditation"),
   selectedClockPractice: document.querySelector(".selected-clock-practice"),
   selectedClockReflection: document.querySelector(".selected-clock-reflection"),
+  selectedClockState: document.querySelector(".selected-clock-state"),
   planet: document.querySelector(".psalm-planet"),
   focus: document.querySelector(".psalm-focus"),
   list: document.querySelector(".psalm-list"),
@@ -418,6 +419,9 @@ const uiState = {
   focusedRing: null,
   drawerOpen: false,
   selectedClockElement: null,
+  selectedClockLayer: "",
+  selectedClockDatum: null,
+  selectedJourneyTrackId: "",
   reflectionOpen: false,
   closingOpen: false,
   dailyOpeningOpen: false,
@@ -603,6 +607,32 @@ const RULE_OF_LIFE_LIBRARY = {
       "Let the next physical decision restore balance instead of appetite",
     ],
   },
+  work: {
+    morning: [
+      "Choose the next concrete task and begin before the day fragments",
+      "Start with one piece of work that can be seen, named, and advanced",
+      "Give first labor to the task that actually moves the day forward",
+      "Open the work track by reducing one real task instead of surveying everything",
+    ],
+    midday: [
+      "Return to the task at hand before new inputs scatter the work",
+      "Hold one work block long enough to produce a visible next state",
+      "Refuse drift by carrying one task to a clean handoff point",
+      "Choose craft over motion in the next work interval",
+    ],
+    evening: [
+      "Name what was advanced, what stalled, and what must be resumed",
+      "Close the work track by leaving one clear next step for tomorrow",
+      "Review whether the day produced useful work or only activity",
+      "Set down the work by recording the next faithful action",
+    ],
+    repair: [
+      "Restart the neglected task with one small, visible action",
+      "Repair work drift by reducing the next task to its first move",
+      "Return to craft where distraction replaced diligence",
+      "Recover the work track by making one deliverable smaller and real",
+    ],
+  },
   relationships: {
     morning: [
       "Send one clarifying or reconciling message before noon",
@@ -665,7 +695,7 @@ const RULE_OF_LIFE_LIBRARY = {
     midday: [
       "Finish one difficult piece of work before changing context",
       "Carry one demanding line of labor to a real stopping point",
-      "Resist scattering and complete one substantial block before switching",
+      "Resist scattering and carry one substantial block to a clean stopping point",
       "Hold one hard task long enough to cross the useful threshold",
     ],
     evening: [
@@ -736,6 +766,48 @@ const RULE_OF_LIFE_LIBRARY = {
       "Recover inward stillness in the place where distraction scattered you",
       "Repair the day by making one true return to silence",
     ],
+  },
+};
+const JOURNEY_TRACK_LIBRARY = {
+  mind: {
+    track: "Judgment and attention",
+    meditation: "Let the mind track gather scattered thought into patient judgment.",
+    reflection: "Where did clarity ask for patience instead of speed?",
+  },
+  body: {
+    track: "Embodied steadiness",
+    meditation: "Receive the body track as a call to temperance, strength, and honest limits.",
+    reflection: "What did the body reveal about pace, appetite, fatigue, or discipline?",
+  },
+  work: {
+    track: "Concrete labor",
+    meditation: "Treat work as craft: one task receives enough attention to become real.",
+    reflection: "What work became more concrete, and what stayed hidden in motion?",
+  },
+  relationships: {
+    track: "Repair and peace",
+    meditation: "Let the relations track make peace concrete before distance or reaction hardens.",
+    reflection: "Where did love require repair, restraint, clarity, or a calmer word?",
+  },
+  stewardship: {
+    track: "Resources and responsibility",
+    meditation: "Let stewardship expose what must be ordered, owed, protected, or returned.",
+    reflection: "Where did justice ask for cleaner handling of money, time, tools, or promises?",
+  },
+  vocation: {
+    track: "Calling and courage",
+    meditation: "Let vocation distinguish durable purpose from busy motion.",
+    reflection: "Where did courage serve calling rather than ego, fear, or avoidance?",
+  },
+  household: {
+    track: "Home and durable order",
+    meditation: "Let household become a school of discipline: order, boundary, maintenance, and peace.",
+    reflection: "What household pattern needs repeated return rather than a dramatic fix?",
+  },
+  contemplation: {
+    track: "Prayer and silence",
+    meditation: "Let contemplation recover inner attention before the day is consumed by noise.",
+    reflection: "Where did silence reveal what activity was covering?",
   },
 };
 const RULE_OF_LIFE_DAY_TONES = {
@@ -1044,9 +1116,10 @@ const FALLBACK_DAILY_PSALM_BY_RULER = {
 const LIFE_DOMAIN_FOCUS_KEYWORDS = [
   { pattern: /\b(study|learn|understand|message|speech|word|reason|clarity|think|mind)\b/i, domain: "mind" },
   { pattern: /\b(body|health|sleep|rest|strength|travel|journey|road|movement|discipline)\b/i, domain: "body" },
+  { pattern: /\b(work|task|labor|craft|deliverable|deadline|focus block)\b/i, domain: "work" },
   { pattern: /\b(relationship|repair|peace|conflict|anger|friend|partner|love|reconcile)\b/i, domain: "relationships" },
   { pattern: /\b(money|wealth|trade|resource|budget|steward|provision|prosper)\b/i, domain: "stewardship" },
-  { pattern: /\b(work|task|career|labor|courage|purpose|calling|vocation|lead)\b/i, domain: "vocation" },
+  { pattern: /\b(career|courage|purpose|calling|vocation|lead)\b/i, domain: "vocation" },
   { pattern: /\b(home|house|household|order|routine|maintenance|boundary)\b/i, domain: "household" },
   { pattern: /\b(prayer|silence|reflect|contemplate|faith|spirit|mercy|devotion)\b/i, domain: "contemplation" },
 ];
@@ -1307,6 +1380,79 @@ function describeClockElement(layerName, datum) {
   return "Clock element selected.";
 }
 
+function getJourneyTrackId(layerName, datum) {
+  if (layerName !== "life") {
+    return "";
+  }
+  const rawId = String(datum?.id || datum?.name || "").trim();
+  const normalized = slugifyIdPart(rawId);
+  return JOURNEY_TRACK_LIBRARY[normalized] ? normalized : "";
+}
+
+function pickJourneyPractice(trackId, datum) {
+  const library = RULE_OF_LIFE_LIBRARY[trackId] || {};
+  const score = Number(datum?.score);
+  const pool = Number.isFinite(score) && score < 50
+    ? library.repair
+    : library.morning || library.midday || library.repair;
+  const options = Array.isArray(pool) && pool.length ? pool : [
+    "Choose one concrete act and carry it through the next turn of the day.",
+  ];
+  const index = Math.abs(hashString(`${trackId}:${datum?.name || ""}:${datum?.score || ""}`)) % options.length;
+  return options[index];
+}
+
+function getJourneyTrackState(trackId, dateKey = currentActionLoopContext?.dateKey) {
+  if (!trackId || !dateKey) {
+    return {};
+  }
+  const entry = getDailyActionEntry(dateKey);
+  const tracks = entry.journeyTracks && typeof entry.journeyTracks === "object" ? entry.journeyTracks : {};
+  return tracks[trackId] && typeof tracks[trackId] === "object" ? tracks[trackId] : {};
+}
+
+function getJourneyTrackScopeLabel() {
+  return clockAuthState.authenticated && clockAuthState.profile?.sub
+    ? "Account-synced track history"
+    : "Guest daily track";
+}
+
+function formatJourneyTrackStateLabel(trackId) {
+  const state = getJourneyTrackState(trackId);
+  const parts = [getJourneyTrackScopeLabel()];
+  if (state.selectedAt) {
+    parts.push("selected today");
+  }
+  if (state.practicedAt) {
+    parts.push("practiced today");
+  }
+  if (state.reflectedAt) {
+    parts.push("reflected today");
+  }
+  return parts.join(" • ");
+}
+
+function patchJourneyTrackState(trackId, patch = {}) {
+  const dateKey = currentActionLoopContext?.dateKey || formatDateStorageKey(new Date());
+  if (!trackId || !dateKey) {
+    return null;
+  }
+  const entry = getDailyActionEntry(dateKey);
+  const tracks = entry.journeyTracks && typeof entry.journeyTracks === "object" ? entry.journeyTracks : {};
+  const current = tracks[trackId] && typeof tracks[trackId] === "object" ? tracks[trackId] : {};
+  return patchDailyActionEntry(dateKey, {
+    selectedJourneyTrackId: trackId,
+    journeyTracks: {
+      ...tracks,
+      [trackId]: pruneEmptyFields({
+        ...current,
+        trackId,
+        ...patch,
+      }),
+    },
+  });
+}
+
 function buildSelectedClockJourney(layerName, datum) {
   const title = getClockElementTitle(layerName, datum);
   const description = describeClockElement(layerName, datum);
@@ -1333,14 +1479,19 @@ function buildSelectedClockJourney(layerName, datum) {
 
   if (layerName === "life") {
     const domain = String(datum?.name || title || "this domain").toLowerCase();
+    const trackId = getJourneyTrackId(layerName, datum);
+    const journeyTrack = JOURNEY_TRACK_LIBRARY[trackId] || {};
+    const practice = pickJourneyPractice(trackId, datum);
     return {
       title,
-      summary: `${description || title}. This is a returning track, not a completion score.`,
+      summary: `${description || title}. This is a returning track, not a finish line.`,
       rhythm,
-      track,
-      meditation: `Attend to ${domain} as a rhythm of care. The goal is return, repair, and steadiness, not final perfection.`,
-      practice: `Choose one visible act for ${domain} and make it small enough to complete before the next turn of the day.`,
-      reflection: `Where does ${domain} ask for repeated attention rather than a one-time fix?`,
+      track: journeyTrack.track || track,
+      meditation: journeyTrack.meditation || `Attend to ${domain} as a rhythm of care. The goal is return, repair, and steadiness, not final perfection.`,
+      practice,
+      reflection: journeyTrack.reflection || `Where does ${domain} ask for repeated attention rather than a one-time fix?`,
+      stateLabel: formatJourneyTrackStateLabel(trackId),
+      trackId,
     };
   }
 
@@ -1354,6 +1505,7 @@ function buildSelectedClockJourney(layerName, datum) {
       meditation: `${planet} names the tone of action. Receive it as discipline for the present hour, not as spectacle.`,
       practice: `Let the ${planet.toLowerCase()} track shape one concrete decision, repair, message, or restraint today.`,
       reflection: `What does the ${planet.toLowerCase()} rhythm reveal about how you are acting under pressure?`,
+      stateLabel: "Daily planetary track",
     };
   }
 
@@ -1367,6 +1519,7 @@ function buildSelectedClockJourney(layerName, datum) {
       meditation: `${sector} marks a narrow gate of attention. Look for the shadow, correction, and virtue implied by this part of the wheel.`,
       practice: "Name one impulse to restrain and one virtue to practice before you move to the next task.",
       reflection: `What did this sector expose that the broader day would have let you ignore?`,
+      stateLabel: "Daily sector track",
     };
   }
 
@@ -1379,6 +1532,7 @@ function buildSelectedClockJourney(layerName, datum) {
       meditation: "Let the seal gather attention back toward prayer, wisdom, and ordered action.",
       practice: "Pause before acting and write the smallest faithful next step.",
       reflection: "What becomes clearer when the seal is treated as an anchor rather than decoration?",
+      stateLabel: "Daily seal track",
     };
   }
 
@@ -1390,6 +1544,7 @@ function buildSelectedClockJourney(layerName, datum) {
     meditation: "Return to the center before choosing the next act.",
     practice: "Take one action that makes the current guidance visible in the day.",
     reflection: "Did the clock change what you did, or only what you noticed?",
+    stateLabel: "Daily clock track",
   };
 }
 
@@ -1422,6 +1577,9 @@ function updateSelectedClockDrawer(layerName, datum) {
   if (drawerElements.selectedClockReflection) {
     drawerElements.selectedClockReflection.textContent = journey.reflection;
   }
+  if (drawerElements.selectedClockState) {
+    drawerElements.selectedClockState.textContent = journey.stateLabel || getJourneyTrackScopeLabel();
+  }
 }
 
 function clearNativeSvgFocus(event) {
@@ -1437,10 +1595,18 @@ function handleClockElementSelection(layerName, datum, event = null) {
   const key = getClockElementKey(layerName, datum);
   const alreadySelected = uiState.selectedClockElement === key;
   uiState.selectedClockElement = alreadySelected ? null : key;
+  uiState.selectedClockLayer = alreadySelected ? "" : layerName;
+  uiState.selectedClockDatum = alreadySelected ? null : datum;
+  uiState.selectedJourneyTrackId = alreadySelected ? "" : getJourneyTrackId(layerName, datum);
 
   if (alreadySelected) {
     setDrawerOpen(false);
   } else {
+    if (uiState.selectedJourneyTrackId) {
+      patchJourneyTrackState(uiState.selectedJourneyTrackId, {
+        selectedAt: new Date().toISOString(),
+      });
+    }
     updateSelectedClockDrawer(layerName, datum);
     setDrawerOpen(true);
   }
@@ -2386,11 +2552,20 @@ function setupActionLoopControls() {
     if (!context) {
       return;
     }
+    const selectedTrackId = uiState.selectedJourneyTrackId || context.entry?.selectedJourneyTrackId || "";
     patchDailyActionEntry(context.dateKey, {
       ...buildDailyActionSnapshot(context),
       completedAt: new Date().toISOString(),
     });
-    setActionNotice(`Marked complete: ${context.label}.`);
+    if (selectedTrackId) {
+      patchJourneyTrackState(selectedTrackId, {
+        practicedAt: new Date().toISOString(),
+      });
+      if (uiState.selectedClockLayer && uiState.selectedClockDatum) {
+        updateSelectedClockDrawer(uiState.selectedClockLayer, uiState.selectedClockDatum);
+      }
+    }
+    setActionNotice(`Practice marked for ${context.label}.`);
   });
 
   drawerElements.actionReflect.addEventListener("click", () => {
@@ -2474,11 +2649,22 @@ function setupActionLoopControls() {
     if (!context) {
       return;
     }
+    const reflection = String(drawerElements.reflectionInput.value || "").trim();
+    const selectedTrackId = uiState.selectedJourneyTrackId || context.entry?.selectedJourneyTrackId || "";
     patchDailyActionEntry(context.dateKey, {
       ...buildDailyActionSnapshot(context),
-      reflection: String(drawerElements.reflectionInput.value || "").trim(),
+      reflection,
       reflectionUpdatedAt: new Date().toISOString(),
     });
+    if (selectedTrackId) {
+      patchJourneyTrackState(selectedTrackId, {
+        reflectedAt: new Date().toISOString(),
+        reflection,
+      });
+      if (uiState.selectedClockLayer && uiState.selectedClockDatum) {
+        updateSelectedClockDrawer(uiState.selectedClockLayer, uiState.selectedClockDatum);
+      }
+    }
     uiState.reflectionOpen = false;
     setActionNotice(`Reflection saved for ${context.dateKey}.`);
   });
@@ -4146,6 +4332,7 @@ function getLifeDomainShortLabel(domainId, fallbackName) {
   return {
     mind: "Mind",
     body: "Body",
+    work: "Work",
     relationships: "Relations",
     stewardship: "Steward",
     vocation: "Vocation",
@@ -4509,6 +4696,9 @@ function updateAccountUi() {
     if (drawerElements.accountSignOut) {
       drawerElements.accountSignOut.hidden = true;
     }
+    if (uiState.selectedClockLayer && uiState.selectedClockDatum) {
+      updateSelectedClockDrawer(uiState.selectedClockLayer, uiState.selectedClockDatum);
+    }
     return;
   }
 
@@ -4528,6 +4718,9 @@ function updateAccountUi() {
     if (drawerElements.accountSignOut) {
       drawerElements.accountSignOut.hidden = false;
     }
+    if (uiState.selectedClockLayer && uiState.selectedClockDatum) {
+      updateSelectedClockDrawer(uiState.selectedClockLayer, uiState.selectedClockDatum);
+    }
     return;
   }
 
@@ -4538,6 +4731,9 @@ function updateAccountUi() {
   }
   if (drawerElements.accountSignOut) {
     drawerElements.accountSignOut.hidden = true;
+  }
+  if (uiState.selectedClockLayer && uiState.selectedClockDatum) {
+    updateSelectedClockDrawer(uiState.selectedClockLayer, uiState.selectedClockDatum);
   }
 }
 
@@ -4886,6 +5082,7 @@ function mergeDailyActionEntries(serverEntry, clientEntry) {
   const preferRight = getDailyActionEntryTimestamp(right) >= getDailyActionEntryTimestamp(left);
   const merged = preferRight ? { ...left, ...right } : { ...right, ...left };
   const launchesByKey = new Map();
+  const journeyTracks = {};
 
   [left, right].forEach((entry) => {
     (entry.launches || []).forEach((launch) => {
@@ -4903,6 +5100,22 @@ function mergeDailyActionEntries(serverEntry, clientEntry) {
     launches.sort((leftLaunch, rightLaunch) => String(leftLaunch?.launchedAt || "").localeCompare(String(rightLaunch?.launchedAt || "")));
     merged.launches = launches.slice(-MAX_DAILY_ACTION_LAUNCHES);
     merged.lastLaunchAt = merged.launches[merged.launches.length - 1].launchedAt || "";
+  }
+
+  [left.journeyTracks, right.journeyTracks].forEach((tracks) => {
+    if (!tracks || typeof tracks !== "object") {
+      return;
+    }
+    Object.entries(tracks).forEach(([trackId, trackEntry]) => {
+      const previous = journeyTracks[trackId] || {};
+      journeyTracks[trackId] = pruneEmptyFields({
+        ...previous,
+        ...trackEntry,
+      });
+    });
+  });
+  if (Object.keys(journeyTracks).length) {
+    merged.journeyTracks = journeyTracks;
   }
 
   return normalizeDailyActionEntry(merged);
@@ -4957,6 +5170,22 @@ function normalizeDailyActionEntry(entry) {
       .filter(Boolean)
       .slice(-MAX_DAILY_ACTION_LAUNCHES)
     : [];
+  const journeyTracks = {};
+  if (entry.journeyTracks && typeof entry.journeyTracks === "object" && !Array.isArray(entry.journeyTracks)) {
+    Object.entries(entry.journeyTracks).forEach(([trackId, trackEntry]) => {
+      const normalizedTrackId = slugifyIdPart(trackId);
+      if (!JOURNEY_TRACK_LIBRARY[normalizedTrackId] || !trackEntry || typeof trackEntry !== "object") {
+        return;
+      }
+      journeyTracks[normalizedTrackId] = pruneEmptyFields({
+        trackId: normalizedTrackId,
+        selectedAt: String(trackEntry.selectedAt || "").trim(),
+        practicedAt: String(trackEntry.practicedAt || "").trim(),
+        reflectedAt: String(trackEntry.reflectedAt || "").trim(),
+        reflection: String(trackEntry.reflection || "").trim(),
+      });
+    });
+  }
 
   return pruneEmptyFields({
     adoptedAt: String(entry.adoptedAt || "").trim(),
@@ -4986,6 +5215,10 @@ function normalizeDailyActionEntry(entry) {
     rulerText: String(entry.rulerText || "").trim(),
     activeFocus: String(entry.activeFocus || "").trim(),
     activePentacleLabel: String(entry.activePentacleLabel || "").trim(),
+    selectedJourneyTrackId: JOURNEY_TRACK_LIBRARY[slugifyIdPart(entry.selectedJourneyTrackId || "")]
+      ? slugifyIdPart(entry.selectedJourneyTrackId || "")
+      : "",
+    journeyTracks,
     psalmRef: String(entry.psalmRef || "").trim(),
     wisdomRef: String(entry.wisdomRef || "").trim(),
     solomonicRef: String(entry.solomonicRef || "").trim(),
@@ -8736,22 +8969,27 @@ function buildWeeklyHistorySummary(baseDate, derived, referenceMap) {
   const reflectedCount = recordedEntries.filter((entry) => entry.hasReflection).length;
   const adoptedCount = recordedEntries.filter((entry) => entry.adopted).length;
   const incompleteCount = recordedEntries.filter((entry) => entry.adopted && !entry.completed).length;
+  const cleanCloseCount = recordedEntries.filter((entry) => entry.completed && entry.closed).length;
   const unclosedCount = recordedEntries.filter((entry) => !entry.closed).length;
   const launchCount = recordedEntries.reduce((sum, entry) => sum + entry.launchCount, 0);
+  const launchDayCount = recordedEntries.filter((entry) => entry.launchCount > 0).length;
 
   const virtueCounts = new Map();
   const domainCounts = new Map();
   const scriptureCounts = new Map();
+  const carryCounts = new Map();
 
   recordedEntries.forEach((entry) => {
     incrementCount(virtueCounts, entry.ruleVirtue);
     incrementCount(domainCounts, entry.ruleDomain);
     incrementCount(scriptureCounts, entry.scriptureRef);
+    incrementCount(carryCounts, entry.closingCarryForward);
   });
 
   const topVirtue = pickTopCount(virtueCounts);
   const topDomain = pickTopCount(domainCounts);
   const topScripture = pickTopCount(scriptureCounts);
+  const topCarry = pickTopCount(carryCounts);
 
   const narrativeParts = [
     `${recordedEntries.length} recorded ${recordedEntries.length === 1 ? "day" : "days"}`,
@@ -8759,7 +8997,7 @@ function buildWeeklyHistorySummary(baseDate, derived, referenceMap) {
   ];
 
   if (completedCount) {
-    narrativeParts.push(`${completedCount} completed`);
+    narrativeParts.push(`${completedCount} practiced`);
   } else if (adoptedCount) {
     narrativeParts.push(`${adoptedCount} adopted`);
   }
@@ -8785,7 +9023,7 @@ function buildWeeklyHistorySummary(baseDate, derived, referenceMap) {
     patterns.push(`${topDomain.label} appeared on ${topDomain.count} recorded days, so the same field of life kept asking for attention.`);
   }
   if (incompleteCount >= 2) {
-    patterns.push(`${incompleteCount} adopted ${incompleteCount === 1 ? "day remained" : "days remained"} incomplete, which suggests resistance after intention was set.`);
+    patterns.push(`${incompleteCount} adopted ${incompleteCount === 1 ? "day remained" : "days remained"} open, which suggests resistance after intention was set.`);
   }
   if (unclosedCount >= 2) {
     patterns.push(`${unclosedCount} recorded ${unclosedCount === 1 ? "day was" : "days were"} left open without a full closing, so review may be trailing behind action.`);
@@ -8814,7 +9052,7 @@ function buildWeeklyHistorySummary(baseDate, derived, referenceMap) {
     `${closedCount} closed`,
   ];
   if (completedCount) {
-    metaItems.push(`${completedCount} completed`);
+    metaItems.push(`${completedCount} practiced`);
   }
   if (reflectedCount) {
     metaItems.push(`${reflectedCount} reflected`);

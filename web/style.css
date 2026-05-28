@@ -2708,6 +2708,7 @@ svg[data-mode="timeline"] .history-preview {
 .selected-clock-title,
 .selected-clock-summary,
 .selected-clock-meta,
+.selected-clock-state,
 .selected-clock-journey p,
 .selected-clock-journey span {
   margin: 0;
@@ -2772,6 +2773,15 @@ svg[data-mode="timeline"] .history-preview {
   margin-top: 0.28rem;
   color: #e2e8f0;
   line-height: 1.5;
+}
+
+.selected-clock-state {
+  margin-top: 0.75rem;
+  color: #93c5fd;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
 }
 
 .clock-page .clock-footer {

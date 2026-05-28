@@ -326,9 +326,10 @@ PLANETARY_RULERS = ["Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Satur
 LIFE_DOMAIN_FOCUS_KEYWORDS = [
     (re.compile(r"\b(study|learn|understand|message|speech|word|reason|clarity|think|mind)\b", re.I), "mind"),
     (re.compile(r"\b(body|health|sleep|rest|strength|travel|journey|road|movement|discipline)\b", re.I), "body"),
+    (re.compile(r"\b(work|task|labor|craft|deliverable|deadline|focus block)\b", re.I), "work"),
     (re.compile(r"\b(relationship|repair|peace|conflict|anger|friend|partner|love|reconcile)\b", re.I), "relationships"),
     (re.compile(r"\b(money|wealth|trade|resource|budget|steward|provision|prosper)\b", re.I), "stewardship"),
-    (re.compile(r"\b(work|task|career|labor|courage|purpose|calling|vocation|lead)\b", re.I), "vocation"),
+    (re.compile(r"\b(career|courage|purpose|calling|vocation|lead)\b", re.I), "vocation"),
     (re.compile(r"\b(home|house|household|order|routine|maintenance|boundary)\b", re.I), "household"),
     (re.compile(r"\b(prayer|silence|reflect|contemplate|faith|spirit|mercy|devotion)\b", re.I), "contemplation"),
 ]

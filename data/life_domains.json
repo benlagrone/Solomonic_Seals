@@ -18,6 +18,14 @@
       "description": "Health, discipline, and physical steadiness."
     },
     {
+      "id": "work",
+      "name": "Work",
+      "virtue": "Diligence",
+      "color": "#38bdf8",
+      "seedScore": 64,
+      "description": "Tasks, craft, and the next concrete piece of labor."
+    },
+    {
       "id": "relationships",
       "name": "Relationships",
       "virtue": "Love",
