@@ -139,6 +139,11 @@ const drawerElements = {
   selectedClockPractice: document.querySelector(".selected-clock-practice"),
   selectedClockReflection: document.querySelector(".selected-clock-reflection"),
   selectedClockState: document.querySelector(".selected-clock-state"),
+  selectedTrackPanel: document.querySelector(".selected-track-panel"),
+  selectedTrackStage: document.querySelector(".selected-track-stage"),
+  selectedTrackCadence: document.querySelector(".selected-track-cadence"),
+  selectedTrackTrail: document.querySelector(".selected-track-trail"),
+  selectedTrackNext: document.querySelector(".selected-track-next"),
   planet: document.querySelector(".psalm-planet"),
   focus: document.querySelector(".psalm-focus"),
   list: document.querySelector(".psalm-list"),
@@ -810,6 +815,43 @@ const JOURNEY_TRACK_LIBRARY = {
     reflection: "Where did silence reveal what activity was covering?",
   },
 };
+const JOURNEY_TRACK_STAGES = [
+  {
+    key: "enter",
+    minTouchCount: 0,
+    label: "Enter the track",
+    cadence: "Golden Return",
+    counsel: "Name the track and make the first faithful return today.",
+  },
+  {
+    key: "return",
+    minTouchCount: 1,
+    label: "Return without drama",
+    cadence: "Rhythm 32",
+    counsel: "Repeat the smallest practice before looking for a larger change.",
+  },
+  {
+    key: "repair",
+    minTouchCount: 3,
+    label: "Repair the pattern",
+    cadence: "Rhythm 68",
+    counsel: "Let the trail show where the same repair keeps asking for attention.",
+  },
+  {
+    key: "deepen",
+    minTouchCount: 5,
+    label: "Deepen the practice",
+    cadence: "Rhythm 80",
+    counsel: "Protect the practice long enough for it to shape the rest of the day.",
+  },
+  {
+    key: "keep",
+    minTouchCount: 8,
+    label: "Keep the rule",
+    cadence: "Golden Return",
+    counsel: "Return to the rule without treating any streak as perfection.",
+  },
+];
 const RULE_OF_LIFE_DAY_TONES = {
   Sun: "with purpose",
   Moon: "with attention",
@@ -1453,6 +1495,76 @@ function patchJourneyTrackState(trackId, patch = {}) {
   });
 }
 
+function getJourneyTrackHistory(trackId, limit = 12) {
+  if (!trackId) {
+    return [];
+  }
+  const state = loadDailyActionState();
+  return Object.entries(state)
+    .map(([dateKey, entry]) => {
+      const tracks = entry?.journeyTracks && typeof entry.journeyTracks === "object" ? entry.journeyTracks : {};
+      const trackState = tracks[trackId] && typeof tracks[trackId] === "object" ? tracks[trackId] : null;
+      if (!trackState) {
+        return null;
+      }
+      const date = parseDateStorageKey(dateKey);
+      const status = trackState.reflectedAt
+        ? "reflected"
+        : trackState.practicedAt
+          ? "practiced"
+          : trackState.selectedAt
+            ? "selected"
+            : "";
+      return {
+        dateKey,
+        date,
+        label: date
+          ? date.toLocaleDateString([], { weekday: "short", month: "short", day: "numeric" })
+          : dateKey,
+        status,
+        reflection: String(trackState.reflection || "").trim(),
+        selectedAt: String(trackState.selectedAt || "").trim(),
+        practicedAt: String(trackState.practicedAt || "").trim(),
+        reflectedAt: String(trackState.reflectedAt || "").trim(),
+      };
+    })
+    .filter(Boolean)
+    .sort((left, right) => String(right.dateKey).localeCompare(String(left.dateKey)))
+    .slice(0, limit);
+}
+
+function getJourneyTrackStage(history) {
+  const touchCount = history.filter((entry) => entry.status).length;
+  return JOURNEY_TRACK_STAGES.reduce((winner, stage) => (
+    touchCount >= stage.minTouchCount ? stage : winner
+  ), JOURNEY_TRACK_STAGES[0]);
+}
+
+function buildJourneyTrackProgress(trackId, practice) {
+  const history = getJourneyTrackHistory(trackId);
+  const practicedCount = history.filter((entry) => entry.practicedAt).length;
+  const reflectedCount = history.filter((entry) => entry.reflectedAt).length;
+  const stage = getJourneyTrackStage(history);
+  const trail = history.slice(0, 4).map((entry) => {
+    const action = entry.status || "selected";
+    const reflection = entry.reflection ? ` • ${toInlineSnippet(entry.reflection, 72)}` : "";
+    return {
+      dateKey: entry.dateKey,
+      label: entry.label,
+      text: `${action}${reflection}`,
+    };
+  });
+
+  return {
+    stageLabel: stage.label,
+    cadenceLabel: `${stage.cadence} • ${history.length || 1} ${history.length === 1 ? "return" : "returns"} on this track`,
+    trail,
+    nextStep: practicedCount && !reflectedCount
+      ? "Reflect once on what the practice changed before widening the track."
+      : stage.counsel || practice,
+  };
+}
+
 function buildSelectedClockJourney(layerName, datum) {
   const title = getClockElementTitle(layerName, datum);
   const description = describeClockElement(layerName, datum);
@@ -1482,6 +1594,7 @@ function buildSelectedClockJourney(layerName, datum) {
     const trackId = getJourneyTrackId(layerName, datum);
     const journeyTrack = JOURNEY_TRACK_LIBRARY[trackId] || {};
     const practice = pickJourneyPractice(trackId, datum);
+    const progress = buildJourneyTrackProgress(trackId, practice);
     return {
       title,
       summary: `${description || title}. This is a returning track, not a finish line.`,
@@ -1492,6 +1605,7 @@ function buildSelectedClockJourney(layerName, datum) {
       reflection: journeyTrack.reflection || `Where does ${domain} ask for repeated attention rather than a one-time fix?`,
       stateLabel: formatJourneyTrackStateLabel(trackId),
       trackId,
+      progress,
     };
   }
 
@@ -1579,6 +1693,40 @@ function updateSelectedClockDrawer(layerName, datum) {
   }
   if (drawerElements.selectedClockState) {
     drawerElements.selectedClockState.textContent = journey.stateLabel || getJourneyTrackScopeLabel();
+  }
+  if (drawerElements.selectedTrackPanel) {
+    const progress = journey.progress;
+    const hasProgress = Boolean(journey.trackId && progress);
+    drawerElements.selectedTrackPanel.hidden = !hasProgress;
+    if (hasProgress) {
+      if (drawerElements.selectedTrackStage) {
+        drawerElements.selectedTrackStage.textContent = progress.stageLabel;
+      }
+      if (drawerElements.selectedTrackCadence) {
+        drawerElements.selectedTrackCadence.textContent = progress.cadenceLabel;
+      }
+      if (drawerElements.selectedTrackNext) {
+        drawerElements.selectedTrackNext.textContent = progress.nextStep;
+      }
+      if (drawerElements.selectedTrackTrail) {
+        drawerElements.selectedTrackTrail.replaceChildren();
+        const trail = progress.trail && progress.trail.length ? progress.trail : [{
+          dateKey: "today",
+          label: "Today",
+          text: "selected",
+        }];
+        trail.forEach((item) => {
+          const li = document.createElement("li");
+          const time = document.createElement("time");
+          const span = document.createElement("span");
+          time.dateTime = item.dateKey;
+          time.textContent = item.label;
+          span.textContent = item.text;
+          li.append(time, span);
+          drawerElements.selectedTrackTrail.appendChild(li);
+        });
+      }
+    }
   }
 }
 

@@ -30,6 +30,11 @@ Status update (May 27, 2026):
 - Track selection, practice, and reflection now persist into the daily history object under `selectedJourneyTrackId` and `journeyTracks`; account users sync through the existing history sync path, while guests receive daily browser-local state.
 - The selected drawer track now displays whether it is a guest daily track or account-synced track history, plus selected/practiced/reflected state for today.
 
+Status update (May 28, 2026):
+- Deepened Journey Tracks with a drawer-owned path panel for selected life aspects.
+- The panel now computes a non-percentage stage, reverse-Fibonacci cadence label, recent saved trail, and next practice counsel from `journeyTracks`.
+- This keeps the clock primary while moving deeper formation context into the side drawer.
+
 ### SVG Seal Rendering Track (Advise-Only)
 
 Detailed render handoff: see `docs/pentacle_svg_system.md`.

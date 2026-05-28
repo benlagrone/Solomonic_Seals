@@ -2709,6 +2709,10 @@ svg[data-mode="timeline"] .history-preview {
 .selected-clock-summary,
 .selected-clock-meta,
 .selected-clock-state,
+.selected-track-kicker,
+.selected-track-stage,
+.selected-track-cadence,
+.selected-track-next,
 .selected-clock-journey p,
 .selected-clock-journey span {
   margin: 0;
@@ -2781,6 +2785,63 @@ svg[data-mode="timeline"] .history-preview {
   font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.selected-track-panel {
+  display: grid;
+  gap: 0.45rem;
+  margin-top: 0.85rem;
+  padding-top: 0.8rem;
+  border-top: 1px solid rgba(148, 163, 184, 0.18);
+}
+
+.selected-track-panel[hidden] {
+  display: none;
+}
+
+.selected-track-kicker {
+  color: #facc15;
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.selected-track-stage {
+  color: #f8fafc;
+  font-size: 0.96rem;
+  font-weight: 800;
+}
+
+.selected-track-cadence,
+.selected-track-next {
+  color: #cbd5e1;
+  line-height: 1.45;
+}
+
+.selected-track-trail {
+  display: grid;
+  gap: 0.38rem;
+  margin: 0.15rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.selected-track-trail li {
+  display: grid;
+  grid-template-columns: minmax(5.5rem, auto) 1fr;
+  gap: 0.55rem;
+  align-items: baseline;
+  color: #e2e8f0;
+  font-size: 0.86rem;
+}
+
+.selected-track-trail time {
+  color: #93c5fd;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
