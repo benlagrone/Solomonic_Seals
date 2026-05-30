@@ -2845,6 +2845,33 @@ svg[data-mode="timeline"] .history-preview {
   text-transform: uppercase;
 }
 
+.selected-track-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-top: 0.15rem;
+}
+
+.selected-track-actions button {
+  min-height: 2.1rem;
+  padding: 0.38rem 0.72rem;
+  border: 1px solid rgba(147, 197, 253, 0.28);
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.58);
+  color: #dbeafe;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.selected-track-actions button:hover,
+.selected-track-actions button:focus-visible {
+  border-color: rgba(250, 204, 21, 0.56);
+  color: #fef3c7;
+  outline: none;
+}
+
 .clock-page .clock-footer {
   display: none;
 }

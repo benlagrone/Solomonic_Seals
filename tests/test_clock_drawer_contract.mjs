@@ -29,6 +29,8 @@ assertIncludes(html, 'class="primary-drawer-button"', "primary view should expos
 assertIncludes(html, 'class="selected-clock-section drawer-section"', "drawer should own selected clock content");
 assertIncludes(html, 'class="selected-clock-state"', "selected clock content should disclose daily/account track state");
 assertIncludes(html, 'class="selected-track-panel"', "selected life tracks should expose their drawer-owned journey panel");
+assertIncludes(html, 'class="selected-track-practice"', "selected life tracks should expose a direct practice action");
+assertIncludes(html, 'class="selected-track-reflect"', "selected life tracks should expose a direct reflection action");
 assertIncludes(html, 'class="drawer-section drawer-controls"', "drawer should own migrated controls");
 
 [
@@ -50,8 +52,10 @@ assertIncludes(js, "const JOURNEY_TRACK_LIBRARY", "life aspects should have cano
 assertIncludes(js, "function patchJourneyTrackState", "journey track state should persist through daily history");
 assertIncludes(js, "function getJourneyTrackHistory", "journey tracks should build a saved history trail");
 assertIncludes(js, "function buildJourneyTrackProgress", "journey tracks should compute stage and cadence from saved history");
+assertIncludes(js, "function setupSelectedTrackControls", "journey track panel actions should be wired");
 assertIncludes(js, "selectedJourneyTrackId", "selected journey track should be stored with the daily entry");
 assertIncludes(js, "journeyTracks", "daily history should include per-track selected/practiced/reflected state");
+assertIncludes(js, "reflectionPrompt", "journey track reflection prompts should be persisted");
 assertIncludes(js, "updateSelectedClockDrawer(layerName, datum);", "clock clicks should update drawer content");
 assertIncludes(js, "setDrawerOpen(true);", "selecting a clock element should open the drawer");
 assertIncludes(js, "setDrawerOpen(false);", "clicking the selected element should close the drawer");

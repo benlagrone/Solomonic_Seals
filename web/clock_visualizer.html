@@ -435,6 +435,10 @@
               <p class="selected-track-cadence">Golden Return</p>
               <ol class="selected-track-trail"></ol>
               <p class="selected-track-next">Select a life track to begin its path.</p>
+              <div class="selected-track-actions" aria-label="Selected track actions">
+                <button type="button" class="selected-track-practice">Practice This Track</button>
+                <button type="button" class="selected-track-reflect">Reflect On Track</button>
+              </div>
             </div>
           </section>
           <section class="drawer-section drawer-controls" aria-label="Clock controls"></section>
@@ -654,8 +658,12 @@
     </footer>
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <script type="module">
-      import Keycloak from "https://cdn.jsdelivr.net/npm/keycloak-js@26.0.2/+esm";
-      window.Keycloak = Keycloak;
+      try {
+        const keycloakModule = await import("https://cdn.jsdelivr.net/npm/keycloak-js@26.0.2/+esm");
+        window.Keycloak = keycloakModule.default;
+      } catch (_error) {
+        window.Keycloak = null;
+      }
       import("/web/clock.js?v=20260507-lens2");
     </script>
   </body>

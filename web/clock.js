@@ -144,6 +144,8 @@ const drawerElements = {
   selectedTrackCadence: document.querySelector(".selected-track-cadence"),
   selectedTrackTrail: document.querySelector(".selected-track-trail"),
   selectedTrackNext: document.querySelector(".selected-track-next"),
+  selectedTrackPractice: document.querySelector(".selected-track-practice"),
+  selectedTrackReflect: document.querySelector(".selected-track-reflect"),
   planet: document.querySelector(".psalm-planet"),
   focus: document.querySelector(".psalm-focus"),
   list: document.querySelector(".psalm-list"),
@@ -1468,6 +1470,9 @@ function formatJourneyTrackStateLabel(trackId) {
   if (state.practicedAt) {
     parts.push("practiced today");
   }
+  if (state.reflectionPrompt && !state.reflectedAt) {
+    parts.push("prompted today");
+  }
   if (state.reflectedAt) {
     parts.push("reflected today");
   }
@@ -1523,6 +1528,8 @@ function getJourneyTrackHistory(trackId, limit = 12) {
           : dateKey,
         status,
         reflection: String(trackState.reflection || "").trim(),
+        practice: String(trackState.practice || "").trim(),
+        reflectionPrompt: String(trackState.reflectionPrompt || "").trim(),
         selectedAt: String(trackState.selectedAt || "").trim(),
         practicedAt: String(trackState.practicedAt || "").trim(),
         reflectedAt: String(trackState.reflectedAt || "").trim(),
@@ -1547,11 +1554,12 @@ function buildJourneyTrackProgress(trackId, practice) {
   const stage = getJourneyTrackStage(history);
   const trail = history.slice(0, 4).map((entry) => {
     const action = entry.status || "selected";
-    const reflection = entry.reflection ? ` • ${toInlineSnippet(entry.reflection, 72)}` : "";
+    const detail = entry.reflection || entry.reflectionPrompt || entry.practice;
+    const detailLine = detail ? ` • ${toInlineSnippet(detail, 72)}` : "";
     return {
       dateKey: entry.dateKey,
       label: entry.label,
-      text: `${action}${reflection}`,
+      text: `${action}${detailLine}`,
     };
   });
 
@@ -1559,6 +1567,7 @@ function buildJourneyTrackProgress(trackId, practice) {
     stageLabel: stage.label,
     cadenceLabel: `${stage.cadence} • ${history.length || 1} ${history.length === 1 ? "return" : "returns"} on this track`,
     trail,
+    reflectionPrompt: `On the ${JOURNEY_TRACK_LIBRARY[trackId]?.track || "selected"} track: ${JOURNEY_TRACK_LIBRARY[trackId]?.reflection || "What needs repeated return rather than final completion?"}`,
     nextStep: practicedCount && !reflectedCount
       ? "Reflect once on what the practice changed before widening the track."
       : stage.counsel || practice,
@@ -1728,6 +1737,62 @@ function updateSelectedClockDrawer(layerName, datum) {
       }
     }
   }
+}
+
+function refreshSelectedJourneyDrawer() {
+  if (uiState.selectedClockLayer && uiState.selectedClockDatum) {
+    updateSelectedClockDrawer(uiState.selectedClockLayer, uiState.selectedClockDatum);
+  }
+}
+
+function getSelectedJourney() {
+  if (!uiState.selectedJourneyTrackId || !uiState.selectedClockLayer || !uiState.selectedClockDatum) {
+    return null;
+  }
+  const journey = buildSelectedClockJourney(uiState.selectedClockLayer, uiState.selectedClockDatum);
+  return journey.trackId ? journey : null;
+}
+
+function setupSelectedTrackControls() {
+  if (!drawerElements.selectedTrackPractice || !drawerElements.selectedTrackReflect) {
+    return;
+  }
+
+  drawerElements.selectedTrackPractice.addEventListener("click", () => {
+    const journey = getSelectedJourney();
+    if (!journey) {
+      return;
+    }
+    patchJourneyTrackState(journey.trackId, {
+      selectedAt: getJourneyTrackState(journey.trackId).selectedAt || new Date().toISOString(),
+      practicedAt: new Date().toISOString(),
+      practice: journey.practice,
+    });
+    refreshSelectedJourneyDrawer();
+    setActionNotice(`Track practice marked for ${journey.title}.`);
+  });
+
+  drawerElements.selectedTrackReflect.addEventListener("click", () => {
+    const journey = getSelectedJourney();
+    if (!journey) {
+      return;
+    }
+    const prompt = journey.progress?.reflectionPrompt || journey.reflection;
+    patchJourneyTrackState(journey.trackId, {
+      selectedAt: getJourneyTrackState(journey.trackId).selectedAt || new Date().toISOString(),
+      reflectionPrompt: prompt,
+    });
+    uiState.reflectionOpen = true;
+    uiState.closingOpen = false;
+    setMode("reflection");
+    refreshSelectedJourneyDrawer();
+    requestAnimationFrame(() => {
+      if (drawerElements.reflectionInput) {
+        drawerElements.reflectionInput.value = prompt;
+        drawerElements.reflectionInput.focus();
+      }
+    });
+  });
 }
 
 function clearNativeSvgFocus(event) {
@@ -2708,10 +2773,11 @@ function setupActionLoopControls() {
     if (selectedTrackId) {
       patchJourneyTrackState(selectedTrackId, {
         practicedAt: new Date().toISOString(),
+        practice: uiState.selectedClockLayer && uiState.selectedClockDatum
+          ? buildSelectedClockJourney(uiState.selectedClockLayer, uiState.selectedClockDatum).practice
+          : "",
       });
-      if (uiState.selectedClockLayer && uiState.selectedClockDatum) {
-        updateSelectedClockDrawer(uiState.selectedClockLayer, uiState.selectedClockDatum);
-      }
+      refreshSelectedJourneyDrawer();
     }
     setActionNotice(`Practice marked for ${context.label}.`);
   });
@@ -2807,11 +2873,10 @@ function setupActionLoopControls() {
     if (selectedTrackId) {
       patchJourneyTrackState(selectedTrackId, {
         reflectedAt: new Date().toISOString(),
+        reflectionPrompt: getSelectedJourney()?.progress?.reflectionPrompt || "",
         reflection,
       });
-      if (uiState.selectedClockLayer && uiState.selectedClockDatum) {
-        updateSelectedClockDrawer(uiState.selectedClockLayer, uiState.selectedClockDatum);
-      }
+      refreshSelectedJourneyDrawer();
     }
     uiState.reflectionOpen = false;
     setActionNotice(`Reflection saved for ${context.dateKey}.`);
@@ -5329,7 +5394,9 @@ function normalizeDailyActionEntry(entry) {
         trackId: normalizedTrackId,
         selectedAt: String(trackEntry.selectedAt || "").trim(),
         practicedAt: String(trackEntry.practicedAt || "").trim(),
+        practice: String(trackEntry.practice || "").trim(),
         reflectedAt: String(trackEntry.reflectedAt || "").trim(),
+        reflectionPrompt: String(trackEntry.reflectionPrompt || "").trim(),
         reflection: String(trackEntry.reflection || "").trim(),
       });
     });
@@ -11540,6 +11607,7 @@ async function initialiseClock() {
   setupLensControls();
   setupDrawerToggle();
   setupDailyOpeningControls();
+  setupSelectedTrackControls();
   setupActionLoopControls();
   setupHistoryReviewControls();
   setupHistoryLaunchControls();

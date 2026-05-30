@@ -34,6 +34,7 @@ Status update (May 28, 2026):
 - Deepened Journey Tracks with a drawer-owned path panel for selected life aspects.
 - The panel now computes a non-percentage stage, reverse-Fibonacci cadence label, recent saved trail, and next practice counsel from `journeyTracks`.
 - This keeps the clock primary while moving deeper formation context into the side drawer.
+- Added direct track actions so the selected path can mark its own practice and open a track-specific reflection prompt that persists with the same synced `journeyTracks` history.
 
 ### SVG Seal Rendering Track (Advise-Only)
 
