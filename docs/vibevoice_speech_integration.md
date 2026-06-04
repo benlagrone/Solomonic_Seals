@@ -15,9 +15,10 @@ For Contabo/IPsec deployments, use:
 
 ```text
 SOLOMONIC_VIBEVOICE_API_BASE=http://192.168.0.126:8011
+SOLOMONIC_VIBEVOICE_FALLBACK_API_BASE=http://192.168.0.126:8013
 ```
 
-The proxy also accepts `VIBEVOICE_API_TOKEN` as a fallback token env var.
+The proxy also accepts `VIBEVOICE_API_TOKEN` as a fallback token env var. If the GPU-backed VibeVoice service on `8011` is unavailable, the server falls back to the Fortress Azure Voice service on `8013`, which uses the same job and audio URL contract.
 
 ## Token Retrieval
 

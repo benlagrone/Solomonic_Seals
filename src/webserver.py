@@ -127,13 +127,16 @@ CLIENT_ERRORS_API_PATH = "/api/client-errors"
 VIBEVOICE_TTS_JOBS_API_PATH = "/api/vibevoice/tts/jobs"
 VIBEVOICE_AUDIO_API_PATH = "/api/vibevoice/audio"
 VIBEVOICE_API_BASE_ENV = "SOLOMONIC_VIBEVOICE_API_BASE"
+VIBEVOICE_FALLBACK_API_BASE_ENV = "SOLOMONIC_VIBEVOICE_FALLBACK_API_BASE"
 VIBEVOICE_API_TOKEN_ENV = "SOLOMONIC_VIBEVOICE_API_TOKEN"
 FORTRESS_VIBEVOICE_API_TOKEN_ENV = "VIBEVOICE_API_TOKEN"
 VIBEVOICE_PROJECT_ID_ENV = "SOLOMONIC_VIBEVOICE_PROJECT_ID"
 VIBEVOICE_SPEAKER_ENV = "SOLOMONIC_VIBEVOICE_SPEAKER"
 DEFAULT_VIBEVOICE_API_BASE = "http://192.168.0.126:8011"
+DEFAULT_VIBEVOICE_FALLBACK_API_BASE = "http://192.168.0.126:8013"
 DEFAULT_VIBEVOICE_PROJECT_ID = "solomonic-seals"
 DEFAULT_VIBEVOICE_SPEAKER = "Carter"
+DEFAULT_VIBEVOICE_FALLBACK_SPEAKER = "en-US-AdamMultilingualNeural"
 MAX_VIBEVOICE_TEXT_LENGTH = 6000
 KEY_OF_SOLOMON_SOURCE = "key_of_solomon_esotericarchives.txt"
 KEY_OF_SOLOMON_BOOK = "Key of Solomon, Book II"
@@ -1778,6 +1781,13 @@ def _resolve_vibevoice_api_base_url() -> str:
     return (os.environ.get(VIBEVOICE_API_BASE_ENV, "").strip() or DEFAULT_VIBEVOICE_API_BASE).rstrip("/")
 
 
+def _resolve_vibevoice_fallback_api_base_url() -> str:
+    return (
+        os.environ.get(VIBEVOICE_FALLBACK_API_BASE_ENV, "").strip()
+        or DEFAULT_VIBEVOICE_FALLBACK_API_BASE
+    ).rstrip("/")
+
+
 def _resolve_vibevoice_api_token() -> str:
     return (
         os.environ.get(VIBEVOICE_API_TOKEN_ENV, "").strip()
@@ -1797,6 +1807,7 @@ def _fetch_vibevoice_json(
     *,
     payload: dict[str, Any] | None = None,
     timeout: float = 20.0,
+    base_url: str | None = None,
 ) -> dict[str, Any]:
     clean_path = str(path or "").strip()
     if not clean_path.startswith("/"):
@@ -1814,7 +1825,7 @@ def _fetch_vibevoice_json(
         method = "POST"
 
     request = Request(
-        f"{_resolve_vibevoice_api_base_url()}{clean_path}",
+        f"{(base_url or _resolve_vibevoice_api_base_url()).rstrip('/')}{clean_path}",
         data=body,
         headers=headers,
         method=method,
@@ -1837,6 +1848,40 @@ def _fetch_vibevoice_json(
     if response_payload.get("audio_url"):
         response_payload["proxy_audio_url"] = _build_vibevoice_proxy_audio_url(response_payload.get("audio_url"))
     return response_payload
+
+
+def _is_vibevoice_service_unavailable(error: ValueError) -> bool:
+    return str(error).startswith("VibeVoice service unavailable:")
+
+
+def _build_vibevoice_fallback_payload(request_payload: dict[str, Any]) -> dict[str, Any]:
+    fallback_payload = dict(request_payload)
+    fallback_payload["speaker_name"] = DEFAULT_VIBEVOICE_FALLBACK_SPEAKER
+    fallback_payload["language"] = "en-US"
+    return fallback_payload
+
+
+def _fetch_vibevoice_audio(audio_url: str) -> tuple[bytes, str]:
+    headers = {
+        "Accept": "audio/wav,audio/*;q=0.9,*/*;q=0.1",
+        **(
+            {"Authorization": f"Bearer {_resolve_vibevoice_api_token()}"}
+            if _resolve_vibevoice_api_token()
+            else {}
+        ),
+    }
+    last_error: Exception | None = None
+    for base_url in (_resolve_vibevoice_api_base_url(), _resolve_vibevoice_fallback_api_base_url()):
+        request = Request(f"{base_url}{audio_url}", headers=headers)
+        try:
+            with urlopen(request, timeout=60) as response:
+                return response.read(), response.headers.get_content_type() or "audio/wav"
+        except URLError as exc:
+            last_error = exc
+            continue
+    if last_error:
+        raise last_error
+    raise ValueError("No VibeVoice audio base URL is configured.")
 
 
 def _vibevoice_error_status(error: ValueError) -> HTTPStatus:
@@ -1881,6 +1926,16 @@ def _build_vibevoice_job_payload(payload: dict[str, Any]) -> tuple[dict[str, Any
     try:
         return _fetch_vibevoice_json("/v1/tts/jobs", payload=request_payload, timeout=20), None, HTTPStatus.ACCEPTED
     except ValueError as exc:
+        if _is_vibevoice_service_unavailable(exc):
+            try:
+                return _fetch_vibevoice_json(
+                    "/v1/tts/jobs",
+                    payload=_build_vibevoice_fallback_payload(request_payload),
+                    timeout=20,
+                    base_url=_resolve_vibevoice_fallback_api_base_url(),
+                ), None, HTTPStatus.ACCEPTED
+            except ValueError:
+                pass
         return None, str(exc), _vibevoice_error_status(exc)
 
 
@@ -1890,7 +1945,12 @@ def _build_vibevoice_job_status_payload(job_id: str) -> tuple[dict[str, Any] | N
         return None, "Invalid VibeVoice job id.", HTTPStatus.BAD_REQUEST
 
     try:
-        return _fetch_vibevoice_json(f"/v1/tts/jobs/{clean_job_id}", timeout=10), None, HTTPStatus.OK
+        base_url = (
+            _resolve_vibevoice_fallback_api_base_url()
+            if clean_job_id.startswith("azv-")
+            else _resolve_vibevoice_api_base_url()
+        )
+        return _fetch_vibevoice_json(f"/v1/tts/jobs/{clean_job_id}", timeout=10, base_url=base_url), None, HTTPStatus.OK
     except ValueError as exc:
         return None, str(exc), _vibevoice_error_status(exc)
 
@@ -3764,21 +3824,8 @@ class ClockRequestHandler(SimpleHTTPRequestHandler):
                 self._send_json({"error": "Invalid VibeVoice audio URL."}, HTTPStatus.BAD_REQUEST, send_body=send_body)
                 return True
 
-            request = Request(
-                f"{_resolve_vibevoice_api_base_url()}{audio_url}",
-                headers={
-                    "Accept": "audio/wav,audio/*;q=0.9,*/*;q=0.1",
-                    **(
-                        {"Authorization": f"Bearer {_resolve_vibevoice_api_token()}"}
-                        if _resolve_vibevoice_api_token()
-                        else {}
-                    ),
-                },
-            )
             try:
-                with urlopen(request, timeout=60) as response:
-                    audio_body = response.read()
-                    content_type = response.headers.get_content_type() or "audio/wav"
+                audio_body, content_type = _fetch_vibevoice_audio(audio_url)
             except HTTPError as exc:
                 detail = exc.read().decode("utf-8", errors="replace").strip()
                 self._send_json(
