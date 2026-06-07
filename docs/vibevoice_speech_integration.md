@@ -66,7 +66,35 @@ The frontend sends only text. The backend constructs the Fortress payload with:
 - `cfg_scale`: `1.5`
 - `output_subdir`: `audio/vibevoice`
 
+## Client-Side Production Smoke
+
+Use the smoke script from this repo to verify the True Vine OS client contract without touching Fortress host services:
+
+```bash
+scripts/vibevoice_smoke.sh https://truevineos.cloud
+```
+
+To assert a specific engine:
+
+```bash
+scripts/vibevoice_smoke.sh https://truevineos.cloud azure-speech
+scripts/vibevoice_smoke.sh https://truevineos.cloud mock
+scripts/vibevoice_smoke.sh https://truevineos.cloud official
+```
+
+The script creates a short job through `POST /api/vibevoice/tts/jobs`, polls `GET /api/vibevoice/tts/jobs/{job_id}` when needed, downloads the returned `proxy_audio_url`, and fails if the audio response is missing or empty.
+
+This is the client boundary. Do not reboot or mutate Fortress from this workflow. If primary VibeVoice on `8011` is unavailable, write or update a Fortress LAN handoff and keep production using the configured fallback until Fortress-side investigation resolves it.
+
 ## Verified Result
+
+On 2026-06-07 UTC, production smoke testing succeeded through the public True Vine OS endpoint:
+
+- Base URL: `https://truevineos.cloud`
+- Created job: `azv-20260607-020349-83ca`
+- Engine: `azure-speech`
+- Status: `completed`
+- Audio bytes: `211246`
 
 On 2026-05-23, local proxy testing succeeded through the Tailscale route:
 
