@@ -1986,8 +1986,9 @@ def _build_vibevoice_health_payload() -> dict[str, Any]:
     primary_base_url = _resolve_vibevoice_api_base_url()
     fallback_base_url = _resolve_vibevoice_fallback_api_base_url()
     token_configured = bool(_resolve_vibevoice_api_token())
+    routes_configured = bool(primary_base_url or fallback_base_url)
     return {
-        "status": "configured" if token_configured else "missing_token",
+        "status": "configured" if routes_configured else "missing_route",
         "client_boundary": "same-origin proxy; browser never receives Fortress token",
         "primary": {
             "role": "primary",

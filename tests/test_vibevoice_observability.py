@@ -29,7 +29,7 @@ class VibeVoiceObservabilityTests(unittest.TestCase):
         self.assertEqual(payload["fallback"]["engine"], "azure-speech")
         self.assertNotIn("secret-token", repr(payload))
 
-    def test_health_payload_marks_missing_token(self) -> None:
+    def test_health_payload_keeps_token_presence_separate_from_route_readiness(self) -> None:
         with patch.dict(
             os.environ,
             {
@@ -40,7 +40,7 @@ class VibeVoiceObservabilityTests(unittest.TestCase):
         ):
             payload = _build_vibevoice_health_payload()
 
-        self.assertEqual(payload["status"], "missing_token")
+        self.assertEqual(payload["status"], "configured")
         self.assertFalse(payload["token_configured"])
 
     def test_job_annotation_infers_fallback_engine_and_proxy_audio_url(self) -> None:
