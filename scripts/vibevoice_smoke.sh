@@ -12,6 +12,7 @@ Examples:
 
 This is a client-side smoke test for True Vine OS Speak. It does not touch
 Fortress host services. It verifies:
+  - GET /api/vibevoice/health exposes the proxy configuration boundary
   - POST /api/vibevoice/tts/jobs creates or completes a speech job
   - GET /api/vibevoice/tts/jobs/{job_id} can read the job
   - GET /api/vibevoice/audio?... returns a non-empty WAV/audio response
@@ -39,11 +40,28 @@ tmp_dir="$(mktemp -d "${TMPDIR:-/tmp}/truevineos-vibevoice-smoke.XXXXXX")"
 trap 'rm -rf "${tmp_dir}"' EXIT
 
 job_json="${tmp_dir}/job.json"
+health_json="${tmp_dir}/health.json"
 status_json="${tmp_dir}/status.json"
 audio_file="${tmp_dir}/speech.wav"
 headers_file="${tmp_dir}/audio.headers"
 
 echo "==> Speak smoke: ${base_url}"
+
+curl -fsS --max-time 15 "${base_url}/api/vibevoice/health" -o "${health_json}"
+health_status="$(python3 - "$health_json" <<'PY'
+import json
+import sys
+
+with open(sys.argv[1], "r", encoding="utf-8") as handle:
+    data = json.load(handle)
+print(data.get("status", ""))
+PY
+)"
+if [[ "${health_status}" != "configured" ]]; then
+  echo "Speak smoke failed: /api/vibevoice/health status is ${health_status:-<empty>}." >&2
+  cat "${health_json}" >&2
+  exit 1
+fi
 
 curl -fsS --max-time 45 \
   -H "Content-Type: application/json" \
@@ -137,5 +155,6 @@ esac
 
 echo "OK: job_id=${job_id}"
 echo "OK: engine=${engine:-unknown}"
+echo "OK: health=${health_status}"
 echo "OK: status=${status}"
 echo "OK: audio_bytes=${audio_bytes}"

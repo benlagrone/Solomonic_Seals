@@ -126,6 +126,7 @@ PERICOPE_HISTORY_SESSIONS_API_PATH = "/api/pericope/history-sessions"
 CLIENT_ERRORS_API_PATH = "/api/client-errors"
 VIBEVOICE_TTS_JOBS_API_PATH = "/api/vibevoice/tts/jobs"
 VIBEVOICE_AUDIO_API_PATH = "/api/vibevoice/audio"
+VIBEVOICE_HEALTH_API_PATH = "/api/vibevoice/health"
 VIBEVOICE_API_BASE_ENV = "SOLOMONIC_VIBEVOICE_API_BASE"
 VIBEVOICE_FALLBACK_API_BASE_ENV = "SOLOMONIC_VIBEVOICE_FALLBACK_API_BASE"
 VIBEVOICE_API_TOKEN_ENV = "SOLOMONIC_VIBEVOICE_API_TOKEN"
@@ -1802,6 +1803,30 @@ def _build_vibevoice_proxy_audio_url(audio_url: Any) -> str:
     return f"{VIBEVOICE_AUDIO_API_PATH}?url={quote(clean_url, safe='')}"
 
 
+def _infer_vibevoice_engine(payload: dict[str, Any], route: str) -> str:
+    engine = str(payload.get("engine") or payload.get("provider") or "").strip()
+    if engine:
+        return engine
+
+    job_id = str(payload.get("job_id") or "").strip().lower()
+    if job_id.startswith("azv-"):
+        return "azure-speech"
+    if route == "fallback":
+        return "azure-speech"
+    return ""
+
+
+def _annotate_vibevoice_response(response_payload: dict[str, Any], route: str) -> dict[str, Any]:
+    response_payload["proxy_route"] = route
+    engine = _infer_vibevoice_engine(response_payload, route)
+    if engine:
+        response_payload.setdefault("engine", engine)
+        response_payload["proxy_engine"] = engine
+    if response_payload.get("audio_url"):
+        response_payload["proxy_audio_url"] = _build_vibevoice_proxy_audio_url(response_payload.get("audio_url"))
+    return response_payload
+
+
 def _fetch_vibevoice_json(
     path: str,
     *,
@@ -1845,8 +1870,6 @@ def _fetch_vibevoice_json(
 
     if not isinstance(response_payload, dict):
         raise ValueError("VibeVoice response was not a JSON object.")
-    if response_payload.get("audio_url"):
-        response_payload["proxy_audio_url"] = _build_vibevoice_proxy_audio_url(response_payload.get("audio_url"))
     return response_payload
 
 
@@ -1924,16 +1947,18 @@ def _build_vibevoice_job_payload(payload: dict[str, Any]) -> tuple[dict[str, Any
     }
 
     try:
-        return _fetch_vibevoice_json("/v1/tts/jobs", payload=request_payload, timeout=20), None, HTTPStatus.ACCEPTED
+        response_payload = _fetch_vibevoice_json("/v1/tts/jobs", payload=request_payload, timeout=20)
+        return _annotate_vibevoice_response(response_payload, "primary"), None, HTTPStatus.ACCEPTED
     except ValueError as exc:
         if _is_vibevoice_service_unavailable(exc):
             try:
-                return _fetch_vibevoice_json(
+                response_payload = _fetch_vibevoice_json(
                     "/v1/tts/jobs",
                     payload=_build_vibevoice_fallback_payload(request_payload),
                     timeout=20,
                     base_url=_resolve_vibevoice_fallback_api_base_url(),
-                ), None, HTTPStatus.ACCEPTED
+                )
+                return _annotate_vibevoice_response(response_payload, "fallback"), None, HTTPStatus.ACCEPTED
             except ValueError:
                 pass
         return None, str(exc), _vibevoice_error_status(exc)
@@ -1950,9 +1975,38 @@ def _build_vibevoice_job_status_payload(job_id: str) -> tuple[dict[str, Any] | N
             if clean_job_id.startswith("azv-")
             else _resolve_vibevoice_api_base_url()
         )
-        return _fetch_vibevoice_json(f"/v1/tts/jobs/{clean_job_id}", timeout=10, base_url=base_url), None, HTTPStatus.OK
+        route = "fallback" if base_url == _resolve_vibevoice_fallback_api_base_url() else "primary"
+        response_payload = _fetch_vibevoice_json(f"/v1/tts/jobs/{clean_job_id}", timeout=10, base_url=base_url)
+        return _annotate_vibevoice_response(response_payload, route), None, HTTPStatus.OK
     except ValueError as exc:
         return None, str(exc), _vibevoice_error_status(exc)
+
+
+def _build_vibevoice_health_payload() -> dict[str, Any]:
+    primary_base_url = _resolve_vibevoice_api_base_url()
+    fallback_base_url = _resolve_vibevoice_fallback_api_base_url()
+    token_configured = bool(_resolve_vibevoice_api_token())
+    return {
+        "status": "configured" if token_configured else "missing_token",
+        "client_boundary": "same-origin proxy; browser never receives Fortress token",
+        "primary": {
+            "role": "primary",
+            "base_url_configured": bool(primary_base_url),
+            "engine": "official",
+            "route": "fortress-vibevoice",
+        },
+        "fallback": {
+            "role": "fallback",
+            "base_url_configured": bool(fallback_base_url),
+            "engine": "azure-speech",
+            "route": "fortress-azure-voice",
+        },
+        "token_configured": token_configured,
+        "project_id": str(os.environ.get(VIBEVOICE_PROJECT_ID_ENV, "") or DEFAULT_VIBEVOICE_PROJECT_ID).strip(),
+        "speaker_name": str(os.environ.get(VIBEVOICE_SPEAKER_ENV, "") or DEFAULT_VIBEVOICE_SPEAKER).strip(),
+        "fallback_speaker_name": DEFAULT_VIBEVOICE_FALLBACK_SPEAKER,
+        "max_text_length": MAX_VIBEVOICE_TEXT_LENGTH,
+    }
 
 
 def _build_history_actor_payload(actor: dict[str, Any]) -> dict[str, Any]:
@@ -3621,6 +3675,10 @@ class ClockRequestHandler(SimpleHTTPRequestHandler):
                 return True
 
             self._send_json(data, HTTPStatus.OK, send_body=send_body)
+            return True
+
+        if normalized_path == VIBEVOICE_HEALTH_API_PATH:
+            self._send_json(_build_vibevoice_health_payload(), HTTPStatus.OK, send_body=send_body)
             return True
 
         if normalized_path == "/api/psalm":

@@ -447,6 +447,7 @@ const PSALM_API_ENDPOINT = "/api/psalm";
 const BOOK_PARTIAL_API_ENDPOINT = "/api/pericope/book-partial";
 const CLIENT_ERRORS_API_ENDPOINT = "/api/client-errors";
 const VIBEVOICE_TTS_JOBS_API_ENDPOINT = "/api/vibevoice/tts/jobs";
+const VIBEVOICE_HEALTH_API_ENDPOINT = "/api/vibevoice/health";
 const ENABLE_REMOTE_SCRIPTURE_FETCH = true;
 const CLIENT_ERROR_DEDUPE_WINDOW_MS = 90_000;
 const SCRIPTURE_READER_SUPPORTED = typeof window !== "undefined"
@@ -7694,6 +7695,31 @@ async function fetchVibeVoiceJson(endpoint, options = {}) {
   return payload;
 }
 
+function formatVibeVoiceEngineLabel(job = {}) {
+  const engine = String(job.proxy_engine || job.engine || "").trim().toLowerCase();
+  if (engine === "azure-speech" || engine === "azure") {
+    return "Azure Speech";
+  }
+  if (engine === "official" || engine === "vibevoice") {
+    return "VibeVoice";
+  }
+  if (engine === "mock") {
+    return "mock VibeVoice";
+  }
+  return "voice service";
+}
+
+function buildVibeVoiceAudioResult(job, audioUrl) {
+  return {
+    audioUrl,
+    jobId: String(job?.job_id || "").trim(),
+    status: String(job?.status || "").trim(),
+    engine: String(job?.proxy_engine || job?.engine || "").trim(),
+    route: String(job?.proxy_route || "").trim(),
+    engineLabel: formatVibeVoiceEngineLabel(job),
+  };
+}
+
 async function requestVibeVoiceAudio({ speechText, token, tokenType }) {
   const createPayload = await fetchVibeVoiceJson(VIBEVOICE_TTS_JOBS_API_ENDPOINT, {
     method: "POST",
@@ -7720,7 +7746,7 @@ async function requestVibeVoiceAudio({ speechText, token, tokenType }) {
       if (!audioUrl) {
         throw new Error("VibeVoice completed without an audio URL.");
       }
-      return audioUrl;
+      return buildVibeVoiceAudioResult(job, audioUrl);
     }
     if (job.status === "failed") {
       throw new Error(job.detail || "VibeVoice audio generation failed.");
@@ -7836,12 +7862,13 @@ async function speakBundlePassage(kind) {
   renderBundleAudioControls();
 
   try {
-    const audioUrl = await requestVibeVoiceAudio({ speechText, token, tokenType: "bundle" });
-    if (!audioUrl || token !== bundleSpeechToken) {
+    const audioResult = await requestVibeVoiceAudio({ speechText, token, tokenType: "bundle" });
+    if (!audioResult?.audioUrl || token !== bundleSpeechToken) {
       return;
     }
+    setScriptureReaderStatus(`Generated ${kind} speech via ${audioResult.engineLabel}.`);
     renderBundleAudioControls();
-    await playVibeVoiceAudioUrl(audioUrl, token, "bundle");
+    await playVibeVoiceAudioUrl(audioResult.audioUrl, token, "bundle");
     if (token !== bundleSpeechToken) {
       return;
     }
@@ -8078,18 +8105,18 @@ async function speakScriptureReaderPassage() {
   renderScriptureReader(true);
 
   try {
-    const audioUrl = await requestVibeVoiceAudio({ speechText, token, tokenType: "reader" });
-    if (!audioUrl || token !== scriptureReaderSpeechToken) {
+    const audioResult = await requestVibeVoiceAudio({ speechText, token, tokenType: "reader" });
+    if (!audioResult?.audioUrl || token !== scriptureReaderSpeechToken) {
       return;
     }
-    setScriptureReaderStatus(`Playing ${display.reference}.`);
+    setScriptureReaderStatus(`Playing ${display.reference} via ${audioResult.engineLabel}.`);
     renderScriptureReader(true);
-    await playVibeVoiceAudioUrl(audioUrl, token, "reader");
+    await playVibeVoiceAudioUrl(audioResult.audioUrl, token, "reader");
     if (token !== scriptureReaderSpeechToken) {
       return;
     }
     scriptureReaderState.speaking = false;
-    setScriptureReaderStatus(`Finished reading ${display.reference}.`);
+    setScriptureReaderStatus(`Finished reading ${display.reference} via ${audioResult.engineLabel}.`);
     renderScriptureReader(true);
   } catch (error) {
     console.error("Failed to play scripture reader VibeVoice audio", error);

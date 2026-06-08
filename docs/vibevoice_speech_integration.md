@@ -54,6 +54,7 @@ Press `Speak` in the Scripture Reader or Daily Content Bundle.
 
 ## Proxy Endpoints
 
+- `GET /api/vibevoice/health`
 - `POST /api/vibevoice/tts/jobs`
 - `GET /api/vibevoice/tts/jobs/{job_id}`
 - `GET /api/vibevoice/audio?url=<encoded /files/... URL>`
@@ -65,6 +66,16 @@ The frontend sends only text. The backend constructs the Fortress payload with:
 - `speaker_name`: `Carter`
 - `cfg_scale`: `1.5`
 - `output_subdir`: `audio/vibevoice`
+
+`GET /api/vibevoice/health` is a passive client-side diagnostics endpoint. It reports whether the app proxy has token configuration, whether primary/fallback routes are configured, and the expected primary/fallback engines. It does not contact, restart, or mutate Fortress services.
+
+Job responses are annotated by the app proxy with:
+
+- `proxy_route`: `primary` or `fallback`
+- `proxy_engine`: inferred or upstream-reported engine, such as `official`, `mock`, or `azure-speech`
+- `proxy_audio_url`: same-origin audio URL safe for browser playback
+
+The Clock UI preserves this metadata and reports the engine in Speak status text, for example `Playing Psalm 40:13 via Azure Speech.`
 
 ## Client-Side Production Smoke
 
@@ -82,7 +93,7 @@ scripts/vibevoice_smoke.sh https://truevineos.cloud mock
 scripts/vibevoice_smoke.sh https://truevineos.cloud official
 ```
 
-The script creates a short job through `POST /api/vibevoice/tts/jobs`, polls `GET /api/vibevoice/tts/jobs/{job_id}` when needed, downloads the returned `proxy_audio_url`, and fails if the audio response is missing or empty.
+The script checks `GET /api/vibevoice/health`, creates a short job through `POST /api/vibevoice/tts/jobs`, polls `GET /api/vibevoice/tts/jobs/{job_id}` when needed, downloads the returned `proxy_audio_url`, and fails if the audio response is missing or empty.
 
 This is the client boundary. Do not reboot or mutate Fortress from this workflow. If primary VibeVoice on `8011` is unavailable, write or update a Fortress LAN handoff and keep production using the configured fallback until Fortress-side investigation resolves it.
 

@@ -38,6 +38,7 @@ jobs:
           python3 src/validate_json.py
           node tests/test_scripture_study_page.mjs
           node tests/test_clock_drawer_contract.mjs
+          node tests/test_vibevoice_frontend_contract.mjs
 
       - name: Build Container For Smoke
         run: docker build -t solomonic-clock:ci .
