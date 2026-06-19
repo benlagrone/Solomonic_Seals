@@ -122,6 +122,10 @@ ENGLISH_PSALM_MARKERS = {
     "with",
 }
 BOOK_PARTIAL_API_PATH = "/api/pericope/book-partial"
+PERICOPE_GUIDED_PROMPTS_API_PATH = "/api/pericope/guided-prompts"
+CLOCK_CONTEXT_API_PATH = "/api/clock/context"
+CLOCK_CONTENT_BUNDLE_API_PATH = "/api/clock/content-bundle"
+CLOCK_WISDOM_ANCHOR_API_PATH = "/api/clock/wisdom-anchor"
 PERICOPE_HISTORY_SESSIONS_API_PATH = "/api/pericope/history-sessions"
 CLIENT_ERRORS_API_PATH = "/api/client-errors"
 VIBEVOICE_TTS_JOBS_API_PATH = "/api/vibevoice/tts/jobs"
@@ -304,35 +308,14 @@ PLANETARY_CORRESPONDENCES = {
     "Venus": {"color": "Emerald", "metal": "Copper", "angel": "Anael"},
     "Saturn": {"color": "Black", "metal": "Lead", "angel": "Cassiel"},
 }
-WISDOM_CONTENT_BY_RULER = {
-    "Sun": {
-        "ref": "Proverbs 4:18",
-        "text": "The path of the just is as the shining light, that shineth more and more unto the perfect day.",
-    },
-    "Moon": {
-        "ref": "Ecclesiastes 3:1",
-        "text": "To every thing there is a season, and a time to every purpose under the heaven.",
-    },
-    "Mars": {
-        "ref": "Proverbs 24:10",
-        "text": "If thou faint in the day of adversity, thy strength is small.",
-    },
-    "Mercury": {
-        "ref": "Proverbs 18:21",
-        "text": "Death and life are in the power of the tongue.",
-    },
-    "Jupiter": {
-        "ref": "Proverbs 11:25",
-        "text": "The liberal soul shall be made fat: and he that watereth shall be watered also himself.",
-    },
-    "Venus": {
-        "ref": "Proverbs 15:1",
-        "text": "A soft answer turneth away wrath: but grievous words stir up anger.",
-    },
-    "Saturn": {
-        "ref": "Proverbs 25:28",
-        "text": "He that hath no rule over his own spirit is like a city that is broken down, and without walls.",
-    },
+WISDOM_REFERENCE_BY_RULER = {
+    "Sun": "Proverbs 4:18",
+    "Moon": "Ecclesiastes 3:1",
+    "Mars": "Proverbs 24:10",
+    "Mercury": "Proverbs 18:21",
+    "Jupiter": "Proverbs 11:25",
+    "Venus": "Proverbs 15:1",
+    "Saturn": "Proverbs 25:28",
 }
 FALLBACK_DAILY_PSALM_BY_RULER = {
     "Sun": {"chapter": 19, "verse": 1},
@@ -2433,6 +2416,34 @@ def _extract_numbered_scripture_verse(excerpt: str, verse: str | None) -> str:
     return re.sub(r"\s+", " ", " ".join(parts)).strip()
 
 
+def _get_wisdom_reference_for_ruler(ruler: str | None) -> str:
+    return WISDOM_REFERENCE_BY_RULER.get(str(ruler or "").strip(), "Proverbs 16:3")
+
+
+def _load_wisdom_anchor_excerpt(reference: str) -> str:
+    book, _chapter, verse_spec = _parse_scripture_reference(reference)
+    if not book:
+        return ""
+
+    target, _error, status = _resolve_wisdom_book_partial_target(
+        {
+            "kind": "wisdom",
+            "reference": reference,
+        }
+    )
+    if target is None or status != HTTPStatus.OK:
+        return ""
+
+    payload, _local_error = _build_local_book_partial_payload(target)
+    if payload is None:
+        return ""
+
+    verses = _expand_verse_specification(verse_spec or "")
+    if not verses:
+        return str(payload.get("content") or "").strip()
+    return _extract_numbered_scripture_verse(str(payload.get("content") or ""), verses[0])
+
+
 def _flatten_pentacles(groups: list[dict[str, Any]]) -> list[dict[str, Any]]:
     flattened: list[dict[str, Any]] = []
     for group_index, group in enumerate(groups):
@@ -2668,7 +2679,7 @@ def _build_weekly_arc_entry(
     target = target + timedelta(days=offset)
     day_label = _get_planetary_day_label(target)
     guidance = PLANETARY_DAY_GUIDANCE.get(day_label["rulerText"], {})
-    wisdom = WISDOM_CONTENT_BY_RULER.get(day_label["rulerText"], {})
+    wisdom_ref = _get_wisdom_reference_for_ruler(day_label["rulerText"])
     week_fraction = _get_week_fraction(target) if derived["planetaryGroupCount"] else 0
     pentacle_index = int(week_fraction * derived["totalPentacles"]) % derived["totalPentacles"] if derived["totalPentacles"] else -1
     active_pentacle = derived["flatPentacles"][pentacle_index] if pentacle_index >= 0 else None
@@ -2697,7 +2708,7 @@ def _build_weekly_arc_entry(
         "focus": (active_pentacle or {}).get("pentacle", {}).get("focus", "Focus unavailable"),
         "tone": guidance.get("tone", "Steady, practical action is favored."),
         "psalmRef": psalm_ref,
-        "wisdomRef": wisdom.get("ref", "Proverbs 16:3"),
+        "wisdomRef": wisdom_ref,
     }
 
 
@@ -3040,7 +3051,8 @@ def _build_guided_prompts_payload(request_payload: dict[str, Any]) -> tuple[dict
     pentacle_record = reference_map.get(pentacle_key) if pentacle_key else None
     primary_psalm = _get_primary_psalm_entry(pentacle_record)
     readable_psalm = _format_psalm_reference(primary_psalm)
-    wisdom = WISDOM_CONTENT_BY_RULER.get(ruler_text, {})
+    wisdom_ref = _get_wisdom_reference_for_ruler(ruler_text)
+    wisdom_text = _load_wisdom_anchor_excerpt(wisdom_ref)
     correspondences = PLANETARY_CORRESPONDENCES.get(ruler_text, {})
     hour_rule = _get_planetary_hour_ruler(as_of, ruler_text)
 
@@ -3122,11 +3134,8 @@ def _build_guided_prompts_payload(request_payload: dict[str, Any]) -> tuple[dict
     content_bundle = {
         "psalm": {"ref": psalm_ref, "text": psalm_text},
         "wisdom": {
-            "ref": wisdom.get("ref", "Proverbs 16:3"),
-            "text": wisdom.get(
-                "text",
-                "Commit thy works unto the LORD, and thy thoughts shall be established.",
-            ),
+            "ref": wisdom_ref,
+            "text": wisdom_text,
         },
         "solomonic": {
             "ref": (
@@ -3187,6 +3196,64 @@ def _build_guided_prompts_payload(request_payload: dict[str, Any]) -> tuple[dict
         payload["mode"] = request_payload.get("mode")
 
     return payload, None, HTTPStatus.OK
+
+
+def _build_clock_context_payload(request_payload: dict[str, Any]) -> tuple[dict[str, Any] | None, str | None, HTTPStatus]:
+    base_payload = dict(request_payload)
+    base_payload.setdefault("limit", 1)
+    payload, error, status = _build_guided_prompts_payload(base_payload)
+    if payload is None:
+        return None, error, status
+
+    context_payload = dict(payload)
+    context_payload.pop("guided_prompts", None)
+    context_payload["source"] = {
+        **dict(context_payload.get("source") or {}),
+        "api": CLOCK_CONTEXT_API_PATH,
+    }
+    return context_payload, None, status
+
+
+def _build_clock_content_bundle_payload(request_payload: dict[str, Any]) -> tuple[dict[str, Any] | None, str | None, HTTPStatus]:
+    context_payload, error, status = _build_clock_context_payload(request_payload)
+    if context_payload is None:
+        return None, error, status
+
+    return {
+        "as_of": context_payload.get("as_of"),
+        "timezone": context_payload.get("timezone"),
+        "daily_guidance": context_payload.get("daily_guidance"),
+        "weekly_arc": context_payload.get("weekly_arc"),
+        "daily_profile": context_payload.get("daily_profile"),
+        "content_bundle": context_payload.get("content_bundle") or {},
+        "source": {
+            "service": "solomonic_clock",
+            "api": CLOCK_CONTENT_BUNDLE_API_PATH,
+            "derived_from": ["content_bundle", "daily_guidance", "weekly_arc", "daily_profile"],
+        },
+    }, None, status
+
+
+def _build_clock_wisdom_anchor_payload(request_payload: dict[str, Any]) -> tuple[dict[str, Any] | None, str | None, HTTPStatus]:
+    context_payload, error, status = _build_clock_context_payload(request_payload)
+    if context_payload is None:
+        return None, error, status
+
+    content_bundle = context_payload.get("content_bundle") or {}
+    wisdom = dict(content_bundle.get("wisdom") or {})
+    return {
+        "as_of": context_payload.get("as_of"),
+        "timezone": context_payload.get("timezone"),
+        "daily_guidance": context_payload.get("daily_guidance"),
+        "weekly_arc": context_payload.get("weekly_arc"),
+        "daily_profile": context_payload.get("daily_profile"),
+        "wisdom": wisdom,
+        "source": {
+            "service": "solomonic_clock",
+            "api": CLOCK_WISDOM_ANCHOR_API_PATH,
+            "derived_from": ["wisdom_reference_map", "source_text_resolver"],
+        },
+    }, None, status
 
 
 def _build_history_sync_get_payload(headers: Any) -> tuple[dict[str, Any] | None, str | None, HTTPStatus]:
@@ -3571,7 +3638,10 @@ class ClockRequestHandler(SimpleHTTPRequestHandler):
         request_path = parsed_url.path.rstrip("/")
 
         if request_path not in {
-            "/api/pericope/guided-prompts",
+            PERICOPE_GUIDED_PROMPTS_API_PATH,
+            CLOCK_CONTEXT_API_PATH,
+            CLOCK_CONTENT_BUNDLE_API_PATH,
+            CLOCK_WISDOM_ANCHOR_API_PATH,
             BOOK_PARTIAL_API_PATH,
             HISTORY_SYNC_API_PATH,
             CLIENT_ERRORS_API_PATH,
@@ -3580,7 +3650,7 @@ class ClockRequestHandler(SimpleHTTPRequestHandler):
             self.send_error(HTTPStatus.NOT_FOUND, "Unknown API route")
             return
 
-        if request_path == "/api/pericope/guided-prompts":
+        if request_path == PERICOPE_GUIDED_PROMPTS_API_PATH:
             allowed, status, error = self._authorize_guided_prompts_request()
             if not allowed:
                 self._send_json({"error": error or "Unauthorized."}, status)
@@ -3616,6 +3686,12 @@ class ClockRequestHandler(SimpleHTTPRequestHandler):
             response_payload, error, status = _build_client_error_post_payload(payload)
         elif request_path == VIBEVOICE_TTS_JOBS_API_PATH:
             response_payload, error, status = _build_vibevoice_job_payload(payload)
+        elif request_path == CLOCK_CONTEXT_API_PATH:
+            response_payload, error, status = _build_clock_context_payload(payload)
+        elif request_path == CLOCK_CONTENT_BUNDLE_API_PATH:
+            response_payload, error, status = _build_clock_content_bundle_payload(payload)
+        elif request_path == CLOCK_WISDOM_ANCHOR_API_PATH:
+            response_payload, error, status = _build_clock_wisdom_anchor_payload(payload)
         else:
             response_payload, error, status = _build_guided_prompts_payload(payload)
 
@@ -3976,6 +4052,9 @@ def main() -> None:
     print(f"Serving {args.root} on http://{args.host}:{args.port}")
     print("• Static assets are available directly (e.g. /web/clock_visualizer.html)")
     print("• Dataset endpoint: /api/clock")
+    print("• Clock context endpoint: /api/clock/context")
+    print("• Clock content bundle endpoint: /api/clock/content-bundle")
+    print("• Clock wisdom anchor endpoint: /api/clock/wisdom-anchor")
     print("• Local Psalms endpoint: /api/psalm?chapter=91&verse=11")
     print(f"• Psalms source mode: {source_mode} (set SOLOMONIC_PSALM_SOURCE_MODE to override)")
     print(
