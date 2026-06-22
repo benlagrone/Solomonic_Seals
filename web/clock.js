@@ -467,10 +467,20 @@ const bundleExpansionState = {
   solomonic: null,
 };
 const bundledPsalmMap = new Map();
+let clockDatasetSource = "unloaded";
+
+function setClockDatasetSource(source) {
+  clockDatasetSource = source;
+  if (typeof document !== "undefined" && document.body?.dataset) {
+    document.body.dataset.clockDataSource = source;
+  }
+}
 const PSALM_API_ENDPOINT = "/api/psalm";
 const CLOCK_CONTEXT_API_ENDPOINT = "/api/clock/context";
 const CLOCK_CONTENT_BUNDLE_API_ENDPOINT = "/api/clock/content-bundle";
 const CLOCK_WISDOM_ANCHOR_API_ENDPOINT = "/api/clock/wisdom-anchor";
+const CLOCK_DATA_API_ENDPOINT = "/api/clock";
+const CLOCK_DATA_FALLBACK_RESOURCE = "../data/solomonic_clock_full.json";
 const BOOK_PARTIAL_API_ENDPOINT = "/api/pericope/book-partial";
 const CLIENT_ERRORS_API_ENDPOINT = "/api/client-errors";
 const VIBEVOICE_TTS_JOBS_API_ENDPOINT = "/api/vibevoice/tts/jobs";
@@ -12415,12 +12425,15 @@ async function retrievePsalmText(chapter, verse) {
   return fallbackText;
 }
 
-async function fetchJsonResource(url, label) {
+async function fetchJsonResource(url, label, options = {}) {
+  const { cacheBust = true, fetchOptions = {} } = options;
   let response;
   const resourceUrl = new URL(url, window.location.href);
-  resourceUrl.searchParams.set("v", CLOCK_STATIC_DATA_VERSION);
+  if (cacheBust) {
+    resourceUrl.searchParams.set("v", CLOCK_STATIC_DATA_VERSION);
+  }
   try {
-    response = await fetch(resourceUrl.toString());
+    response = await fetch(resourceUrl.toString(), fetchOptions);
   } catch (error) {
     reportClientError("resource_fetch_error", {
       endpoint: resourceUrl.toString(),
@@ -12453,6 +12466,27 @@ async function fetchJsonResource(url, label) {
   }
 }
 
+async function fetchClockDataset() {
+  try {
+    const data = await fetchJsonResource(CLOCK_DATA_API_ENDPOINT, "clock data", {
+      cacheBust: false,
+      fetchOptions: { cache: "no-store" },
+    });
+    setClockDatasetSource("api");
+    return data;
+  } catch (apiError) {
+    console.warn("Falling back to bundled clock data", apiError);
+    reportClientError("clock_data_api_fallback", {
+      endpoint: CLOCK_DATA_API_ENDPOINT,
+      fallback: CLOCK_DATA_FALLBACK_RESOURCE,
+      message: apiError?.message || "Clock API failed; using bundled clock data.",
+    });
+    const data = await fetchJsonResource(CLOCK_DATA_FALLBACK_RESOURCE, "bundled clock data");
+    setClockDatasetSource("bundled_fallback");
+    return data;
+  }
+}
+
 async function initialiseClock() {
   setupDrawerContentMigration();
   setupAccountControls();
@@ -12477,7 +12511,7 @@ async function initialiseClock() {
 
   try {
     const [clockData, psalmData, pentacleData, lifeDomainData, scriptureData] = await Promise.all([
-      fetchJsonResource("../data/solomonic_clock_full.json", "clock data"),
+      fetchClockDataset(),
       fetchJsonResource("../data/pentacle_psalms.json", "psalm data"),
       fetchJsonResource("../data/pentacles.json", "pentacle data"),
       fetchJsonResource("../data/life_domains.json", "life domain data"),
