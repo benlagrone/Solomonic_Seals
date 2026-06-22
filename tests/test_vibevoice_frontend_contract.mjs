@@ -20,6 +20,7 @@ assertIncludes(js, "function buildVibeVoiceAudioResult", "Speak playback should 
 assertIncludes(js, "Playing ${display.reference} via ${audioResult.engineLabel}.", "Scripture reader should disclose the engine used for Speak playback");
 assertIncludes(js, "Finished reading ${display.reference} via ${audioResult.engineLabel}.", "Scripture reader should disclose the engine used after playback");
 assertIncludes(js, "Generated ${kind} speech via ${audioResult.engineLabel}.", "Bundle Speak should disclose the engine used");
-assertIncludes(html, "20260608-speech-diagnostics1", "clock asset version should bust cached JS for Speak diagnostics");
+assertIncludes(js, "function speakDrawerMeditation", "Drawer Speak should read the active drawer tab as a meditation");
+assertIncludes(html, "20260621-illumination1", "clock asset version should bust cached JS for drawer meditation Speak");
 
 console.log("vibevoice frontend contract tests: PASS");

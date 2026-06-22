@@ -185,16 +185,49 @@ body[data-daily-opening="open"] {
 .clock-wrapper {
   position: relative;
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
   align-self: stretch;
   min-height: 0;
 }
 
+.clock-readout {
+  display: grid;
+  gap: 0.16rem;
+  width: min(92vw, 800px);
+  margin: 0 auto clamp(0.35rem, 1.1vh, 0.7rem);
+  text-align: center;
+}
+
+.clock-readout p {
+  margin: 0;
+}
+
+.clock-readout-time {
+  color: #f8fafc;
+  font-size: clamp(1rem, 2.1vh, 1.34rem);
+  font-weight: 750;
+  line-height: 1.18;
+}
+
+.clock-readout-title {
+  color: #facc15;
+  font-size: clamp(0.78rem, 1.45vh, 0.98rem);
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.clock-readout-detail {
+  color: #aebdd2;
+  font-size: clamp(0.7rem, 1.15vh, 0.82rem);
+  line-height: 1.25;
+}
+
 .clock-wrapper #clock {
   display: block;
-  width: min(92vw, 88dvh, 800px);
-  height: min(92vw, 88dvh, 800px);
+  width: min(92vw, 80dvh, 800px);
+  height: min(92vw, 80dvh, 800px);
   max-width: 100%;
   max-height: 100%;
   -webkit-tap-highlight-color: transparent;
@@ -291,6 +324,19 @@ svg#clock *:focus-visible {
 body[data-drawer-open="true"] .primary-drawer-button {
   opacity: 0;
   pointer-events: none;
+}
+
+@media (pointer: coarse) {
+  .primary-drawer-button,
+  .action-button,
+  .presentation-button,
+  .lens-button,
+  .scripture-reader-tab,
+  .weekly-arc-button,
+  .selected-track-practice,
+  .selected-track-reflect {
+    min-height: 44px;
+  }
 }
 
 .daily-opening-overlay {
@@ -595,6 +641,58 @@ body[data-drawer-open="true"] .primary-drawer-button {
   font-size: 0.92rem;
   line-height: 1.5;
   color: #dbe4f0;
+}
+
+.drawer-controls .action-loop {
+  padding: 0.68rem;
+  border-radius: 0.72rem;
+  border-color: rgba(250, 204, 21, 0.24);
+  background: rgba(12, 22, 38, 0.56);
+  box-shadow: none;
+}
+
+.drawer-controls .action-loop-bar {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.42rem;
+}
+
+.drawer-controls .action-button {
+  min-height: 2rem;
+  padding: 0.4rem 0.5rem;
+  border-color: rgba(148, 163, 184, 0.22);
+  background: rgba(8, 17, 29, 0.72);
+  font-size: 0.74rem;
+  line-height: 1.15;
+  letter-spacing: 0.02em;
+  white-space: normal;
+}
+
+.drawer-controls .action-complete,
+.drawer-controls .action-close-day,
+.drawer-controls .action-pericope-freeform,
+.drawer-controls .action-copy {
+  display: none;
+}
+
+.drawer-controls .action-button--accent,
+.drawer-controls .action-daily-opening {
+  border-color: rgba(250, 204, 21, 0.68);
+  background: rgba(250, 204, 21, 0.13);
+  color: #fde68a;
+}
+
+.drawer-controls .action-pericope-guided {
+  grid-column: auto;
+}
+
+.drawer-controls .action-loop-status {
+  margin-top: 0.52rem;
+  color: #aab9cf;
+  font-size: 0.74rem;
+  line-height: 1.32;
+  max-height: 2.05rem;
+  overflow: hidden;
 }
 
 .lens-deep-panel {
@@ -928,6 +1026,36 @@ body[data-drawer-open="true"] .primary-drawer-button {
   height: 1.5rem;
   border-radius: 0.32rem;
   font-size: 0.78rem;
+}
+
+.illuminated-heading::first-letter {
+  padding: 0.03em 0.18em 0.02em;
+  margin-right: 0.12em;
+  border: 1px solid rgba(250, 204, 21, 0.52);
+  border-radius: 0.22rem;
+  background-image:
+    var(--scripture-initial-frame-url),
+    linear-gradient(135deg, rgba(250, 204, 21, 0.22), rgba(96, 165, 250, 0.1) 50%, rgba(2, 6, 23, 0.86));
+  background-color: rgba(15, 23, 42, 0.9);
+  background-repeat: no-repeat, no-repeat;
+  background-position: center, center;
+  background-size: cover, cover;
+  box-shadow:
+    inset 0 0 0 1px rgba(254, 243, 199, 0.14),
+    inset 0 0 12px rgba(250, 204, 21, 0.1);
+  color: #fef3c7;
+  font-family: var(--scripture-initial-font);
+  font-size: 1.38em;
+  font-weight: 700;
+  line-height: 0.86;
+  text-shadow: 0 2px 7px rgba(2, 6, 23, 0.58);
+}
+
+.illuminated-heading--compact::first-letter {
+  padding: 0.02em 0.15em;
+  margin-right: 0.1em;
+  border-radius: 0.18rem;
+  font-size: 1.2em;
 }
 
 .scripture-reader-text.loading {
@@ -1288,26 +1416,9 @@ body[data-lens="history"] .scripture-reader-panel[hidden] {
   min-height: 4.4rem;
 }
 
-.history-weekly-summary {
-  display: grid;
-  gap: 0.7rem;
-  padding: 1rem;
-  border-radius: 1rem;
-  border: 1px solid rgba(96, 165, 250, 0.18);
-  background: rgba(15, 23, 42, 0.42);
-}
-
-.history-weekly-kicker,
 .history-weekly-window,
 .history-weekly-narrative {
   margin: 0;
-}
-
-.history-weekly-kicker {
-  font-size: 0.74rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: #93c5fd;
 }
 
 .history-weekly-window {
@@ -1371,8 +1482,10 @@ body[data-lens="history"] .scripture-reader-panel[hidden] {
   gap: 0.75rem;
   padding: 1rem;
   border-radius: 1rem;
-  border: 1px solid rgba(250, 204, 21, 0.18);
-  background: rgba(15, 23, 42, 0.48);
+  border: 1px solid rgba(250, 204, 21, 0.2);
+  background:
+    linear-gradient(180deg, rgba(250, 204, 21, 0.07), rgba(15, 23, 42, 0.42)),
+    rgba(15, 23, 42, 0.48);
 }
 
 .history-review-kicker,
@@ -1682,6 +1795,84 @@ body[data-lens="history"] .scripture-reader-panel[hidden] {
   text-align: center;
   z-index: 2;
   pointer-events: none;
+}
+
+.drawer-controls .account-bar {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.72rem 0.8rem;
+  border-radius: 0.7rem;
+  border-color: rgba(148, 163, 184, 0.14);
+  background: rgba(8, 17, 29, 0.48);
+  box-shadow: none;
+}
+
+.drawer-controls .account-kicker {
+  margin-bottom: 0.18rem;
+  color: #7dd3fc;
+  font-size: 0.66rem;
+  letter-spacing: 0.18em;
+}
+
+.drawer-controls .account-status {
+  color: #b7c6da;
+  font-size: 0.78rem;
+  line-height: 1.34;
+}
+
+.drawer-controls .account-actions {
+  justify-content: flex-end;
+}
+
+.drawer-controls .presentation-button,
+.drawer-controls .lens-button,
+.drawer-controls .depth-button {
+  min-height: 1.82rem;
+  padding: 0.3rem 0.5rem;
+  border-color: rgba(148, 163, 184, 0.2);
+  background: rgba(8, 17, 29, 0.44);
+  color: #aebdd2;
+  font-size: 0.68rem;
+  letter-spacing: 0.05em;
+}
+
+.drawer-controls .presentation-button.active,
+.drawer-controls .lens-button.active {
+  border-color: rgba(250, 204, 21, 0.6);
+  background: rgba(250, 204, 21, 0.12);
+  color: #fde68a;
+  box-shadow: none;
+}
+
+.drawer-controls .clock-surface-panel {
+  padding: 0.68rem 0.75rem;
+  border-radius: 0.72rem;
+  border-color: rgba(96, 165, 250, 0.2);
+  background: rgba(8, 17, 29, 0.44);
+  box-shadow: none;
+}
+
+.drawer-controls .surface-lens-grid,
+.drawer-controls .surface-lens-stack {
+  display: none;
+}
+
+.drawer-controls .surface-lens-label {
+  color: #7dd3fc;
+}
+
+.drawer-controls .surface-lens-title {
+  font-size: 0.95rem;
+}
+
+.drawer-controls .surface-lens-body {
+  color: #b8c7db;
+  font-size: 0.76rem;
+  line-height: 1.32;
+  max-height: 2rem;
+  overflow: hidden;
 }
 
 body[data-lens="base"] .clock-surface-panel {
@@ -2363,6 +2554,10 @@ svg[data-mode="timeline"] .history-preview {
   pointer-events: none;
 }
 
+svg#clock .center-label {
+  display: none;
+}
+
 .ring-core {
   pointer-events: none;
 }
@@ -2584,16 +2779,18 @@ svg[data-mode="timeline"] .history-preview {
   box-sizing: border-box;
   width: min(390px, 92vw);
   height: 100dvh;
-  background: rgba(17, 24, 39, 0.96);
+  background:
+    linear-gradient(180deg, rgba(8, 17, 29, 0.98), rgba(5, 12, 22, 0.98)),
+    #08111d;
   border-radius: 0;
-  border: 1px solid rgba(59, 130, 246, 0.25);
+  border: 1px solid rgba(96, 165, 250, 0.22);
   border-top: 0;
   border-right: 0;
   border-bottom: 0;
-  box-shadow: 0 24px 50px rgba(15, 23, 42, 0.45);
-  padding: 1.05rem 1rem 1.35rem;
+  box-shadow: -26px 0 56px rgba(0, 0, 0, 0.42);
+  padding: 0;
   max-height: 100dvh;
-  overflow-y: auto;
+  overflow: hidden;
   transform: translateX(0);
   transition: transform 0.22s ease, opacity 0.2s ease, border-color 0.2s ease;
 }
@@ -2612,26 +2809,42 @@ svg[data-mode="timeline"] .history-preview {
   gap: 0.75rem;
 }
 
+.drawer-header {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  padding: 1rem 1rem 0.75rem;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.13);
+  background:
+    linear-gradient(180deg, rgba(8, 17, 29, 0.98), rgba(8, 17, 29, 0.92)),
+    #08111d;
+  backdrop-filter: blur(12px);
+}
+
 .drawer-header h2 {
   margin: 0;
-  font-size: 1.4rem;
-  letter-spacing: 0.05em;
+  font-size: 1.34rem;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
+  color: #facc15;
 }
 
 .drawer-subtitle {
-  margin: 0.25rem 0 1rem;
-  font-size: 0.85rem;
-  color: #94a3b8;
+  display: none;
+  margin: 0.22rem 0 0;
+  font-size: 0.8rem;
+  line-height: 1.35;
+  color: #8ea4c2;
 }
 
 .drawer-toggle {
-  border: 1px solid rgba(148, 163, 184, 0.26);
-  background: rgba(15, 23, 42, 0.7);
+  flex: 0 0 auto;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  background: rgba(15, 23, 42, 0.48);
   color: #cbd5f5;
   border-radius: 999px;
-  width: 2rem;
-  height: 2rem;
+  width: 1.9rem;
+  height: 1.9rem;
   padding: 0;
   font-size: 1.1rem;
   line-height: 1;
@@ -2648,7 +2861,9 @@ svg[data-mode="timeline"] .history-preview {
 
 .drawer-controls {
   display: grid;
-  gap: 1rem;
+  gap: 0.55rem;
+  padding: 0;
+  order: -3;
 }
 
 .drawer-controls .account-bar,
@@ -2667,6 +2882,13 @@ svg[data-mode="timeline"] .history-preview {
   pointer-events: auto;
 }
 
+.drawer-controls .account-bar,
+.drawer-controls .daily-opening-card,
+.drawer-controls .presentation-status,
+.drawer-controls .lens-status {
+  display: none !important;
+}
+
 .drawer,
 .drawer * {
   min-width: 0;
@@ -2674,13 +2896,50 @@ svg[data-mode="timeline"] .history-preview {
 
 .drawer-body {
   display: grid;
-  gap: 1rem;
+  grid-template-rows: auto auto 1fr;
+  gap: 0.62rem;
+  height: calc(100dvh - 4.9rem);
+  overflow: hidden;
+  padding: 0.75rem 1rem 1rem;
 }
 
 .drawer-section {
   box-sizing: border-box;
   max-width: 100%;
   overflow-wrap: anywhere;
+}
+
+.drawer-body > .drawer-section {
+  margin: 0;
+}
+
+.drawer-section:not(.selected-clock-section):not(.drawer-controls) {
+  padding: 0.8rem 0;
+  border-top: 1px solid rgba(148, 163, 184, 0.12);
+  border-right: 0;
+  border-bottom: 0;
+  border-left: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.drawer .selected-clock-section {
+  order: -2;
+}
+
+.drawer .weekly-arc,
+.drawer .rule-of-life,
+.drawer .history-log,
+.drawer .reading-depth,
+.drawer .explainability-panel,
+.drawer .daily-bundle,
+.drawer .psalm-panel,
+.drawer .lens-deep-panel,
+.drawer .scripture-reader-panel,
+.drawer .daily-guidance,
+.drawer .daily-profile {
+  display: none !important;
 }
 
 .drawer-controls .surface-lens-grid,
@@ -2697,11 +2956,180 @@ svg[data-mode="timeline"] .history-preview {
   backdrop-filter: none;
 }
 
+@media (max-width: 640px) {
+  .page {
+    grid-template-rows: auto minmax(0, 1fr);
+    align-items: start;
+    padding: 0.8rem 0.75rem 1rem;
+  }
+
+  .title {
+    margin-right: 4.8rem;
+    font-size: 1rem;
+    text-align: left;
+  }
+
+  .page-intro {
+    display: none;
+  }
+
+  .clock-wrapper {
+    align-self: start;
+    min-height: min(100vw, 58dvh);
+  }
+
+  .clock-readout {
+    width: min(96vw, 560px);
+    margin-bottom: 0.35rem;
+    text-align: left;
+  }
+
+  .clock-wrapper #clock {
+    width: min(96vw, 52dvh, 560px);
+    height: min(96vw, 52dvh, 560px);
+  }
+
+  .primary-drawer-button {
+    top: 0.62rem;
+    right: 0.62rem;
+    padding: 0.55rem 0.72rem;
+  }
+
+  .drawer {
+    top: auto;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    width: 100vw;
+    height: min(82dvh, 42rem);
+    max-height: 82dvh;
+    border-top: 1px solid rgba(59, 130, 246, 0.25);
+    border-left: 0;
+    padding: 0;
+    border-radius: 1rem 1rem 0 0;
+    transform: translateY(0);
+  }
+
+  .drawer.is-collapsed {
+    transform: translateY(calc(100% + 2px));
+  }
+
+  .drawer-header h2 {
+    font-size: 1rem;
+  }
+
+  .drawer-subtitle {
+    font-size: 0.78rem;
+  }
+
+  .drawer-body {
+    padding: 0.8rem 0.85rem 1.1rem;
+    gap: 0.85rem;
+  }
+
+  .selected-clock-section,
+  .drawer-section {
+    border-radius: 0.75rem;
+  }
+}
+
+@media (min-width: 700px) and (max-width: 1180px) and (min-height: 600px) {
+  body[data-drawer-open="true"] .page {
+    width: calc(100% - min(390px, 38vw));
+    margin-right: min(390px, 38vw);
+  }
+
+  body[data-drawer-open="true"] .clock-wrapper #clock {
+    width: min(58vw, 82dvh, 720px);
+    height: min(58vw, 82dvh, 720px);
+  }
+}
+
+@media (min-width: 1280px) and (min-height: 700px) {
+  .page {
+    width: min(1180px, 100%);
+  }
+
+  .clock-wrapper #clock {
+    width: min(68vw, 84dvh, 860px);
+    height: min(68vw, 84dvh, 860px);
+  }
+
+  .drawer {
+    width: min(460px, 34vw);
+  }
+
+  .drawer-header h2 {
+    font-size: 1.55rem;
+  }
+
+  .drawer-subtitle,
+  .selected-clock-summary,
+  .guidance-tone,
+  .rule-list,
+  .history-current-summary {
+    font-size: 1rem;
+    line-height: 1.55;
+  }
+
+  .action-button,
+  .presentation-button,
+  .lens-button,
+  .scripture-reader-tab,
+  .weekly-arc-button,
+  .selected-track-practice,
+  .selected-track-reflect {
+    min-height: 48px;
+  }
+}
+
+@media (min-width: 1280px) and (min-height: 700px) and (hover: none) {
+  .page {
+    width: min(1120px, 100%);
+  }
+
+  .page-intro,
+  .lens-status,
+  .presentation-status {
+    font-size: 1.05rem;
+  }
+
+  .primary-drawer-button,
+  .drawer-toggle,
+  .action-button,
+  .presentation-button,
+  .lens-button,
+  .scripture-reader-tab,
+  .weekly-arc-button,
+  .history-log-button,
+  .selected-track-practice,
+  .selected-track-reflect {
+    outline-offset: 4px;
+  }
+
+  .primary-drawer-button:focus-visible,
+  .drawer-toggle:focus-visible,
+  .action-button:focus-visible,
+  .presentation-button:focus-visible,
+  .lens-button:focus-visible,
+  .scripture-reader-tab:focus-visible,
+  .weekly-arc-button:focus-visible,
+  .history-log-button:focus-visible,
+  .selected-track-practice:focus-visible,
+  .selected-track-reflect:focus-visible {
+    outline: 3px solid rgba(250, 204, 21, 0.9);
+  }
+}
+
 .selected-clock-section {
-  padding: 0.95rem 1rem;
-  border-radius: 0.9rem;
-  border: 1px solid rgba(250, 204, 21, 0.22);
-  background: linear-gradient(180deg, rgba(15, 23, 42, 0.82), rgba(15, 23, 42, 0.52));
+  padding: 0.72rem 0.78rem;
+  border-radius: 0.8rem;
+  border: 1px solid rgba(250, 204, 21, 0.34);
+  border-left-width: 3px;
+  background:
+    linear-gradient(180deg, rgba(18, 29, 48, 0.88), rgba(10, 20, 35, 0.72)),
+    rgba(15, 23, 42, 0.74);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.24);
 }
 
 .selected-clock-kicker,
@@ -2719,42 +3147,48 @@ svg[data-mode="timeline"] .history-preview {
 }
 
 .selected-clock-kicker {
-  font-size: 0.72rem;
-  letter-spacing: 0.14em;
+  font-size: 0.62rem;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
   color: #facc15;
 }
 
 .selected-clock-title {
-  margin-top: 0.28rem;
-  font-size: 1.08rem;
+  margin-top: 0.18rem;
+  font-size: 0.98rem;
+  line-height: 1.18;
   color: #f8fafc;
 }
 
 .selected-clock-summary {
   margin-top: 0.38rem;
-  color: #cbd5f5;
-  line-height: 1.48;
+  color: #b6c4d8;
+  line-height: 1.45;
+  font-size: 0.88rem;
+}
+
+.drawer .selected-clock-summary {
+  display: none;
 }
 
 .selected-clock-meta {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.55rem;
-  margin-top: 0.8rem;
+  margin-top: 0.5rem;
 }
 
 .selected-clock-meta div,
 .selected-clock-journey article {
-  padding: 0.7rem 0.75rem;
-  border-radius: 0.75rem;
-  border: 1px solid rgba(148, 163, 184, 0.16);
-  background: rgba(2, 6, 23, 0.32);
+  padding: 0.48rem 0.55rem;
+  border-radius: 0.58rem;
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  background: rgba(2, 6, 23, 0.22);
 }
 
 .selected-clock-meta dt,
 .selected-clock-journey p {
-  font-size: 0.66rem;
+  font-size: 0.6rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: #93c5fd;
@@ -2768,8 +3202,21 @@ svg[data-mode="timeline"] .history-preview {
 
 .selected-clock-journey {
   display: grid;
-  gap: 0.6rem;
-  margin-top: 0.75rem;
+  gap: 0.38rem;
+  margin-top: 0.5rem;
+}
+
+.drawer .selected-clock-journey article:first-child,
+.drawer .selected-clock-journey article:last-child,
+.drawer .selected-clock-state {
+  display: none;
+}
+
+.drawer .selected-clock-journey article {
+  display: grid;
+  grid-template-columns: 5.2rem 1fr;
+  align-items: start;
+  gap: 0.65rem;
 }
 
 .selected-clock-journey span {
@@ -2779,10 +3226,16 @@ svg[data-mode="timeline"] .history-preview {
   line-height: 1.5;
 }
 
+.drawer .selected-clock-journey span {
+  margin-top: 0;
+  font-size: 0.74rem;
+  line-height: 1.28;
+}
+
 .selected-clock-state {
-  margin-top: 0.75rem;
+  margin-top: 0.7rem;
   color: #93c5fd;
-  font-size: 0.72rem;
+  font-size: 0.68rem;
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -2880,12 +3333,17 @@ svg[data-mode="timeline"] .history-preview {
 .drawer-controls .lens-bar {
   display: flex;
   justify-content: flex-start;
+  gap: 0.4rem;
+  margin: 0;
 }
 
 .drawer-controls .presentation-status,
 .drawer-controls .lens-status {
   margin: -0.35rem 0 0;
   text-align: left;
+  font-size: 0.78rem;
+  line-height: 1.35;
+  color: #8395b0;
 }
 
 .guide-page {
@@ -3986,6 +4444,53 @@ svg[data-mode="timeline"] .history-preview {
   text-align: left;
 }
 
+.drawer .guidance-heading,
+.drawer .rule-heading,
+.drawer .weekly-arc-heading,
+.drawer .profile-heading,
+.drawer .depth-heading,
+.drawer .explain-heading,
+.drawer .bundle-heading,
+.drawer .history-heading {
+  margin: 0;
+  color: #8ec5ff;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.15em;
+}
+
+.drawer .daily-guidance {
+  border-top-color: rgba(250, 204, 21, 0.18);
+}
+
+.drawer .guidance-day,
+.drawer .profile-day {
+  margin-top: 0.35rem;
+  color: #f8fafc;
+  font-size: 0.92rem;
+  line-height: 1.25;
+}
+
+.drawer .guidance-tone,
+.drawer .profile-focus {
+  color: #a9bdd5;
+  font-size: 0.8rem;
+  line-height: 1.42;
+}
+
+.drawer .guidance-list {
+  gap: 0.28rem;
+  padding-left: 1rem;
+}
+
+.drawer .guidance-list li,
+.drawer .profile-correspondences li,
+.drawer .explain-list li {
+  color: #bfccdc;
+  font-size: 0.78rem;
+  line-height: 1.38;
+}
+
 .guidance-heading {
   margin: 0;
   font-size: 0.78rem;
@@ -4025,6 +4530,37 @@ svg[data-mode="timeline"] .history-preview {
   background: rgba(39, 31, 17, 0.52);
   border: 1px solid rgba(251, 191, 36, 0.25);
   border-radius: 0.8rem;
+}
+
+.drawer .weekly-arc-top {
+  align-items: flex-start;
+}
+
+.drawer .weekly-arc-controls {
+  flex-shrink: 0;
+}
+
+.drawer .weekly-arc-button {
+  min-height: 1.75rem;
+  border-color: rgba(148, 163, 184, 0.2);
+  background: rgba(8, 17, 29, 0.45);
+  color: #cbd5f5;
+}
+
+.drawer .weekly-arc-list {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.drawer .weekly-arc-list li {
+  padding: 0.55rem 0.62rem;
+  border-color: rgba(148, 163, 184, 0.13);
+  background: rgba(8, 17, 29, 0.38);
+}
+
+.drawer .weekly-arc-list li.today {
+  border-color: rgba(250, 204, 21, 0.42);
+  background: rgba(250, 204, 21, 0.08);
 }
 
 .weekly-arc-heading {
@@ -4120,6 +4656,19 @@ svg[data-mode="timeline"] .history-preview {
   border: 1px solid rgba(147, 197, 253, 0.3);
   border-radius: 0.8rem;
   text-align: left;
+}
+
+.drawer .profile-correspondences {
+  padding-left: 0;
+  list-style: none;
+}
+
+.drawer .profile-correspondences li {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.65rem;
+  border-top: 1px solid rgba(148, 163, 184, 0.09);
+  padding-top: 0.28rem;
 }
 
 .profile-heading {
@@ -4253,6 +4802,64 @@ svg[data-mode="timeline"] .history-preview {
   background: rgba(21, 33, 24, 0.52);
   border: 1px solid rgba(74, 222, 128, 0.24);
   border-radius: 0.8rem;
+}
+
+.drawer .daily-bundle {
+  border-top-color: rgba(74, 222, 128, 0.18);
+}
+
+.drawer .bundle-item {
+  margin-top: 0.68rem;
+}
+
+.drawer .bundle-item + .bundle-item {
+  margin-top: 0.68rem;
+  padding-top: 0.68rem;
+  border-top-color: rgba(148, 163, 184, 0.1);
+}
+
+.drawer .bundle-label {
+  color: #83a3c5;
+  font-size: 0.66rem;
+  letter-spacing: 0.12em;
+}
+
+.drawer .bundle-ref {
+  color: #f6e58d;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.drawer .bundle-text {
+  max-height: 14rem;
+  overflow: auto;
+  padding: 0.72rem;
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  border-radius: 0.62rem;
+  background: rgba(2, 6, 23, 0.28);
+  color: #d8e1ef;
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+
+.drawer .bundle-actions {
+  gap: 0.4rem;
+}
+
+.drawer .bundle-expand,
+.drawer .bundle-study,
+.drawer .bundle-discuss,
+.drawer .bundle-listen,
+.drawer .bundle-stop {
+  border-color: rgba(148, 163, 184, 0.22);
+  background: rgba(8, 17, 29, 0.58);
+  color: #cbd5f5;
+  font-size: 0.68rem;
+}
+
+.drawer .bundle-listen {
+  border-color: rgba(250, 204, 21, 0.52);
+  color: #fde68a;
 }
 
 .bundle-heading {
@@ -4587,4 +5194,376 @@ svg[data-mode="timeline"] .history-preview {
   .account-actions {
     justify-content: flex-start;
   }
+}
+
+/* Target screen modes: regular phone, Fold cover, Fold inner, and Android TV. */
+@media (max-width: 640px) {
+  .drawer {
+    top: auto;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    width: 100vw;
+    height: min(82dvh, 42rem);
+    max-height: 82dvh;
+    border-radius: 1rem 1rem 0 0;
+    transform: translateY(0);
+  }
+
+  .drawer.is-collapsed {
+    transform: translateY(calc(100% + 2px));
+  }
+}
+
+@media (max-width: 380px) and (min-height: 700px) {
+  .clock-wrapper #clock {
+    width: min(98vw, 56dvh, 520px);
+    height: min(98vw, 56dvh, 520px);
+  }
+
+  .drawer {
+    padding-inline: 0.75rem;
+  }
+}
+
+@media (min-width: 700px) and (max-width: 1180px) and (min-height: 600px) {
+  body[data-drawer-open="true"] .page {
+    width: calc(100% - min(390px, 38vw));
+    margin-right: min(390px, 38vw);
+  }
+}
+
+@media (min-width: 1280px) and (min-height: 700px) and (hover: none) {
+  .primary-drawer-button,
+  .drawer-toggle,
+  .action-button,
+  .presentation-button,
+  .lens-button,
+  .scripture-reader-tab,
+  .weekly-arc-button,
+  .history-log-button,
+  .selected-track-practice,
+  .selected-track-reflect {
+    outline-offset: 4px;
+  }
+}
+
+/* Tabbed drawer hierarchy: controls first, comprehensive content by tab. */
+.clock-page .drawer {
+  overflow: hidden;
+}
+
+.clock-page .drawer-header h2 {
+  color: #facc15;
+  letter-spacing: 0.12em;
+}
+
+.clock-page .drawer-subtitle {
+  display: none;
+}
+
+.clock-page .drawer-tab-bar {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.35rem;
+  margin-top: 0.75rem;
+}
+
+.clock-page .drawer-tab {
+  min-height: 1.95rem;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 999px;
+  background: rgba(8, 17, 29, 0.56);
+  color: #aebdd2;
+  font: inherit;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.clock-page .drawer-tab.active {
+  border-color: rgba(250, 204, 21, 0.64);
+  background: rgba(250, 204, 21, 0.13);
+  color: #fde68a;
+}
+
+.clock-page .drawer-audio-bar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 2.1rem;
+  gap: 0.45rem;
+  align-items: center;
+  margin-top: 0.55rem;
+}
+
+.clock-page .drawer-audio-bar .action-button {
+  min-height: 2rem;
+  padding: 0.38rem 0.6rem;
+  font-size: 0.72rem;
+}
+
+.clock-page .drawer-stop {
+  display: inline-grid;
+  place-items: center;
+  padding: 0;
+}
+
+.clock-page .drawer-speech-status {
+  grid-column: 1 / -1;
+  margin: -0.12rem 0 0;
+  color: #94a3b8;
+  font-size: 0.72rem;
+  line-height: 1.28;
+  max-height: 1.9rem;
+  overflow: hidden;
+}
+
+.clock-page .drawer-speech-status.is-error {
+  color: #fca5a5;
+}
+
+.clock-page .drawer-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.58rem;
+  height: calc(100% - 9.9rem);
+  overflow-y: auto;
+  padding-right: 0.85rem;
+}
+
+.clock-page .drawer-controls {
+  order: 0;
+  flex: 0 0 auto;
+  display: none !important;
+  gap: 0.46rem;
+}
+
+body.clock-page[data-drawer-tab="practice"] .drawer-controls {
+  display: grid !important;
+}
+
+.clock-page .drawer-controls .presentation-bar,
+.clock-page .drawer-controls .lens-bar {
+  display: none !important;
+}
+
+.clock-page .drawer-controls .clock-surface-panel {
+  display: none !important;
+}
+
+.clock-page .drawer-controls .action-loop {
+  order: 3;
+}
+
+.clock-page .drawer-controls .account-bar,
+.clock-page .drawer-controls .daily-opening-card,
+.clock-page .drawer-controls .presentation-status,
+.clock-page .drawer-controls .lens-status {
+  display: none !important;
+}
+
+.clock-page .drawer-controls .action-daily-opening,
+.clock-page .drawer-controls .action-adopt,
+.clock-page .drawer-controls .action-complete,
+.clock-page .drawer-controls .action-reflect,
+.clock-page .drawer-controls .action-close-day,
+.clock-page .drawer-controls .action-pericope-freeform,
+.clock-page .drawer-controls .action-copy {
+  display: none !important;
+}
+
+.clock-page .drawer-controls .action-loop {
+  display: flex;
+  flex-direction: column;
+  padding: 0.64rem;
+}
+
+.clock-page .drawer-controls .action-loop-bar {
+  order: 5;
+  grid-template-columns: 1fr;
+  gap: 0.38rem;
+}
+
+.clock-page .drawer-controls .action-pericope-guided {
+  width: 100%;
+  min-height: 2.35rem;
+}
+
+.clock-page .drawer-controls .reflection-capture {
+  order: 3;
+}
+
+.clock-page .drawer-controls .closing-capture {
+  order: 4;
+}
+
+.clock-page .drawer-controls .action-button {
+  min-height: 1.92rem;
+  padding: 0.36rem 0.46rem;
+}
+
+.clock-page .drawer-controls .action-loop-status {
+  order: 1;
+  max-height: none;
+  overflow: visible;
+}
+
+.clock-page .drawer-controls .surface-lens-body {
+  max-height: 2rem;
+  overflow: hidden;
+}
+
+.clock-page .drawer .drawer-section:not(.drawer-controls) {
+  display: none !important;
+  order: 10;
+  flex: 0 0 auto;
+}
+
+body.clock-page[data-drawer-tab="now"] .drawer .daily-meditation,
+body.clock-page[data-drawer-tab="proverb"] .drawer .scripture-reader-panel,
+body.clock-page[data-drawer-tab="proverb"] .drawer .explainability-panel,
+body.clock-page[data-drawer-tab="psalm"] .drawer .scripture-reader-panel,
+body.clock-page[data-drawer-tab="psalm"] .drawer .psalm-panel,
+body.clock-page[data-drawer-tab="psalm"] .drawer .explainability-panel,
+body.clock-page[data-drawer-tab="practice"] .drawer .rule-of-life,
+body.clock-page[data-drawer-tab="practice"] .drawer .lens-deep-panel,
+body.clock-page[data-drawer-tab="history"] .drawer .weekly-arc,
+body.clock-page[data-drawer-tab="history"] .drawer .history-log {
+  display: block !important;
+}
+
+.clock-page .drawer .drawer-section:not(.drawer-controls) {
+  padding-top: 0.52rem;
+  border-top: 1px solid rgba(148, 163, 184, 0.12);
+  background: transparent;
+}
+
+.clock-page .drawer-body > .drawer-section:not(.drawer-controls) {
+  max-height: none;
+}
+
+.clock-page .daily-meditation {
+  border-color: rgba(250, 204, 21, 0.34);
+  border-left: 3px solid rgba(250, 204, 21, 0.62);
+  border-radius: 0.72rem;
+  background:
+    linear-gradient(180deg, rgba(250, 204, 21, 0.08), rgba(8, 19, 32, 0.66)),
+    rgba(7, 19, 33, 0.82);
+  padding: 0.86rem 0.9rem 0.92rem;
+}
+
+.clock-page .meditation-kicker,
+.clock-page .meditation-practice-label {
+  margin: 0;
+  color: #facc15;
+  font-size: 0.64rem;
+  font-weight: 850;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+.clock-page .meditation-title {
+  margin: 0.28rem 0 0;
+  color: #f8fafc;
+  font-size: 1.02rem;
+  line-height: 1.22;
+}
+
+.clock-page .meditation-body {
+  display: grid;
+  gap: 0.62rem;
+  margin-top: 0.72rem;
+  max-height: none;
+  overflow: visible;
+  padding-right: 0;
+}
+
+.clock-page .meditation-body p {
+  margin: 0;
+  color: #d5e2f2;
+  font-size: 0.86rem;
+  line-height: 1.52;
+}
+
+.clock-page .meditation-anchors {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.42rem;
+  margin-top: 0.82rem;
+}
+
+.clock-page .meditation-anchors article {
+  display: grid;
+  grid-template-columns: 4.9rem minmax(0, 1fr);
+  gap: 0.5rem;
+  align-items: start;
+  padding: 0.5rem 0.58rem;
+  border: 1px solid rgba(148, 163, 184, 0.13);
+  border-radius: 0.55rem;
+  background: rgba(2, 8, 16, 0.28);
+}
+
+.clock-page .meditation-anchors span {
+  color: #7dd3fc;
+  font-size: 0.62rem;
+  font-weight: 850;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.clock-page .meditation-anchors strong {
+  display: block;
+  color: #f8fafc;
+  font-size: 0.78rem;
+  line-height: 1.24;
+}
+
+.clock-page .meditation-anchors p {
+  margin: 0.22rem 0 0;
+  color: #aebdd2;
+  font-size: 0.75rem;
+  line-height: 1.36;
+}
+
+.clock-page .meditation-practice {
+  margin-top: 0.78rem;
+  padding-top: 0.68rem;
+  border-top: 1px solid rgba(250, 204, 21, 0.18);
+}
+
+.clock-page .meditation-practice-text {
+  margin: 0.28rem 0 0;
+  color: #fde68a;
+  font-size: 0.84rem;
+  line-height: 1.42;
+}
+
+.clock-page .drawer .selected-clock-summary,
+.clock-page .drawer .selected-clock-state,
+.clock-page .drawer .selected-clock-journey article:first-child,
+.clock-page .drawer .selected-clock-journey article:last-child {
+  display: block !important;
+}
+
+.clock-page .drawer .selected-track-actions {
+  display: none !important;
+}
+
+body.clock-page[data-drawer-tab="now"] .drawer .daily-meditation {
+  order: 1;
+}
+
+body.clock-page[data-drawer-tab="proverb"] .drawer .scripture-reader-panel,
+body.clock-page[data-drawer-tab="psalm"] .drawer .scripture-reader-panel {
+  order: 1;
+}
+
+body.clock-page[data-drawer-tab="psalm"] .drawer .psalm-panel {
+  order: 2;
+}
+
+body.clock-page[data-drawer-tab="proverb"] .drawer .explainability-panel,
+body.clock-page[data-drawer-tab="psalm"] .drawer .explainability-panel {
+  order: 3;
 }

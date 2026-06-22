@@ -19,7 +19,8 @@ Environment variables:
 1. Ensure the shared network exists once: `docker network create fortress-phronesis-net`
 2. Copy `.env.example` to `.env` if you need a guided-prompts key or want to override the Pericope corpus base.
 3. Build and start: `docker compose up -d`
-4. Visit `http://localhost:8086/web/clock_visualizer.html`
+4. Optional local hostname router: `docker compose -f docker-compose.local-router.yml up -d`
+5. Visit `http://localhost:8086/` or `http://truevineos.local/`
 
 Optional host port override:
 
@@ -45,6 +46,15 @@ docker compose run --rm solomonic-clock python src/generate_full_dataset.py
 ```
 
 ## Production
+
+The deployment promotion path is encoded in
+[docs/deployment_promotion_runbook.md](docs/deployment_promotion_runbook.md):
+
+```text
+local -> lan -> public
+```
+
+Use `scripts/promotion_smoke.sh <local|lan|public>` at each gate.
 
 Production deployment for `truevineos.cloud` is documented in [docs/production_domain_setup.md](docs/production_domain_setup.md).
 
@@ -82,5 +92,6 @@ You can also set `SOLOMONIC_SOURCE_TEXTS_DIR` and omit `--source-dir`.
 
 ## Next Steps
 
+- Use `docs/combined_roadmap.md` as the canonical execution roadmap across the product, mobile, scripture, runtime, Pericope, and Life OS tracks
 - Extend `web/clock.js` to fetch `/api/clock` dynamically instead of reading bundled JSON
 - Expand `src/webserver.py` with additional API slices (e.g., psalm lookups) as the dataset grows

@@ -32,7 +32,7 @@
       gtag("config", "G-138HFD1QQP");
     </script>
     <link rel="icon" href='data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="12" fill="%23020617"/><circle cx="32" cy="32" r="20" fill="none" stroke="%23facc15" stroke-width="4"/><circle cx="32" cy="32" r="6" fill="%23facc15"/></svg>' />
-    <link rel="stylesheet" href="/web/style.css?v=20260608-speech-diagnostics1" />
+    <link rel="stylesheet" href="/web/style.css?v=20260621-illumination1" />
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
@@ -95,10 +95,6 @@
           <a class="page-link" href="/scripture-study">Scripture Study</a>
         </nav>
         <h1 class="title">True Vine OS</h1>
-        <p class="page-intro">
-          Read the day through Scripture-first counsel, daily practice, and the live clock. Start here if
-          you want the instrument surface, the rule of life, and Psalm correspondences in one place.
-        </p>
         <button
           type="button"
           class="primary-drawer-button"
@@ -154,6 +150,11 @@
           Base lens keeps the clock primary and surfaces the current daily guidance.
         </p>
         <section class="clock-wrapper">
+          <div class="clock-readout" aria-live="polite">
+            <p class="clock-readout-time">—</p>
+            <p class="clock-readout-title">—</p>
+            <p class="clock-readout-detail">—</p>
+          </div>
           <div class="clock-surface-panel" aria-live="polite">
             <p class="surface-lens-label">Base Lens</p>
             <p class="surface-lens-title">Current Guidance</p>
@@ -276,7 +277,7 @@
           <div class="lens-deep-top">
             <div>
               <p class="lens-deep-kicker">Lens Focus</p>
-              <h2 class="lens-deep-title">Turn today into a usable reading</h2>
+              <h2 class="lens-deep-title illuminated-heading">Turn today into a usable reading</h2>
             </div>
             <p class="lens-deep-summary" aria-live="polite">
               Move from the selected lens into a deeper, lens-owned path below the clock.
@@ -305,29 +306,9 @@
           <div class="scripture-reader-top">
             <div>
               <p class="scripture-reader-kicker">Scripture Reader</p>
-              <h2 class="scripture-reader-title">Read and hear today&apos;s passages</h2>
+              <h2 class="scripture-reader-title illuminated-heading">Read and hear today&apos;s passages</h2>
             </div>
             <p class="scripture-reader-status" aria-live="polite">Loading today&apos;s psalm…</p>
-          </div>
-          <div class="scripture-reader-tabs" role="tablist" aria-label="Scripture reader sources">
-            <button
-              type="button"
-              class="scripture-reader-tab is-active"
-              data-scripture-kind="psalm"
-              role="tab"
-              aria-selected="true"
-            >
-              Psalm
-            </button>
-            <button
-              type="button"
-              class="scripture-reader-tab"
-              data-scripture-kind="wisdom"
-              role="tab"
-              aria-selected="false"
-            >
-              Wisdom
-            </button>
           </div>
           <p class="scripture-reader-ref">—</p>
           <article class="scripture-reader-text" aria-live="polite">Loading today&apos;s passage…</article>
@@ -385,21 +366,62 @@
           </div>
           <ol class="providence-timeline-list"></ol>
         </section>
-        <p class="page-legacy-line">Formerly Solomonic Clock of Spheres</p>
+        <p class="page-legacy-line">A Solomonic Clock of Spheres</p>
       </main>
       <aside class="drawer" aria-label="Psalm references">
         <header class="drawer-header">
           <div class="drawer-header-top">
             <div>
-              <h2>Psalm Correspondences</h2>
-              <p class="drawer-subtitle">Today's scripture, guidance, and practice details.</p>
+              <h2>Daily Guidance</h2>
+              <p class="drawer-subtitle">Now, next action, reading, and weekly rhythm.</p>
             </div>
             <button type="button" class="drawer-toggle" aria-expanded="false" aria-controls="drawer-body" aria-label="Close clock drawer">
               ×
             </button>
           </div>
+          <nav class="drawer-tab-bar" aria-label="Drawer content">
+            <button type="button" class="drawer-tab active" data-drawer-tab="now" aria-pressed="true">Counsel</button>
+            <button type="button" class="drawer-tab" data-drawer-tab="proverb" aria-pressed="false">Proverb</button>
+            <button type="button" class="drawer-tab" data-drawer-tab="psalm" aria-pressed="false">Psalm</button>
+            <button type="button" class="drawer-tab" data-drawer-tab="practice" aria-pressed="false">Practice</button>
+            <button type="button" class="drawer-tab" data-drawer-tab="history" aria-pressed="false">History</button>
+          </nav>
+          <div class="drawer-audio-bar" aria-label="Drawer meditation audio">
+            <button type="button" class="drawer-speak action-button action-button--accent">Speak Meditation</button>
+            <button type="button" class="drawer-stop action-button" disabled>
+              <span class="player-button-icon" aria-hidden="true">&#9632;</span>
+            </button>
+            <p class="drawer-speech-status" aria-live="polite">Read the active drawer tab as a meditation.</p>
+          </div>
         </header>
         <div class="drawer-body" id="drawer-body">
+          <section class="daily-meditation drawer-section" aria-label="Daily Solomonic meditation">
+            <p class="meditation-kicker">Solomonic Meditation</p>
+            <h3 class="meditation-title illuminated-heading">Today&apos;s counsel is forming…</h3>
+            <div class="meditation-body" aria-live="polite">
+              <p>The clock is gathering the correspondence, hour, and practice for today.</p>
+            </div>
+            <div class="meditation-anchors" aria-label="Meditation anchors">
+              <article>
+                <span>Clock</span>
+                <div>
+                  <strong class="meditation-clock-ref">—</strong>
+                  <p class="meditation-clock-text">—</p>
+                </div>
+              </article>
+              <article>
+                <span>Pentacle</span>
+                <div>
+                  <strong class="meditation-pentacle-ref">—</strong>
+                  <p class="meditation-pentacle-text">—</p>
+                </div>
+              </article>
+            </div>
+            <div class="meditation-practice">
+              <p class="meditation-practice-label">Practice</p>
+              <p class="meditation-practice-text">Choose one faithful action and carry it through the next turn of the day.</p>
+            </div>
+          </section>
           <section class="selected-clock-section drawer-section" aria-label="Selected clock element">
             <p class="selected-clock-kicker">Selected Track</p>
             <h3 class="selected-clock-title">Daily Guidance</h3>
@@ -449,7 +471,7 @@
             <ul class="guidance-list"></ul>
           </section>
           <section class="rule-of-life drawer-section" data-lenses="base ritual" data-state-hidden="true" aria-label="Today's rule of life" hidden>
-            <p class="rule-heading">Today's Rule of Life</p>
+            <p class="rule-heading illuminated-heading illuminated-heading--compact">Today's Rule of Life</p>
             <div class="rule-meta">
               <p>Virtue <strong class="rule-virtue">—</strong></p>
               <p>Domain <strong class="rule-domain">—</strong></p>
@@ -467,7 +489,7 @@
           </section>
           <section class="weekly-arc drawer-section" data-lenses="base ritual history" aria-label="Weekly arc">
             <div class="weekly-arc-top">
-              <p class="weekly-arc-heading">Weekly Arc (Advise Mode)</p>
+              <p class="weekly-arc-heading illuminated-heading illuminated-heading--compact">Weekly Arc (Advise Mode)</p>
               <div class="weekly-arc-controls" role="group" aria-label="Weekly day carousel">
                 <button type="button" class="weekly-arc-button weekly-arc-prev" aria-label="Previous day">
                   &#8592;
@@ -481,16 +503,13 @@
             <ul class="weekly-arc-list"></ul>
           </section>
           <section class="history-log drawer-section" data-lenses="history" aria-label="Recorded history">
-            <p class="history-heading">Recorded History</p>
-            <section class="history-weekly-summary" aria-label="Weekly summary">
-              <p class="history-weekly-kicker">Weekly Summary</p>
+            <p class="history-heading illuminated-heading illuminated-heading--compact">Recorded History</p>
+            <section class="history-weekly-review" aria-label="Weekly review and renewal">
+              <p class="history-review-kicker illuminated-heading illuminated-heading--compact">Weekly Review</p>
               <p class="history-weekly-window">—</p>
               <p class="history-weekly-narrative">No recorded week yet.</p>
               <ul class="history-weekly-meta"></ul>
               <ul class="history-pattern-list"></ul>
-            </section>
-            <section class="history-weekly-review" aria-label="Weekly review and renewal">
-              <p class="history-review-kicker">Weekly Review</p>
               <p class="history-review-status">No weekly review saved yet.</p>
               <div class="history-review-block">
                 <p class="history-review-label">Encouragement</p>
@@ -553,21 +572,6 @@
               <li>Metal: <strong class="profile-metal">—</strong></li>
               <li>Angel: <strong class="profile-angel">—</strong></li>
             </ul>
-          </section>
-          <section class="reading-depth drawer-section" data-lenses="scripture" aria-label="Reading depth">
-            <p class="depth-heading">Reading Depth</p>
-            <div class="depth-controls" role="group" aria-label="Reading depth selection">
-              <button type="button" class="depth-button" data-depth="short" aria-pressed="false">
-                Short
-              </button>
-              <button type="button" class="depth-button active" data-depth="medium" aria-pressed="true">
-                Medium
-              </button>
-              <button type="button" class="depth-button" data-depth="long" aria-pressed="false">
-                Long
-              </button>
-            </div>
-            <p class="depth-note">Short: 1 verse • Medium: 3-5 verses • Long: full chapter. This also expands the Psalm reading below.</p>
           </section>
           <section class="explainability-panel drawer-section" data-lenses="scripture esoteric" aria-label="Selection explainability">
             <p class="explain-heading">Why This Was Selected</p>
@@ -664,7 +668,7 @@
       } catch (_error) {
         window.Keycloak = null;
       }
-      import("/web/clock.js?v=20260608-speech-diagnostics1");
+      import("/web/clock.js?v=20260621-illumination1");
     </script>
   </body>
 </html>

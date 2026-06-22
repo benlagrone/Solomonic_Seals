@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Drawer UX Mockup</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #03070d;
+        --panel: #071321;
+        --panel-2: #0a1828;
+        --line: rgba(148, 163, 184, 0.18);
+        --line-strong: rgba(250, 204, 21, 0.42);
+        --gold: #facc15;
+        --gold-soft: #fde68a;
+        --blue: #7dd3fc;
+        --text: #e5edf8;
+        --muted: #9db0c8;
+        --quiet: #6f849f;
+        --green: #6ee7b7;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background:
+          radial-gradient(circle at 32% 55%, rgba(250, 204, 21, 0.08), transparent 24rem),
+          linear-gradient(90deg, #050505 0 62%, #04101c 62% 100%);
+        color: var(--text);
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      .mock-shell {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) min(430px, 36vw);
+        min-height: 100vh;
+      }
+
+      .canvas {
+        display: grid;
+        align-content: start;
+        justify-items: center;
+        gap: 4rem;
+        padding: 3.2rem 2rem;
+      }
+
+      .brand {
+        text-align: center;
+      }
+
+      .brand h1 {
+        margin: 0;
+        color: var(--gold);
+        font-size: clamp(2rem, 4vw, 3.3rem);
+        letter-spacing: 0.18em;
+        line-height: 1;
+      }
+
+      .brand p {
+        max-width: 50rem;
+        margin: 1rem auto 0;
+        color: #d7e0ee;
+        font-size: 1.05rem;
+        line-height: 1.45;
+      }
+
+      .clock-placeholder {
+        width: min(58vw, 680px);
+        aspect-ratio: 1;
+        border-radius: 50%;
+        background:
+          radial-gradient(circle, rgba(5, 10, 18, 0.98) 0 23%, transparent 23%),
+          conic-gradient(from -90deg, #0fbf9a 0 16%, #095f49 16% 48%, #9f4975 48% 100%);
+        border: 10px solid #05070b;
+        box-shadow: 0 0 0 2rem rgba(0, 0, 0, 0.58), 0 0 90px rgba(250, 204, 21, 0.08);
+        display: grid;
+        place-items: center;
+        color: #f8fafc;
+        text-align: center;
+      }
+
+      .clock-placeholder strong {
+        display: block;
+        font-size: 1.35rem;
+      }
+
+      .drawer {
+        height: 100vh;
+        overflow: hidden;
+        border-left: 1px solid rgba(96, 165, 250, 0.24);
+        background:
+          linear-gradient(180deg, rgba(8, 19, 32, 0.98), rgba(4, 12, 22, 0.98)),
+          var(--panel);
+      }
+
+      .drawer-header {
+        padding: 1.05rem 1rem 0.85rem;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .title-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+      }
+
+      .drawer-title {
+        margin: 0;
+        color: var(--gold);
+        font-size: 1.35rem;
+        line-height: 1;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+      }
+
+      .icon-button {
+        width: 2rem;
+        height: 2rem;
+        border: 1px solid var(--line);
+        border-radius: 50%;
+        background: rgba(10, 24, 40, 0.82);
+        color: #c8d5e7;
+        font-size: 1.15rem;
+      }
+
+      .top-actions {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 2.2rem;
+        gap: 0.45rem;
+        margin-top: 0.85rem;
+      }
+
+      .button {
+        min-height: 2.15rem;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: rgba(8, 20, 34, 0.9);
+        color: #cbd8ea;
+        font-weight: 750;
+      }
+
+      .button.primary {
+        border-color: var(--line-strong);
+        background: rgba(250, 204, 21, 0.14);
+        color: var(--gold-soft);
+      }
+
+      .tabs {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 0.38rem;
+        margin-top: 0.75rem;
+      }
+
+      .tab {
+        min-height: 2rem;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: transparent;
+        color: var(--muted);
+        font-size: 0.72rem;
+        font-weight: 850;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .tab.active {
+        border-color: var(--line-strong);
+        background: rgba(250, 204, 21, 0.12);
+        color: var(--gold-soft);
+      }
+
+      .drawer-body {
+        height: calc(100vh - 10.6rem);
+        overflow: hidden;
+        padding: 0.88rem 1rem 1rem;
+      }
+
+      .view {
+        display: grid;
+        grid-template-rows: auto auto minmax(0, 1fr);
+        gap: 0.72rem;
+        height: 100%;
+      }
+
+      .panel {
+        border: 1px solid var(--line);
+        border-radius: 0.7rem;
+        background: rgba(7, 19, 33, 0.8);
+      }
+
+      .panel.emphasis {
+        border-color: var(--line-strong);
+        background:
+          linear-gradient(180deg, rgba(250, 204, 21, 0.08), transparent),
+          rgba(7, 19, 33, 0.86);
+      }
+
+      .panel-inner {
+        padding: 0.78rem 0.85rem;
+      }
+
+      .kicker {
+        margin: 0;
+        color: var(--blue);
+        font-size: 0.68rem;
+        font-weight: 850;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+      }
+
+      .answer {
+        margin: 0.28rem 0 0;
+        color: #f8fafc;
+        font-size: 1.05rem;
+        font-weight: 800;
+        line-height: 1.22;
+      }
+
+      .copy {
+        margin: 0.38rem 0 0;
+        color: var(--muted);
+        font-size: 0.86rem;
+        line-height: 1.42;
+      }
+
+      .meta-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.52rem;
+        margin-top: 0.72rem;
+      }
+
+      .meta {
+        padding: 0.58rem;
+        border: 1px solid rgba(148, 163, 184, 0.13);
+        border-radius: 0.55rem;
+        background: rgba(2, 8, 16, 0.36);
+      }
+
+      .meta span {
+        display: block;
+        color: var(--quiet);
+        font-size: 0.62rem;
+        font-weight: 850;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      .meta strong {
+        display: block;
+        margin-top: 0.22rem;
+        color: #edf5ff;
+        font-size: 0.82rem;
+      }
+
+      .scripture-strip {
+        display: grid;
+        gap: 0.5rem;
+      }
+
+      .anchor-row {
+        display: grid;
+        grid-template-columns: 5.7rem minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 0.55rem;
+        padding: 0.58rem 0.65rem;
+        border: 1px solid rgba(148, 163, 184, 0.13);
+        border-radius: 0.55rem;
+        background: rgba(2, 8, 16, 0.28);
+      }
+
+      .anchor-row span {
+        color: var(--quiet);
+        font-size: 0.64rem;
+        font-weight: 850;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      .anchor-row strong {
+        color: #edf5ff;
+        font-size: 0.82rem;
+      }
+
+      .mini-button {
+        min-height: 1.6rem;
+        padding: 0 0.55rem;
+        border: 1px solid rgba(148, 163, 184, 0.2);
+        border-radius: 999px;
+        background: rgba(8, 20, 34, 0.78);
+        color: #cbd8ea;
+        font-size: 0.68rem;
+        font-weight: 800;
+      }
+
+      .reader {
+        min-height: 0;
+        display: grid;
+        grid-template-rows: auto minmax(0, 1fr) auto;
+      }
+
+      .reader-tabs {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.38rem;
+        padding: 0.7rem 0.75rem 0;
+      }
+
+      .reader-text {
+        min-height: 0;
+        margin: 0.7rem 0.75rem;
+        overflow: auto;
+        padding: 0.8rem;
+        border: 1px solid rgba(148, 163, 184, 0.13);
+        border-radius: 0.55rem;
+        background: rgba(2, 8, 16, 0.34);
+        color: #dbe7f7;
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: 0.95rem;
+        line-height: 1.58;
+      }
+
+      .reader-actions {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.45rem;
+        padding: 0 0.75rem 0.75rem;
+      }
+
+      .practice-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.52rem;
+      }
+
+      .task {
+        padding: 0.65rem;
+        border: 1px solid rgba(148, 163, 184, 0.13);
+        border-radius: 0.55rem;
+        background: rgba(2, 8, 16, 0.3);
+      }
+
+      .task strong {
+        display: block;
+        color: #f8fafc;
+        font-size: 0.82rem;
+      }
+
+      .task span {
+        display: block;
+        margin-top: 0.24rem;
+        color: var(--muted);
+        font-size: 0.76rem;
+        line-height: 1.35;
+      }
+
+      .view-label {
+        margin: 0.65rem 0 0;
+        color: var(--green);
+        font-size: 0.72rem;
+        font-weight: 850;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+      }
+
+      @media (max-width: 980px) {
+        .mock-shell {
+          grid-template-columns: 1fr;
+        }
+
+        .canvas {
+          display: none;
+        }
+
+        .drawer {
+          width: 100vw;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="mock-shell">
+      <main class="canvas" aria-label="Clock context">
+        <div class="brand">
+          <h1>TRUE VINE OS</h1>
+          <p>Drawer redesign mockup: controls at the top, daily answer first, deep content preserved inside contained readers.</p>
+        </div>
+        <div class="clock-placeholder">
+          <div>
+            <strong>Friday - Venus</strong>
+            <span>Psalm 45:2 • Proverbs 15:1</span>
+          </div>
+        </div>
+      </main>
+
+      <aside class="drawer" aria-label="Drawer UX mockup">
+        <header class="drawer-header">
+          <div class="title-row">
+            <h2 class="drawer-title">Daily Guidance</h2>
+            <button class="icon-button" type="button" aria-label="Close">×</button>
+          </div>
+          <div class="top-actions">
+            <button class="button primary" type="button">Speak Meditation</button>
+            <button class="button" type="button" aria-label="Stop">■</button>
+          </div>
+          <nav class="tabs" aria-label="Mock drawer tabs">
+            <button class="tab active" type="button">Now</button>
+            <button class="tab" type="button">Scripture</button>
+            <button class="tab" type="button">Practice</button>
+            <button class="tab" type="button">Arc</button>
+          </nav>
+        </header>
+
+        <section class="drawer-body">
+          <div class="view">
+            <article class="panel emphasis">
+              <div class="panel-inner">
+                <p class="kicker">Today</p>
+                <p class="answer">Mind - Prudence</p>
+                <p class="copy">Return to contemplation before the day scatters. Take one hard idea gently, then repair one conversation with diplomacy.</p>
+                <div class="meta-grid">
+                  <div class="meta">
+                    <span>Question</span>
+                    <strong>What should I do?</strong>
+                  </div>
+                  <div class="meta">
+                    <span>Next Act</span>
+                    <strong>Begin with gentleness</strong>
+                  </div>
+                </div>
+              </div>
+            </article>
+
+            <article class="panel">
+              <div class="panel-inner scripture-strip">
+                <p class="kicker">Scripture Anchors</p>
+                <div class="anchor-row">
+                  <span>Psalm</span>
+                  <strong>Psalm 45:2</strong>
+                  <button class="mini-button" type="button">Read</button>
+                </div>
+                <div class="anchor-row">
+                  <span>Proverbs</span>
+                  <strong>Proverbs 15:1</strong>
+                  <button class="mini-button" type="button">Read</button>
+                </div>
+                <div class="anchor-row">
+                  <span>Teaching</span>
+                  <strong>Mercury #6 - Discovery</strong>
+                  <button class="mini-button" type="button">Open</button>
+                </div>
+              </div>
+            </article>
+
+            <article class="panel reader">
+              <div class="reader-tabs">
+                <button class="tab active" type="button">Psalm</button>
+                <button class="tab" type="button">Proverbs</button>
+                <button class="tab" type="button">Teaching</button>
+              </div>
+              <div class="reader-text">
+                Psalm 45:2. Thou art fairer than the children of men: grace is poured into thy lips: therefore God hath blessed thee for ever.
+                <br /><br />
+                This is the contained deep-reading area. The full passage can be long, but it scrolls inside the reader instead of turning the whole drawer into an endless page.
+              </div>
+              <div class="reader-actions">
+                <button class="button" type="button">Full Text</button>
+                <button class="button" type="button">Study</button>
+                <button class="button primary" type="button">Speak</button>
+              </div>
+            </article>
+          </div>
+        </section>
+      </aside>
+    </div>
+  </body>
+</html>

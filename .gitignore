@@ -3,4 +3,6 @@
 ._*
 .rag/
 
-scripts/
+scripts/*
+!scripts/promotion_smoke.sh
+.playwright-cli/

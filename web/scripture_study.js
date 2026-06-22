@@ -28,35 +28,14 @@ function configureScriptureInitialAssetUrl() {
 
 configureScriptureInitialAssetUrl();
 
-const WISDOM_CONTENT_BY_RULER = {
-  Sun: {
-    ref: "Proverbs 4:18",
-    text: "The path of the just is as the shining light, that shineth more and more unto the perfect day.",
-  },
-  Moon: {
-    ref: "Ecclesiastes 3:1",
-    text: "To every thing there is a season, and a time to every purpose under the heaven.",
-  },
-  Mars: {
-    ref: "Proverbs 24:10",
-    text: "If thou faint in the day of adversity, thy strength is small.",
-  },
-  Mercury: {
-    ref: "Proverbs 18:21",
-    text: "Death and life are in the power of the tongue.",
-  },
-  Jupiter: {
-    ref: "Proverbs 11:25",
-    text: "The liberal soul shall be made fat: and he that watereth shall be watered also himself.",
-  },
-  Venus: {
-    ref: "Proverbs 15:1",
-    text: "A soft answer turneth away wrath: but grievous words stir up anger.",
-  },
-  Saturn: {
-    ref: "Proverbs 25:28",
-    text: "He that hath no rule over his own spirit is like a city that is broken down, and without walls.",
-  },
+const WISDOM_REFERENCE_BY_RULER = {
+  Sun: "Proverbs 4:18",
+  Moon: "Ecclesiastes 3:1",
+  Mars: "Proverbs 24:10",
+  Mercury: "Proverbs 18:21",
+  Jupiter: "Proverbs 11:25",
+  Venus: "Proverbs 15:1",
+  Saturn: "Proverbs 25:28",
 };
 
 const FALLBACK_DAILY_PSALM_BY_RULER = {
@@ -68,6 +47,10 @@ const FALLBACK_DAILY_PSALM_BY_RULER = {
   Venus: { chapter: 45, verse: "2" },
   Saturn: { chapter: 90, verse: "12" },
 };
+
+function getWisdomReferenceForRuler(rulerText) {
+  return WISDOM_REFERENCE_BY_RULER[String(rulerText || "").trim()] || "";
+}
 
 const STUDY_DEPTHS = ["anchor", "context", "crossrefs", "discuss"];
 
@@ -559,12 +542,12 @@ function buildWhyToday(study, paired, solomonicRecord) {
 
 function buildPairedReading(study) {
   if (study.kind === "psalm") {
-    const paired = WISDOM_CONTENT_BY_RULER[study.rulerText];
-    if (paired) {
+    const pairedReference = getWisdomReferenceForRuler(study.rulerText);
+    if (pairedReference) {
       return {
         kind: "wisdom",
-        reference: study.wisdomRef || paired.ref,
-        preview: paired.text,
+        reference: study.wisdomRef || pairedReference,
+        preview: "",
       };
     }
     if (study.wisdomRef) {

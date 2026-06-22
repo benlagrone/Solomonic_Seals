@@ -197,6 +197,10 @@ Rules:
 - `message` should be the selected guided prompt text
 - `clock_context` should be attached in structured form, not flattened into prose
 - Pericope may also persist the full raw clock response on the session if useful
+- Pericope must not render `clock_context` as a main chat message or a visible
+  "Launch context" block in the transcript area
+- If context is shown, use metadata UI only: compact chips, a header cue, or a
+  collapsible context panel
 
 ### Freeform Chat Start
 

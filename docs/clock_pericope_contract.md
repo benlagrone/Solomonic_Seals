@@ -233,6 +233,10 @@ Rules:
 
 - The first guided user message should be the selected `guided_prompts[].text`.
 - `clock_context` stays structured. Do not flatten it into hidden prose.
+- `clock_context` must not be rendered as a primary message, launch-context
+  block, or assistant/user transcript item.
+- Optional clock context display belongs in metadata UI only, such as chips,
+  a compact session header, or a collapsible side panel.
 - Follow-up conversation is normal Pericope chat and should respond to the user, not keep restating the same clock cue.
 
 ## Freeform With Optional Clock Context

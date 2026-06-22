@@ -223,6 +223,12 @@ Pericope should treat `ctx` as:
 - trusted enough for UX initialization
 - not a replacement for backend authorization
 - optional in freeform mode
+- structured session metadata, not main transcript content
+
+Pericope must not render `ctx`, `clock_context`, or derived labels such as
+`Launch context` / `Clock context is attached` as a primary chat message.
+If Pericope wants to expose the attached clock state, it should use subtle
+metadata UI such as chips, a session header, or a collapsible side panel.
 
 ## Guided Launch Behavior
 
@@ -246,6 +252,9 @@ it should:
    - day ruler
    - current focus
    - scripture anchor
+
+Only `message` is user-facing transcript seed content. `clock_context` informs
+the assistant and session state, but it is not itself a chat turn.
 
 Guided rule:
 

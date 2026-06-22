@@ -4,6 +4,15 @@ This project now follows the same controlled image deployment model as the other
 
 ## Deployment flow
 
+Promotion order is fixed:
+
+```text
+local -> lan -> public
+```
+
+Public deployment should only promote a code state that has passed the local and
+LAN gates in [docs/deployment_promotion_runbook.md](docs/deployment_promotion_runbook.md).
+
 1. Push to `main` in `Solomonic_Seals`.
 2. GitHub Actions runs `.github/workflows/build-solomonic-clock.yml`.
 3. The workflow validates the dataset, builds the container, smokes `http://127.0.0.1:18086/api/clock`, and pushes:
@@ -68,8 +77,10 @@ Redeploy an earlier green SHA by manually running the fortress workflow with the
 
 This project does not yet have a dedicated automated test suite. The active release gates are:
 
+- local smoke before LAN promotion: `scripts/promotion_smoke.sh local`
+- LAN smoke before public promotion: `scripts/promotion_smoke.sh lan`
 - Python syntax compile for `src/`
 - dataset generation
 - dataset validation via `src/validate_json.py`
 - container smoke against `/api/clock`
-- public smoke after deploy against `https://truevineos.cloud/` and `https://truevineos.cloud/api/clock`
+- public smoke after deploy: `scripts/promotion_smoke.sh public`

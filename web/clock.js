@@ -1,3 +1,5 @@
+import { buildClockPericopeLaunchUrl } from "./pericope_launch_contract.js";
+
 /* global d3 */
 "use strict";
 
@@ -125,11 +127,26 @@ const drawerElements = {
   accountSignIn: document.querySelector(".account-sign-in"),
   accountSignOut: document.querySelector(".account-sign-out"),
   headerTitle: document.querySelector(".drawer-header h2"),
+  clockReadoutTime: document.querySelector(".clock-readout-time"),
+  clockReadoutTitle: document.querySelector(".clock-readout-title"),
+  clockReadoutDetail: document.querySelector(".clock-readout-detail"),
   drawer: document.querySelector(".drawer"),
   drawerBody: document.querySelector(".drawer-body"),
   drawerToggle: document.querySelector(".drawer-toggle"),
   drawerControls: document.querySelector(".drawer-controls"),
+  drawerTabs: Array.from(document.querySelectorAll(".drawer-tab[data-drawer-tab]")),
+  drawerSpeak: document.querySelector(".drawer-speak"),
+  drawerStop: document.querySelector(".drawer-stop"),
+  drawerSpeechStatus: document.querySelector(".drawer-speech-status"),
   primaryDrawerButton: document.querySelector(".primary-drawer-button"),
+  meditationSection: document.querySelector(".daily-meditation"),
+  meditationTitle: document.querySelector(".meditation-title"),
+  meditationBody: document.querySelector(".meditation-body"),
+  meditationClockRef: document.querySelector(".meditation-clock-ref"),
+  meditationClockText: document.querySelector(".meditation-clock-text"),
+  meditationPentacleRef: document.querySelector(".meditation-pentacle-ref"),
+  meditationPentacleText: document.querySelector(".meditation-pentacle-text"),
+  meditationPracticeText: document.querySelector(".meditation-practice-text"),
   selectedClockSection: document.querySelector(".selected-clock-section"),
   selectedClockTitle: document.querySelector(".selected-clock-title"),
   selectedClockSummary: document.querySelector(".selected-clock-summary"),
@@ -331,7 +348,7 @@ let currentPsalmRequestId = 0;
 let currentBundleRequestId = 0;
 let currentRulePsalmRequestId = 0;
 let currentDailyOpeningPsalmRequestId = 0;
-let readingDepth = "medium";
+let readingDepth = "long";
 let hoveredPlanetaryKey = null;
 let selectedDayOffset = 0;
 let baseDrawerSubtitleText = "Live mapping for the active planetary pentacle.";
@@ -432,11 +449,18 @@ const uiState = {
   reflectionOpen: false,
   closingOpen: false,
   dailyOpeningOpen: false,
+  drawerTab: "now",
 };
 const psalmTextCache = new Map();
 const psalmTextMetaCache = new Map();
 const bundleExpansionCache = new Map();
 const clientErrorReportCache = new Map();
+const clockContextState = {
+  key: "",
+  payload: null,
+  pending: false,
+  version: 0,
+};
 const bundleExpansionState = {
   psalm: null,
   wisdom: null,
@@ -444,10 +468,14 @@ const bundleExpansionState = {
 };
 const bundledPsalmMap = new Map();
 const PSALM_API_ENDPOINT = "/api/psalm";
+const CLOCK_CONTEXT_API_ENDPOINT = "/api/clock/context";
+const CLOCK_CONTENT_BUNDLE_API_ENDPOINT = "/api/clock/content-bundle";
+const CLOCK_WISDOM_ANCHOR_API_ENDPOINT = "/api/clock/wisdom-anchor";
 const BOOK_PARTIAL_API_ENDPOINT = "/api/pericope/book-partial";
 const CLIENT_ERRORS_API_ENDPOINT = "/api/client-errors";
 const VIBEVOICE_TTS_JOBS_API_ENDPOINT = "/api/vibevoice/tts/jobs";
 const VIBEVOICE_HEALTH_API_ENDPOINT = "/api/vibevoice/health";
+const CLOCK_STATIC_DATA_VERSION = "20260620-spirit-brass1";
 const ENABLE_REMOTE_SCRIPTURE_FETCH = true;
 const CLIENT_ERROR_DEDUPE_WINDOW_MS = 90_000;
 const SCRIPTURE_READER_SUPPORTED = typeof window !== "undefined"
@@ -465,6 +493,9 @@ const scriptureReaderState = {
 };
 const bundleAudioState = {
   kind: "",
+  speaking: false,
+};
+const drawerAudioState = {
   speaking: false,
 };
 const vibeVoicePlaybackState = {
@@ -971,13 +1002,13 @@ const AVAILABLE_PRESENTATIONS = new Set(Object.keys(PRESENTATION_DEFINITIONS));
 const LENS_DEFINITIONS = {
   base: {
     title: "Daily Guidance",
-    subtitle: () => "Guidance, rule of life, and the next concrete act are foregrounded.",
+    subtitle: () => "Now, next action, reading, and weekly rhythm.",
     status: () => "Question: what should I do today?",
     focusRing: null,
   },
   scripture: {
     title: "Scripture Lens",
-    subtitle: () => "Anchor text, paired reading, and study depth are foregrounded.",
+    subtitle: () => "Today's passage, reading depth, and study actions.",
     status: "Question: what does today's text actually say?",
     focusRing: "core",
     focusLabel: "Scripture Anchor",
@@ -985,7 +1016,7 @@ const LENS_DEFINITIONS = {
   },
   ritual: {
     title: "Ritual Lens",
-    subtitle: () => "Planetary hour, timing cues, and enactment sequence are foregrounded.",
+    subtitle: () => "Timing cues, daily rule, and closeout actions.",
     status: "Question: when and how should I enact this?",
     focusRing: "planetary",
     focusLabel: "Timing Ring",
@@ -993,7 +1024,7 @@ const LENS_DEFINITIONS = {
   },
   esoteric: {
     title: "Esoteric Lens",
-    subtitle: () => "Pentacle correspondences, spirit sector, and provenance are foregrounded.",
+    subtitle: () => "Correspondences, spirit sector, and provenance.",
     status: () => "Question: what symbolic system maps this day?",
     focusRing: "spirit",
     focusLabel: "Correspondence Ring",
@@ -1001,7 +1032,7 @@ const LENS_DEFINITIONS = {
   },
   history: {
     title: "History Lens",
-    subtitle: () => "Recorded days, continuity, and repeated patterns are foregrounded.",
+    subtitle: () => "Recorded days, continuity, and repeated patterns.",
     status: "Question: how has this pattern unfolded over time?",
     focusRing: "history",
     focusLabel: "History Arc",
@@ -1124,35 +1155,14 @@ const PLANETARY_CORRESPONDENCES = {
     angel: "Cassiel",
   },
 };
-const WISDOM_CONTENT_BY_RULER = {
-  Sun: {
-    ref: "Proverbs 4:18",
-    text: "The path of the just is as the shining light, that shineth more and more unto the perfect day.",
-  },
-  Moon: {
-    ref: "Ecclesiastes 3:1",
-    text: "To every thing there is a season, and a time to every purpose under the heaven.",
-  },
-  Mars: {
-    ref: "Proverbs 24:10",
-    text: "If thou faint in the day of adversity, thy strength is small.",
-  },
-  Mercury: {
-    ref: "Proverbs 18:21",
-    text: "Death and life are in the power of the tongue.",
-  },
-  Jupiter: {
-    ref: "Proverbs 11:25",
-    text: "The liberal soul shall be made fat: and he that watereth shall be watered also himself.",
-  },
-  Venus: {
-    ref: "Proverbs 15:1",
-    text: "A soft answer turneth away wrath: but grievous words stir up anger.",
-  },
-  Saturn: {
-    ref: "Proverbs 25:28",
-    text: "He that hath no rule over his own spirit is like a city that is broken down, and without walls.",
-  },
+const WISDOM_REFERENCE_BY_RULER = {
+  Sun: "Proverbs 4:18",
+  Moon: "Ecclesiastes 3:1",
+  Mars: "Proverbs 24:10",
+  Mercury: "Proverbs 18:21",
+  Jupiter: "Proverbs 11:25",
+  Venus: "Proverbs 15:1",
+  Saturn: "Proverbs 25:28",
 };
 const FALLBACK_DAILY_PSALM_BY_RULER = {
   Sun: { chapter: 19, verse: 1 },
@@ -1163,6 +1173,34 @@ const FALLBACK_DAILY_PSALM_BY_RULER = {
   Venus: { chapter: 45, verse: 2 },
   Saturn: { chapter: 90, verse: 12 },
 };
+const PSALM_TEXT_BY_REFERENCE = {
+  "Psalm 19:1": "The heavens declare the glory of God; and the firmament sheweth his handywork.",
+  "Psalm 63:6": "When I remember thee upon my bed, and meditate on thee in the night watches.",
+  "Psalm 144:1": "Blessed be the Lord my strength, which teacheth my hands to war, and my fingers to fight.",
+  "Psalm 119:105": "Thy word is a lamp unto my feet, and a light unto my path.",
+  "Psalm 112:3": "Wealth and riches shall be in his house: and his righteousness endureth for ever.",
+  "Psalm 45:2": "Thou art fairer than the children of men: grace is poured into thy lips: therefore God hath blessed thee for ever.",
+  "Psalm 90:12": "So teach us to number our days, that we may apply our hearts unto wisdom.",
+};
+function getWisdomReferenceForRuler(rulerText) {
+  return WISDOM_REFERENCE_BY_RULER[String(rulerText || "").trim()] || "Proverbs 16:3";
+}
+
+function getWisdomTextForReference(_reference) {
+  return "";
+}
+
+function normalizeMeditationReference(reference) {
+  return String(reference || "")
+    .replace(/\s*\(Lookup\s+\d+\)\s*/gi, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function getPsalmTextForReference(reference) {
+  const clean = normalizeMeditationReference(reference);
+  return PSALM_TEXT_BY_REFERENCE[clean] || "";
+}
 const LIFE_DOMAIN_FOCUS_KEYWORDS = [
   { pattern: /\b(study|learn|understand|message|speech|word|reason|clarity|think|mind)\b/i, domain: "mind" },
   { pattern: /\b(body|health|sleep|rest|strength|travel|journey|road|movement|discipline)\b/i, domain: "body" },
@@ -1217,6 +1255,127 @@ function applyPresentationState() {
     const shouldHide = buttonLens === "esoteric" && !presentationDefinition.allowEsotericLens;
     button.hidden = shouldHide;
   });
+}
+
+function getClockApiTimezone() {
+  try {
+    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    return String(timezone || "UTC").trim() || "UTC";
+  } catch (_error) {
+    return "UTC";
+  }
+}
+
+function buildClockApiRequestPayload(asOf = new Date()) {
+  const date = asOf instanceof Date ? asOf : new Date(asOf);
+  const safeDate = Number.isNaN(date.getTime()) ? new Date() : date;
+  return {
+    timezone: getClockApiTimezone(),
+    as_of: safeDate.toISOString(),
+  };
+}
+
+async function postClockApi(endpoint, payload, label) {
+  let response;
+  try {
+    response = await fetch(endpoint, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload || {}),
+    });
+  } catch (error) {
+    reportClientError("clock_api_fetch_error", {
+      endpoint,
+      requestKind: label,
+      message: error?.message || `${label || "Clock API"} request failed.`,
+    });
+    throw error;
+  }
+
+  const responsePayload = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    reportClientError("clock_api_http_error", {
+      endpoint,
+      httpStatus: response.status,
+      requestKind: label,
+      message: responsePayload?.error || `${label || "Clock API"} returned HTTP ${response.status}.`,
+    });
+    throw new Error(responsePayload?.error || `HTTP ${response.status}`);
+  }
+  return responsePayload;
+}
+
+function fetchClockWisdomAnchor(asOf = new Date()) {
+  return postClockApi(
+    CLOCK_WISDOM_ANCHOR_API_ENDPOINT,
+    buildClockApiRequestPayload(asOf),
+    "clock_wisdom_anchor"
+  );
+}
+
+function fetchClockContext(asOf = new Date()) {
+  return postClockApi(
+    CLOCK_CONTEXT_API_ENDPOINT,
+    buildClockApiRequestPayload(asOf),
+    "clock_context"
+  );
+}
+
+function fetchClockContentBundle(asOf = new Date()) {
+  return postClockApi(
+    CLOCK_CONTENT_BUNDLE_API_ENDPOINT,
+    buildClockApiRequestPayload(asOf),
+    "clock_content_bundle"
+  );
+}
+
+function buildClockContextCacheKey(asOf = new Date()) {
+  const date = asOf instanceof Date ? asOf : new Date(asOf);
+  const safeDate = Number.isNaN(date.getTime()) ? new Date() : date;
+  return `${getClockApiTimezone()}|${safeDate.toISOString().slice(0, 13)}`;
+}
+
+function resetClockContextDrivenRenderKeys() {
+  lastGuidanceKey = null;
+  lastWeeklyArcKey = null;
+  lastProfileKey = null;
+  lastExplainabilityKey = null;
+}
+
+function getClockContextForDisplay(asOf = new Date()) {
+  const key = buildClockContextCacheKey(asOf);
+  if (clockContextState.key === key && clockContextState.payload) {
+    return clockContextState.payload;
+  }
+  if (clockContextState.key === key && clockContextState.pending) {
+    return null;
+  }
+
+  clockContextState.key = key;
+  clockContextState.payload = null;
+  clockContextState.pending = true;
+  fetchClockContext(asOf).then((payload) => {
+    if (clockContextState.key !== key) {
+      return;
+    }
+    clockContextState.payload = payload || null;
+    clockContextState.pending = false;
+    clockContextState.version += 1;
+    resetClockContextDrivenRenderKeys();
+  }).catch((error) => {
+    if (clockContextState.key !== key) {
+      return;
+    }
+    clockContextState.pending = false;
+    reportClientError("clock_context_fallback_used", {
+      severity: "warn",
+      endpoint: CLOCK_CONTEXT_API_ENDPOINT,
+      requestKind: "clock_context",
+      fallbackUsed: true,
+      message: error?.message || "Clock context API failed; falling back to frontend context builders.",
+    });
+  });
+  return null;
 }
 
 function applyLensState() {
@@ -1293,6 +1452,33 @@ function applyDrawerState() {
   }
 }
 
+function setDrawerTab(nextTab) {
+  const normalized = ["now", "proverb", "psalm", "practice", "history"].includes(nextTab) ? nextTab : "now";
+  uiState.drawerTab = normalized;
+  document.body.dataset.drawerTab = normalized;
+  if (normalized === "proverb") {
+    scriptureReaderState.kind = "wisdom";
+  } else if (normalized === "psalm") {
+    scriptureReaderState.kind = "psalm";
+  }
+  drawerElements.drawerTabs.forEach((button) => {
+    const isActive = button.dataset.drawerTab === normalized;
+    button.classList.toggle("active", isActive);
+    button.setAttribute("aria-pressed", isActive ? "true" : "false");
+  });
+  renderScriptureReader(true);
+  renderDrawerAudioControls();
+}
+
+function setupDrawerTabControls() {
+  setDrawerTab(uiState.drawerTab);
+  drawerElements.drawerTabs.forEach((button) => {
+    button.addEventListener("click", () => {
+      setDrawerTab(button.dataset.drawerTab || "now");
+    });
+  });
+}
+
 function setLens(nextLens) {
   const normalizedLens = String(nextLens || "").toLowerCase();
   if (!AVAILABLE_LENSES.has(normalizedLens)) {
@@ -1367,17 +1553,19 @@ function setupDrawerContentMigration() {
   }
 
   [
-    document.querySelector(".account-bar"),
-    document.querySelector(".daily-opening-card"),
     document.querySelector(".presentation-bar"),
-    document.querySelector(".presentation-status"),
     document.querySelector(".lens-bar"),
-    document.querySelector(".lens-status"),
     document.querySelector(".clock-surface-panel"),
     document.querySelector(".action-loop"),
-    document.querySelector(".lens-deep-panel"),
-    document.querySelector(".scripture-reader-panel"),
+    document.querySelector(".account-bar"),
+    document.querySelector(".daily-opening-card"),
+    document.querySelector(".presentation-status"),
+    document.querySelector(".lens-status"),
   ].forEach((element) => moveElementIntoDrawer(element, target));
+
+  const contentAnchor = document.querySelector(".daily-guidance");
+  moveElementIntoDrawer(document.querySelector(".lens-deep-panel"), drawerElements.drawerBody, contentAnchor);
+  moveElementIntoDrawer(document.querySelector(".scripture-reader-panel"), drawerElements.drawerBody, contentAnchor);
 }
 
 function getClockElementKey(layerName, datum) {
@@ -2123,22 +2311,6 @@ function buildPericopeSessionResumeUrl(sessionId) {
   return url.toString();
 }
 
-function base64UrlEncodeUtf8(text) {
-  if (typeof window === "undefined" || typeof window.btoa !== "function") {
-    return "";
-  }
-
-  const bytes = new TextEncoder().encode(String(text || ""));
-  let binary = "";
-  const chunkSize = 0x8000;
-
-  for (let index = 0; index < bytes.length; index += chunkSize) {
-    binary += String.fromCharCode(...bytes.subarray(index, index + chunkSize));
-  }
-
-  return window.btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
-}
-
 function toInlineSnippet(text, maxLength = 180) {
   const clean = String(text || "").replace(/\s+/g, " ").trim();
   if (!clean) {
@@ -2308,17 +2480,34 @@ function buildPericopePromptId(context, reflectionText) {
 
 function buildPericopeClockContext(context, reflectionText, mode) {
   const normalizedMode = mode === "freeform" ? "freeform" : "guided";
+  const apiContext = context?.clockApiContext && typeof context.clockApiContext === "object"
+    ? context.clockApiContext
+    : null;
+  const apiClockContext = apiContext
+    ? pruneEmptyFields({
+      as_of: apiContext.as_of,
+      timezone: apiContext.timezone,
+      daily_guidance: apiContext.daily_guidance,
+      weekly_arc: apiContext.weekly_arc,
+      daily_profile: apiContext.daily_profile,
+      why_selected: apiContext.why_selected,
+      content_bundle: apiContext.content_bundle,
+      source: apiContext.source,
+    })
+    : null;
+
   return pruneEmptyFields({
+    ...(apiClockContext || {}),
     as_of: context?.asOf || new Date().toISOString(),
     timezone: context?.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC",
     lens: uiState.lens,
     mode: normalizedMode,
-    daily_guidance: {
+    daily_guidance: apiClockContext?.daily_guidance || {
       day: context?.dayDisplay,
       tone: context?.guidanceTone,
       activities: context?.guidanceActivities || [],
     },
-    weekly_arc: {
+    weekly_arc: apiClockContext?.weekly_arc || {
       date: context?.weeklyEntry?.dateLabel,
       focus: context?.weeklyEntry?.focus,
       day_offset: selectedDayOffset,
@@ -2328,7 +2517,7 @@ function buildPericopeClockContext(context, reflectionText, mode) {
       wisdom_ref: context?.weeklyEntry?.wisdomRef,
       is_today: context?.weeklyEntry?.isToday,
     },
-    daily_profile: {
+    daily_profile: apiClockContext?.daily_profile || {
       focus: context?.activeFocus,
       active_pentacle: context?.activePentacleLabel,
       life_domain_focus: context?.lifeDomainFocus,
@@ -2361,7 +2550,7 @@ function buildPericopeClockContext(context, reflectionText, mode) {
         carry_forward: context.entry.closingCarryForward,
       }
       : null,
-    content_bundle: {
+    content_bundle: apiClockContext?.content_bundle || {
       psalm: {
         ref: context?.psalmRef,
       },
@@ -2411,24 +2600,16 @@ function buildPericopeLaunchRequest(context, mode = "guided", options = {}) {
       },
       reflection: fullContext.reflection,
     });
-  const encodedContext = base64UrlEncodeUtf8(JSON.stringify(launchContext));
-  const params = new URLSearchParams({
+  const url = buildClockPericopeLaunchUrl({
+    baseUrl: getPericopeChatBaseUrl(),
     mode: normalizedMode,
-    source: "solomonic_clock",
+    message,
+    promptId,
+    clockContext: launchContext,
   });
-  if (message) {
-    params.set("message", message);
-  }
-
-  if (promptId) {
-    params.set("prompt_id", promptId);
-  }
-  if (encodedContext) {
-    params.set("ctx", encodedContext);
-  }
 
   return {
-    url: `${getPericopeChatBaseUrl()}?${params.toString()}`,
+    url,
     mode: normalizedMode,
     message,
     promptId,
@@ -3862,6 +4043,18 @@ function highlightLayer(layerName, activeIndex) {
   paths.classed("active", (_, index) => index === activeIndex);
 }
 
+function updateClockReadout(timeText, titleText = "", detailText = "") {
+  if (drawerElements.clockReadoutTime) {
+    drawerElements.clockReadoutTime.textContent = timeText || "—";
+  }
+  if (drawerElements.clockReadoutTitle) {
+    drawerElements.clockReadoutTitle.textContent = titleText || "—";
+  }
+  if (drawerElements.clockReadoutDetail) {
+    drawerElements.clockReadoutDetail.textContent = detailText || "—";
+  }
+}
+
 function updateCenterLabels(coreName, timeState, referenceMap, now, derived, lifeState) {
   if (!timeState) {
     return;
@@ -3874,7 +4067,7 @@ function updateCenterLabels(coreName, timeState, referenceMap, now, derived, lif
   const pentacleRecord = pentacleKey ? referenceMap.get(pentacleKey) : null;
   const primaryPsalm = getPrimaryPsalmEntry(pentacleRecord);
   const readablePsalm = formatReadablePsalmReference(primaryPsalm);
-  const wisdom = WISDOM_CONTENT_BY_RULER[dayLabel.rulerText];
+  const wisdomRef = getWisdomReferenceForRuler(dayLabel.rulerText);
   const correspondences = PLANETARY_CORRESPONDENCES[dayLabel.rulerText] || {};
   const ritualThemes = Array.isArray(active.planetary?.themes) && active.planetary.themes.length
     ? active.planetary.themes.join(" • ")
@@ -3886,60 +4079,64 @@ function updateCenterLabels(coreName, timeState, referenceMap, now, derived, lif
     ? getModePresentation(timeState, referenceMap, now, derived, lifeState)
     : null;
 
-  centerDayLabel.text(`${dayLabel.dayText} – ${dayLabel.rulerText} • ${clockText}`);
+  const liveReadout = `${dayLabel.dayText} • ${dayLabel.rulerText} • ${clockText}`;
+  centerDayLabel.text(liveReadout);
 
   if (modePresentation) {
     centerTitleLabel.text(modePresentation.centerTitle);
     centerSpiritLabel.text(modePresentation.centerSpirit);
     centerPentacleLabel.text(modePresentation.centerPentacle);
+    updateClockReadout(liveReadout, modePresentation.centerTitle, modePresentation.centerSpirit);
     return;
   }
 
   if (uiState.lens === "scripture") {
+    const titleText = readablePsalm || coreName;
+    const detailText = [wisdomRef ? `Anchor • ${wisdomRef}` : "", readablePsalm ? `Pair • ${readablePsalm}` : ""]
+      .filter(Boolean)
+      .join(" • ") || "Scripture lens";
     centerTitleLabel.text(readablePsalm || coreName);
-    centerSpiritLabel.text(
-      [wisdom?.ref ? `Anchor • ${wisdom.ref}` : "", readablePsalm ? `Pair • ${readablePsalm}` : ""]
-        .filter(Boolean)
-        .join(" • ") || "Scripture lens"
-    );
+    centerSpiritLabel.text(detailText);
     centerPentacleLabel.text(
-      wisdom?.text
-        ? `${toSnippet(wisdom.text, 72)} ${readablePsalm ? `Keep ${readablePsalm} beside it.` : "Widen into study when you need context."}`
+      wisdomRef
+        ? `${wisdomRef} is the active wisdom anchor. ${readablePsalm ? `Keep ${readablePsalm} beside it.` : "Widen into study when you need context."}`
         : active.pentacle
           ? `Study through ${active.pentacle.planet} #${active.pentacle.pentacle.index} without losing the original line.`
-          : "No active pentacle mapping available."
+        : "No active pentacle mapping available."
     );
+    updateClockReadout(liveReadout, titleText, detailText);
     return;
   }
 
   if (uiState.lens === "ritual") {
-    centerTitleLabel.text(hourRule?.ruler ? `Hour of ${hourRule.ruler}` : coreName);
-    centerSpiritLabel.text(
+    const titleText = hourRule?.ruler ? `Hour of ${hourRule.ruler}` : coreName;
+    const detailText =
       nextHourRule?.ruler
         ? `This hour • ${ritualThemes || hourRule?.ruler || "Current"} • Next ${nextHourRule.ruler}`
         : ritualThemes
           ? `Themes • ${ritualThemes}`
-          : "Ritual lens"
-    );
+          : "Ritual lens";
+    centerTitleLabel.text(titleText);
+    centerSpiritLabel.text(detailText);
     centerPentacleLabel.text(
       ruleOfLife?.evening
         ? `Open with ${toSnippet(ruleOfLife.morning, 42)} Close with ${toSnippet(ruleOfLife.evening, 42)}`
         : active.pentacle?.pentacle?.focus
           ? `Practice focus • ${toSnippet(active.pentacle.pentacle.focus, 72)}`
-          : "Practice focus unavailable."
+        : "Practice focus unavailable."
     );
+    updateClockReadout(liveReadout, titleText, detailText);
     return;
   }
 
   if (uiState.lens === "esoteric") {
-    centerTitleLabel.text(
-      [correspondences.angel, correspondences.metal].filter(Boolean).join(" • ") || coreName
-    );
-    centerSpiritLabel.text(
+    const titleText = [correspondences.angel, correspondences.metal].filter(Boolean).join(" • ") || coreName;
+    const detailText =
       active.spirit
         ? `${active.spirit.zodiac} ${active.spirit.degrees} • ${active.spirit.spirit} (${active.spirit.rank})`
-        : "No active spirit sector."
-    );
+        : "No active spirit sector.";
+    centerTitleLabel.text(titleText);
+    centerSpiritLabel.text(detailText);
     centerPentacleLabel.text(
       active.pentacle?.pentacle?.focus
         ? `Traditional reading • ${toSnippet(active.pentacle.pentacle.focus, 74)}`
@@ -3947,16 +4144,18 @@ function updateCenterLabels(coreName, timeState, referenceMap, now, derived, lif
           .filter(Boolean)
           .join(" • ") || "Esoteric lens"
     );
+    updateClockReadout(liveReadout, titleText, detailText);
     return;
   }
 
   if (uiState.lens === "history") {
-    centerTitleLabel.text(selectedHistoryEntry.dateLabel);
-    centerSpiritLabel.text(
+    const titleText = selectedHistoryEntry.dateLabel;
+    const detailText =
       selectedHistoryEntry.hasRecord
         ? `${selectedHistoryEntry.statusBadges.join(" • ") || "Saved"} • ${selectedHistoryEntry.scriptureRef || weeklyEntry.psalmRef}`
-        : `${weeklyEntry.rulerText} • ${weeklyEntry.psalmRef}`
-    );
+        : `${weeklyEntry.rulerText} • ${weeklyEntry.psalmRef}`;
+    centerTitleLabel.text(titleText);
+    centerSpiritLabel.text(detailText);
     centerPentacleLabel.text(
       selectedHistoryEntry.hasRecord
         ? selectedHistoryEntry.closingCarryForward
@@ -3964,23 +4163,25 @@ function updateCenterLabels(coreName, timeState, referenceMap, now, derived, lif
           : toSnippet(selectedHistoryEntry.summaryLine, 76)
         : `No record yet • ${toSnippet(weeklyEntry.focus, 68)}`
     );
+    updateClockReadout(liveReadout, titleText, detailText);
     return;
   }
 
   centerTitleLabel.text(coreName);
   if (uiState.presentationMode === "guidance") {
-    centerSpiritLabel.text(
+    const detailText =
       readablePsalm
         ? `Scripture anchor • ${readablePsalm}`
         : active.pentacle?.pentacle?.focus
           ? `Today's focus • ${toSnippet(active.pentacle.pentacle.focus, 72)}`
-          : ""
-    );
+          : "";
+    centerSpiritLabel.text(detailText);
     centerPentacleLabel.text(
       active.pentacle?.pentacle?.focus
         ? toSnippet(active.pentacle.pentacle.focus, 92)
         : ""
     );
+    updateClockReadout(liveReadout, coreName, detailText || centerPentacleLabel.text());
     return;
   }
 
@@ -3999,16 +4200,18 @@ function updateCenterLabels(coreName, timeState, referenceMap, now, derived, lif
   } else {
     centerPentacleLabel.text("");
   }
+  updateClockReadout(liveReadout, coreName, centerSpiritLabel.text() || centerPentacleLabel.text());
 }
 
-function updateDailyGuidance(timeState) {
+function updateDailyGuidance(timeState, clockContext = null) {
   if (!drawerElements.guidanceDay || !drawerElements.guidanceTone || !drawerElements.guidanceList) {
     return;
   }
 
   const dayText = timeState?.dayLabel?.dayText || "Unknown day";
   const rulerText = timeState?.dayLabel?.rulerText || "Unknown ruler";
-  const key = `${dayText}-${rulerText}`;
+  const apiGuidance = clockContext?.daily_guidance || null;
+  const key = `${dayText}-${rulerText}|${clockContextState.version}`;
 
   if (key === lastGuidanceKey) {
     return;
@@ -4016,12 +4219,14 @@ function updateDailyGuidance(timeState) {
   lastGuidanceKey = key;
 
   const guidance = PLANETARY_DAY_GUIDANCE[rulerText];
-  drawerElements.guidanceDay.textContent = `${dayText} (${rulerText})`;
+  drawerElements.guidanceDay.textContent = String(apiGuidance?.day || `${dayText} (${rulerText})`).trim();
   drawerElements.guidanceTone.textContent =
-    guidance?.tone || "Use this day for steady, intentional practice with focused attention.";
+    String(apiGuidance?.tone || guidance?.tone || "Use this day for steady, intentional practice with focused attention.").trim();
 
   drawerElements.guidanceList.innerHTML = "";
-  const activities = guidance?.activities || ["Review priorities.", "Do one high-value task deeply.", "End with reflection."];
+  const activities = Array.isArray(apiGuidance?.activities) && apiGuidance.activities.length
+    ? apiGuidance.activities
+    : guidance?.activities || ["Review priorities.", "Do one high-value task deeply.", "End with reflection."];
   activities.forEach((activity) => {
     const li = document.createElement("li");
     li.textContent = activity;
@@ -4036,7 +4241,7 @@ function buildWeeklyArcEntry(baseDate, offset, derived, referenceMap) {
 
   const dayLabel = getPlanetaryDayLabel(target);
   const guidance = PLANETARY_DAY_GUIDANCE[dayLabel.rulerText];
-  const wisdom = WISDOM_CONTENT_BY_RULER[dayLabel.rulerText];
+  const wisdomRef = getWisdomReferenceForRuler(dayLabel.rulerText);
 
   const weekFraction = derived.planetaryGroupCount ? getWeekFraction(target) : 0;
   const pentacleIndex = derived.totalPentacles
@@ -4069,11 +4274,29 @@ function buildWeeklyArcEntry(baseDate, offset, derived, referenceMap) {
     focus: activePentacle?.pentacle?.focus || "Focus unavailable",
     tone: guidance?.tone || "Steady, practical action is favored.",
     psalmRef,
-    wisdomRef: wisdom?.ref || "Proverbs 16:3",
+    wisdomRef,
   };
 }
 
-function updateWeeklyArcPanel(now, derived, referenceMap) {
+function normalizeClockContextWeeklyArc(clockContext) {
+  const arc = clockContext?.weekly_arc || null;
+  if (!arc) {
+    return null;
+  }
+
+  return {
+    isToday: Boolean(arc.is_today),
+    dateLabel: String(arc.date_label || "Today").trim(),
+    rulerText: String(arc.ruler || "Guidance").trim(),
+    pentacleLabel: String(arc.pentacle || "Unavailable").trim(),
+    focus: String(arc.focus || "Focus unavailable").trim(),
+    tone: String(arc.tone || "Steady, practical action is favored.").trim(),
+    psalmRef: String(arc.psalm_ref || "Psalm unavailable").trim(),
+    wisdomRef: String(arc.wisdom_ref || "Wisdom unavailable").trim(),
+  };
+}
+
+function updateWeeklyArcPanel(now, derived, referenceMap, clockContext = null) {
   if (
     !drawerElements.weeklyArcList ||
     !drawerElements.weeklyArcPrev ||
@@ -4083,7 +4306,7 @@ function updateWeeklyArcPanel(now, derived, referenceMap) {
     return;
   }
 
-  const key = `${uiState.presentationMode}|${now.getFullYear()}-${now.getMonth()}-${now.getDate()}|${selectedDayOffset}`;
+  const key = `${uiState.presentationMode}|${now.getFullYear()}-${now.getMonth()}-${now.getDate()}|${selectedDayOffset}|${clockContextState.version}`;
   if (key === lastWeeklyArcKey) {
     return;
   }
@@ -4091,7 +4314,7 @@ function updateWeeklyArcPanel(now, derived, referenceMap) {
 
   drawerElements.weeklyArcToday.disabled = selectedDayOffset === 0;
 
-  const entry = buildWeeklyArcEntry(now, selectedDayOffset, derived, referenceMap);
+  const entry = normalizeClockContextWeeklyArc(clockContext) || buildWeeklyArcEntry(now, selectedDayOffset, derived, referenceMap);
 
   drawerElements.weeklyArcList.innerHTML = "";
   const li = document.createElement("li");
@@ -4466,7 +4689,7 @@ function updateProvidenceTimeline(now, derived, referenceMap) {
   selectedCard?.scrollIntoView({ inline: "center", block: "nearest", behavior: "smooth" });
 }
 
-function updateDailyProfile(timeState) {
+function updateDailyProfile(timeState, clockContext = null) {
   if (
     !drawerElements.profileDay ||
     !drawerElements.profilePentacle ||
@@ -4485,30 +4708,35 @@ function updateDailyProfile(timeState) {
   const pentacleId = activePentacle
     ? `${activePentacle.planet}-${activePentacle.pentacle.index}`
     : "none";
-  const key = `${uiState.presentationMode}-${dayText}-${rulerText}-${pentacleId}`;
+  const key = `${uiState.presentationMode}-${dayText}-${rulerText}-${pentacleId}|${clockContextState.version}`;
   if (key === lastProfileKey) {
     return;
   }
   lastProfileKey = key;
 
+  const apiProfile = clockContext?.daily_profile || null;
   const correspondences = PLANETARY_CORRESPONDENCES[rulerText] || {
     color: "Unspecified",
     metal: "Unspecified",
     angel: "Unspecified",
   };
 
-  drawerElements.profileDay.textContent = `${dayText} ruled by ${rulerText}`;
+  drawerElements.profileDay.textContent = String(apiProfile?.day_label || `${dayText} ruled by ${rulerText}`).trim();
   drawerElements.profilePentacle.hidden = uiState.presentationMode === "guidance";
   drawerElements.profileCorrespondences.hidden = uiState.presentationMode === "guidance";
-  drawerElements.profilePentacle.textContent = activePentacle
+  drawerElements.profilePentacle.textContent = apiProfile?.active_pentacle
+    ? `Historical key: ${apiProfile.active_pentacle}`
+    : activePentacle
     ? `Historical key: ${activePentacle.planet} #${activePentacle.pentacle.index}`
     : "Historical key unavailable.";
-  drawerElements.profileFocus.textContent = activePentacle?.pentacle?.focus
+  drawerElements.profileFocus.textContent = apiProfile?.focus
+    ? `Suggested focus: ${apiProfile.focus}`
+    : activePentacle?.pentacle?.focus
     ? `Suggested focus: ${activePentacle.pentacle.focus}`
     : "Suggested focus: center attention on deliberate, disciplined action.";
-  drawerElements.profileColor.textContent = correspondences.color;
-  drawerElements.profileMetal.textContent = correspondences.metal;
-  drawerElements.profileAngel.textContent = correspondences.angel;
+  drawerElements.profileColor.textContent = apiProfile?.color || correspondences.color;
+  drawerElements.profileMetal.textContent = apiProfile?.metal || correspondences.metal;
+  drawerElements.profileAngel.textContent = apiProfile?.angel || correspondences.angel;
 }
 
 function getLifeWheelSeedScores(lifeConfig) {
@@ -6400,7 +6628,7 @@ function updateScriptureOverlay(timeState, referenceMap, now, radii) {
   const pentacleKey = getPentacleKey(activePentacle);
   const pentacleRecord = pentacleKey ? referenceMap.get(pentacleKey) : null;
   const primaryPsalm = formatReadablePsalmReference(getPrimaryPsalmEntry(pentacleRecord)) || "Psalm Mapping";
-  const wisdomRef = WISDOM_CONTENT_BY_RULER[timeState.dayLabel.rulerText]?.ref || "Wisdom Anchor";
+  const wisdomRef = getWisdomReferenceForRuler(timeState.dayLabel.rulerText) || "Wisdom Anchor";
   const bandColor = "#facc15";
   const outerRadius = radii.core + 34;
   const innerRadius = radii.core + 18;
@@ -6880,7 +7108,7 @@ function updateEsotericOverlay(timeState, radii, derived) {
 }
 
 function setReadingDepth(nextDepth) {
-  const normalized = String(nextDepth || "").toLowerCase();
+  const normalized = "long";
   if (!READING_DEPTHS.has(normalized) || normalized === readingDepth) {
     return;
   }
@@ -7051,6 +7279,29 @@ function getScriptureSourceVerseSpec(source) {
   ).trim();
 }
 
+function extractVersePassageText(text, verseSpec = "") {
+  const verses = new Set(expandVerseSpecification(verseSpec));
+  if (!verses.size) {
+    return "";
+  }
+
+  const blocks = String(text || "")
+    .replace(/\r\n?/g, "\n")
+    .split(/\n{2,}/)
+    .map((block) => block.trim())
+    .filter(Boolean);
+
+  const matches = blocks.filter((block) => {
+    if (/^chapter\s+\d+\b/i.test(block)) {
+      return false;
+    }
+    const verseMatch = block.match(/^(\d+)\s+/);
+    return Boolean(verseMatch && verses.has(verseMatch[1]));
+  });
+
+  return sanitizeInlinePassageText(matches.join(" "));
+}
+
 function getScriptureSourceDisplayReference(source, { expanded = false } = {}) {
   const fallbackReference = String(source?.previewRef || source?.request?.reference || "Today's psalm").trim();
   if (getScriptureSourceKind(source) !== "psalm") {
@@ -7163,6 +7414,9 @@ async function resolveScriptureSourceRawText(source, { expanded = false } = {}) 
   }
 
   if (kind === "wisdom") {
+    if (source.request) {
+      return sanitizeInlinePassageText(await resolveExpandedBundleText(kind, source));
+    }
     return sanitizeInlinePassageText(source.previewText || "");
   }
 
@@ -7261,9 +7515,11 @@ async function resolveExpandedBundleText(kind, requestState) {
     bundleExpansionCache.set(cacheKey, payload);
   }
 
+  const fullContent = String(payload?.content || "").trim();
+  const verseSpec = parseScriptureReference(requestState.request?.reference || requestState.previewRef)?.verseSpec || "";
   const nextText = kind === "wisdom"
-    ? sanitizeInlinePassageText(payload?.content || "")
-    : String(payload?.content || "").trim();
+    ? extractVersePassageText(fullContent, verseSpec) || sanitizeInlinePassageText(fullContent)
+    : fullContent;
   requestState.expandedText = nextText || "No expanded text returned.";
   return requestState.expandedText;
 }
@@ -7570,7 +7826,7 @@ function setupBundleExpansionControls() {
 }
 
 function getScriptureReaderKindLabel(kind) {
-  return kind === "wisdom" ? "today's wisdom passage" : "today's psalm";
+  return kind === "wisdom" ? "today's proverb" : "today's psalm";
 }
 
 function getScriptureReaderDefaultStatus(kind) {
@@ -7662,6 +7918,7 @@ function cancelSpeechPlaybackState() {
   scriptureReaderState.speaking = false;
   bundleAudioState.kind = "";
   bundleAudioState.speaking = false;
+  drawerAudioState.speaking = false;
   if (vibeVoicePlaybackState.audio) {
     vibeVoicePlaybackState.audio.pause();
     vibeVoicePlaybackState.audio.removeAttribute("src");
@@ -7672,6 +7929,165 @@ function cancelSpeechPlaybackState() {
     vibeVoicePlaybackState.cancel();
     vibeVoicePlaybackState.cancel = null;
   }
+}
+
+function getDrawerTabLabel(tab = uiState.drawerTab) {
+  return {
+    now: "daily counsel",
+    proverb: "daily proverb",
+    psalm: "daily psalm",
+    practice: "daily practice",
+    history: "history and weekly arc",
+  }[tab] || "daily guidance";
+}
+
+function cleanDrawerSpeechText(value) {
+  return String(value || "")
+    .replace(/×/g, "")
+    .replace(/■/g, "")
+    .replace(/\b(Speak Meditation|Speaking…|Stop|Read Full Passage|Study Passage|Discuss In Pericope|Copy Guided Prompt)\b/gi, "")
+    .replace(/\n{3,}/g, "\n\n")
+    .replace(/[ \t]+/g, " ")
+    .trim();
+}
+
+function getVisibleDrawerMeditationText() {
+  const selectorsByTab = {
+    now: [
+      ".daily-meditation",
+    ],
+    proverb: [
+      ".scripture-reader-panel",
+      ".explainability-panel",
+    ],
+    psalm: [
+      ".scripture-reader-panel",
+      ".psalm-panel",
+      ".explainability-panel",
+    ],
+    practice: [
+      ".drawer-controls .action-loop",
+      ".rule-of-life",
+      ".lens-deep-panel",
+    ],
+    history: [
+      ".weekly-arc",
+      ".history-log",
+    ],
+  };
+  const selectors = selectorsByTab[uiState.drawerTab] || selectorsByTab.now;
+  const parts = selectors
+    .map((selector) => document.querySelector(selector))
+    .filter((element) => element && !element.hidden && getComputedStyle(element).display !== "none")
+    .map((element) => cleanDrawerSpeechText(element.innerText || element.textContent || ""))
+    .filter(Boolean);
+
+  const title = drawerElements.headerTitle?.textContent || "Daily Guidance";
+  return cleanDrawerSpeechText([
+    `${title}. ${getDrawerTabLabel(uiState.drawerTab)} meditation.`,
+    ...parts,
+    "Pause here. Choose one faithful action, and carry it through the next turn of the day.",
+  ].join("\n\n"));
+}
+
+function renderDrawerAudioControls() {
+  if (!drawerElements.drawerSpeak || !drawerElements.drawerStop || !drawerElements.drawerSpeechStatus) {
+    return;
+  }
+  const speechText = getVisibleDrawerMeditationText();
+  drawerElements.drawerSpeak.disabled = !SCRIPTURE_READER_SUPPORTED || drawerAudioState.speaking || !speechText;
+  drawerElements.drawerSpeak.textContent = drawerAudioState.speaking ? "Speaking…" : "Speak Meditation";
+  drawerElements.drawerStop.disabled = !SCRIPTURE_READER_SUPPORTED || !drawerAudioState.speaking;
+  if (!drawerAudioState.speaking && !drawerElements.drawerSpeechStatus.dataset.notice) {
+    drawerElements.drawerSpeechStatus.textContent = `Read the ${getDrawerTabLabel(uiState.drawerTab)} tab as a meditation.`;
+  }
+}
+
+function setDrawerSpeechStatus(text, { error = false, sticky = false } = {}) {
+  if (!drawerElements.drawerSpeechStatus) {
+    return;
+  }
+  drawerElements.drawerSpeechStatus.textContent = text;
+  drawerElements.drawerSpeechStatus.classList.toggle("is-error", error);
+  if (sticky) {
+    drawerElements.drawerSpeechStatus.dataset.notice = "true";
+  } else {
+    delete drawerElements.drawerSpeechStatus.dataset.notice;
+  }
+}
+
+function stopDrawerMeditationPlayback({ announce = true } = {}) {
+  if (!drawerAudioState.speaking) {
+    renderDrawerAudioControls();
+    return;
+  }
+  cancelSpeechPlaybackState();
+  if (announce) {
+    setDrawerSpeechStatus("Meditation audio stopped.", { sticky: true });
+  }
+  renderScriptureReader(true);
+  renderBundleAudioControls();
+  renderDrawerAudioControls();
+}
+
+async function speakDrawerMeditation() {
+  if (!SCRIPTURE_READER_SUPPORTED) {
+    setDrawerSpeechStatus("Audio is not available in this browser.", { error: true, sticky: true });
+    renderDrawerAudioControls();
+    return;
+  }
+  const speechText = getVisibleDrawerMeditationText();
+  if (!speechText) {
+    setDrawerSpeechStatus("No drawer content is available to read yet.", { error: true, sticky: true });
+    renderDrawerAudioControls();
+    return;
+  }
+
+  cancelSpeechPlaybackState();
+  renderScriptureReader(true);
+  renderBundleAudioControls();
+  const token = ++scriptureReaderSpeechToken;
+  drawerAudioState.speaking = true;
+  setDrawerSpeechStatus(`Generating ${getDrawerTabLabel(uiState.drawerTab)} meditation audio.`, { sticky: true });
+  renderDrawerAudioControls();
+
+  try {
+    const audioResult = await requestVibeVoiceAudio({ speechText, token, tokenType: "reader" });
+    if (!audioResult?.audioUrl || token !== scriptureReaderSpeechToken) {
+      return;
+    }
+    setDrawerSpeechStatus(`Playing ${getDrawerTabLabel(uiState.drawerTab)} meditation via ${audioResult.engineLabel}.`, { sticky: true });
+    renderDrawerAudioControls();
+    await playVibeVoiceAudioUrl(audioResult.audioUrl, token, "reader");
+    if (token !== scriptureReaderSpeechToken) {
+      return;
+    }
+    drawerAudioState.speaking = false;
+    setDrawerSpeechStatus(`Finished ${getDrawerTabLabel(uiState.drawerTab)} meditation via ${audioResult.engineLabel}.`, { sticky: true });
+    renderDrawerAudioControls();
+  } catch (error) {
+    console.error("Failed to play drawer meditation VibeVoice audio", error);
+    if (token !== scriptureReaderSpeechToken) {
+      return;
+    }
+    drawerAudioState.speaking = false;
+    setDrawerSpeechStatus(error?.message || "Meditation audio playback failed.", { error: true, sticky: true });
+    renderDrawerAudioControls();
+    reportClientError("vibevoice_drawer_meditation_audio_failed", {
+      drawerTab: uiState.drawerTab,
+      message: error?.message || "Drawer meditation VibeVoice audio failed.",
+    });
+  }
+}
+
+function setupDrawerAudioControls() {
+  drawerElements.drawerSpeak?.addEventListener("click", () => {
+    speakDrawerMeditation();
+  });
+  drawerElements.drawerStop?.addEventListener("click", () => {
+    stopDrawerMeditationPlayback();
+  });
+  renderDrawerAudioControls();
 }
 
 function waitForVibeVoicePoll(ms) {
@@ -8617,7 +9033,45 @@ function buildRuleOfLife(timeState, referenceMap, now, derived, lifeState) {
   };
 }
 
-function buildActionLoopContext(timeState, referenceMap, now, derived, lifeState) {
+function mergeClockApiContext(baseContext, clockContext) {
+  if (!clockContext) {
+    return baseContext;
+  }
+
+  const guidance = clockContext.daily_guidance || {};
+  const weeklyArc = normalizeClockContextWeeklyArc(clockContext) || baseContext.weeklyEntry;
+  const profile = clockContext.daily_profile || {};
+  const bundle = clockContext.content_bundle || {};
+  const psalm = bundle.psalm || {};
+  const wisdom = bundle.wisdom || {};
+  const solomonic = bundle.solomonic || {};
+  const dayDisplay = String(guidance.day || baseContext.dayDisplay || "").trim();
+  const dayMatch = dayDisplay.match(/^(.+?)\s*\((.+?)\)$/);
+
+  return {
+    ...baseContext,
+    asOf: String(clockContext.as_of || baseContext.asOf || "").trim() || baseContext.asOf,
+    timezone: String(clockContext.timezone || baseContext.timezone || "").trim() || baseContext.timezone,
+    dayText: dayMatch?.[1] || baseContext.dayText,
+    rulerText: dayMatch?.[2] || baseContext.rulerText,
+    dayDisplay: dayDisplay || baseContext.dayDisplay,
+    guidanceTone: String(guidance.tone || baseContext.guidanceTone || "").trim(),
+    guidanceActivities: Array.isArray(guidance.activities) && guidance.activities.length
+      ? guidance.activities.map((activity) => String(activity || "").trim()).filter(Boolean)
+      : baseContext.guidanceActivities,
+    weeklyEntry: weeklyArc,
+    activeFocus: String(profile.focus || weeklyArc?.focus || baseContext.activeFocus || "").trim(),
+    activePentacleLabel: String(profile.active_pentacle || weeklyArc?.pentacleLabel || baseContext.activePentacleLabel || "").trim(),
+    psalmRef: String(psalm.ref || weeklyArc?.psalmRef || baseContext.psalmRef || "").trim(),
+    wisdomRef: String(wisdom.ref || weeklyArc?.wisdomRef || baseContext.wisdomRef || "").trim(),
+    solomonicRef: String(solomonic.ref || baseContext.solomonicRef || "").trim(),
+    lifeDomainFocus: String(profile.life_domain_focus || baseContext.lifeDomainFocus || "").trim() || baseContext.lifeDomainFocus,
+    weakestDomain: String(profile.weakest_domain || baseContext.weakestDomain || "").trim() || baseContext.weakestDomain,
+    clockApiContext: clockContext,
+  };
+}
+
+function buildActionLoopContext(timeState, referenceMap, now, derived, lifeState, clockContext = null) {
   const ruleOfLife = buildRuleOfLife(timeState, referenceMap, now, derived, lifeState);
   const dateKey = formatDateStorageKey(now);
   const guidedPrompt = buildGuidedPromptFromContext(ruleOfLife, timeState);
@@ -8628,14 +9082,14 @@ function buildActionLoopContext(timeState, referenceMap, now, derived, lifeState
   const pentacleKey = getPentacleKey(activePentacle);
   const pentacleRecord = pentacleKey ? referenceMap.get(pentacleKey) : null;
   const readablePsalm = formatReadablePsalmReference(getPrimaryPsalmEntry(pentacleRecord));
-  const wisdom = dayLabel ? WISDOM_CONTENT_BY_RULER[dayLabel.rulerText] : null;
+  const wisdomRef = dayLabel ? getWisdomReferenceForRuler(dayLabel.rulerText) : "";
   const dayText = dayLabel?.dayText || "Today";
   const rulerText = dayLabel?.rulerText || "Guidance";
   const label = ruleOfLife
     ? `${ruleOfLife.domain} • ${ruleOfLife.virtue}`
     : `${dayText} • ${rulerText}`;
 
-  return {
+  const baseContext = {
     dateKey,
     label,
     guidedPrompt,
@@ -8654,7 +9108,7 @@ function buildActionLoopContext(timeState, referenceMap, now, derived, lifeState
       ? `${activePentacle.planet} Pentacle #${activePentacle.pentacle.index}`
       : "Unavailable",
     psalmRef: readablePsalm || weeklyEntry.psalmRef,
-    wisdomRef: wisdom?.ref || weeklyEntry.wisdomRef,
+    wisdomRef: wisdomRef || weeklyEntry.wisdomRef,
     solomonicRef: activePentacle
       ? `Key of Solomon, Book II • ${activePentacle.planet} Pentacle #${activePentacle.pentacle.index}`
       : "Key of Solomon, Book II",
@@ -8662,6 +9116,8 @@ function buildActionLoopContext(timeState, referenceMap, now, derived, lifeState
     weakestDomain: lifeState?.weakestDomain?.name || ruleOfLife?.weakestDomain || null,
     weakestDomainScore: lifeState?.weakestDomain?.score ?? ruleOfLife?.weakestScore ?? null,
   };
+
+  return mergeClockApiContext(baseContext, clockContext);
 }
 
 function getRecentDailyOpeningIntentions(excludeDateKey, limit = 6) {
@@ -9341,18 +9797,21 @@ function buildWeeklyHistorySummary(baseDate, derived, referenceMap) {
   const domainCounts = new Map();
   const scriptureCounts = new Map();
   const carryCounts = new Map();
+  const outcomeCounts = new Map();
 
   recordedEntries.forEach((entry) => {
     incrementCount(virtueCounts, entry.ruleVirtue);
     incrementCount(domainCounts, entry.ruleDomain);
     incrementCount(scriptureCounts, entry.scriptureRef);
     incrementCount(carryCounts, entry.closingCarryForward);
+    incrementCount(outcomeCounts, entry.patternBucket);
   });
 
   const topVirtue = pickTopCount(virtueCounts);
   const topDomain = pickTopCount(domainCounts);
   const topScripture = pickTopCount(scriptureCounts);
   const topCarry = pickTopCount(carryCounts);
+  const topOutcome = pickTopCount(outcomeCounts);
 
   const narrativeParts = [
     `${recordedEntries.length} recorded ${recordedEntries.length === 1 ? "day" : "days"}`,
@@ -9774,12 +10233,10 @@ function buildDailyOpeningAnchorSource(context) {
   }
 
   const wisdomReference = context?.wisdomRef || psalmReference || "Today's anchor";
-  const wisdomText = context?.rulerText
-    ? sanitizeInlinePassageText(WISDOM_CONTENT_BY_RULER[context.rulerText]?.text || "")
-    : "";
   return buildWisdomScriptureSource({
     reference: wisdomReference,
-    previewText: wisdomText || wisdomReference,
+    previewText: wisdomReference,
+    request: parseScriptureReference(wisdomReference) ? { kind: "wisdom", reference: wisdomReference } : null,
   });
 }
 
@@ -9987,7 +10444,7 @@ function buildLensDeepView(context, timeState, referenceMap, now, derived, lifeS
   const pentacleRecord = pentacleKey ? referenceMap.get(pentacleKey) : null;
   const primaryPsalm = getPrimaryPsalmEntry(pentacleRecord);
   const readablePsalm = formatReadablePsalmReference(primaryPsalm);
-  const wisdom = dayLabel ? WISDOM_CONTENT_BY_RULER[dayLabel.rulerText] : null;
+  const wisdomRef = dayLabel ? getWisdomReferenceForRuler(dayLabel.rulerText) : "";
   const correspondences = dayLabel ? (PLANETARY_CORRESPONDENCES[dayLabel.rulerText] || {}) : {};
   const hourRule = dayLabel ? getPlanetaryHourRuler(now, dayLabel.rulerText) : null;
   const nextHourRule = dayLabel ? getNextPlanetaryHourRuler(now, dayLabel.rulerText) : null;
@@ -10013,8 +10470,8 @@ function buildLensDeepView(context, timeState, referenceMap, now, derived, lifeS
       cards: [
         {
           label: "Anchor",
-          value: wisdom?.ref || readablePsalm || "Daily anchor",
-          detail: wisdom?.text ? toSnippet(sanitizeInlinePassageText(wisdom.text), 120) : "The anchor text will gather here.",
+          value: wisdomRef || readablePsalm || "Daily anchor",
+          detail: wisdomRef ? "Anchor text resolves from the source passage." : "The anchor text will gather here.",
         },
         {
           label: "Psalm Pair",
@@ -10117,8 +10574,8 @@ function buildLensDeepView(context, timeState, referenceMap, now, derived, lifeS
   }
 
   return {
-    kicker: "Daily Practice Frame",
-    title: "Turn guidance into one act, one repair, and one horizon",
+    kicker: "Daily Guidance",
+    title: "One act, one repair, one horizon",
     summary: "Use the clock to choose a next act, keep the weakest domain in view, and hold the week in front of today's mood.",
     footer: "If guidance does not become one act, the clock is just ornament.",
     cards: [
@@ -10344,8 +10801,8 @@ function getLensActionCopy(context, state = {}) {
     closingCarryLabel: "Carry Forward",
     closingCarryPlaceholder: "What should be remembered, repaired, or carried into tomorrow?",
     notOpenedStatus: rule
-      ? `Begin with Daily Opening: ${rule.summary}`
-      : "Begin with Daily Opening before choosing a practice.",
+      ? `Today's practice: ${rule.summary}`
+      : "Choose one concrete practice, write the evening reflection, or ask Pericope for guided counsel.",
     completedWithReflectionStatus: `Practiced: ${context.label}. Bring the reflection to Pericope when you want counsel.`,
     completedPendingStatus: `Practiced: ${context.label}. Add an evening note or ask Pericope to close the loop.`,
     closedWithSummaryStatus: summarySnippet ? `Day closed: ${summarySnippet}` : "The day has been closed.",
@@ -10360,15 +10817,15 @@ function getLensActionCopy(context, state = {}) {
 }
 
 function getScriptureReaderFrameCopy(kind) {
-  const passageLabel = kind === "wisdom" ? "wisdom passage" : "psalm";
+  const passageLabel = kind === "wisdom" ? "proverb" : "psalm";
 
   if (uiState.lens === "scripture") {
     return {
       hidden: false,
-      kicker: "Scripture Lens",
-      title: "Anchor, pair, and study the day’s text",
+      kicker: kind === "wisdom" ? "Proverb" : "Psalm",
+      title: kind === "wisdom" ? "Read the whole proverb for today" : "Read the whole psalm for today",
       status: SCRIPTURE_READER_SUPPORTED
-        ? `Showing today’s ${passageLabel}. Keep the line in view, then generate VibeVoice audio when needed.`
+        ? `Showing today’s ${passageLabel}. Generate VibeVoice audio when needed.`
         : `Showing today’s ${passageLabel}. Audio depends on browser audio support.`,
     };
   }
@@ -10406,8 +10863,8 @@ function getScriptureReaderFrameCopy(kind) {
 
   return {
     hidden: false,
-    kicker: "Daily Reading",
-    title: "Read and hear today’s passages",
+    kicker: kind === "wisdom" ? "Proverb" : "Psalm",
+    title: kind === "wisdom" ? "Read the whole proverb for today" : "Read the whole psalm for today",
     status: SCRIPTURE_READER_SUPPORTED
       ? `Showing today’s ${passageLabel}. Use Speak to generate VibeVoice audio.`
       : `Showing today’s ${passageLabel}. Audio depends on browser audio support.`,
@@ -10425,7 +10882,7 @@ function buildLensSurfaceView(timeState, referenceMap, now, derived, lifeState) 
   const readablePsalm = formatReadablePsalmReference(primaryPsalm);
   const hourRule = dayLabel ? getPlanetaryHourRuler(now, dayLabel.rulerText) : null;
   const nextHourRule = dayLabel ? getNextPlanetaryHourRuler(now, dayLabel.rulerText) : null;
-  const wisdom = dayLabel ? WISDOM_CONTENT_BY_RULER[dayLabel.rulerText] : null;
+  const wisdomRef = dayLabel ? getWisdomReferenceForRuler(dayLabel.rulerText) : "";
   const correspondences = dayLabel ? (PLANETARY_CORRESPONDENCES[dayLabel.rulerText] || {}) : {};
   const weeklyEntry = buildWeeklyArcEntry(now, selectedDayOffset, derived, referenceMap);
   const ruleOfLife = buildRuleOfLife(timeState, referenceMap, now, derived, lifeState);
@@ -10441,15 +10898,15 @@ function buildLensSurfaceView(timeState, referenceMap, now, derived, lifeState) 
   if (uiState.lens === "scripture") {
     return {
       label: "Scripture Lens",
-      title: wisdom?.ref
-        ? `Anchor • ${wisdom.ref}`
+      title: wisdomRef
+        ? `Anchor • ${wisdomRef}`
         : readablePsalm
           ? `Psalm Pair • ${readablePsalm}`
           : "Scripture Anchor",
-      body: wisdom?.text
+      body: wisdomRef
         ? readablePsalm
-          ? `${toSnippet(wisdom.text, 108)} Pair it with ${readablePsalm}.`
-          : toSnippet(wisdom.text, 128)
+          ? `Resolve ${wisdomRef} from the source text and pair it with ${readablePsalm}.`
+          : `Resolve ${wisdomRef} from the source text before widening into study.`
         : readablePsalm
           ? `Hold ${readablePsalm} in view, then widen into the study page for context.`
           : "Anchor text, paired reading, and study depth will gather here.",
@@ -10691,7 +11148,8 @@ function updateActionLoop(context) {
   drawerElements.actionAdopt.disabled = adopted;
   drawerElements.actionComplete.disabled = !adopted || completed;
   drawerElements.actionReflect.setAttribute("aria-pressed", uiState.reflectionOpen ? "true" : "false");
-  drawerElements.reflectionSection.hidden = !(uiState.reflectionOpen || (uiState.mode === "reflection" && !uiState.closingOpen));
+  const practicePageActive = uiState.drawerTab === "practice";
+  drawerElements.reflectionSection.hidden = !(practicePageActive || uiState.reflectionOpen || (uiState.mode === "reflection" && !uiState.closingOpen));
   drawerElements.closingSection.hidden = !uiState.closingOpen;
 
   if (document.activeElement !== drawerElements.reflectionInput) {
@@ -10773,7 +11231,7 @@ function getModePresentation(timeState, referenceMap, now, derived, lifeState) {
   const pentacleKey = getPentacleKey(activePentacle);
   const pentacleRecord = pentacleKey ? referenceMap.get(pentacleKey) : null;
   const readablePsalm = formatReadablePsalmReference(getPrimaryPsalmEntry(pentacleRecord));
-  const wisdom = dayLabel ? WISDOM_CONTENT_BY_RULER[dayLabel.rulerText] : null;
+  const wisdomRef = dayLabel ? getWisdomReferenceForRuler(dayLabel.rulerText) : "";
   const hourRule = dayLabel ? getPlanetaryHourRuler(now, dayLabel.rulerText) : null;
   const nextHourRule = dayLabel ? getNextPlanetaryHourRuler(now, dayLabel.rulerText) : null;
   const todayEntry = buildWeeklyArcEntry(now, selectedDayOffset, derived, referenceMap);
@@ -10824,14 +11282,14 @@ function getModePresentation(timeState, referenceMap, now, derived, lifeState) {
   if (mode === "mentor") {
     return {
       centerTitle: "Mentor • Solomon",
-      centerSpirit: wisdom?.ref ? `Counsel anchor • ${wisdom.ref}` : "Wisdom voice",
-      centerPentacle: wisdom?.text
-        ? toSnippet(wisdom.text, 84)
+      centerSpirit: wisdomRef ? `Counsel anchor • ${wisdomRef}` : "Wisdom voice",
+      centerPentacle: wisdomRef
+        ? `${wisdomRef} is the active counsel reference.`
         : "The center speaks through a wisdom voice anchored to the ruling day.",
       surfaceLabel: "Mentor Mode",
       surfaceTitle: "Solomonic Counsel",
-      surfaceBody: wisdom?.text
-        ? toSnippet(wisdom.text, 116)
+      surfaceBody: wisdomRef
+        ? `Mentor mode frames the current moment through ${wisdomRef}.`
         : "Mentor mode frames the current moment through a single guiding voice.",
     };
   }
@@ -10900,6 +11358,76 @@ function updateSurfacePanel(timeState, referenceMap, now, derived, lifeState) {
 
   updateSurfaceLensStack(surfaceView.stack);
   updateRuleOfLifePanels(modePresentation?.ruleOfLife || surfaceView.ruleOfLife || null);
+}
+
+function getMeditationElementText(element) {
+  const text = String(element?.innerText || element?.textContent || "")
+    .replace(/\s+/g, " ")
+    .trim();
+  if (!text || text === "—" || /^loading\b/i.test(text) || /\bunavailable\b/i.test(text)) {
+    return "";
+  }
+  return text;
+}
+
+function getMeditationSnippet(element, fallback = "", limit = 150) {
+  return toSnippet(getMeditationElementText(element) || fallback, limit);
+}
+
+function updateDailyMeditationPanel(context, timeState, now) {
+  if (
+    !drawerElements.meditationTitle
+    || !drawerElements.meditationBody
+    || !drawerElements.meditationClockRef
+    || !drawerElements.meditationClockText
+    || !drawerElements.meditationPentacleRef
+    || !drawerElements.meditationPentacleText
+    || !drawerElements.meditationPracticeText
+  ) {
+    return;
+  }
+
+  const dayText = context?.dayText || timeState?.dayLabel?.dayText || "Today";
+  const rulerText = context?.rulerText || timeState?.dayLabel?.rulerText || "the day";
+  const domain = context?.ruleOfLife?.domain || context?.lifeDomainFocus || "the present work";
+  const virtue = context?.ruleOfLife?.virtue || "prudence";
+  const focus = context?.activeFocus || "ordering the day";
+  const solomonicRef = context?.solomonicRef || getMeditationElementText(drawerElements.bundleSolomonicRef) || "Solomonic correspondence";
+  const hourRule = getPlanetaryHourRuler(now, rulerText);
+  const hourPhrase = hourRule?.ruler
+    ? `${hourRule.ruler} hour ${hourRule.hourIndex + 1}`
+    : "the present hour";
+  const solomonicSnippet = getMeditationSnippet(drawerElements.bundleSolomonicText, focus, 150);
+  const clockExplanation = hourRule?.ruler
+    ? `${hourRule.ruler} names the present mode of action within ${rulerText}'s day. Read it as the clock's immediate discipline: how today's wisdom should be enacted now, not merely admired.`
+    : `The clock names where today's wisdom should become concrete: ${focus}.`;
+  const nextAct = context?.ruleOfLife?.nextAct
+    || context?.ruleOfLife?.morning
+    || context?.guidedPrompt
+    || "Choose one governed act and carry it without ornament.";
+  const restraint = context?.ruleOfLife?.restraint || "Do not spend the day reacting before you have judged what deserves speech.";
+  const reflection = context?.ruleOfLife?.reflection || "What became more ordered because you governed yourself first?";
+
+  drawerElements.meditationTitle.textContent = `${dayText} • ${rulerText} • ${domain} / ${virtue}`;
+  drawerElements.meditationClockRef.textContent = `${hourPhrase} • ${focus}`;
+  drawerElements.meditationClockText.textContent = clockExplanation;
+  drawerElements.meditationPentacleRef.textContent = solomonicRef;
+  drawerElements.meditationPentacleText.textContent = solomonicSnippet;
+  drawerElements.meditationPracticeText.textContent = nextAct;
+
+  const paragraphs = [
+    `The clock reads ${dayText} through ${rulerText}, but it does not leave the day as an abstraction. It places the counsel in ${domain.toLowerCase()}, where ${virtue.toLowerCase()} has to become mastery rather than mood.`,
+    `The clock signal matters because it makes the counsel immediate. ${clockExplanation}`,
+    `The pentacle correspondence, ${solomonicRef}, turns this into practice: ${solomonicSnippet}. Treat the figure as a discipline of attention. Let it name what must be repaired, restrained, strengthened, or spoken with care.`,
+    `For this next turn of the clock, take up one act: ${nextAct} Restraint: ${restraint} Evening question: ${reflection}`,
+  ];
+
+  drawerElements.meditationBody.innerHTML = "";
+  paragraphs.forEach((paragraph) => {
+    const p = document.createElement("p");
+    p.textContent = paragraph;
+    drawerElements.meditationBody.appendChild(p);
+  });
 }
 
 function getLensAnnotations(timeState, referenceMap, now, radii) {
@@ -10983,7 +11511,7 @@ function updateLensAnnotations(timeState, referenceMap, now, radii) {
     .text((entry) => entry.text);
 }
 
-function updateExplainabilityPanel(now, timeState, referenceMap, psalmMetadata) {
+function updateExplainabilityPanel(now, timeState, referenceMap, psalmMetadata, clockContext = null) {
   if (!drawerElements.explainList) {
     return;
   }
@@ -10997,6 +11525,9 @@ function updateExplainabilityPanel(now, timeState, referenceMap, psalmMetadata) 
   const record = pentacleKey ? referenceMap.get(pentacleKey) : null;
   const primaryPsalm = getPrimaryPsalmEntry(record);
 
+  const apiReasons = Array.isArray(clockContext?.why_selected?.reasons)
+    ? clockContext.why_selected.reasons.map((reason) => String(reason || "").trim()).filter(Boolean)
+    : [];
   const key = [
     uiState.presentationMode,
     dayText,
@@ -11006,41 +11537,42 @@ function updateExplainabilityPanel(now, timeState, referenceMap, psalmMetadata) 
     hourRule?.ruler || "none",
     primaryPsalm?.number ?? primaryPsalm?.psalm ?? "none",
     primaryPsalm?.verses || "none",
+    clockContextState.version,
   ].join("|");
   if (key === lastExplainabilityKey) {
     return;
   }
   lastExplainabilityKey = key;
 
-  const reasons = [
-    `${dayText} is ruled by ${rulerText}, so ${rulerText}-aligned intentions are prioritized.`,
-  ];
+  const reasons = apiReasons.length
+    ? apiReasons
+    : [`${dayText} is ruled by ${rulerText}, so ${rulerText}-aligned intentions are prioritized.`];
 
-  if (hourRule) {
+  if (!apiReasons.length && hourRule) {
     reasons.push(
       `Planetary hour proxy: local hour ${hourRule.hourIndex + 1} resolves to ${hourRule.ruler} in the Chaldean sequence.`
     );
   }
 
-  if (activeSpirit && uiState.presentationMode !== "guidance") {
+  if (!apiReasons.length && activeSpirit && uiState.presentationMode !== "guidance") {
     reasons.push(
       `Active spirit sector: ${activeSpirit.zodiac} ${activeSpirit.degrees} (${activeSpirit.spirit}) informs the sign layer.`
     );
   }
 
-  if (activePentacle && uiState.presentationMode === "talismans") {
+  if (!apiReasons.length && activePentacle && uiState.presentationMode === "talismans") {
     reasons.push(
       `Active pentacle rule: ${activePentacle.planet} #${activePentacle.pentacle.index} (${activePentacle.pentacle.focus}).`
     );
-  } else if (activePentacle?.pentacle?.focus) {
+  } else if (!apiReasons.length && activePentacle?.pentacle?.focus) {
     reasons.push(`Today's practical focus: ${activePentacle.pentacle.focus}.`);
   }
 
-  if (primaryPsalm) {
+  if (!apiReasons.length && primaryPsalm) {
     const chapter = Number.parseInt(primaryPsalm.number ?? primaryPsalm.psalm, 10);
     const verseLabel = primaryPsalm.verses ? `:${primaryPsalm.verses}` : "";
     reasons.push(`Primary scripture citation: Psalm ${chapter}${verseLabel}.`);
-  } else {
+  } else if (!apiReasons.length) {
     reasons.push("Primary scripture citation: fallback psalm is used when this pentacle has no direct Psalm note.");
   }
 
@@ -11052,48 +11584,158 @@ function updateExplainabilityPanel(now, timeState, referenceMap, psalmMetadata) 
   });
 }
 
-function updateDailyContentBundle(timeState, referenceMap, psalmMetadata) {
-  if (
-    !drawerElements.bundlePsalmRef ||
-    !drawerElements.bundlePsalmText ||
-    !drawerElements.bundleWisdomRef ||
-    !drawerElements.bundleWisdomText ||
-    !drawerElements.bundleSolomonicItem ||
-    !drawerElements.bundleSolomonicRef ||
-    !drawerElements.bundleSolomonicText
-  ) {
-    return;
-  }
+function hasDailyContentBundleElements() {
+  return Boolean(
+    drawerElements.bundlePsalmRef
+    && drawerElements.bundlePsalmText
+    && drawerElements.bundleWisdomRef
+    && drawerElements.bundleWisdomText
+    && drawerElements.bundleSolomonicItem
+    && drawerElements.bundleSolomonicRef
+    && drawerElements.bundleSolomonicText
+  );
+}
 
+function buildDailyContentBundleKey(timeState, referenceMap) {
   const dayText = timeState?.dayLabel?.dayText || "Unknown day";
   const rulerText = timeState?.dayLabel?.rulerText || "Unknown ruler";
   const activePentacle = timeState?.active?.pentacle || null;
   const pentacleKey = getPentacleKey(activePentacle);
   const record = pentacleKey ? referenceMap.get(pentacleKey) : null;
   const primaryPsalm = getPrimaryPsalmEntry(record);
+  return `${uiState.presentationMode}|${dayText}|${rulerText}|${pentacleKey || "none"}|${primaryPsalm?.number ?? primaryPsalm?.psalm ?? "fallback"}|${primaryPsalm?.verses || "none"}|${readingDepth}`;
+}
 
-  const key = `${uiState.presentationMode}|${dayText}|${rulerText}|${pentacleKey || "none"}|${primaryPsalm?.number ?? primaryPsalm?.psalm ?? "fallback"}|${primaryPsalm?.verses || "none"}|${readingDepth}`;
-  if (key === lastBundleKey) {
-    return;
-  }
-  lastBundleKey = key;
-
-  const requestId = ++currentBundleRequestId;
+function setDailyContentBundleLoading() {
   drawerElements.bundleSolomonicItem.hidden = uiState.presentationMode === "guidance";
-  const wisdom = WISDOM_CONTENT_BY_RULER[rulerText] || {
-    ref: "Proverbs 16:3",
-    text: "Commit thy works unto the LORD, and thy thoughts shall be established.",
+  setTranslationBadge(drawerElements.bundlePsalmRef, "");
+  drawerElements.bundlePsalmRef.textContent = "Loading psalm…";
+  drawerElements.bundlePsalmText.classList.remove("error");
+  drawerElements.bundlePsalmText.classList.add("loading");
+  renderScriptureTextBlock(drawerElements.bundlePsalmText, "Loading psalm passage…", { decorate: false });
+  drawerElements.bundleWisdomRef.textContent = "Loading wisdom…";
+  renderScriptureTextBlock(drawerElements.bundleWisdomText, "Loading wisdom passage…", { compact: true });
+  drawerElements.bundleSolomonicRef.textContent = "Loading Solomonic focus…";
+  drawerElements.bundleSolomonicText.textContent = "Loading active focus…";
+  bundleExpansionState.psalm = null;
+  bundleExpansionState.wisdom = null;
+  bundleExpansionState.solomonic = null;
+}
+
+function getPsalmRequestFromBundleReference(reference) {
+  const parsed = parseScriptureReference(reference);
+  if (!parsed || !/^psalms?$/i.test(parsed.book)) {
+    return null;
+  }
+
+  return {
+    kind: "psalm",
+    chapter: parsed.chapter,
+    verseSpec: parsed.verseSpec || "",
+    reference,
   };
-  const sanitizedWisdomText = sanitizeInlinePassageText(wisdom.text);
-  drawerElements.bundleWisdomRef.textContent = wisdom.ref;
-  renderScriptureTextBlock(drawerElements.bundleWisdomText, sanitizedWisdomText, {
+}
+
+function renderClockContentBundlePayload(payload, timeState) {
+  const bundle = payload?.content_bundle || {};
+  const psalm = bundle.psalm || {};
+  const wisdom = bundle.wisdom || {};
+  const solomonic = bundle.solomonic || {};
+
+  const psalmRef = String(psalm.ref || "Psalm unavailable").trim();
+  const psalmText = String(psalm.text || "").trim();
+  const psalmRequest = getPsalmRequestFromBundleReference(psalmRef);
+  drawerElements.bundlePsalmRef.textContent = psalmRef;
+  setTranslationBadge(drawerElements.bundlePsalmRef, "");
+  drawerElements.bundlePsalmText.classList.remove("loading", "error");
+  renderScriptureTextBlock(drawerElements.bundlePsalmText, psalmText || "Psalm passage unavailable.", {
+    compact: true,
+  });
+  configureBundleExpansion("psalm", {
+    reference: psalmRef,
+    text: psalmText || psalmRef,
+    request: psalmRequest,
+    expandAvailable: Boolean(psalmRequest) && readingDepth !== "long",
+    previewDepth: readingDepth,
+    expandedDepth: "long",
+  });
+
+  const wisdomRef = String(wisdom.ref || "Wisdom unavailable").trim();
+  const fallbackWisdomText = getWisdomTextForReference(wisdomRef);
+  const wisdomText = sanitizeInlinePassageText(wisdom.text && wisdom.text !== wisdomRef ? wisdom.text : fallbackWisdomText);
+  const wisdomRequest = parseScriptureReference(wisdomRef) ? { kind: "wisdom", reference: wisdomRef } : null;
+  drawerElements.bundleWisdomRef.textContent = wisdomRef;
+  renderScriptureTextBlock(drawerElements.bundleWisdomText, wisdomText || "Wisdom passage unavailable.", {
     compact: true,
   });
   configureBundleExpansion("wisdom", {
-    reference: wisdom.ref,
-    text: sanitizedWisdomText,
-    request: parseScriptureReference(wisdom.ref) ? { kind: "wisdom", reference: wisdom.ref } : null,
+    reference: wisdomRef,
+    text: wisdomText || wisdomRef,
+    expandedText: wisdomText || fallbackWisdomText,
+    request: wisdomRequest,
   });
+
+  const fallbackSolomonicBundle = buildSolomonicBundleContent(timeState);
+  const solomonicReference = String(solomonic.ref || fallbackSolomonicBundle.reference || "Key of Solomon, Book II").trim();
+  const solomonicText = String(solomonic.text || fallbackSolomonicBundle.previewText || "No active pentacle focus available.").trim();
+  drawerElements.bundleSolomonicItem.hidden = uiState.presentationMode === "guidance";
+  drawerElements.bundleSolomonicRef.textContent = solomonicReference;
+  drawerElements.bundleSolomonicText.textContent = solomonicText;
+  configureBundleExpansion("solomonic", {
+    reference: solomonicReference,
+    text: solomonicText,
+    expandedText: fallbackSolomonicBundle.expandedText,
+    expandLabel: "Show Meaning",
+    collapseLabel: "Show Brief",
+    discussLabel: "Discuss In Pericope",
+  });
+}
+
+function renderDailyContentBundleFallback(timeState, referenceMap, _psalmMetadata, requestId) {
+  const rulerText = timeState?.dayLabel?.rulerText || "Unknown ruler";
+  const activePentacle = timeState?.active?.pentacle || null;
+  const pentacleKey = getPentacleKey(activePentacle);
+  const record = pentacleKey ? referenceMap.get(pentacleKey) : null;
+  const primaryPsalm = getPrimaryPsalmEntry(record);
+
+  drawerElements.bundleSolomonicItem.hidden = uiState.presentationMode === "guidance";
+  const wisdomRef = getWisdomReferenceForRuler(rulerText);
+  const wisdomRequest = parseScriptureReference(wisdomRef) ? { kind: "wisdom", reference: wisdomRef } : null;
+  const fallbackWisdomText = getWisdomTextForReference(wisdomRef);
+  drawerElements.bundleWisdomRef.textContent = wisdomRef;
+  renderScriptureTextBlock(drawerElements.bundleWisdomText, fallbackWisdomText || "Wisdom passage unavailable.", {
+    compact: true,
+  });
+  configureBundleExpansion("wisdom", {
+    reference: wisdomRef,
+    text: fallbackWisdomText || wisdomRef,
+    expandedText: fallbackWisdomText,
+    request: wisdomRequest,
+  });
+
+  const wisdomState = bundleExpansionState.wisdom;
+  if (wisdomState?.request) {
+    resolveExpandedBundleText("wisdom", wisdomState).then((wisdomText) => {
+      if (requestId !== currentBundleRequestId) {
+        return;
+      }
+      const resolvedWisdomText = wisdomText || fallbackWisdomText || "Wisdom passage unavailable.";
+      renderScriptureTextBlock(drawerElements.bundleWisdomText, resolvedWisdomText, {
+        compact: true,
+      });
+      wisdomState.previewText = resolvedWisdomText;
+      wisdomState.localExpandedText = resolvedWisdomText;
+      wisdomState.expandedText = resolvedWisdomText;
+    }).catch((error) => {
+      if (requestId !== currentBundleRequestId) {
+        return;
+      }
+      console.error("Failed to fetch daily bundle wisdom excerpt", error);
+      renderScriptureTextBlock(drawerElements.bundleWisdomText, fallbackWisdomText || "Wisdom passage unavailable.", {
+        compact: true,
+      });
+    });
+  }
 
   const solomonicBundle = buildSolomonicBundleContent(timeState);
   const solomonicReference = solomonicBundle.reference || "Key of Solomon, Book II";
@@ -11191,6 +11833,41 @@ function updateDailyContentBundle(timeState, referenceMap, psalmMetadata) {
       drawerElements.bundlePsalmText.classList.add("error");
       renderScriptureTextBlock(drawerElements.bundlePsalmText, errorText, { decorate: false });
     }
+  });
+}
+
+function updateDailyContentBundle(timeState, referenceMap, psalmMetadata, displayNow = new Date()) {
+  if (!hasDailyContentBundleElements()) {
+    return;
+  }
+
+  const key = buildDailyContentBundleKey(timeState, referenceMap);
+  if (key === lastBundleKey) {
+    return;
+  }
+  lastBundleKey = key;
+
+  const requestId = ++currentBundleRequestId;
+  setDailyContentBundleLoading();
+
+  fetchClockContentBundle(displayNow).then((payload) => {
+    if (requestId !== currentBundleRequestId) {
+      return;
+    }
+    renderClockContentBundlePayload(payload, timeState);
+  }).catch((error) => {
+    if (requestId !== currentBundleRequestId) {
+      return;
+    }
+    console.error("Failed to fetch clock content bundle", error);
+    reportClientError("clock_content_bundle_fallback_used", {
+      severity: "warn",
+      endpoint: CLOCK_CONTENT_BUNDLE_API_ENDPOINT,
+      requestKind: "content_bundle",
+      fallbackUsed: true,
+      message: error?.message || "Clock content bundle API failed; falling back to frontend resolver.",
+    });
+    renderDailyContentBundleFallback(timeState, referenceMap, psalmMetadata, requestId);
   });
 }
 
@@ -11740,11 +12417,13 @@ async function retrievePsalmText(chapter, verse) {
 
 async function fetchJsonResource(url, label) {
   let response;
+  const resourceUrl = new URL(url, window.location.href);
+  resourceUrl.searchParams.set("v", CLOCK_STATIC_DATA_VERSION);
   try {
-    response = await fetch(url);
+    response = await fetch(resourceUrl.toString());
   } catch (error) {
     reportClientError("resource_fetch_error", {
-      endpoint: url,
+      endpoint: resourceUrl.toString(),
       requestKind: label,
       message: error?.message || `Failed to load ${label}.`,
     });
@@ -11753,7 +12432,7 @@ async function fetchJsonResource(url, label) {
 
   if (!response.ok) {
     reportClientError("resource_http_error", {
-      endpoint: url,
+      endpoint: resourceUrl.toString(),
       requestKind: label,
       httpStatus: response.status,
       message: `Failed to load ${label} with HTTP ${response.status}.`,
@@ -11765,7 +12444,7 @@ async function fetchJsonResource(url, label) {
     return await response.json();
   } catch (error) {
     reportClientError("resource_json_error", {
-      endpoint: url,
+      endpoint: resourceUrl.toString(),
       requestKind: label,
       httpStatus: response.status,
       message: error?.message || `Invalid JSON while loading ${label}.`,
@@ -11780,6 +12459,8 @@ async function initialiseClock() {
   setupPresentationControls();
   setupLensControls();
   setupDrawerToggle();
+  setupDrawerTabControls();
+  setupDrawerAudioControls();
   setupDailyOpeningControls();
   setupSelectedTrackControls();
   setupActionLoopControls();
@@ -11877,22 +12558,25 @@ function renderClock(data, referenceMap, psalmMetadata, pentacleData, lifeDomain
     updateLensFocusOverlay(radii);
     updateLensAnnotations(timeState, referenceMap, now, radii);
 
+    const clockContext = getClockContextForDisplay(displayNow);
     updateCenterLabels(layers.core.name, timeState, referenceMap, now, derived, lifeState);
     updateSurfacePanel(timeState, referenceMap, now, derived, lifeState);
-    currentActionLoopContext = buildActionLoopContext(timeState, referenceMap, displayNow, derived, lifeState);
+    currentActionLoopContext = buildActionLoopContext(timeState, referenceMap, displayNow, derived, lifeState, clockContext);
     updateDailyOpening(currentActionLoopContext);
     updateActionLoop(currentActionLoopContext);
     updateLensDeepPanel(currentActionLoopContext, timeState, referenceMap, now, derived, lifeState);
-    updateDailyGuidance(timeState);
-    updateWeeklyArcPanel(now, derived, referenceMap);
+    updateDailyGuidance(timeState, clockContext);
+    updateWeeklyArcPanel(now, derived, referenceMap, clockContext);
     updateHistoryPanel(now, derived, referenceMap);
     updateProvidenceTimeline(now, derived, referenceMap);
-    updateDailyProfile(timeState);
-    updateExplainabilityPanel(displayNow, timeState, referenceMap, psalmMetadata);
-    updateDailyContentBundle(timeState, referenceMap, psalmMetadata);
+    updateDailyProfile(timeState, clockContext);
+    updateExplainabilityPanel(displayNow, timeState, referenceMap, psalmMetadata, clockContext);
+    updateDailyContentBundle(timeState, referenceMap, psalmMetadata, displayNow);
+    updateDailyMeditationPanel(currentActionLoopContext, timeState, displayNow);
     renderBundleAudioControls();
     renderScriptureReader();
     updatePsalmDrawer(timeState.active.pentacle, referenceMap);
+    renderDrawerAudioControls();
 
     requestAnimationFrame(frame);
   }
