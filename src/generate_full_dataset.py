@@ -162,7 +162,7 @@ VISUAL_PARAMETERS = {
         "core": "#facc15",
         "celestial": "#60a5fa",
         "planetary": "#34d399",
-        "spirit": "#f472b6",
+        "spirit": "#b8a46a",
     },
 }
 
