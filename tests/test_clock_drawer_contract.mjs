@@ -63,8 +63,12 @@ assertIncludes(js, "function buildJourneyTrackProgress", "journey tracks should 
 assertIncludes(js, "function setupSelectedTrackControls", "journey track panel actions should be wired");
 assertIncludes(js, 'const CLOCK_WISDOM_ANCHOR_API_ENDPOINT = "/api/clock/wisdom-anchor";', "daily wisdom should use the Solomonic Clock wisdom API contract");
 assertIncludes(js, 'const CLOCK_DATA_API_ENDPOINT = "/api/clock";', "clock frontend should prefer the clock-owned dataset API");
+assertIncludes(js, 'const CLOCK_RUNTIME_API_ENDPOINT = "/api/clock/runtime";', "clock frontend should know the clock-owned runtime API");
 assertIncludes(js, 'const CLOCK_DATA_FALLBACK_RESOURCE = "../data/solomonic_clock_full.json";', "bundled clock JSON should remain a fallback resource");
 assertIncludes(js, "function fetchClockDataset", "clock frontend should centralize live dataset loading and fallback behavior");
+assertIncludes(js, "function fetchClockRuntime", "clock frontend should fetch the compact runtime state contract");
+assertIncludes(js, "getClockRuntimeForDisplay(displayNow)", "render loop should request runtime state for the displayed clock date");
+assertIncludes(js, "clockRuntime", "Pericope launch context should carry clock runtime state when available");
 assertIncludes(js, "fetchClockDataset()", "clock initialization should load clock data through the API-first dataset loader");
 assert.ok(!js.includes('fetchJsonResource("../data/solomonic_clock_full.json", "clock data")'), "clock initialization should not prefer bundled clock JSON");
 assertIncludes(js, "function fetchClockWisdomAnchor", "clock frontend should fetch wisdom through the clock-owned API");

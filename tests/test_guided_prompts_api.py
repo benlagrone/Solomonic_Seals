@@ -129,6 +129,42 @@ class GuidedPromptsApiTests(unittest.TestCase):
         self.assertNotEqual(payload["wisdom"]["ref"], payload["wisdom"]["text"])
         self.assertNotIn("guided_prompts", payload)
 
+    def test_clock_runtime_payload_exposes_compact_state_contract(self) -> None:
+        payload, error, status = webserver._build_clock_runtime_payload(
+            {
+                "timezone": "America/Chicago",
+                "as_of": "2026-03-13T20:15:00-05:00",
+            }
+        )
+
+        self.assertEqual(status, HTTPStatus.OK, error)
+        self.assertIsNone(error)
+        self.assertIsNotNone(payload)
+        assert payload is not None
+        self.assertEqual(payload["timezone"], "America/Chicago")
+        self.assertEqual(payload["data_source"]["api"], webserver.CLOCK_RUNTIME_API_PATH)
+        self.assertEqual(payload["data_source"]["runtime_model"], "symbolic_lookup_with_civil_hour_proxy")
+        self.assertIn("planetary_day", payload)
+        self.assertIn("planetary_hour", payload)
+        self.assertEqual(payload["planetary_hour"]["calculation"], "civil_hour_proxy")
+        self.assertEqual(payload["solar_events"]["status"], "pending_solar_event_engine")
+        self.assertIn("zodiac", payload)
+        self.assertIn("sector", payload)
+        self.assertIn("active_pentacle", payload)
+        self.assertIn("indices", payload)
+
+    def test_clock_runtime_payload_rejects_invalid_timezone(self) -> None:
+        payload, error, status = webserver._build_clock_runtime_payload(
+            {
+                "timezone": "No/SuchZone",
+                "as_of": "2026-03-13T20:15:00-05:00",
+            }
+        )
+
+        self.assertEqual(status, HTTPStatus.BAD_REQUEST)
+        self.assertIsNone(payload)
+        self.assertIn("Invalid timezone", error or "")
+
     def test_guided_prompts_auth_accepts_shared_header_or_bearer(self) -> None:
         self.assertEqual(
             webserver._extract_guided_prompts_supplied_key(

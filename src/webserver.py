@@ -126,6 +126,7 @@ PERICOPE_GUIDED_PROMPTS_API_PATH = "/api/pericope/guided-prompts"
 CLOCK_CONTEXT_API_PATH = "/api/clock/context"
 CLOCK_CONTENT_BUNDLE_API_PATH = "/api/clock/content-bundle"
 CLOCK_WISDOM_ANCHOR_API_PATH = "/api/clock/wisdom-anchor"
+CLOCK_RUNTIME_API_PATH = "/api/clock/runtime"
 PERICOPE_HISTORY_SESSIONS_API_PATH = "/api/pericope/history-sessions"
 CLIENT_ERRORS_API_PATH = "/api/client-errors"
 VIBEVOICE_TTS_JOBS_API_PATH = "/api/vibevoice/tts/jobs"
@@ -2769,6 +2770,113 @@ def _compute_time_state(now: datetime, layers: dict[str, Any], derived: dict[str
     }
 
 
+def _resolve_clock_request_time(
+    request_payload: dict[str, Any],
+) -> tuple[datetime | None, str | None, str | None, HTTPStatus]:
+    timezone_name = str(request_payload.get("timezone") or "UTC").strip() or "UTC"
+    try:
+        zone = ZoneInfo(timezone_name)
+    except Exception:
+        return None, timezone_name, f"Invalid timezone: {timezone_name!r}", HTTPStatus.BAD_REQUEST
+
+    as_of_raw = request_payload.get("as_of")
+    if as_of_raw in {None, ""}:
+        return datetime.now(zone), timezone_name, None, HTTPStatus.OK
+
+    try:
+        parsed = datetime.fromisoformat(str(as_of_raw).replace("Z", "+00:00"))
+    except ValueError:
+        return None, timezone_name, f"Invalid as_of value: {as_of_raw!r}", HTTPStatus.BAD_REQUEST
+
+    as_of = parsed.replace(tzinfo=zone) if parsed.tzinfo is None else parsed.astimezone(zone)
+    return as_of, timezone_name, None, HTTPStatus.OK
+
+
+def _build_clock_runtime_payload(
+    request_payload: dict[str, Any],
+) -> tuple[dict[str, Any] | None, str | None, HTTPStatus]:
+    dataset, error = _read_json_file(DATA_PATH)
+    if dataset is None:
+        return None, error, HTTPStatus.INTERNAL_SERVER_ERROR
+
+    layers = dataset.get("layers")
+    if not isinstance(layers, dict):
+        return None, "Clock dataset is missing layers.", HTTPStatus.INTERNAL_SERVER_ERROR
+
+    as_of, timezone_name, error, status = _resolve_clock_request_time(request_payload)
+    if as_of is None:
+        return None, error, status
+
+    planetary_groups = (layers.get("planetary") or {}).get("groups") or []
+    derived = {
+        "flatPentacles": _flatten_pentacles(planetary_groups),
+        "spiritCount": int((layers.get("spirit") or {}).get("count") or 0),
+        "planetaryGroupCount": len(planetary_groups),
+        "celestialCount": int((layers.get("celestial") or {}).get("count") or 0),
+    }
+    derived["totalPentacles"] = len(derived["flatPentacles"])
+    time_state = _compute_time_state(as_of, layers, derived)
+    day_label = time_state["dayLabel"]
+    day_ruler = day_label["rulerText"]
+    hour_rule = _get_planetary_hour_ruler(as_of, day_ruler)
+    active = time_state["active"]
+    active_spirit = active.get("spirit") or {}
+    active_pentacle = active.get("pentacle") or {}
+    pentacle_record = active_pentacle.get("pentacle") or {}
+
+    payload = {
+        "generated_at": datetime.now(ZoneInfo("UTC")).isoformat().replace("+00:00", "Z"),
+        "as_of": as_of.isoformat(),
+        "timezone": timezone_name,
+        "data_source": {
+            "service": "solomonic_clock",
+            "api": CLOCK_RUNTIME_API_PATH,
+            "dataset": DATA_PATH.name,
+            "runtime_model": "symbolic_lookup_with_civil_hour_proxy",
+        },
+        "planetary_day": {
+            "day": day_label["dayText"],
+            "ruler": day_ruler,
+        },
+        "planetary_hour": {
+            "index": (hour_rule["hourIndex"] + 1) if hour_rule else None,
+            "ruler": hour_rule["ruler"] if hour_rule else None,
+            "calculation": "civil_hour_proxy",
+            "sunrise_sunset_status": "pending_solar_event_engine",
+        },
+        "is_daylight": None,
+        "solar_events": {
+            "sunrise": None,
+            "sunset": None,
+            "status": "pending_solar_event_engine",
+        },
+        "zodiac": {
+            "label": active_spirit.get("zodiac"),
+            "degree_range": active_spirit.get("degrees"),
+            "calculation": "symbolic_sector_lookup",
+        },
+        "degree": {
+            "solar_longitude": None,
+            "status": "pending_solar_longitude_engine",
+        },
+        "sector": {
+            "index": active_spirit.get("sector"),
+            "spirit": active_spirit.get("spirit"),
+            "zodiac": active_spirit.get("zodiac"),
+            "degree_range": active_spirit.get("degrees"),
+        },
+        "active_pentacle": {
+            "planet": active_pentacle.get("planet"),
+            "index": pentacle_record.get("index"),
+            "focus": pentacle_record.get("focus"),
+            "key": _get_pentacle_key(active_pentacle),
+        },
+        "indices": time_state.get("indices", {}),
+        "fractions": time_state.get("fractions", {}),
+    }
+    return payload, None, HTTPStatus.OK
+
+
 def _build_guided_prompts(
     daily_guidance: dict[str, Any],
     weekly_arc: dict[str, Any],
@@ -3765,6 +3873,20 @@ class ClockRequestHandler(SimpleHTTPRequestHandler):
             self._send_json(data, HTTPStatus.OK, send_body=send_body)
             return True
 
+        if normalized_path == CLOCK_RUNTIME_API_PATH:
+            query = parse_qs(parsed_url.query)
+            payload, error, status = _build_clock_runtime_payload(
+                {
+                    "timezone": (query.get("timezone") or [None])[0],
+                    "as_of": (query.get("as_of") or [None])[0],
+                }
+            )
+            if payload is None:
+                self._send_json({"error": error or "Unable to build runtime state."}, status, send_body=send_body)
+                return True
+            self._send_json(payload, status, send_body=send_body)
+            return True
+
         if normalized_path == VIBEVOICE_HEALTH_API_PATH:
             self._send_json(_build_vibevoice_health_payload(), HTTPStatus.OK, send_body=send_body)
             return True
@@ -4063,6 +4185,7 @@ def main() -> None:
     print(f"Serving {args.root} on http://{args.host}:{args.port}")
     print("• Static assets are available directly (e.g. /web/clock_visualizer.html)")
     print("• Dataset endpoint: /api/clock")
+    print(f"• Clock runtime endpoint: {CLOCK_RUNTIME_API_PATH}")
     print("• Clock context endpoint: /api/clock/context")
     print("• Clock content bundle endpoint: /api/clock/content-bundle")
     print("• Clock wisdom anchor endpoint: /api/clock/wisdom-anchor")

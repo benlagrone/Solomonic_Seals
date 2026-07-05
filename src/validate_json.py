@@ -14,6 +14,7 @@ import sys
 from pathlib import Path
 
 DATA_FILE = Path(__file__).resolve().parent.parent / "data" / "solomonic_clock_full.json"
+PENTACLE_PSALMS_FILE = Path(__file__).resolve().parent.parent / "data" / "pentacle_psalms.json"
 
 
 def load_data() -> dict[str, object]:
@@ -71,6 +72,64 @@ def validate_planetary_layer(planetary_layer: dict[str, object]) -> list[str]:
     return errors
 
 
+def validate_pentacle_psalm_tradition(planetary_layer: dict[str, object]) -> list[str]:
+    warnings: list[str] = []
+    if not PENTACLE_PSALMS_FILE.exists():
+        warnings.append(f"Pentacle Psalm map not found: {PENTACLE_PSALMS_FILE}")
+        return warnings
+
+    try:
+        payload = json.loads(PENTACLE_PSALMS_FILE.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        warnings.append(f"Pentacle Psalm map is invalid JSON: {exc}")
+        return warnings
+
+    groups = planetary_layer.get("groups", [])
+    clock_keys: set[tuple[str, int]] = set()
+    for group in groups:
+        planet = str(group.get("name") or "").strip().lower()
+        for pentacle in group.get("pentacles", []):
+            if not isinstance(pentacle, dict):
+                continue
+            try:
+                index = int(pentacle.get("index"))
+            except (TypeError, ValueError):
+                continue
+            if planet:
+                clock_keys.add((planet, index))
+
+    psalm_keys: set[tuple[str, int]] = set()
+    for record in payload.get("pentacles") or []:
+        if not isinstance(record, dict):
+            continue
+        planet = str(record.get("planet") or "").strip().lower()
+        try:
+            index = int(record.get("pentacle"))
+        except (TypeError, ValueError):
+            continue
+        if planet:
+            psalm_keys.add((planet, index))
+
+    if len(clock_keys) != len(psalm_keys):
+        warnings.append(
+            "Pentacle tradition count differs: "
+            f"clock model has {len(clock_keys)} pentacles; Psalm source map has {len(psalm_keys)}. "
+            "This is expected until the tradition switcher or canonical 43/44 decision is implemented."
+        )
+
+    missing_in_psalms = sorted(clock_keys - psalm_keys)
+    if missing_in_psalms:
+        formatted = ", ".join(f"{planet.title()} #{index}" for planet, index in missing_in_psalms[:8])
+        warnings.append(f"Clock pentacles without Psalm-map records: {formatted}")
+
+    extra_in_psalms = sorted(psalm_keys - clock_keys)
+    if extra_in_psalms:
+        formatted = ", ".join(f"{planet.title()} #{index}" for planet, index in extra_in_psalms[:8])
+        warnings.append(f"Psalm-map records outside the clock model: {formatted}")
+
+    return warnings
+
+
 def validate_visual_parameters(visual: dict[str, object]) -> list[str]:
     required_mappings = {"radius", "rotation_speed", "color_scheme"}
     missing = required_mappings.difference(visual.keys())
@@ -86,8 +145,10 @@ def main() -> int:
     visual = payload.get("visual_parameters", {})
 
     errors: list[str] = []
+    warnings: list[str] = []
     errors.extend(validate_spirit_layer(layers.get("spirit", {})))
     errors.extend(validate_planetary_layer(layers.get("planetary", {})))
+    warnings.extend(validate_pentacle_psalm_tradition(layers.get("planetary", {})))
     errors.extend(validate_visual_parameters(visual))
 
     if errors:
@@ -100,6 +161,10 @@ def main() -> int:
     print(f" - Spirit sectors: {layers['spirit']['count']}")
     print(f" - Planetary pentacles: {layers['planetary']['count']}")
     print(f" - Celestial seals: {layers['celestial']['count']}")
+    if warnings:
+        print("Dataset guardrails:")
+        for issue in warnings:
+            print(f" - Warning: {issue}")
     return 0
 
 

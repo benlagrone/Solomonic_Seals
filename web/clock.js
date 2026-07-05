@@ -461,6 +461,12 @@ const clockContextState = {
   pending: false,
   version: 0,
 };
+const clockRuntimeState = {
+  key: "",
+  payload: null,
+  pending: false,
+  version: 0,
+};
 const bundleExpansionState = {
   psalm: null,
   wisdom: null,
@@ -480,6 +486,7 @@ const CLOCK_CONTEXT_API_ENDPOINT = "/api/clock/context";
 const CLOCK_CONTENT_BUNDLE_API_ENDPOINT = "/api/clock/content-bundle";
 const CLOCK_WISDOM_ANCHOR_API_ENDPOINT = "/api/clock/wisdom-anchor";
 const CLOCK_DATA_API_ENDPOINT = "/api/clock";
+const CLOCK_RUNTIME_API_ENDPOINT = "/api/clock/runtime";
 const CLOCK_DATA_FALLBACK_RESOURCE = "../data/solomonic_clock_full.json";
 const BOOK_PARTIAL_API_ENDPOINT = "/api/pericope/book-partial";
 const CLIENT_ERRORS_API_ENDPOINT = "/api/client-errors";
@@ -1339,10 +1346,39 @@ function fetchClockContentBundle(asOf = new Date()) {
   );
 }
 
+async function fetchClockRuntime(asOf = new Date()) {
+  const payload = buildClockApiRequestPayload(asOf);
+  const url = new URL(CLOCK_RUNTIME_API_ENDPOINT, window.location.href);
+  url.searchParams.set("timezone", payload.timezone);
+  url.searchParams.set("as_of", payload.as_of);
+  const response = await fetch(url.toString(), {
+    headers: {
+      Accept: "application/json",
+    },
+  });
+  const responsePayload = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    reportClientError("clock_runtime_http_error", {
+      endpoint: CLOCK_RUNTIME_API_ENDPOINT,
+      httpStatus: response.status,
+      requestKind: "clock_runtime",
+      message: responsePayload?.error || `Clock runtime API returned HTTP ${response.status}.`,
+    });
+    throw new Error(responsePayload?.error || `HTTP ${response.status}`);
+  }
+  return responsePayload;
+}
+
 function buildClockContextCacheKey(asOf = new Date()) {
   const date = asOf instanceof Date ? asOf : new Date(asOf);
   const safeDate = Number.isNaN(date.getTime()) ? new Date() : date;
   return `${getClockApiTimezone()}|${safeDate.toISOString().slice(0, 13)}`;
+}
+
+function buildClockRuntimeCacheKey(asOf = new Date()) {
+  const date = asOf instanceof Date ? asOf : new Date(asOf);
+  const safeDate = Number.isNaN(date.getTime()) ? new Date() : date;
+  return `${getClockApiTimezone()}|${safeDate.toISOString().slice(0, 16)}`;
 }
 
 function resetClockContextDrivenRenderKeys() {
@@ -1350,6 +1386,49 @@ function resetClockContextDrivenRenderKeys() {
   lastWeeklyArcKey = null;
   lastProfileKey = null;
   lastExplainabilityKey = null;
+}
+
+function setClockRuntimeDatasetSource(payload) {
+  const source = String(payload?.data_source?.runtime_model || payload?.data_source?.api || "api").trim() || "api";
+  if (typeof document !== "undefined" && document.body?.dataset) {
+    document.body.dataset.clockRuntimeSource = source;
+  }
+}
+
+function getClockRuntimeForDisplay(asOf = new Date()) {
+  const key = buildClockRuntimeCacheKey(asOf);
+  if (clockRuntimeState.key === key && clockRuntimeState.payload) {
+    return clockRuntimeState.payload;
+  }
+  if (clockRuntimeState.key === key && clockRuntimeState.pending) {
+    return null;
+  }
+
+  clockRuntimeState.key = key;
+  clockRuntimeState.payload = null;
+  clockRuntimeState.pending = true;
+  fetchClockRuntime(asOf).then((payload) => {
+    if (clockRuntimeState.key !== key) {
+      return;
+    }
+    clockRuntimeState.payload = payload || null;
+    clockRuntimeState.pending = false;
+    clockRuntimeState.version += 1;
+    setClockRuntimeDatasetSource(payload);
+  }).catch((error) => {
+    if (clockRuntimeState.key !== key) {
+      return;
+    }
+    clockRuntimeState.pending = false;
+    reportClientError("clock_runtime_fallback_used", {
+      severity: "warn",
+      endpoint: CLOCK_RUNTIME_API_ENDPOINT,
+      requestKind: "clock_runtime",
+      fallbackUsed: true,
+      message: error?.message || "Clock runtime API failed; continuing with frontend symbolic state.",
+    });
+  });
+  return null;
 }
 
 function getClockContextForDisplay(asOf = new Date()) {
@@ -2510,6 +2589,7 @@ function buildPericopeClockContext(context, reflectionText, mode) {
     ...(apiClockContext || {}),
     as_of: context?.asOf || new Date().toISOString(),
     timezone: context?.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC",
+    runtime: context?.clockRuntime || null,
     lens: uiState.lens,
     mode: normalizedMode,
     daily_guidance: apiClockContext?.daily_guidance || {
@@ -9043,9 +9123,12 @@ function buildRuleOfLife(timeState, referenceMap, now, derived, lifeState) {
   };
 }
 
-function mergeClockApiContext(baseContext, clockContext) {
+function mergeClockApiContext(baseContext, clockContext, clockRuntime = null) {
+  const contextWithRuntime = clockRuntime
+    ? { ...baseContext, clockRuntime }
+    : baseContext;
   if (!clockContext) {
-    return baseContext;
+    return contextWithRuntime;
   }
 
   const guidance = clockContext.daily_guidance || {};
@@ -9078,10 +9161,11 @@ function mergeClockApiContext(baseContext, clockContext) {
     lifeDomainFocus: String(profile.life_domain_focus || baseContext.lifeDomainFocus || "").trim() || baseContext.lifeDomainFocus,
     weakestDomain: String(profile.weakest_domain || baseContext.weakestDomain || "").trim() || baseContext.weakestDomain,
     clockApiContext: clockContext,
+    clockRuntime,
   };
 }
 
-function buildActionLoopContext(timeState, referenceMap, now, derived, lifeState, clockContext = null) {
+function buildActionLoopContext(timeState, referenceMap, now, derived, lifeState, clockContext = null, clockRuntime = null) {
   const ruleOfLife = buildRuleOfLife(timeState, referenceMap, now, derived, lifeState);
   const dateKey = formatDateStorageKey(now);
   const guidedPrompt = buildGuidedPromptFromContext(ruleOfLife, timeState);
@@ -9127,7 +9211,7 @@ function buildActionLoopContext(timeState, referenceMap, now, derived, lifeState
     weakestDomainScore: lifeState?.weakestDomain?.score ?? ruleOfLife?.weakestScore ?? null,
   };
 
-  return mergeClockApiContext(baseContext, clockContext);
+  return mergeClockApiContext(baseContext, clockContext, clockRuntime);
 }
 
 function getRecentDailyOpeningIntentions(excludeDateKey, limit = 6) {
@@ -12593,9 +12677,10 @@ function renderClock(data, referenceMap, psalmMetadata, pentacleData, lifeDomain
     updateLensAnnotations(timeState, referenceMap, now, radii);
 
     const clockContext = getClockContextForDisplay(displayNow);
+    const clockRuntime = getClockRuntimeForDisplay(displayNow);
     updateCenterLabels(layers.core.name, timeState, referenceMap, now, derived, lifeState);
     updateSurfacePanel(timeState, referenceMap, now, derived, lifeState);
-    currentActionLoopContext = buildActionLoopContext(timeState, referenceMap, displayNow, derived, lifeState, clockContext);
+    currentActionLoopContext = buildActionLoopContext(timeState, referenceMap, displayNow, derived, lifeState, clockContext, clockRuntime);
     updateDailyOpening(currentActionLoopContext);
     updateActionLoop(currentActionLoopContext);
     updateLensDeepPanel(currentActionLoopContext, timeState, referenceMap, now, derived, lifeState);
