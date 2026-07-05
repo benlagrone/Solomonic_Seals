@@ -1860,6 +1860,17 @@ def _is_vibevoice_service_unavailable(error: ValueError) -> bool:
     return str(error).startswith("VibeVoice service unavailable:")
 
 
+def _is_vibevoice_auth_failure(error: ValueError) -> bool:
+    message = str(error)
+    return "VibeVoice request failed (401)" in message or "VibeVoice request failed (403)" in message
+
+
+def _should_try_vibevoice_fallback(error: ValueError) -> bool:
+    if _is_vibevoice_service_unavailable(error):
+        return True
+    return _is_vibevoice_auth_failure(error) and not _resolve_vibevoice_api_token()
+
+
 def _build_vibevoice_fallback_payload(request_payload: dict[str, Any]) -> dict[str, Any]:
     fallback_payload = dict(request_payload)
     fallback_payload["speaker_name"] = DEFAULT_VIBEVOICE_FALLBACK_SPEAKER
@@ -1933,7 +1944,7 @@ def _build_vibevoice_job_payload(payload: dict[str, Any]) -> tuple[dict[str, Any
         response_payload = _fetch_vibevoice_json("/v1/tts/jobs", payload=request_payload, timeout=20)
         return _annotate_vibevoice_response(response_payload, "primary"), None, HTTPStatus.ACCEPTED
     except ValueError as exc:
-        if _is_vibevoice_service_unavailable(exc):
+        if _should_try_vibevoice_fallback(exc):
             try:
                 response_payload = _fetch_vibevoice_json(
                     "/v1/tts/jobs",
