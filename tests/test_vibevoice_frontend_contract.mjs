@@ -21,6 +21,6 @@ assertIncludes(js, "Playing ${display.reference} via ${audioResult.engineLabel}.
 assertIncludes(js, "Finished reading ${display.reference} via ${audioResult.engineLabel}.", "Scripture reader should disclose the engine used after playback");
 assertIncludes(js, "Generated ${kind} speech via ${audioResult.engineLabel}.", "Bundle Speak should disclose the engine used");
 assertIncludes(js, "function speakDrawerMeditation", "Drawer Speak should read the active drawer tab as a meditation");
-assertIncludes(html, "20260621-illumination1", "clock asset version should bust cached JS for drawer meditation Speak");
+assertIncludes(html, "20260705-full-readings1", "clock asset version should bust cached JS for drawer meditation Speak");
 
 console.log("vibevoice frontend contract tests: PASS");

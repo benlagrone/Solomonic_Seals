@@ -160,6 +160,12 @@ assertIncludes(css, 'body.clock-page[data-drawer-tab="proverb"] .drawer .scriptu
 assertIncludes(js, "getWisdomTextForReference(wisdomRef)", "Proverb tab should route missing text through the explicit wisdom fallback hook");
 assertIncludes(js, "Wisdom passage unavailable.", "Proverb tab should show an unavailable state instead of hardcoded scripture text when source resolution fails");
 assertIncludes(css, 'body.clock-page[data-drawer-tab="psalm"] .drawer .scripture-reader-panel', "full Psalm content should be available through the Psalm tab reader");
+assertIncludes(js, "function hydrateFullReaderSource", "Psalm and Proverb reader tabs should hydrate full chapter text from anchor references");
+assertIncludes(js, 'fullReference = `Psalm ${chapter} • Full chapter`;', "Psalm reader should identify the full chapter after hydrating from an anchor verse");
+assertIncludes(js, "psalm.full_text", "Psalm reader should prefer the full Psalm supplied by the content bundle");
+assertIncludes(js, "sanitizeInlinePassageText(fullContent)", "Proverb reader expansion should keep the full chapter content instead of extracting only the cited verse");
+assertIncludes(js, "hydrateFullReaderSource(\"psalm\", bundleExpansionState.psalm, requestId);", "API content bundle Psalm anchors should be promoted to full Psalm text for the reader");
+assertIncludes(js, "hydrateFullReaderSource(\"wisdom\", bundleExpansionState.wisdom, requestId);", "API content bundle Proverb anchors should be promoted to full Proverb text for the reader");
 assert.ok(!html.includes('class="reading-depth drawer-section"'), "Psalm/Proverb tabs should not expose short/medium/long depth buttons");
 assert.ok(!css.includes('body.clock-page[data-drawer-tab="proverb"] .drawer .daily-bundle,'), "Proverb tab should not duplicate the daily bundle underneath the reader");
 assert.ok(!css.includes('body.clock-page[data-drawer-tab="psalm"] .drawer .daily-bundle,'), "Psalm tab should not duplicate the daily bundle underneath the reader");

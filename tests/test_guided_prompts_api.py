@@ -108,6 +108,10 @@ class GuidedPromptsApiTests(unittest.TestCase):
         self.assertIn("psalm", payload["content_bundle"])
         self.assertIn("wisdom", payload["content_bundle"])
         self.assertIn("solomonic", payload["content_bundle"])
+        psalm = payload["content_bundle"]["psalm"]
+        self.assertIn("chapter_ref", psalm)
+        self.assertIn("full_text", psalm)
+        self.assertGreaterEqual(len(psalm["full_text"]), len(psalm["text"]))
         self.assertNotIn("guided_prompts", payload)
 
     def test_clock_wisdom_anchor_api_payload_resolves_source_text(self) -> None:

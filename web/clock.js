@@ -7606,9 +7606,8 @@ async function resolveExpandedBundleText(kind, requestState) {
   }
 
   const fullContent = String(payload?.content || "").trim();
-  const verseSpec = parseScriptureReference(requestState.request?.reference || requestState.previewRef)?.verseSpec || "";
   const nextText = kind === "wisdom"
-    ? extractVersePassageText(fullContent, verseSpec) || sanitizeInlinePassageText(fullContent)
+    ? sanitizeInlinePassageText(fullContent)
     : fullContent;
   requestState.expandedText = nextText || "No expanded text returned.";
   return requestState.expandedText;
@@ -7778,6 +7777,73 @@ function restoreBundlePreview(kind) {
   }
 
   state.expanded = false;
+}
+
+function applyFullReaderSourceText(kind, sourceState, fullText, { reference = "" } = {}) {
+  if (!sourceState || !fullText) {
+    return;
+  }
+
+  const normalizedKind = kind === "wisdom" ? "wisdom" : "psalm";
+  const nextText = normalizedKind === "wisdom"
+    ? sanitizeInlinePassageText(fullText)
+    : normalizePsalmText(fullText);
+  if (!nextText) {
+    return;
+  }
+
+  if (reference) {
+    sourceState.previewRef = reference;
+  }
+  sourceState.previewText = nextText;
+  sourceState.expandedText = nextText;
+  sourceState.localExpandedText = nextText;
+  sourceState.expandAvailable = false;
+
+  renderScriptureReader(true);
+  renderBundleAudioControls();
+  renderDrawerAudioControls();
+}
+
+async function hydrateFullReaderSource(kind, sourceState, requestId) {
+  if (!sourceState?.request) {
+    return;
+  }
+
+  const normalizedKind = kind === "wisdom" ? "wisdom" : "psalm";
+  const requestState = sourceState;
+  try {
+    let fullText = "";
+    let fullReference = "";
+    if (normalizedKind === "psalm") {
+      const chapter = Number.parseInt(requestState.request?.chapter, 10);
+      if (Number.isNaN(chapter) || chapter <= 0) {
+        return;
+      }
+      fullReference = `Psalm ${chapter} • Full chapter`;
+      fullText = requestState.localExpandedText || await retrievePsalmPassage(chapter, "", "long");
+    } else {
+      requestState.localExpandedText = "";
+      fullText = await resolveExpandedBundleText("wisdom", requestState);
+      const parsed = parseScriptureReference(requestState.request?.reference || requestState.previewRef);
+      fullReference = parsed?.book && parsed?.chapter
+        ? `${parsed.book} ${parsed.chapter} • Full chapter`
+        : "";
+    }
+
+    if (requestId !== currentBundleRequestId || bundleExpansionState[normalizedKind] !== requestState) {
+      return;
+    }
+    applyFullReaderSourceText(normalizedKind, requestState, fullText, { reference: fullReference });
+  } catch (error) {
+    console.error(`Failed to hydrate full ${normalizedKind} reader text`, error);
+    reportClientError("scripture_reader_full_hydration_failed", {
+      endpoint: normalizedKind === "psalm" ? PSALM_API_ENDPOINT : BOOK_PARTIAL_API_ENDPOINT,
+      requestKind: normalizedKind,
+      requestedReference: requestState.request?.reference || requestState.previewRef,
+      message: error?.message || `Full ${normalizedKind} reader text failed to load.`,
+    });
+  }
 }
 
 async function toggleBundleExpansion(kind) {
@@ -11730,7 +11796,7 @@ function getPsalmRequestFromBundleReference(reference) {
   };
 }
 
-function renderClockContentBundlePayload(payload, timeState) {
+function renderClockContentBundlePayload(payload, timeState, requestId) {
   const bundle = payload?.content_bundle || {};
   const psalm = bundle.psalm || {};
   const wisdom = bundle.wisdom || {};
@@ -11738,6 +11804,9 @@ function renderClockContentBundlePayload(payload, timeState) {
 
   const psalmRef = String(psalm.ref || "Psalm unavailable").trim();
   const psalmText = String(psalm.text || "").trim();
+  const psalmFullText = normalizePsalmText(psalm.full_text || "");
+  const psalmChapterRef = String(psalm.chapter_ref || "").trim();
+  const psalmFullRef = psalmChapterRef ? `${psalmChapterRef} • Full chapter` : psalmRef;
   const psalmRequest = getPsalmRequestFromBundleReference(psalmRef);
   drawerElements.bundlePsalmRef.textContent = psalmRef;
   setTranslationBadge(drawerElements.bundlePsalmRef, "");
@@ -11746,13 +11815,17 @@ function renderClockContentBundlePayload(payload, timeState) {
     compact: true,
   });
   configureBundleExpansion("psalm", {
-    reference: psalmRef,
-    text: psalmText || psalmRef,
+    reference: psalmFullText ? psalmFullRef : psalmRef,
+    text: psalmFullText || psalmText || psalmRef,
+    expandedText: psalmFullText,
     request: psalmRequest,
-    expandAvailable: Boolean(psalmRequest) && readingDepth !== "long",
-    previewDepth: readingDepth,
+    expandAvailable: false,
+    previewDepth: "long",
     expandedDepth: "long",
   });
+  if (psalmRequest) {
+    hydrateFullReaderSource("psalm", bundleExpansionState.psalm, requestId);
+  }
 
   const wisdomRef = String(wisdom.ref || "Wisdom unavailable").trim();
   const fallbackWisdomText = getWisdomTextForReference(wisdomRef);
@@ -11765,9 +11838,13 @@ function renderClockContentBundlePayload(payload, timeState) {
   configureBundleExpansion("wisdom", {
     reference: wisdomRef,
     text: wisdomText || wisdomRef,
-    expandedText: wisdomText || fallbackWisdomText,
+    expandedText: wisdomRequest ? "" : (wisdomText || fallbackWisdomText),
     request: wisdomRequest,
+    expandAvailable: false,
   });
+  if (wisdomRequest) {
+    hydrateFullReaderSource("wisdom", bundleExpansionState.wisdom, requestId);
+  }
 
   const fallbackSolomonicBundle = buildSolomonicBundleContent(timeState);
   const solomonicReference = String(solomonic.ref || fallbackSolomonicBundle.reference || "Key of Solomon, Book II").trim();
@@ -11803,8 +11880,9 @@ function renderDailyContentBundleFallback(timeState, referenceMap, _psalmMetadat
   configureBundleExpansion("wisdom", {
     reference: wisdomRef,
     text: fallbackWisdomText || wisdomRef,
-    expandedText: fallbackWisdomText,
+    expandedText: wisdomRequest ? "" : fallbackWisdomText,
     request: wisdomRequest,
+    expandAvailable: false,
   });
 
   const wisdomState = bundleExpansionState.wisdom;
@@ -11948,7 +12026,7 @@ function updateDailyContentBundle(timeState, referenceMap, psalmMetadata, displa
     if (requestId !== currentBundleRequestId) {
       return;
     }
-    renderClockContentBundlePayload(payload, timeState);
+    renderClockContentBundlePayload(payload, timeState, requestId);
   }).catch((error) => {
     if (requestId !== currentBundleRequestId) {
       return;
