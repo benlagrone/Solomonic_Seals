@@ -14,13 +14,14 @@ import csv
 import hashlib
 import hmac
 import json
+import math
 import os
 import re
 import tempfile
 import threading
 import time
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timedelta
 from functools import partial
 from http import HTTPStatus
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
@@ -127,6 +128,8 @@ CLOCK_CONTEXT_API_PATH = "/api/clock/context"
 CLOCK_CONTENT_BUNDLE_API_PATH = "/api/clock/content-bundle"
 CLOCK_WISDOM_ANCHOR_API_PATH = "/api/clock/wisdom-anchor"
 CLOCK_RUNTIME_API_PATH = "/api/clock/runtime"
+DEFAULT_CLOCK_LATITUDE = float(os.environ.get("SOLOMONIC_CLOCK_LATITUDE", "41.8781"))
+DEFAULT_CLOCK_LONGITUDE = float(os.environ.get("SOLOMONIC_CLOCK_LONGITUDE", "-87.6298"))
 PERICOPE_HISTORY_SESSIONS_API_PATH = "/api/pericope/history-sessions"
 CLIENT_ERRORS_API_PATH = "/api/client-errors"
 VIBEVOICE_TTS_JOBS_API_PATH = "/api/vibevoice/tts/jobs"
@@ -329,6 +332,20 @@ FALLBACK_DAILY_PSALM_BY_RULER = {
 }
 PLANETARY_DAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
 PLANETARY_RULERS = ["Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn"]
+ZODIAC_NAMES = [
+    "Aries",
+    "Taurus",
+    "Gemini",
+    "Cancer",
+    "Leo",
+    "Virgo",
+    "Libra",
+    "Scorpio",
+    "Sagittarius",
+    "Capricorn",
+    "Aquarius",
+    "Pisces",
+]
 LIFE_DOMAIN_FOCUS_KEYWORDS = [
     (re.compile(r"\b(study|learn|understand|message|speech|word|reason|clarity|think|mind)\b", re.I), "mind"),
     (re.compile(r"\b(body|health|sleep|rest|strength|travel|journey|road|movement|discipline)\b", re.I), "body"),
@@ -2522,6 +2539,195 @@ def _get_planetary_hour_ruler(now: datetime, day_ruler: str) -> dict[str, Any] |
     }
 
 
+def _resolve_clock_location(request_payload: dict[str, Any]) -> tuple[float, float, str | None, HTTPStatus]:
+    latitude_raw = request_payload.get("latitude")
+    longitude_raw = request_payload.get("longitude")
+    try:
+        latitude = float(DEFAULT_CLOCK_LATITUDE if latitude_raw in {None, ""} else latitude_raw)
+        longitude = float(DEFAULT_CLOCK_LONGITUDE if longitude_raw in {None, ""} else longitude_raw)
+    except (TypeError, ValueError):
+        return 0.0, 0.0, "Invalid latitude or longitude.", HTTPStatus.BAD_REQUEST
+
+    if not -90 <= latitude <= 90:
+        return 0.0, 0.0, "Invalid latitude: must be between -90 and 90.", HTTPStatus.BAD_REQUEST
+    if not -180 <= longitude <= 180:
+        return 0.0, 0.0, "Invalid longitude: must be between -180 and 180.", HTTPStatus.BAD_REQUEST
+    return latitude, longitude, None, HTTPStatus.OK
+
+
+def _noaa_solar_event(
+    date_value: datetime,
+    latitude: float,
+    longitude: float,
+    zone: ZoneInfo,
+    event: str,
+) -> datetime | None:
+    day_of_year = int(date_value.strftime("%j"))
+    longitude_hour = longitude / 15
+    approximate_time = day_of_year + (((6 if event == "sunrise" else 18) - longitude_hour) / 24)
+    mean_anomaly = (0.9856 * approximate_time) - 3.289
+    true_longitude = (
+        mean_anomaly
+        + (1.916 * math.sin(math.radians(mean_anomaly)))
+        + (0.020 * math.sin(math.radians(2 * mean_anomaly)))
+        + 282.634
+    ) % 360
+    right_ascension = math.degrees(math.atan(0.91764 * math.tan(math.radians(true_longitude)))) % 360
+    longitude_quadrant = math.floor(true_longitude / 90) * 90
+    ascension_quadrant = math.floor(right_ascension / 90) * 90
+    right_ascension = (right_ascension + longitude_quadrant - ascension_quadrant) / 15
+
+    sin_declination = 0.39782 * math.sin(math.radians(true_longitude))
+    cos_declination = math.cos(math.asin(sin_declination))
+    zenith = math.radians(90.833)
+    cos_hour_angle = (
+        math.cos(zenith) - (sin_declination * math.sin(math.radians(latitude)))
+    ) / (cos_declination * math.cos(math.radians(latitude)))
+    if cos_hour_angle > 1 or cos_hour_angle < -1:
+        return None
+
+    hour_angle = math.degrees(math.acos(cos_hour_angle))
+    if event == "sunrise":
+        hour_angle = 360 - hour_angle
+    hour_angle /= 15
+
+    local_mean_time = hour_angle + right_ascension - (0.06571 * approximate_time) - 6.622
+    utc_hour = (local_mean_time - longitude_hour) % 24
+    event_utc = datetime(date_value.year, date_value.month, date_value.day, tzinfo=ZoneInfo("UTC")) + timedelta(
+        hours=utc_hour
+    )
+    return event_utc.astimezone(zone)
+
+
+def _build_solar_event_state(now: datetime, latitude: float, longitude: float) -> dict[str, Any]:
+    zone = now.tzinfo if isinstance(now.tzinfo, ZoneInfo) else ZoneInfo("UTC")
+    today = now.astimezone(zone)
+    yesterday = today - timedelta(days=1)
+    tomorrow = today + timedelta(days=1)
+    sunrise = _noaa_solar_event(today, latitude, longitude, zone, "sunrise")
+    sunset = _noaa_solar_event(today, latitude, longitude, zone, "sunset")
+    previous_sunset = _noaa_solar_event(yesterday, latitude, longitude, zone, "sunset")
+    next_sunrise = _noaa_solar_event(tomorrow, latitude, longitude, zone, "sunrise")
+
+    if not sunrise or not sunset:
+        return {
+            "sunrise": None,
+            "sunset": None,
+            "previous_sunset": previous_sunset,
+            "next_sunrise": next_sunrise,
+            "is_daylight": None,
+            "active_segment": None,
+            "status": "unavailable",
+        }
+
+    if sunrise <= now < sunset:
+        return {
+            "sunrise": sunrise,
+            "sunset": sunset,
+            "previous_sunset": previous_sunset,
+            "next_sunrise": next_sunrise,
+            "is_daylight": True,
+            "active_segment": {"start": sunrise, "end": sunset, "offset": 0},
+            "status": "ok",
+        }
+
+    if now < sunrise:
+        segment_start = previous_sunset
+        segment_end = sunrise
+    else:
+        segment_start = sunset
+        segment_end = next_sunrise
+    if not segment_start or not segment_end:
+        return {
+            "sunrise": sunrise,
+            "sunset": sunset,
+            "previous_sunset": previous_sunset,
+            "next_sunrise": next_sunrise,
+            "is_daylight": False,
+            "active_segment": None,
+            "status": "partial",
+        }
+
+    return {
+        "sunrise": sunrise,
+        "sunset": sunset,
+        "previous_sunset": previous_sunset,
+        "next_sunrise": next_sunrise,
+        "is_daylight": False,
+        "active_segment": {"start": segment_start, "end": segment_end, "offset": 12},
+        "status": "ok",
+    }
+
+
+def _get_solar_planetary_hour(now: datetime, day_ruler: str, solar_state: dict[str, Any]) -> dict[str, Any] | None:
+    segment = solar_state.get("active_segment")
+    if not segment:
+        return None
+    try:
+        start_index = CHALDEAN_ORDER.index(day_ruler)
+    except ValueError:
+        return None
+
+    segment_start = segment["start"]
+    segment_end = segment["end"]
+    segment_seconds = (segment_end - segment_start).total_seconds()
+    if segment_seconds <= 0:
+        return None
+
+    hour_seconds = segment_seconds / 12
+    segment_hour = min(11, max(0, int((now - segment_start).total_seconds() // hour_seconds)))
+    global_hour_index = int(segment.get("offset") or 0) + segment_hour
+    hour_start = segment_start + timedelta(seconds=hour_seconds * segment_hour)
+    hour_end = hour_start + timedelta(seconds=hour_seconds)
+    return {
+        "hourIndex": global_hour_index,
+        "segmentHourIndex": segment_hour,
+        "ruler": CHALDEAN_ORDER[(start_index + global_hour_index) % len(CHALDEAN_ORDER)],
+        "start": hour_start,
+        "end": hour_end,
+        "durationMinutes": round(hour_seconds / 60, 2),
+    }
+
+
+def _iso_or_none(value: Any) -> str | None:
+    if isinstance(value, datetime):
+        return value.isoformat()
+    return None
+
+
+def _solar_longitude(now: datetime) -> float:
+    utc_now = now.astimezone(ZoneInfo("UTC"))
+    j2000 = datetime(2000, 1, 1, 12, tzinfo=ZoneInfo("UTC"))
+    days_since_j2000 = (utc_now - j2000).total_seconds() / 86400
+    mean_longitude = (280.460 + 0.9856474 * days_since_j2000) % 360
+    mean_anomaly = (357.528 + 0.9856003 * days_since_j2000) % 360
+    longitude = (
+        mean_longitude
+        + 1.915 * math.sin(math.radians(mean_anomaly))
+        + 0.020 * math.sin(math.radians(2 * mean_anomaly))
+    )
+    return longitude % 360
+
+
+def _resolve_solar_sector(now: datetime, sectors: list[dict[str, Any]]) -> dict[str, Any]:
+    longitude = _solar_longitude(now)
+    zodiac_index = int(longitude // 30) % len(ZODIAC_NAMES)
+    degree_within_sign = longitude % 30
+    sector_index = int(longitude // 5) % 72
+    degree_band_start = int(degree_within_sign // 5) * 5
+    degree_band_label = f"{degree_band_start}–{degree_band_start + 5}"
+    sector = sectors[sector_index] if 0 <= sector_index < len(sectors) else {}
+    return {
+        "longitude": longitude,
+        "zodiac": ZODIAC_NAMES[zodiac_index],
+        "degree_within_sign": degree_within_sign,
+        "degree_range": str(sector.get("degrees") or degree_band_label),
+        "sector_index": sector_index,
+        "sector": sector,
+        "status": "ok" if sector else "missing_sector",
+    }
+
+
 def _build_pentacle_reference_map(payload: dict[str, Any]) -> dict[str, dict[str, Any]]:
     references: dict[str, dict[str, Any]] = {}
     for record in payload.get("pentacles") or []:
@@ -2806,6 +3012,9 @@ def _build_clock_runtime_payload(
     as_of, timezone_name, error, status = _resolve_clock_request_time(request_payload)
     if as_of is None:
         return None, error, status
+    latitude, longitude, error, status = _resolve_clock_location(request_payload)
+    if error:
+        return None, error, status
 
     planetary_groups = (layers.get("planetary") or {}).get("groups") or []
     derived = {
@@ -2818,21 +3027,36 @@ def _build_clock_runtime_payload(
     time_state = _compute_time_state(as_of, layers, derived)
     day_label = time_state["dayLabel"]
     day_ruler = day_label["rulerText"]
-    hour_rule = _get_planetary_hour_ruler(as_of, day_ruler)
+    solar_state = _build_solar_event_state(as_of, latitude, longitude)
+    solar_sector = _resolve_solar_sector(as_of, (layers.get("spirit") or {}).get("sectors") or [])
+    hour_rule = _get_solar_planetary_hour(as_of, day_ruler, solar_state) or _get_planetary_hour_ruler(
+        as_of,
+        day_ruler,
+    )
     active = time_state["active"]
-    active_spirit = active.get("spirit") or {}
+    active_spirit = solar_sector.get("sector") or active.get("spirit") or {}
     active_pentacle = active.get("pentacle") or {}
     pentacle_record = active_pentacle.get("pentacle") or {}
+    runtime_model = (
+        "solar_event_planetary_hour"
+        if solar_state.get("status") == "ok" and hour_rule and hour_rule.get("start")
+        else "symbolic_lookup_with_civil_hour_fallback"
+    )
+    hour_calculation = "solar_event_interval" if hour_rule and hour_rule.get("start") else "civil_hour_fallback"
 
     payload = {
         "generated_at": datetime.now(ZoneInfo("UTC")).isoformat().replace("+00:00", "Z"),
         "as_of": as_of.isoformat(),
         "timezone": timezone_name,
+        "location": {
+            "latitude": latitude,
+            "longitude": longitude,
+        },
         "data_source": {
             "service": "solomonic_clock",
             "api": CLOCK_RUNTIME_API_PATH,
             "dataset": DATA_PATH.name,
-            "runtime_model": "symbolic_lookup_with_civil_hour_proxy",
+            "runtime_model": runtime_model,
         },
         "planetary_day": {
             "day": day_label["dayText"],
@@ -2840,30 +3064,42 @@ def _build_clock_runtime_payload(
         },
         "planetary_hour": {
             "index": (hour_rule["hourIndex"] + 1) if hour_rule else None,
+            "segment_index": (
+                (hour_rule.get("segmentHourIndex") + 1)
+                if hour_rule and hour_rule.get("segmentHourIndex") is not None
+                else None
+            ),
             "ruler": hour_rule["ruler"] if hour_rule else None,
-            "calculation": "civil_hour_proxy",
-            "sunrise_sunset_status": "pending_solar_event_engine",
+            "start": _iso_or_none(hour_rule.get("start")) if hour_rule else None,
+            "end": _iso_or_none(hour_rule.get("end")) if hour_rule else None,
+            "duration_minutes": hour_rule.get("durationMinutes") if hour_rule else None,
+            "calculation": hour_calculation,
+            "sunrise_sunset_status": solar_state.get("status"),
         },
-        "is_daylight": None,
+        "is_daylight": solar_state.get("is_daylight"),
         "solar_events": {
-            "sunrise": None,
-            "sunset": None,
-            "status": "pending_solar_event_engine",
+            "sunrise": _iso_or_none(solar_state.get("sunrise")),
+            "sunset": _iso_or_none(solar_state.get("sunset")),
+            "previous_sunset": _iso_or_none(solar_state.get("previous_sunset")),
+            "next_sunrise": _iso_or_none(solar_state.get("next_sunrise")),
+            "status": solar_state.get("status"),
         },
         "zodiac": {
-            "label": active_spirit.get("zodiac"),
-            "degree_range": active_spirit.get("degrees"),
-            "calculation": "symbolic_sector_lookup",
+            "label": solar_sector.get("zodiac"),
+            "degree_within_sign": round(float(solar_sector.get("degree_within_sign") or 0), 4),
+            "degree_range": solar_sector.get("degree_range"),
+            "calculation": "solar_longitude",
         },
         "degree": {
-            "solar_longitude": None,
-            "status": "pending_solar_longitude_engine",
+            "solar_longitude": round(float(solar_sector.get("longitude") or 0), 4),
+            "status": solar_sector.get("status"),
         },
         "sector": {
             "index": active_spirit.get("sector"),
             "spirit": active_spirit.get("spirit"),
             "zodiac": active_spirit.get("zodiac"),
             "degree_range": active_spirit.get("degrees"),
+            "calculation": "solar_longitude_sector",
         },
         "active_pentacle": {
             "planet": active_pentacle.get("planet"),
@@ -3879,6 +4115,8 @@ class ClockRequestHandler(SimpleHTTPRequestHandler):
                 {
                     "timezone": (query.get("timezone") or [None])[0],
                     "as_of": (query.get("as_of") or [None])[0],
+                    "latitude": (query.get("latitude") or [None])[0],
+                    "longitude": (query.get("longitude") or [None])[0],
                 }
             )
             if payload is None:

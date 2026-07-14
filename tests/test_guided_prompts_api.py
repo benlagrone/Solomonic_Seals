@@ -75,6 +75,8 @@ class GuidedPromptsApiTests(unittest.TestCase):
             {
                 "timezone": "America/Chicago",
                 "as_of": "2026-03-13T20:15:00-05:00",
+                "latitude": 41.8781,
+                "longitude": -87.6298,
             }
         )
 
@@ -143,13 +145,28 @@ class GuidedPromptsApiTests(unittest.TestCase):
         assert payload is not None
         self.assertEqual(payload["timezone"], "America/Chicago")
         self.assertEqual(payload["data_source"]["api"], webserver.CLOCK_RUNTIME_API_PATH)
-        self.assertEqual(payload["data_source"]["runtime_model"], "symbolic_lookup_with_civil_hour_proxy")
+        self.assertEqual(payload["data_source"]["runtime_model"], "solar_event_planetary_hour")
+        self.assertEqual(payload["location"]["latitude"], 41.8781)
+        self.assertEqual(payload["location"]["longitude"], -87.6298)
         self.assertIn("planetary_day", payload)
         self.assertIn("planetary_hour", payload)
-        self.assertEqual(payload["planetary_hour"]["calculation"], "civil_hour_proxy")
-        self.assertEqual(payload["solar_events"]["status"], "pending_solar_event_engine")
-        self.assertIn("zodiac", payload)
-        self.assertIn("sector", payload)
+        self.assertEqual(payload["planetary_hour"]["calculation"], "solar_event_interval")
+        self.assertEqual(payload["planetary_hour"]["sunrise_sunset_status"], "ok")
+        self.assertIsNotNone(payload["planetary_hour"]["start"])
+        self.assertIsNotNone(payload["planetary_hour"]["end"])
+        self.assertEqual(payload["solar_events"]["status"], "ok")
+        self.assertIsNotNone(payload["solar_events"]["sunrise"])
+        self.assertIsNotNone(payload["solar_events"]["sunset"])
+        self.assertIsInstance(payload["is_daylight"], bool)
+        self.assertEqual(payload["zodiac"]["label"], "Pisces")
+        self.assertEqual(payload["zodiac"]["degree_range"], "20–25")
+        self.assertEqual(payload["zodiac"]["calculation"], "solar_longitude")
+        self.assertEqual(payload["degree"]["status"], "ok")
+        self.assertGreater(payload["degree"]["solar_longitude"], 353)
+        self.assertLess(payload["degree"]["solar_longitude"], 354)
+        self.assertEqual(payload["sector"]["index"], 71)
+        self.assertEqual(payload["sector"]["spirit"], "Dantalion")
+        self.assertEqual(payload["sector"]["calculation"], "solar_longitude_sector")
         self.assertIn("active_pentacle", payload)
         self.assertIn("indices", payload)
 
@@ -164,6 +181,20 @@ class GuidedPromptsApiTests(unittest.TestCase):
         self.assertEqual(status, HTTPStatus.BAD_REQUEST)
         self.assertIsNone(payload)
         self.assertIn("Invalid timezone", error or "")
+
+    def test_clock_runtime_payload_rejects_invalid_location(self) -> None:
+        payload, error, status = webserver._build_clock_runtime_payload(
+            {
+                "timezone": "America/Chicago",
+                "as_of": "2026-03-13T20:15:00-05:00",
+                "latitude": 100,
+                "longitude": -87.6298,
+            }
+        )
+
+        self.assertEqual(status, HTTPStatus.BAD_REQUEST)
+        self.assertIsNone(payload)
+        self.assertIn("Invalid latitude", error or "")
 
     def test_guided_prompts_auth_accepts_shared_header_or_bearer(self) -> None:
         self.assertEqual(
