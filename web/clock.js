@@ -12015,6 +12015,49 @@ function computeTimeState(now, layers, derived) {
   };
 }
 
+function applyClockRuntimeToTimeState(timeState, clockRuntime, layers) {
+  if (!timeState || !clockRuntime) {
+    return timeState;
+  }
+
+  const nextState = {
+    ...timeState,
+    fractions: { ...(timeState.fractions || {}) },
+    indices: { ...(timeState.indices || {}) },
+    active: { ...(timeState.active || {}) },
+    dayLabel: { ...(timeState.dayLabel || {}) },
+    clockRuntime,
+  };
+
+  const solarLongitude = Number(clockRuntime?.degree?.solar_longitude);
+  if (Number.isFinite(solarLongitude)) {
+    const normalizedLongitude = ((solarLongitude % 360) + 360) % 360;
+    nextState.fractions.spirit = normalizedLongitude / 360;
+  }
+
+  const runtimeSectorIndex = Number(clockRuntime?.sector?.index);
+  const spiritSectors = Array.isArray(layers?.spirit?.sectors) ? layers.spirit.sectors : [];
+  if (Number.isFinite(runtimeSectorIndex)) {
+    const zeroBasedIndex = Math.max(0, Math.min(spiritSectors.length - 1, Math.trunc(runtimeSectorIndex) - 1));
+    const runtimeSector = spiritSectors[zeroBasedIndex] || null;
+    if (runtimeSector) {
+      nextState.indices.spirit = zeroBasedIndex;
+      nextState.active.spirit = runtimeSector;
+    }
+  }
+
+  const runtimeDay = String(clockRuntime?.planetary_day?.day || "").trim();
+  const runtimeDayRuler = String(clockRuntime?.planetary_day?.ruler || "").trim();
+  if (runtimeDay || runtimeDayRuler) {
+    nextState.dayLabel = {
+      dayText: runtimeDay || nextState.dayLabel.dayText,
+      rulerText: runtimeDayRuler || nextState.dayLabel.rulerText,
+    };
+  }
+
+  return nextState;
+}
+
 function buildPentacleReferenceMap(psalmPayload) {
   const map = new Map();
   if (!psalmPayload || !Array.isArray(psalmPayload.pentacles)) {
@@ -12651,7 +12694,13 @@ function renderClock(data, referenceMap, psalmMetadata, pentacleData, lifeDomain
   function frame() {
     const now = new Date();
     const displayNow = withSelectedDayOffset(now);
-    const timeState = computeTimeState(displayNow, layers, derived);
+    const clockContext = getClockContextForDisplay(displayNow);
+    const clockRuntime = getClockRuntimeForDisplay(displayNow);
+    const timeState = applyClockRuntimeToTimeState(
+      computeTimeState(displayNow, layers, derived),
+      clockRuntime,
+      layers
+    );
 
     const spiritRotation = fractionToRotation(timeState.fractions.spirit, derived.spiritCount);
     const planetaryRotation = fractionToRotation(timeState.fractions.planetary, derived.planetaryGroupCount);
@@ -12676,8 +12725,6 @@ function renderClock(data, referenceMap, psalmMetadata, pentacleData, lifeDomain
     updateLensFocusOverlay(radii);
     updateLensAnnotations(timeState, referenceMap, now, radii);
 
-    const clockContext = getClockContextForDisplay(displayNow);
-    const clockRuntime = getClockRuntimeForDisplay(displayNow);
     updateCenterLabels(layers.core.name, timeState, referenceMap, now, derived, lifeState);
     updateSurfacePanel(timeState, referenceMap, now, derived, lifeState);
     currentActionLoopContext = buildActionLoopContext(timeState, referenceMap, displayNow, derived, lifeState, clockContext, clockRuntime);
