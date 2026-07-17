@@ -4153,6 +4153,7 @@ function updateCenterLabels(coreName, timeState, referenceMap, now, derived, lif
   const { dayLabel, clockText, active } = timeState;
   const hourRule = getPlanetaryHourRuler(now, dayLabel.rulerText);
   const nextHourRule = getNextPlanetaryHourRuler(now, dayLabel.rulerText);
+  const runtimeHour = getClockRuntimeHourSummary(timeState.clockRuntime);
   const pentacleKey = getPentacleKey(active.pentacle);
   const pentacleRecord = pentacleKey ? referenceMap.get(pentacleKey) : null;
   const primaryPsalm = getPrimaryPsalmEntry(pentacleRecord);
@@ -4199,9 +4200,15 @@ function updateCenterLabels(coreName, timeState, referenceMap, now, derived, lif
   }
 
   if (uiState.lens === "ritual") {
-    const titleText = hourRule?.ruler ? `Hour of ${hourRule.ruler}` : coreName;
+    const titleText = runtimeHour?.ruler
+      ? `Hour of ${runtimeHour.ruler}`
+      : hourRule?.ruler
+        ? `Hour of ${hourRule.ruler}`
+        : coreName;
     const detailText =
-      nextHourRule?.ruler
+      runtimeHour?.window
+        ? `${runtimeHour.phase} • ${runtimeHour.label} • ${runtimeHour.window}`
+        : nextHourRule?.ruler
         ? `This hour • ${ritualThemes || hourRule?.ruler || "Current"} • Next ${nextHourRule.ruler}`
         : ritualThemes
           ? `Themes • ${ritualThemes}`
@@ -10542,6 +10549,7 @@ function buildLensDeepView(context, timeState, referenceMap, now, derived, lifeS
   const correspondences = dayLabel ? (PLANETARY_CORRESPONDENCES[dayLabel.rulerText] || {}) : {};
   const hourRule = dayLabel ? getPlanetaryHourRuler(now, dayLabel.rulerText) : null;
   const nextHourRule = dayLabel ? getNextPlanetaryHourRuler(now, dayLabel.rulerText) : null;
+  const runtimeHour = getClockRuntimeHourSummary(timeState?.clockRuntime || context?.clockRuntime);
   const weeklyEntry = buildWeeklyArcEntry(now, selectedDayOffset, derived, referenceMap);
   const selectedHistoryEntry = buildHistoryTimelineEntry(now, selectedDayOffset, derived, referenceMap);
   const weeklySummary = buildWeeklyHistorySummary(now, derived, referenceMap);
@@ -10592,12 +10600,22 @@ function buildLensDeepView(context, timeState, referenceMap, now, derived, lifeS
       cards: [
         {
           label: "This Hour",
-          value: hourRule?.ruler ? `Hour ${String(hourRule.hourIndex).padStart(2, "0")} • ${hourRule.ruler}` : "Current hour unavailable",
-          detail: ritualThemes || context?.guidanceTone || "This hour's themes will appear here.",
+          value: runtimeHour?.ruler
+            ? `${runtimeHour.label} • ${runtimeHour.ruler}`
+            : hourRule?.ruler
+              ? `Hour ${String(hourRule.hourIndex).padStart(2, "0")} • ${hourRule.ruler}`
+              : "Current hour unavailable",
+          detail: runtimeHour?.window
+            ? `${runtimeHour.phase} interval • ${runtimeHour.window}`
+            : ritualThemes || context?.guidanceTone || "This hour's themes will appear here.",
         },
         {
           label: "Next Handoff",
-          value: nextHourRule?.ruler ? `Next • ${nextHourRule.ruler}` : "Next hour unavailable",
+          value: runtimeHour?.window
+            ? `Ends • ${runtimeHour.window.split("–").pop()}`
+            : nextHourRule?.ruler
+              ? `Next • ${nextHourRule.ruler}`
+              : "Next hour unavailable",
           detail: rule?.midday || "Prepare the next handoff before the clock takes it from abstraction into pressure.",
         },
         {
@@ -11488,11 +11506,16 @@ function updateDailyMeditationPanel(context, timeState, now) {
   const focus = context?.activeFocus || "ordering the day";
   const solomonicRef = context?.solomonicRef || getMeditationElementText(drawerElements.bundleSolomonicRef) || "Solomonic correspondence";
   const hourRule = getPlanetaryHourRuler(now, rulerText);
-  const hourPhrase = hourRule?.ruler
+  const runtimeHour = getClockRuntimeHourSummary(timeState?.clockRuntime || context?.clockRuntime);
+  const hourPhrase = runtimeHour?.ruler
+    ? `${runtimeHour.ruler} ${runtimeHour.label.toLowerCase()}${runtimeHour.window ? ` • ${runtimeHour.window}` : ""}`
+    : hourRule?.ruler
     ? `${hourRule.ruler} hour ${hourRule.hourIndex + 1}`
     : "the present hour";
   const solomonicSnippet = getMeditationSnippet(drawerElements.bundleSolomonicText, focus, 150);
-  const clockExplanation = hourRule?.ruler
+  const clockExplanation = runtimeHour?.ruler
+    ? `${runtimeHour.ruler} names the present ${runtimeHour.phase.toLowerCase()} interval within ${rulerText}'s day. Read ${runtimeHour.window || "this solar hour"} as the clock's immediate discipline: how today's wisdom should be enacted now, not merely admired.`
+    : hourRule?.ruler
     ? `${hourRule.ruler} names the present mode of action within ${rulerText}'s day. Read it as the clock's immediate discipline: how today's wisdom should be enacted now, not merely admired.`
     : `The clock names where today's wisdom should become concrete: ${focus}.`;
   const nextAct = context?.ruleOfLife?.nextAct
@@ -12056,6 +12079,42 @@ function applyClockRuntimeToTimeState(timeState, clockRuntime, layers) {
   }
 
   return nextState;
+}
+
+function formatClockRuntimeTime(value) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
+  return date.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+}
+
+function getClockRuntimeHourSummary(clockRuntime) {
+  const hour = clockRuntime?.planetary_hour || null;
+  const ruler = String(hour?.ruler || "").trim();
+  if (!hour || !ruler) {
+    return null;
+  }
+
+  const start = formatClockRuntimeTime(hour.start);
+  const end = formatClockRuntimeTime(hour.end);
+  const window = [start, end].filter(Boolean).join("–");
+  const phase = clockRuntime?.is_daylight === true
+    ? "Daylight"
+    : clockRuntime?.is_daylight === false
+      ? "Night"
+      : "Solar interval";
+  const label = Number.isFinite(Number(hour.index))
+    ? `Solar hour ${Number(hour.index)}`
+    : "Solar hour";
+
+  return {
+    ruler,
+    label,
+    window,
+    phase,
+    calculation: String(hour.calculation || "").trim(),
+  };
 }
 
 function buildPentacleReferenceMap(psalmPayload) {
