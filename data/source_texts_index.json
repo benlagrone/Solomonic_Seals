@@ -1,11 +1,11 @@
 {
-  "generated": "2026-02-16",
+  "generated": "2026-07-18",
   "source_count": 15,
   "sources": [
     {
       "source_id": "ecclesiastes",
       "title": "Ecclesiastes",
-      "file": "/Users/benjaminlagrone/Documents/projects/pericopeai.com/AugustineCorpus/texts/solomon_expanded_texts/Ecclesiastes.txt",
+      "file": "external/Ecclesiastes.txt",
       "source_urls": [],
       "retrieved": null,
       "notes": null,
@@ -124,7 +124,7 @@
     {
       "source_id": "proverbs",
       "title": "Proverbs",
-      "file": "/Users/benjaminlagrone/Documents/projects/pericopeai.com/AugustineCorpus/texts/solomon_expanded_texts/Proverbs.txt",
+      "file": "external/Proverbs.txt",
       "source_urls": [],
       "retrieved": null,
       "notes": null,
@@ -411,7 +411,7 @@
     {
       "source_id": "song_of_solomon",
       "title": "Song of Solomon",
-      "file": "/Users/benjaminlagrone/Documents/projects/pericopeai.com/AugustineCorpus/texts/solomon_expanded_texts/Song_of_Solomon.txt",
+      "file": "external/Song_of_Solomon.txt",
       "source_urls": [],
       "retrieved": null,
       "notes": null,
@@ -498,7 +498,7 @@
     {
       "source_id": "archive_b24884431",
       "title": "Archive B24884431",
-      "file": "/Users/benjaminlagrone/Documents/projects/pericopeai.com/AugustineCorpus/texts/solomon_expanded_texts/archive_b24884431.txt",
+      "file": "external/archive_b24884431.txt",
       "source_urls": [
         "https://archive.org/stream/b24884431/b24884431_djvu.txt"
       ],
@@ -4320,7 +4320,7 @@
     {
       "source_id": "ars_notoria_archive",
       "title": "Ars Notoria Archive",
-      "file": "/Users/benjaminlagrone/Documents/projects/pericopeai.com/AugustineCorpus/texts/solomon_expanded_texts/ars_notoria_archive.txt",
+      "file": "external/ars_notoria_archive.txt",
       "source_urls": [
         "https://archive.org/stream/ars_notoria/ars_notoria_djvu.txt?utm_source=chatgpt.com"
       ],
@@ -4766,7 +4766,7 @@
     {
       "source_id": "hygromanteia_archive",
       "title": "Hygromanteia Archive",
-      "file": "/Users/benjaminlagrone/Documents/projects/pericopeai.com/AugustineCorpus/texts/solomon_expanded_texts/hygromanteia_archive.txt",
+      "file": "external/hygromanteia_archive.txt",
       "source_urls": [
         "https://archive.org/stream/Grimoires_201812/MagicalTreatiseOfSolomon-Hygromanteia_djvu.txt"
       ],
@@ -9924,7 +9924,7 @@
     {
       "source_id": "key_of_solomon_esotericarchives",
       "title": "Key Of Solomon Esotericarchives",
-      "file": "/Users/benjaminlagrone/Documents/projects/pericopeai.com/AugustineCorpus/texts/solomon_expanded_texts/key_of_solomon_esotericarchives.txt",
+      "file": "external/key_of_solomon_esotericarchives.txt",
       "source_urls": [
         "https://www.esotericarchives.com/solomon/ksol.htm"
       ],
@@ -11658,7 +11658,7 @@
     {
       "source_id": "lesser_key_of_solomon_audiobook_djvu",
       "title": "Lesser Key Of Solomon Audiobook Djvu",
-      "file": "/Users/benjaminlagrone/Documents/projects/pericopeai.com/AugustineCorpus/texts/solomon_expanded_texts/lesser_key_of_solomon_audiobook_djvu.txt",
+      "file": "external/lesser_key_of_solomon_audiobook_djvu.txt",
       "source_urls": [
         "https://archive.org/stream/lesser-key-audiobook/The%20Lesser%20Key%20of%20Solomon%20Accompanying%20PDF_djvu.txt"
       ],
@@ -11752,7 +11752,7 @@
     {
       "source_id": "lesser_key_of_solomon_sacred_texts",
       "title": "Lesser Key Of Solomon Sacred Texts",
-      "file": "/Users/benjaminlagrone/Documents/projects/pericopeai.com/AugustineCorpus/texts/solomon_expanded_texts/lesser_key_of_solomon_sacred_texts.txt",
+      "file": "external/lesser_key_of_solomon_sacred_texts.txt",
       "source_urls": [
         "https://www.sacred-texts.com/grim/lks/lks00.htm",
         "https://www.sacred-texts.com/grim/lks/lks01.htm",
@@ -13744,7 +13744,7 @@
     {
       "source_id": "odes_of_solomon_fbe",
       "title": "Odes Of Solomon Fbe",
-      "file": "/Users/benjaminlagrone/Documents/projects/pericopeai.com/AugustineCorpus/texts/solomon_expanded_texts/odes_of_solomon_fbe.txt",
+      "file": "external/odes_of_solomon_fbe.txt",
       "source_urls": [
         "https://sacred-texts.com/bib/fbe/fbe195.htm",
         "https://sacred-texts.com/bib/fbe/fbe196.htm",
@@ -15487,7 +15487,7 @@
     {
       "source_id": "psalms_of_solomon_fbe",
       "title": "Psalms Of Solomon Fbe",
-      "file": "/Users/benjaminlagrone/Documents/projects/pericopeai.com/AugustineCorpus/texts/solomon_expanded_texts/psalms_of_solomon_fbe.txt",
+      "file": "external/psalms_of_solomon_fbe.txt",
       "source_urls": [
         "https://sacred-texts.com/bib/fbe/fbe176.htm",
         "https://sacred-texts.com/bib/fbe/fbe177.htm",
@@ -16175,7 +16175,7 @@
     {
       "source_id": "raziel_esotericarchives",
       "title": "Raziel Esotericarchives",
-      "file": "/Users/benjaminlagrone/Documents/projects/pericopeai.com/AugustineCorpus/texts/solomon_expanded_texts/raziel_esotericarchives.txt",
+      "file": "external/raziel_esotericarchives.txt",
       "source_urls": [
         "https://www.esotericarchives.com/raziel/raziel.htm"
       ],
@@ -16341,7 +16341,7 @@
     {
       "source_id": "testament_of_solomon_mit",
       "title": "Testament Of Solomon Mit",
-      "file": "/Users/benjaminlagrone/Documents/projects/pericopeai.com/AugustineCorpus/texts/solomon_expanded_texts/testament_of_solomon_mit.txt",
+      "file": "external/testament_of_solomon_mit.txt",
       "source_urls": [
         "https://web.mit.edu/mjperson/Desktop/mjperson/OldFiles/Assassin/Darkness/Books/testament-solomon.txt"
       ],
@@ -16363,7 +16363,7 @@
     {
       "source_id": "wisdom_of_solomon_gutenberg",
       "title": "Wisdom Of Solomon Gutenberg",
-      "file": "/Users/benjaminlagrone/Documents/projects/pericopeai.com/AugustineCorpus/texts/solomon_expanded_texts/wisdom_of_solomon_gutenberg.txt",
+      "file": "external/wisdom_of_solomon_gutenberg.txt",
       "source_urls": [
         "https://www.gutenberg.org/cache/epub/124/pg124.txt"
       ],
@@ -19865,7 +19865,7 @@
     {
       "source_id": "wisdom_of_solomon_web",
       "title": "Wisdom Of Solomon Web",
-      "file": "/Users/benjaminlagrone/Documents/projects/pericopeai.com/AugustineCorpus/texts/solomon_expanded_texts/wisdom_of_solomon_web.txt",
+      "file": "external/wisdom_of_solomon_web.txt",
       "source_urls": [
         "https://ebible.org/pdf/eng-web/eng-web_WIS.pdf?utm_source=chatgpt.com"
       ],

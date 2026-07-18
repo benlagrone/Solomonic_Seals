@@ -15,8 +15,8 @@ class VibeVoiceObservabilityTests(unittest.TestCase):
         with patch.dict(
             os.environ,
             {
-                "SOLOMONIC_VIBEVOICE_API_BASE": "http://192.168.0.126:8011",
-                "SOLOMONIC_VIBEVOICE_FALLBACK_API_BASE": "http://192.168.0.126:8013",
+                "SOLOMONIC_VIBEVOICE_API_BASE": "http://192.168.0.126:8133",
+                "SOLOMONIC_VIBEVOICE_FALLBACK_API_BASE": "",
                 "SOLOMONIC_VIBEVOICE_API_TOKEN": "secret-token",
                 "SOLOMONIC_VIBEVOICE_PROJECT_ID": "solomonic-seals",
                 "SOLOMONIC_VIBEVOICE_SPEAKER": "Carter",
@@ -27,8 +27,10 @@ class VibeVoiceObservabilityTests(unittest.TestCase):
 
         self.assertEqual(payload["status"], "configured")
         self.assertTrue(payload["token_configured"])
-        self.assertEqual(payload["primary"]["engine"], "official")
-        self.assertEqual(payload["fallback"]["engine"], "azure-speech")
+        self.assertEqual(payload["primary"]["engine"], "voice-gateway")
+        self.assertEqual(payload["primary"]["route"], "fortress-voice-gateway")
+        self.assertEqual(payload["primary"]["coordinates"], ["vibevoice", "azure-speech"])
+        self.assertFalse(payload["fallback"]["base_url_configured"])
         self.assertNotIn("secret-token", repr(payload))
 
     def test_health_payload_keeps_token_presence_separate_from_route_readiness(self) -> None:
@@ -60,6 +62,37 @@ class VibeVoiceObservabilityTests(unittest.TestCase):
         self.assertEqual(payload["proxy_engine"], "azure-speech")
         self.assertTrue(payload["proxy_audio_url"].startswith("/api/vibevoice/audio?url="))
 
+    def test_job_annotation_uses_gateway_voice_engine(self) -> None:
+        payload = _annotate_vibevoice_response(
+            {
+                "job_id": "vv-20260718-voice-brain",
+                "status": "completed",
+                "audio_url": "/files/solomonic-seals/audio/vibevoice/sample.wav",
+                "voice_engine": "vibevoice",
+            },
+            "primary",
+        )
+
+        self.assertEqual(payload["proxy_route"], "primary")
+        self.assertEqual(payload["engine"], "vibevoice")
+        self.assertEqual(payload["proxy_engine"], "vibevoice")
+        self.assertTrue(payload["proxy_audio_url"].startswith("/api/vibevoice/audio?url="))
+
+    def test_job_annotation_maps_gateway_azure_voice_engine(self) -> None:
+        payload = _annotate_vibevoice_response(
+            {
+                "job_id": "azv-20260718-voice-brain",
+                "status": "completed",
+                "audio_url": "/files/solomonic-seals/audio/azure-voice/sample.wav",
+                "voice_engine": "azure_voice",
+            },
+            "primary",
+        )
+
+        self.assertEqual(payload["proxy_route"], "primary")
+        self.assertEqual(payload["engine"], "azure-speech")
+        self.assertEqual(payload["proxy_engine"], "azure-speech")
+
     def test_primary_missing_token_error_falls_back_when_no_app_token_is_configured(self) -> None:
         with (
             patch.dict(
@@ -67,6 +100,7 @@ class VibeVoiceObservabilityTests(unittest.TestCase):
                 {
                     "SOLOMONIC_VIBEVOICE_API_TOKEN": "",
                     "VIBEVOICE_API_TOKEN": "",
+                    "SOLOMONIC_VIBEVOICE_FALLBACK_API_BASE": "http://192.168.0.126:8013",
                 },
                 clear=False,
             ),

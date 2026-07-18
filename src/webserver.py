@@ -41,12 +41,17 @@ SCRIPTURE_MAPPINGS_PATH = REPO_ROOT / "data" / "scripture_mappings.json"
 LIFE_DOMAINS_PATH = REPO_ROOT / "data" / "life_domains.json"
 LOCAL_SOURCE_TEXTS_DIR = REPO_ROOT / "docs" / "source_texts"
 DEFAULT_AUGUSTINE_CORPUS_ROOT = Path(
-    "/Users/benjaminlagrone/Documents/projects/pericopeai.com/AugustineCorpus"
-)
-PERICOPEAI_ASSETS_PUBLIC_ROOT = REPO_ROOT.parent / "pericopeai-assets" / "public"
+    os.environ.get("SOLOMONIC_AUGUSTINE_CORPUS_ROOT", REPO_ROOT.parent / "AugustineCorpus")
+).expanduser()
+PERICOPEAI_ASSETS_PUBLIC_ROOT = Path(
+    os.environ.get(
+        "SOLOMONIC_PERICOPEAI_ASSETS_PUBLIC_ROOT",
+        REPO_ROOT.parent / "pericopeai-assets" / "public",
+    )
+).expanduser()
 DEFAULT_AUGUSTINE_AUTHOR_INDEX_PATH = DEFAULT_AUGUSTINE_CORPUS_ROOT / "author_index.json"
-DEFAULT_EXTERNAL_PSALMS_PATH = Path(
-    "/Users/benjaminlagrone/Documents/projects/pericopeai.com/AugustineCorpus/texts/david_texts/Psalms.txt"
+DEFAULT_EXTERNAL_PSALMS_PATH = (
+    DEFAULT_AUGUSTINE_CORPUS_ROOT / "texts" / "david_texts" / "Psalms.txt"
 )
 DEFAULT_LOCAL_PSALMS_PATH = LOCAL_SOURCE_TEXTS_DIR / "Psalms.txt"
 PSALM_NUMBER_MAP_PATH = REPO_ROOT / "data" / "psalm_number_map.csv"
@@ -141,8 +146,8 @@ VIBEVOICE_API_TOKEN_ENV = "SOLOMONIC_VIBEVOICE_API_TOKEN"
 FORTRESS_VIBEVOICE_API_TOKEN_ENV = "VIBEVOICE_API_TOKEN"
 VIBEVOICE_PROJECT_ID_ENV = "SOLOMONIC_VIBEVOICE_PROJECT_ID"
 VIBEVOICE_SPEAKER_ENV = "SOLOMONIC_VIBEVOICE_SPEAKER"
-DEFAULT_VIBEVOICE_API_BASE = "http://192.168.0.126:8011"
-DEFAULT_VIBEVOICE_FALLBACK_API_BASE = "http://192.168.0.126:8013"
+DEFAULT_VIBEVOICE_API_BASE = "http://192.168.0.126:8133"
+DEFAULT_VIBEVOICE_FALLBACK_API_BASE = ""
 DEFAULT_VIBEVOICE_PROJECT_ID = "solomonic-seals"
 DEFAULT_VIBEVOICE_SPEAKER = "Carter"
 DEFAULT_VIBEVOICE_FALLBACK_SPEAKER = "en-US-AdamMultilingualNeural"
@@ -1805,9 +1810,17 @@ def _build_vibevoice_proxy_audio_url(audio_url: Any) -> str:
 
 
 def _infer_vibevoice_engine(payload: dict[str, Any], route: str) -> str:
-    engine = str(payload.get("engine") or payload.get("provider") or "").strip()
+    engine = str(
+        payload.get("voice_engine")
+        or payload.get("engine")
+        or payload.get("provider")
+        or ""
+    ).strip()
     if engine:
-        return engine
+        normalized = engine.lower().replace("_", "-")
+        if normalized in {"azure", "azure-voice"}:
+            return "azure-speech"
+        return normalized if normalized in {"vibevoice", "official", "mock", "azure-speech"} else engine
 
     job_id = str(payload.get("job_id") or "").strip().lower()
     if job_id.startswith("azv-"):
@@ -1884,6 +1897,9 @@ def _is_vibevoice_auth_failure(error: ValueError) -> bool:
 
 
 def _should_try_vibevoice_fallback(error: ValueError) -> bool:
+    fallback_base_url = _resolve_vibevoice_fallback_api_base_url()
+    if not fallback_base_url or fallback_base_url == _resolve_vibevoice_api_base_url():
+        return False
     if _is_vibevoice_service_unavailable(error):
         return True
     return _is_vibevoice_auth_failure(error) and not _resolve_vibevoice_api_token()
@@ -1906,7 +1922,12 @@ def _fetch_vibevoice_audio(audio_url: str) -> tuple[bytes, str]:
         ),
     }
     last_error: Exception | None = None
-    for base_url in (_resolve_vibevoice_api_base_url(), _resolve_vibevoice_fallback_api_base_url()):
+    for base_url in dict.fromkeys((
+        _resolve_vibevoice_api_base_url(),
+        _resolve_vibevoice_fallback_api_base_url(),
+    )):
+        if not base_url:
+            continue
         request = Request(f"{base_url}{audio_url}", headers=headers)
         try:
             with urlopen(request, timeout=60) as response:
@@ -2005,14 +2026,15 @@ def _build_vibevoice_health_payload() -> dict[str, Any]:
         "primary": {
             "role": "primary",
             "base_url_configured": bool(primary_base_url),
-            "engine": "official",
-            "route": "fortress-vibevoice",
+            "engine": "voice-gateway",
+            "route": "fortress-voice-gateway",
+            "coordinates": ["vibevoice", "azure-speech"],
         },
         "fallback": {
-            "role": "fallback",
+            "role": "legacy_direct_fallback",
             "base_url_configured": bool(fallback_base_url),
-            "engine": "azure-speech",
-            "route": "fortress-azure-voice",
+            "engine": "azure-speech" if fallback_base_url else "",
+            "route": "fortress-azure-voice" if fallback_base_url else "",
         },
         "token_configured": token_configured,
         "project_id": str(os.environ.get(VIBEVOICE_PROJECT_ID_ENV, "") or DEFAULT_VIBEVOICE_PROJECT_ID).strip(),
