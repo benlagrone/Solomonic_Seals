@@ -33,7 +33,13 @@ The detailed source documents remain useful for domain specifics. This document 
 
 Finish the Foundation to Experience MVP bridge.
 
-1. Adopt the harmonic time-scale model in `docs/harmonic_time_scale_content_plan.md`:
+1. Fix Psalm and Proverb reader completeness as a high-priority experience blocker:
+   - the Psalm tab must show the complete selected Psalm, not only the anchor sentence or citation verse,
+   - the Proverb tab must show the complete selected proverb chapter or configured long wisdom passage,
+   - `/api/clock/content-bundle` should carry both the selected anchor (`ref` / `text`) and the full reader body (`chapter_ref` / `full_text`) so the drawer does not depend on a second lookup with different Psalm numbering,
+   - the drawer reader should render the full body by default while preserving the anchor verse in explainability and selection rationale,
+   - add regression tests that assert the reader contains later verses from the same Psalm/Proverb, not just the opening sentence.
+2. Adopt the harmonic time-scale model in `docs/harmonic_time_scale_content_plan.md`:
    - keep `now` fixed as the center of ordinary interaction,
    - resolve minute, hour, day, week, month/lunation, season, year, and later life scales into one moment vector,
    - compare the current `MomentVector` with an optional private `BirthVector` without reducing Chinese, Western, or other enabled traditions to interchangeable labels,
@@ -43,9 +49,9 @@ Finish the Foundation to Experience MVP bridge.
    - separate solar-cycle, flare, particle, CME, solar-wind, global geomagnetic, and local magnetic signals, with a consented observation path for testing personal sleep/HRV associations,
    - make ring interaction explain the active moment instead of swapping unrelated titles,
    - preserve provenance across monastic, Solomonic, alchemical, musical, Taoist, astronomical, and modern formation content.
-2. Make `web/clock.js` consume `/api/clock` dynamically instead of relying on bundled JSON.
-3. Treat `data/solomonic_clock_full.json` as symbolic lookup data, not as the runtime source of truth.
-4. Start the real-time runtime engine:
+3. Make `web/clock.js` consume `/api/clock` dynamically instead of relying on bundled JSON.
+4. Treat `data/solomonic_clock_full.json` as symbolic lookup data, not as the runtime source of truth.
+5. Start the real-time runtime engine:
    - local time,
    - sunrise and sunset,
    - planetary day,
@@ -53,17 +59,17 @@ Finish the Foundation to Experience MVP bridge.
    - solar longitude,
    - zodiac sign and degree,
    - five-degree Solomonic sector resolution.
-5. Run the data consistency pass:
+6. Run the data consistency pass:
    - resolve the 43-vs-44 pentacle tradition mismatch,
    - fix verse parsing for lists, ranges, and legacy shorthand,
    - add tradition profiles or choose one canonical tradition,
    - clean source indexing artifacts,
    - add validation for pentacle/scripture/schema joins.
-6. Strengthen the current product surface:
+7. Strengthen the current product surface:
    - deepen `History` from preview arc toward a Providence-style outer band,
    - keep lens differentiation visible past the first screen,
    - preserve drawer ownership while keeping the radial clock primary.
-7. Begin mobile web readiness in parallel:
+8. Begin mobile web readiness in parallel:
    - phone,
    - Samsung Fold cover,
    - Samsung Fold inner screen,
