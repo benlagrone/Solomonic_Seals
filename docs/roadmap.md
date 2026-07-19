@@ -93,6 +93,12 @@ Detailed notes: see `docs/solomonic_clock_runtime_engine.md`.
 
 ## Workstream B: Daily Experience and Guidance
 
+- Priority blocker: Psalm and Proverb reader completeness.
+  - The Psalm page must expose the entire selected Psalm, not just the first sentence or anchor verse.
+  - The Proverb page must expose the whole selected proverb chapter or the configured long wisdom passage.
+  - Keep anchor citations for explainability, but do not use the anchor excerpt as the reader body.
+  - Fix by extending the clock content-bundle contract with full reader fields (`chapter_ref`, `full_text`) and making `web/clock.js` render those fields by default.
+  - Add regression coverage that checks for later verses in the same Psalm/Proverb so the UI cannot silently fall back to one-sentence excerpts.
 - Daily profile card: show day ruler, active pentacle, correspondences (color, metal, angel), and suggested focus.
 - Reading depth toggle: `Short` (single verse/excerpt), `Medium` (3-5 verses), `Long` (full chapter or extended section).
 - Daily content bundle: combine one psalm + one wisdom excerpt (Proverbs/Ecclesiastes/Wisdom) + one Solomonic source excerpt.

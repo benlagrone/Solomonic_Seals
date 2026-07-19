@@ -32,9 +32,15 @@ The detailed source documents remain useful for domain specifics. This document 
 
 Finish the Foundation to Experience MVP bridge.
 
-1. Make `web/clock.js` consume `/api/clock` dynamically instead of relying on bundled JSON.
-2. Treat `data/solomonic_clock_full.json` as symbolic lookup data, not as the runtime source of truth.
-3. Start the real-time runtime engine:
+1. Fix Psalm and Proverb reader completeness as a high-priority experience blocker:
+   - the Psalm tab must show the complete selected Psalm, not only the anchor sentence or citation verse,
+   - the Proverb tab must show the complete selected proverb chapter or configured long wisdom passage,
+   - `/api/clock/content-bundle` should carry both the selected anchor (`ref` / `text`) and the full reader body (`chapter_ref` / `full_text`) so the drawer does not depend on a second lookup with different Psalm numbering,
+   - the drawer reader should render the full body by default while preserving the anchor verse in explainability and selection rationale,
+   - add regression tests that assert the reader contains later verses from the same Psalm/Proverb, not just the opening sentence.
+2. Make `web/clock.js` consume `/api/clock` dynamically instead of relying on bundled JSON.
+3. Treat `data/solomonic_clock_full.json` as symbolic lookup data, not as the runtime source of truth.
+4. Start the real-time runtime engine:
    - local time,
    - sunrise and sunset,
    - planetary day,
@@ -42,17 +48,17 @@ Finish the Foundation to Experience MVP bridge.
    - solar longitude,
    - zodiac sign and degree,
    - five-degree Solomonic sector resolution.
-4. Run the data consistency pass:
+5. Run the data consistency pass:
    - resolve the 43-vs-44 pentacle tradition mismatch,
    - fix verse parsing for lists, ranges, and legacy shorthand,
    - add tradition profiles or choose one canonical tradition,
    - clean source indexing artifacts,
    - add validation for pentacle/scripture/schema joins.
-5. Strengthen the current product surface:
+6. Strengthen the current product surface:
    - deepen `History` from preview arc toward a Providence-style outer band,
    - keep lens differentiation visible past the first screen,
    - preserve drawer ownership while keeping the radial clock primary.
-6. Begin mobile web readiness in parallel:
+7. Begin mobile web readiness in parallel:
    - phone,
    - Samsung Fold cover,
    - Samsung Fold inner screen,
