@@ -74,7 +74,10 @@ assertIncludes(js, "clockRuntime?.degree?.solar_longitude", "runtime adoption sh
 assertIncludes(js, "clockRuntime?.sector?.index", "runtime adoption should use API-owned sector resolution");
 assertIncludes(js, "function getClockRuntimeHourSummary", "clock frontend should summarize runtime-owned planetary hour windows");
 assertIncludes(js, "clockRuntime?.planetary_hour", "runtime hour summaries should use API-owned planetary hour state");
+assertIncludes(js, "function getClockRuntimeNextHourSummary", "clock frontend should summarize the API-owned next hour handoff");
+assertIncludes(js, "clockRuntime?.next_planetary_hour", "runtime handoff summaries should use API-owned next planetary hour state");
 assertIncludes(js, "runtimeHour?.window", "ritual surfaces should show the API-owned solar hour interval");
+assertIncludes(js, "runtimeNextHour?.ruler", "ritual surfaces should show the API-owned next hour ruler");
 assertIncludes(js, "clockRuntime", "Pericope launch context should carry clock runtime state when available");
 assertIncludes(js, "fetchClockDataset()", "clock initialization should load clock data through the API-first dataset loader");
 assert.ok(!js.includes('fetchJsonResource("../data/solomonic_clock_full.json", "clock data")'), "clock initialization should not prefer bundled clock JSON");

@@ -10550,6 +10550,7 @@ function buildLensDeepView(context, timeState, referenceMap, now, derived, lifeS
   const hourRule = dayLabel ? getPlanetaryHourRuler(now, dayLabel.rulerText) : null;
   const nextHourRule = dayLabel ? getNextPlanetaryHourRuler(now, dayLabel.rulerText) : null;
   const runtimeHour = getClockRuntimeHourSummary(timeState?.clockRuntime || context?.clockRuntime);
+  const runtimeNextHour = getClockRuntimeNextHourSummary(timeState?.clockRuntime || context?.clockRuntime);
   const weeklyEntry = buildWeeklyArcEntry(now, selectedDayOffset, derived, referenceMap);
   const selectedHistoryEntry = buildHistoryTimelineEntry(now, selectedDayOffset, derived, referenceMap);
   const weeklySummary = buildWeeklyHistorySummary(now, derived, referenceMap);
@@ -10611,12 +10612,16 @@ function buildLensDeepView(context, timeState, referenceMap, now, derived, lifeS
         },
         {
           label: "Next Handoff",
-          value: runtimeHour?.window
-            ? `Ends • ${runtimeHour.window.split("–").pop()}`
+          value: runtimeNextHour?.ruler
+            ? `Next • ${runtimeNextHour.ruler}`
+            : runtimeHour?.window
+              ? `Ends • ${runtimeHour.window.split("–").pop()}`
             : nextHourRule?.ruler
               ? `Next • ${nextHourRule.ruler}`
               : "Next hour unavailable",
-          detail: rule?.midday || "Prepare the next handoff before the clock takes it from abstraction into pressure.",
+          detail: runtimeNextHour?.window
+            ? `${runtimeNextHour.label} begins at ${runtimeNextHour.window.split("–").shift()}`
+            : rule?.midday || "Prepare the next handoff before the clock takes it from abstraction into pressure.",
         },
         {
           label: "Close",
@@ -11507,14 +11512,21 @@ function updateDailyMeditationPanel(context, timeState, now) {
   const solomonicRef = context?.solomonicRef || getMeditationElementText(drawerElements.bundleSolomonicRef) || "Solomonic correspondence";
   const hourRule = getPlanetaryHourRuler(now, rulerText);
   const runtimeHour = getClockRuntimeHourSummary(timeState?.clockRuntime || context?.clockRuntime);
+  const runtimeNextHour = getClockRuntimeNextHourSummary(timeState?.clockRuntime || context?.clockRuntime);
+  const nextHourPhrase = runtimeNextHour?.ruler
+    ? `Next ${runtimeNextHour.ruler}${runtimeNextHour.window ? ` at ${runtimeNextHour.window.split("–").shift()}` : ""}`
+    : "";
   const hourPhrase = runtimeHour?.ruler
-    ? `${runtimeHour.ruler} ${runtimeHour.label.toLowerCase()}${runtimeHour.window ? ` • ${runtimeHour.window}` : ""}`
+    ? [
+        `${runtimeHour.ruler} ${runtimeHour.label.toLowerCase()}${runtimeHour.window ? ` • ${runtimeHour.window}` : ""}`,
+        nextHourPhrase,
+      ].filter(Boolean).join(" • ")
     : hourRule?.ruler
     ? `${hourRule.ruler} hour ${hourRule.hourIndex + 1}`
     : "the present hour";
   const solomonicSnippet = getMeditationSnippet(drawerElements.bundleSolomonicText, focus, 150);
   const clockExplanation = runtimeHour?.ruler
-    ? `${runtimeHour.ruler} names the present ${runtimeHour.phase.toLowerCase()} interval within ${rulerText}'s day. Read ${runtimeHour.window || "this solar hour"} as the clock's immediate discipline: how today's wisdom should be enacted now, not merely admired.`
+    ? `${runtimeHour.ruler} names the present ${runtimeHour.phase.toLowerCase()} interval within ${rulerText}'s day. Read ${runtimeHour.window || "this solar hour"} as the clock's immediate discipline: how today's wisdom should be enacted now, not merely admired.${nextHourPhrase ? ` Prepare the handoff: ${nextHourPhrase}.` : ""}`
     : hourRule?.ruler
     ? `${hourRule.ruler} names the present mode of action within ${rulerText}'s day. Read it as the clock's immediate discipline: how today's wisdom should be enacted now, not merely admired.`
     : `The clock names where today's wisdom should become concrete: ${focus}.`;
@@ -12091,6 +12103,15 @@ function formatClockRuntimeTime(value) {
 
 function getClockRuntimeHourSummary(clockRuntime) {
   const hour = clockRuntime?.planetary_hour || null;
+  return getClockRuntimeHourSummaryFromRecord(hour, clockRuntime);
+}
+
+function getClockRuntimeNextHourSummary(clockRuntime) {
+  const hour = clockRuntime?.next_planetary_hour || null;
+  return getClockRuntimeHourSummaryFromRecord(hour, clockRuntime);
+}
+
+function getClockRuntimeHourSummaryFromRecord(hour, clockRuntime) {
   const ruler = String(hour?.ruler || "").trim();
   if (!hour || !ruler) {
     return null;

@@ -2706,6 +2706,41 @@ def _get_solar_planetary_hour(now: datetime, day_ruler: str, solar_state: dict[s
     }
 
 
+def _serialize_planetary_hour(
+    hour_rule: dict[str, Any] | None,
+    calculation: str,
+    solar_status: str | None,
+) -> dict[str, Any]:
+    return {
+        "index": (hour_rule["hourIndex"] + 1) if hour_rule else None,
+        "segment_index": (
+            (hour_rule.get("segmentHourIndex") + 1)
+            if hour_rule and hour_rule.get("segmentHourIndex") is not None
+            else None
+        ),
+        "ruler": hour_rule["ruler"] if hour_rule else None,
+        "start": _iso_or_none(hour_rule.get("start")) if hour_rule else None,
+        "end": _iso_or_none(hour_rule.get("end")) if hour_rule else None,
+        "duration_minutes": hour_rule.get("durationMinutes") if hour_rule else None,
+        "calculation": calculation,
+        "sunrise_sunset_status": solar_status,
+    }
+
+
+def _get_next_solar_planetary_hour(
+    current_hour: dict[str, Any] | None,
+    day_ruler: str,
+    latitude: float,
+    longitude: float,
+) -> dict[str, Any] | None:
+    if not current_hour or not isinstance(current_hour.get("end"), datetime):
+        return None
+    next_moment = current_hour["end"] + timedelta(seconds=1)
+    next_solar_state = _build_solar_event_state(next_moment, latitude, longitude)
+    next_day_ruler = _get_planetary_day_label(next_moment)["rulerText"]
+    return _get_solar_planetary_hour(next_moment, next_day_ruler or day_ruler, next_solar_state)
+
+
 def _iso_or_none(value: Any) -> str | None:
     if isinstance(value, datetime):
         return value.isoformat()
@@ -3050,6 +3085,7 @@ def _build_clock_runtime_payload(
         as_of,
         day_ruler,
     )
+    next_hour_rule = _get_next_solar_planetary_hour(hour_rule, day_ruler, latitude, longitude)
     active = time_state["active"]
     active_spirit = solar_sector.get("sector") or active.get("spirit") or {}
     active_pentacle = active.get("pentacle") or {}
@@ -3079,20 +3115,12 @@ def _build_clock_runtime_payload(
             "day": day_label["dayText"],
             "ruler": day_ruler,
         },
-        "planetary_hour": {
-            "index": (hour_rule["hourIndex"] + 1) if hour_rule else None,
-            "segment_index": (
-                (hour_rule.get("segmentHourIndex") + 1)
-                if hour_rule and hour_rule.get("segmentHourIndex") is not None
-                else None
-            ),
-            "ruler": hour_rule["ruler"] if hour_rule else None,
-            "start": _iso_or_none(hour_rule.get("start")) if hour_rule else None,
-            "end": _iso_or_none(hour_rule.get("end")) if hour_rule else None,
-            "duration_minutes": hour_rule.get("durationMinutes") if hour_rule else None,
-            "calculation": hour_calculation,
-            "sunrise_sunset_status": solar_state.get("status"),
-        },
+        "planetary_hour": _serialize_planetary_hour(hour_rule, hour_calculation, solar_state.get("status")),
+        "next_planetary_hour": _serialize_planetary_hour(
+            next_hour_rule,
+            "solar_event_interval" if next_hour_rule else "unavailable",
+            solar_state.get("status"),
+        ),
         "is_daylight": solar_state.get("is_daylight"),
         "solar_events": {
             "sunrise": _iso_or_none(solar_state.get("sunrise")),
