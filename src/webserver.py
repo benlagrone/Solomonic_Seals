@@ -2883,6 +2883,20 @@ def _load_scripture_excerpt(
     return _to_snippet(" ".join(ordered), max_length)
 
 
+def _load_scripture_chapter_text(chapter: int, max_length: int = 12000) -> str:
+    scripture_payload, _ = _read_json_file(SCRIPTURE_MAPPINGS_PATH)
+    if scripture_payload:
+        entry = (scripture_payload.get("psalms") or {}).get(str(chapter))
+        if isinstance(entry, dict):
+            excerpt = _strip_translation_meta(
+                str(entry.get("translation_excerpt") or entry.get("latin_excerpt") or "").strip()
+            )
+            if excerpt:
+                return _to_snippet(excerpt, max_length)
+
+    return _load_scripture_excerpt(chapter, None, max_length=max_length, allow_lookup=True)
+
+
 def _resolve_life_focus_domain(
     time_state: dict[str, Any],
     life_config: dict[str, Any],
@@ -3531,8 +3545,15 @@ def _build_guided_prompts_payload(request_payload: dict[str, Any]) -> tuple[dict
 
     psalm_ref = f"Psalm {chapter}:{verse}" if verse else f"Psalm {chapter}"
     psalm_text = _load_scripture_excerpt(chapter, verse) if chapter else "Psalm excerpt unavailable."
+    psalm_chapter_ref = f"Psalm {chapter}" if chapter else "Psalm"
+    psalm_full_text = _load_scripture_chapter_text(chapter) if chapter else "Psalm excerpt unavailable."
     content_bundle = {
-        "psalm": {"ref": psalm_ref, "text": psalm_text},
+        "psalm": {
+            "ref": psalm_ref,
+            "text": psalm_text,
+            "chapter_ref": psalm_chapter_ref,
+            "full_text": psalm_full_text,
+        },
         "wisdom": {
             "ref": wisdom_ref,
             "text": wisdom_text,
