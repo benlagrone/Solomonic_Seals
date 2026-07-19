@@ -11,6 +11,7 @@ This is the canonical execution roadmap for the Solomonic Clock / Solomonic Seal
 - `docs/solomonic_clock_runtime_engine.md`
 - `docs/solomonic_calendar_expansion_guide.md`
 - `docs/lens_differentiation_pass.md`
+- `docs/harmonic_time_scale_content_plan.md`
 - `docs/pericope_ai_scope.md`
 - `docs/life_os_architecture.md`
 - related Pericope handoff and contract docs
@@ -32,9 +33,19 @@ The detailed source documents remain useful for domain specifics. This document 
 
 Finish the Foundation to Experience MVP bridge.
 
-1. Make `web/clock.js` consume `/api/clock` dynamically instead of relying on bundled JSON.
-2. Treat `data/solomonic_clock_full.json` as symbolic lookup data, not as the runtime source of truth.
-3. Start the real-time runtime engine:
+1. Adopt the harmonic time-scale model in `docs/harmonic_time_scale_content_plan.md`:
+   - keep `now` fixed as the center of ordinary interaction,
+   - resolve minute, hour, day, week, month/lunation, season, year, and later life scales into one moment vector,
+   - compare the current `MomentVector` with an optional private `BirthVector` without reducing Chinese, Western, or other enabled traditions to interchangeable labels,
+   - let signed-in users create a private Personal Time Profile with birth-date/time precision, birth location, separate current location, enabled traditions, consented observation fields, export, recalculation, and deletion,
+   - make every integrated reading produce an explainable practice, restraint, timing boundary, and examination with adopt/adapt/defer/reject states,
+   - distinguish measured physical influence, supported biological timing, mixed associations, historical symbolism, and generated personal meaning so governing weight follows evidence,
+   - separate solar-cycle, flare, particle, CME, solar-wind, global geomagnetic, and local magnetic signals, with a consented observation path for testing personal sleep/HRV associations,
+   - make ring interaction explain the active moment instead of swapping unrelated titles,
+   - preserve provenance across monastic, Solomonic, alchemical, musical, Taoist, astronomical, and modern formation content.
+2. Make `web/clock.js` consume `/api/clock` dynamically instead of relying on bundled JSON.
+3. Treat `data/solomonic_clock_full.json` as symbolic lookup data, not as the runtime source of truth.
+4. Start the real-time runtime engine:
    - local time,
    - sunrise and sunset,
    - planetary day,
@@ -42,17 +53,17 @@ Finish the Foundation to Experience MVP bridge.
    - solar longitude,
    - zodiac sign and degree,
    - five-degree Solomonic sector resolution.
-4. Run the data consistency pass:
+5. Run the data consistency pass:
    - resolve the 43-vs-44 pentacle tradition mismatch,
    - fix verse parsing for lists, ranges, and legacy shorthand,
    - add tradition profiles or choose one canonical tradition,
    - clean source indexing artifacts,
    - add validation for pentacle/scripture/schema joins.
-5. Strengthen the current product surface:
+6. Strengthen the current product surface:
    - deepen `History` from preview arc toward a Providence-style outer band,
    - keep lens differentiation visible past the first screen,
    - preserve drawer ownership while keeping the radial clock primary.
-6. Begin mobile web readiness in parallel:
+7. Begin mobile web readiness in parallel:
    - phone,
    - Samsung Fold cover,
    - Samsung Fold inner screen,
@@ -354,10 +365,12 @@ Deliverables:
 
 ## Phase 7: Rule Of Life And Long-Range Formation
 
-Goal: make long-term formation visible and explainable over weeks, months, and years.
+Goal: make the present moment visible and explainable inside weekly, monthly, seasonal, annual, multi-year, decade, lifespan, and era scales.
 
 Deliverables:
 
+- Implement the shared harmonic time-scale contract and moment vector.
+- Keep the ordinary clock anchored to `now`; require an explicit visible mode for historical or forecast offsets.
 - Add canonical-hours engine.
 - Add 72-sector guidance engine:
   - behavioral archetype,
@@ -391,6 +404,17 @@ Deliverables:
   - weekly virtue-season summaries.
 - Add weekly summaries.
 - Add monthly pattern detection.
+- Add actual lunation, astronomical season, and annual-return layers.
+- Add source-bearing content libraries for minute, hour, day, week, month, season, and year.
+- Add user-authored multi-year, decade, and lifespan chapter boundaries with editable, private-by-default narrative.
+- Add sourced era context without conflating documented history with esoteric age systems.
+- Add harmonic resolution across scales:
+  - resonance,
+  - counterpoint,
+  - tension,
+  - modulation,
+  - return.
+- Use musical ratios and golden-ratio/Fibonacci structures only where their role is explicit; do not fabricate calendar or life-stage boundaries from them.
 - Add Life Wheel history views.
 - Add domain-targeted scripture selection.
 - Add deeper guidance by virtue/domain imbalance.

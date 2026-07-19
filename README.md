@@ -93,5 +93,6 @@ You can also set `SOLOMONIC_SOURCE_TEXTS_DIR` and omit `--source-dir`.
 ## Next Steps
 
 - Use `docs/combined_roadmap.md` as the canonical execution roadmap across the product, mobile, scripture, runtime, Pericope, and Life OS tracks
+- Use `docs/harmonic_time_scale_content_plan.md` as the governing content and interaction model for locating the present moment across minute, hour, day, week, month, season, year, and longer life scales
 - Extend `web/clock.js` to fetch `/api/clock` dynamically instead of reading bundled JSON
 - Expand `src/webserver.py` with additional API slices (e.g., psalm lookups) as the dataset grows

@@ -12,6 +12,7 @@ Program-level strategy, deployment policy, and release governance are maintained
 ## Local Documents
 
 - [Combined Roadmap](combined_roadmap.md) — canonical execution order across product, mobile, scripture, runtime, Pericope, and Life OS work
+- [Harmonic Time-Scale Content Plan](harmonic_time_scale_content_plan.md) — present-moment architecture from minute through era, harmonic resolution, provenance, content production, and delivery stages
 - [Roadmap](roadmap.md)
 - [Startup Notes](startup.md)
 - [Instructions](instructions.md)

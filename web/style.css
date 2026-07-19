@@ -5420,6 +5420,7 @@ body.clock-page[data-drawer-tab="practice"] .drawer-controls {
   flex: 0 0 auto;
 }
 
+body.clock-page[data-drawer-tab="now"] .drawer .temporal-scale-section,
 body.clock-page[data-drawer-tab="now"] .drawer .daily-meditation,
 body.clock-page[data-drawer-tab="proverb"] .drawer .scripture-reader-panel,
 body.clock-page[data-drawer-tab="proverb"] .drawer .explainability-panel,
@@ -5550,8 +5551,201 @@ body.clock-page[data-drawer-tab="history"] .drawer .history-log {
   display: none !important;
 }
 
-body.clock-page[data-drawer-tab="now"] .drawer .daily-meditation {
+body.clock-page[data-drawer-tab="now"] .drawer .temporal-scale-section {
   order: 1;
+}
+
+body.clock-page[data-drawer-tab="now"] .drawer .daily-meditation {
+  order: 2;
+}
+
+.clock-page .temporal-scale-section {
+  border-color: rgba(125, 211, 252, 0.26);
+  border-left: 3px solid rgba(125, 211, 252, 0.52);
+  border-radius: 0.72rem;
+  background:
+    radial-gradient(circle at 90% 0%, rgba(59, 130, 246, 0.12), transparent 40%),
+    rgba(7, 19, 33, 0.78);
+  padding: 0.82rem 0.86rem 0.9rem;
+}
+
+.clock-page .temporal-scale-heading,
+.clock-page .temporal-scale-state-row {
+  display: flex;
+  gap: 0.7rem;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.clock-page .temporal-scale-kicker,
+.clock-page .temporal-scale-title,
+.clock-page .temporal-scale-now,
+.clock-page .temporal-scale-label,
+.clock-page .temporal-scale-state,
+.clock-page .temporal-scale-phase,
+.clock-page .temporal-scale-horizon,
+.clock-page .temporal-scale-synthesis,
+.clock-page .temporal-scale-provenance {
+  margin: 0;
+}
+
+.clock-page .temporal-scale-kicker,
+.clock-page .temporal-scale-label {
+  color: #7dd3fc;
+  font-size: 0.62rem;
+  font-weight: 850;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.clock-page .temporal-scale-title {
+  margin-top: 0.24rem;
+  color: #f8fafc;
+  font-size: 1rem;
+  line-height: 1.22;
+}
+
+.clock-page .temporal-scale-now {
+  max-width: 8.5rem;
+  color: #9fb2c9;
+  font-size: 0.66rem;
+  line-height: 1.35;
+  text-align: right;
+}
+
+.clock-page .temporal-scale-nav {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.32rem;
+  margin-top: 0.72rem;
+}
+
+.clock-page .temporal-scale-button {
+  min-width: 0;
+  min-height: 2rem;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 999px;
+  background: rgba(2, 8, 16, 0.42);
+  color: #aebdd2;
+  font: inherit;
+  font-size: 0.66rem;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.clock-page .temporal-scale-button:hover {
+  border-color: rgba(125, 211, 252, 0.58);
+  color: #e0f2fe;
+}
+
+.clock-page .temporal-scale-button.active {
+  border-color: rgba(250, 204, 21, 0.62);
+  background: rgba(250, 204, 21, 0.12);
+  color: #fde68a;
+}
+
+.clock-page .temporal-scale-reading {
+  margin-top: 0.7rem;
+  padding: 0.68rem;
+  border: 1px solid rgba(125, 211, 252, 0.14);
+  border-radius: 0.62rem;
+  background: rgba(2, 8, 16, 0.32);
+}
+
+.clock-page .temporal-scale-state {
+  margin-top: 0.2rem;
+  color: #e6edf7;
+  font-size: 0.81rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.clock-page .temporal-scale-phase {
+  flex: 0 0 auto;
+  border: 1px solid rgba(250, 204, 21, 0.28);
+  border-radius: 999px;
+  padding: 0.22rem 0.48rem;
+  color: #fde68a;
+  font-size: 0.62rem;
+  font-weight: 800;
+}
+
+.clock-page .temporal-scale-progress {
+  height: 0.25rem;
+  margin-top: 0.56rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.13);
+}
+
+.clock-page .temporal-scale-progress-fill {
+  display: block;
+  width: 0;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #38bdf8, #facc15);
+  transition: width 260ms ease;
+}
+
+.clock-page .temporal-scale-progress.is-unmeasured {
+  background: repeating-linear-gradient(
+    90deg,
+    rgba(148, 163, 184, 0.08) 0,
+    rgba(148, 163, 184, 0.08) 6px,
+    rgba(148, 163, 184, 0.2) 6px,
+    rgba(148, 163, 184, 0.2) 10px
+  );
+}
+
+.clock-page .temporal-scale-horizon {
+  margin-top: 0.38rem;
+  color: #8ea3bc;
+  font-size: 0.68rem;
+}
+
+.clock-page .temporal-scale-counsel {
+  display: grid;
+  gap: 0.42rem;
+  margin: 0.68rem 0 0;
+}
+
+.clock-page .temporal-scale-counsel div {
+  display: grid;
+  grid-template-columns: 5.3rem minmax(0, 1fr);
+  gap: 0.46rem;
+}
+
+.clock-page .temporal-scale-counsel dt {
+  color: #7dd3fc;
+  font-size: 0.62rem;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-align: left;
+  text-transform: uppercase;
+}
+
+.clock-page .temporal-scale-counsel dd {
+  margin: 0;
+  color: #c9d7e7;
+  font-size: 0.75rem;
+  line-height: 1.42;
+  text-align: left;
+}
+
+.clock-page .temporal-scale-synthesis {
+  margin-top: 0.7rem;
+  padding-top: 0.62rem;
+  border-top: 1px solid rgba(250, 204, 21, 0.16);
+  color: #fde68a;
+  font-size: 0.76rem;
+  line-height: 1.42;
+}
+
+.clock-page .temporal-scale-provenance {
+  margin-top: 0.42rem;
+  color: #7f91a8;
+  font-size: 0.64rem;
+  line-height: 1.38;
 }
 
 body.clock-page[data-drawer-tab="proverb"] .drawer .scripture-reader-panel,

@@ -146,6 +146,33 @@ assertIncludes(css, "transform: translateY(calc(100% + 2px));", "phone drawer sh
 assertIncludes(css, "@media (max-width: 380px) and (min-height: 700px)", "Fold cover/narrow phone mode should have a dedicated breakpoint");
 assertIncludes(css, "@media (min-width: 700px) and (max-width: 1180px) and (min-height: 600px)", "Fold inner mode should have a compact tablet breakpoint");
 assertIncludes(html, 'class="daily-meditation drawer-section"', "default drawer tab should expose a composed Solomonic meditation");
+assertIncludes(html, 'class="temporal-scale-section drawer-section"', "Counsel should expose the present moment across temporal scales");
+[
+  "moment",
+  "hour",
+  "day",
+  "week",
+  "month",
+  "season",
+  "year",
+  "decade",
+  "lifespan",
+  "era",
+].forEach((scale) => {
+  assertIncludes(html, `data-temporal-scale="${scale}"`, `${scale} should be a selectable clock topic`);
+  assertIncludes(js, `${scale}: {`, `${scale} should define a governed contemplation topic`);
+});
+assertIncludes(js, "const TEMPORAL_SCALE_LIBRARY", "temporal scales should be backed by a content library");
+assertIncludes(js, "function buildTemporalScaleReadings", "the current instant should resolve across every temporal scale");
+assertIncludes(js, "function buildTemporalScaleSynthesis", "measurable scales should contribute to harmonic counsel");
+assertIncludes(js, "function updateTemporalScalePanel", "the selected scale should render its live state and counsel");
+assertIncludes(js, "setupTemporalScaleControls();", "temporal scale selection should be wired during clock initialization");
+assertIncludes(js, "updateTemporalScalePanel(displayNow, timeState);", "the render loop should keep temporal topics anchored to the displayed moment");
+assertIncludes(js, "temporalScale: currentTemporalScaleContext", "the temporal reading should govern the action-loop context");
+assertIncludes(js, "Personal frame: requires a saved birth profile", "lifespan content should disclose its personal-data boundary");
+assertIncludes(js, "not a deterministic claim", "lunar counsel should avoid presenting contemplation as causal fact");
+assertIncludes(css, 'body.clock-page[data-drawer-tab="now"] .drawer .temporal-scale-section', "temporal scales should appear in the Counsel tab");
+assertIncludes(css, ".clock-page .temporal-scale-button.active", "the selected temporal scale should have a visible state");
 assertIncludes(html, 'class="meditation-clock-text"', "Clock anchor should explain the clock signal");
 assertIncludes(html, 'class="meditation-pentacle-text"', "Counsel tab should carry the pentacle correspondence");
 assert.ok(!html.includes('class="meditation-psalm-text"'), "Counsel tab should not show Psalm excerpts");

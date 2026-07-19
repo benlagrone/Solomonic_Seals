@@ -26,6 +26,129 @@ const HISTORY_RULER_COLORS = {
   Venus: "#34d399",
   Saturn: "#a78bfa",
 };
+const SYNODIC_MONTH_DAYS = 29.530588853;
+const LUNAR_EPOCH_UTC = Date.UTC(2000, 0, 6, 18, 14);
+const TEMPORAL_SCALE_ORDER = [
+  "moment",
+  "hour",
+  "day",
+  "week",
+  "month",
+  "season",
+  "year",
+  "decade",
+  "lifespan",
+  "era",
+];
+const TEMPORAL_PHASE_LIBRARY = [
+  {
+    key: "opening",
+    label: "Opening",
+    max: 0.15,
+    movement: "begin",
+    counsel: "The nested rhythms favor beginning: name the work before multiplying it.",
+  },
+  {
+    key: "rising",
+    label: "Rising",
+    max: 0.4,
+    movement: "build",
+    counsel: "The nested rhythms favor building: strengthen what has begun without adding needless breadth.",
+  },
+  {
+    key: "fullness",
+    label: "Fullness",
+    max: 0.6,
+    movement: "hold",
+    counsel: "The nested rhythms favor presence: protect what is mature enough to be seen, judged, and shared.",
+  },
+  {
+    key: "declining",
+    label: "Declining",
+    max: 0.85,
+    movement: "complete",
+    counsel: "The nested rhythms favor completion: finish, prune, and return what no longer needs to be carried.",
+  },
+  {
+    key: "returning",
+    label: "Returning",
+    max: 1,
+    movement: "renew",
+    counsel: "The nested rhythms favor return: examine the cycle, release its residue, and prepare the next beginning.",
+  },
+];
+const TEMPORAL_SCALE_LIBRARY = {
+  moment: {
+    label: "Minute",
+    contemplation: "What is actually being asked of you now, before interpretation becomes avoidance?",
+    practice: "Give one undivided minute to the next faithful act.",
+    restraint: "Do not escape the present by rehearsing every possible future.",
+    provenance: "Formation frame: watchfulness and recollection at the smallest actionable interval.",
+  },
+  hour: {
+    label: "Hour",
+    contemplation: "What quality of action belongs to this hour, and what should wait for another?",
+    practice: "Shape one bounded work period around the present hour’s ruling discipline.",
+    restraint: "Do not demand that one hour carry the burden of the whole day.",
+    provenance: "Formation frame: canonical hours and planetary-hour correspondence.",
+  },
+  day: {
+    label: "Day",
+    contemplation: "If this day had one governing virtue, where must it become visible?",
+    practice: "Choose one act that makes the day’s counsel concrete before evening.",
+    restraint: "Do not confuse a day’s governing theme with permission to neglect other duties.",
+    provenance: "Formation frame: the daily office, examination, and planetary weekday tradition.",
+  },
+  week: {
+    label: "Week",
+    contemplation: "What began earlier this week now needs strengthening, completion, or rest?",
+    practice: "Place today inside the week: begin, continue, complete, or recover deliberately.",
+    restraint: "Do not judge the whole week by the emotional weather of one day.",
+    provenance: "Formation frame: seven-day sacred rhythm, labor, Sabbath, review, and renewal.",
+  },
+  month: {
+    label: "Moon",
+    contemplation: "What is waxing, ripening, waning, or waiting in darkness?",
+    practice: "Match the work to the lunar phase: initiate, cultivate, reveal, release, or rest.",
+    restraint: "Treat the lunar cycle as a contemplative cadence, not a deterministic claim about your behavior.",
+    provenance: "Astronomical frame: approximate synodic lunar age; interpretive frame: growth and return.",
+  },
+  season: {
+    label: "Season",
+    contemplation: "What kind of labor belongs to this season, and what would be premature?",
+    practice: "Name one seasonal duty: sow, tend, harvest, preserve, or lie fallow.",
+    restraint: "Do not force harvest from work that is still in its season of roots.",
+    provenance: "Astronomical frame: solar longitude and local hemisphere.",
+  },
+  year: {
+    label: "Year",
+    contemplation: "What promise or responsibility must be carried through this whole year?",
+    practice: "Reconnect today’s action to one annual work worth finishing.",
+    restraint: "Do not let urgent days erase the direction of the year.",
+    provenance: "Calendar frame: the present position in the civil year.",
+  },
+  decade: {
+    label: "Decade",
+    contemplation: "What are you building that should still be true when this decade closes?",
+    practice: "Take one action whose value compounds through repeated years.",
+    restraint: "Do not sacrifice durable formation for a result that expires with the current season.",
+    provenance: "Calendar frame: the present year within its named decade.",
+  },
+  lifespan: {
+    label: "Life",
+    contemplation: "Which chapter of life are you in, and what does this chapter ask you to learn, give, or relinquish?",
+    practice: "Name the responsibility proper to your present life chapter.",
+    restraint: "Do not pretend to calculate a personal life reading without a birth date and explicit consent.",
+    provenance: "Personal frame: requires a saved birth profile; no lifespan prediction is made.",
+  },
+  era: {
+    label: "Era",
+    contemplation: "Which pressures belong to the age itself, and which responsibilities remain yours?",
+    practice: "Choose one work that serves people beyond your immediate horizon.",
+    restraint: "Do not mistake the spirit of an era for fate or surrender personal moral agency to it.",
+    provenance: "Historical frame: the current century and decade, without predictive claims.",
+  },
+};
 
 const clockWrapper = d3.select(".clock-wrapper");
 const tooltip = (() => {
@@ -139,6 +262,19 @@ const drawerElements = {
   drawerStop: document.querySelector(".drawer-stop"),
   drawerSpeechStatus: document.querySelector(".drawer-speech-status"),
   primaryDrawerButton: document.querySelector(".primary-drawer-button"),
+  temporalScaleSection: document.querySelector(".temporal-scale-section"),
+  temporalScaleButtons: Array.from(document.querySelectorAll(".temporal-scale-button[data-temporal-scale]")),
+  temporalScaleNow: document.querySelector(".temporal-scale-now"),
+  temporalScaleLabel: document.querySelector(".temporal-scale-label"),
+  temporalScaleState: document.querySelector(".temporal-scale-state"),
+  temporalScalePhase: document.querySelector(".temporal-scale-phase"),
+  temporalScaleProgressFill: document.querySelector(".temporal-scale-progress-fill"),
+  temporalScaleHorizon: document.querySelector(".temporal-scale-horizon"),
+  temporalScaleContemplation: document.querySelector(".temporal-scale-contemplation"),
+  temporalScalePractice: document.querySelector(".temporal-scale-practice"),
+  temporalScaleRestraint: document.querySelector(".temporal-scale-restraint"),
+  temporalScaleSynthesis: document.querySelector(".temporal-scale-synthesis"),
+  temporalScaleProvenance: document.querySelector(".temporal-scale-provenance"),
   meditationSection: document.querySelector(".daily-meditation"),
   meditationTitle: document.querySelector(".meditation-title"),
   meditationBody: document.querySelector(".meditation-body"),
@@ -344,6 +480,7 @@ let lastHistoryWeeklyKey = null;
 let lastHistoryReviewKey = null;
 let lastProvidenceTimelineKey = null;
 let lastProvidenceMapKey = null;
+let lastTemporalScaleKey = null;
 let currentPsalmRequestId = 0;
 let currentBundleRequestId = 0;
 let currentRulePsalmRequestId = 0;
@@ -405,6 +542,7 @@ let lastDailyOpeningAnchorKey = null;
 let lastDailyOpeningDateKey = null;
 let dailyOpeningSuggestionOffset = 0;
 let currentWeeklyReviewContext = null;
+let currentTemporalScaleContext = null;
 let loadedPentacleData = null;
 let scriptureReaderSpeechToken = 0;
 let bundleSpeechToken = 0;
@@ -446,6 +584,7 @@ const uiState = {
   selectedClockLayer: "",
   selectedClockDatum: null,
   selectedJourneyTrackId: "",
+  temporalScale: "moment",
   reflectionOpen: false,
   closingOpen: false,
   dailyOpeningOpen: false,
@@ -1564,6 +1703,24 @@ function setupDrawerTabControls() {
   drawerElements.drawerTabs.forEach((button) => {
     button.addEventListener("click", () => {
       setDrawerTab(button.dataset.drawerTab || "now");
+    });
+  });
+}
+
+function setupTemporalScaleControls() {
+  drawerElements.temporalScaleButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      const scale = String(button.dataset.temporalScale || "").trim();
+      if (!TEMPORAL_SCALE_ORDER.includes(scale)) {
+        return;
+      }
+      uiState.temporalScale = scale;
+      lastTemporalScaleKey = null;
+      drawerElements.temporalScaleButtons.forEach((candidate) => {
+        const isActive = candidate.dataset.temporalScale === scale;
+        candidate.classList.toggle("active", isActive);
+        candidate.setAttribute("aria-pressed", isActive ? "true" : "false");
+      });
     });
   });
 }
@@ -4092,6 +4249,268 @@ function getWeekFraction(now) {
   const hoursIntoDay =
     now.getHours() + (now.getMinutes() + (now.getSeconds() + now.getMilliseconds() / 1000) / 60) / 60;
   return ((now.getDay() + hoursIntoDay / 24) / 7) % 1;
+}
+
+function normalizeCycleFraction(value) {
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric)) {
+    return 0;
+  }
+  return ((numeric % 1) + 1) % 1;
+}
+
+function getTemporalPhase(fraction) {
+  const normalized = normalizeCycleFraction(fraction);
+  return TEMPORAL_PHASE_LIBRARY.find((phase) => normalized < phase.max)
+    || TEMPORAL_PHASE_LIBRARY[TEMPORAL_PHASE_LIBRARY.length - 1];
+}
+
+function formatTemporalBoundary(milliseconds) {
+  if (!Number.isFinite(milliseconds) || milliseconds <= 0) {
+    return "at the next boundary";
+  }
+  const totalMinutes = Math.max(1, Math.ceil(milliseconds / 60_000));
+  if (totalMinutes < 60) {
+    return `in ${totalMinutes} min`;
+  }
+  const totalHours = Math.ceil(milliseconds / 3_600_000);
+  if (totalHours < 48) {
+    return `in ${totalHours} hr`;
+  }
+  const totalDays = Math.ceil(milliseconds / MS_PER_DAY);
+  return `in ${totalDays} days`;
+}
+
+function getLunarPhaseName(fraction) {
+  const normalized = normalizeCycleFraction(fraction);
+  if (normalized < 0.0625 || normalized >= 0.9375) return "New Moon";
+  if (normalized < 0.1875) return "Waxing Crescent";
+  if (normalized < 0.3125) return "First Quarter";
+  if (normalized < 0.4375) return "Waxing Gibbous";
+  if (normalized < 0.5625) return "Full Moon";
+  if (normalized < 0.6875) return "Waning Gibbous";
+  if (normalized < 0.8125) return "Last Quarter";
+  return "Waning Crescent";
+}
+
+function getOrdinal(value) {
+  const number = Math.abs(Math.trunc(Number(value) || 0));
+  const tens = number % 100;
+  if (tens >= 11 && tens <= 13) {
+    return `${number}th`;
+  }
+  const suffix = number % 10 === 1 ? "st" : number % 10 === 2 ? "nd" : number % 10 === 3 ? "rd" : "th";
+  return `${number}${suffix}`;
+}
+
+function getClockBirthDate() {
+  const profile = clockAuthState?.profile || {};
+  const rawValue = profile.birthdate
+    || profile.birth_date
+    || profile.attributes?.birthdate?.[0]
+    || profile.attributes?.birth_date?.[0]
+    || "";
+  if (!rawValue) {
+    return null;
+  }
+  const birthDate = new Date(`${String(rawValue).slice(0, 10)}T12:00:00`);
+  return Number.isNaN(birthDate.getTime()) ? null : birthDate;
+}
+
+function buildTemporalScaleReadings(now, timeState) {
+  const secondFraction = (now.getSeconds() + now.getMilliseconds() / 1000) / 60;
+  const minuteEnd = new Date(now);
+  minuteEnd.setSeconds(60, 0);
+  const clockHourFraction = (now.getMinutes() + (now.getSeconds() + now.getMilliseconds() / 1000) / 60) / 60;
+  const nextClockHour = new Date(now);
+  nextClockHour.setMinutes(60, 0, 0);
+  const dayFraction = getDayProgress(now);
+  const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+  const mondayIndex = (now.getDay() + 6) % 7;
+  const weekFraction = (mondayIndex + dayFraction) / 7;
+  const nextMonday = new Date(now.getFullYear(), now.getMonth(), now.getDate() + (7 - mondayIndex));
+  const lunarAgeDays = normalizeCycleFraction((now.getTime() - LUNAR_EPOCH_UTC) / (SYNODIC_MONTH_DAYS * MS_PER_DAY))
+    * SYNODIC_MONTH_DAYS;
+  const lunarFraction = lunarAgeDays / SYNODIC_MONTH_DAYS;
+  const lunarBoundary = (SYNODIC_MONTH_DAYS - lunarAgeDays) * MS_PER_DAY;
+  const yearLength = isLeapYear(now.getFullYear()) ? 366 : 365;
+  const yearFraction = (getDayOfYear(now) + dayFraction) / yearLength;
+  const yearEnd = new Date(now.getFullYear() + 1, 0, 1);
+  const decadeStart = Math.floor(now.getFullYear() / 10) * 10;
+  const decadeFraction = ((now.getFullYear() - decadeStart) + yearFraction) / 10;
+  const decadeEnd = new Date(decadeStart + 10, 0, 1);
+  const centuryNumber = Math.floor((now.getFullYear() - 1) / 100) + 1;
+  const centuryStart = (centuryNumber - 1) * 100 + 1;
+  const eraFraction = ((now.getFullYear() - centuryStart) + yearFraction) / 100;
+  const eraEnd = new Date(centuryStart + 100, 0, 1);
+  const runtimeHour = timeState?.clockRuntime?.planetary_hour || null;
+  const runtimeHourStart = new Date(runtimeHour?.start || "");
+  const runtimeHourEnd = new Date(runtimeHour?.end || "");
+  const hasRuntimeHour = !Number.isNaN(runtimeHourStart.getTime())
+    && !Number.isNaN(runtimeHourEnd.getTime())
+    && runtimeHourEnd > runtimeHourStart;
+  const hourFraction = hasRuntimeHour
+    ? Math.max(0, Math.min(1, (now - runtimeHourStart) / (runtimeHourEnd - runtimeHourStart)))
+    : clockHourFraction;
+  const hourEnd = hasRuntimeHour ? runtimeHourEnd : nextClockHour;
+  const runtimeHourSummary = getClockRuntimeHourSummary(timeState?.clockRuntime);
+  const solarLongitudeValue = Number(timeState?.clockRuntime?.degree?.solar_longitude);
+  const solarLongitude = Number.isFinite(solarLongitudeValue)
+    ? ((solarLongitudeValue % 360) + 360) % 360
+    : yearFraction * 360;
+  const latitude = Number(timeState?.clockRuntime?.location?.latitude);
+  const southernHemisphere = Number.isFinite(latitude) && latitude < 0;
+  const northernSeasonNames = ["Spring", "Summer", "Autumn", "Winter"];
+  const southernSeasonNames = ["Autumn", "Winter", "Spring", "Summer"];
+  const seasonIndex = Math.floor(solarLongitude / 90) % 4;
+  const seasonFraction = (solarLongitude % 90) / 90;
+  const seasonName = (southernHemisphere ? southernSeasonNames : northernSeasonNames)[seasonIndex];
+  const birthDate = getClockBirthDate();
+  const age = birthDate
+    ? now.getFullYear() - birthDate.getFullYear()
+      - (now < new Date(now.getFullYear(), birthDate.getMonth(), birthDate.getDate()) ? 1 : 0)
+    : null;
+  const dayLabel = timeState?.dayLabel || getPlanetaryDayLabel(now);
+  const readings = {
+    moment: {
+      fraction: secondFraction,
+      state: `${now.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })} • second ${now.getSeconds()}`,
+      horizon: `Next minute ${formatTemporalBoundary(minuteEnd - now)}.`,
+    },
+    hour: {
+      fraction: hourFraction,
+      state: runtimeHourSummary?.ruler
+        ? `${runtimeHourSummary.ruler} • ${runtimeHourSummary.label}${runtimeHourSummary.window ? ` • ${runtimeHourSummary.window}` : ""}`
+        : `${now.toLocaleTimeString([], { hour: "numeric" })} clock hour`,
+      horizon: `Next hour boundary ${formatTemporalBoundary(hourEnd - now)}.`,
+    },
+    day: {
+      fraction: dayFraction,
+      state: `${dayLabel.dayText} • governed by ${dayLabel.rulerText}`,
+      horizon: `Next day boundary ${formatTemporalBoundary(tomorrow - now)}.`,
+    },
+    week: {
+      fraction: weekFraction,
+      state: `${dayLabel.dayText} • day ${mondayIndex + 1} of 7`,
+      horizon: `Weekly return ${formatTemporalBoundary(nextMonday - now)}.`,
+    },
+    month: {
+      fraction: lunarFraction,
+      state: `${getLunarPhaseName(lunarFraction)} • lunar age ${lunarAgeDays.toFixed(1)} days`,
+      horizon: `Next approximate lunation ${formatTemporalBoundary(lunarBoundary)}.`,
+    },
+    season: {
+      fraction: seasonFraction,
+      state: `${seasonName} • ${solarLongitude.toFixed(1)}° solar longitude`,
+      horizon: `${(90 - (solarLongitude % 90)).toFixed(1)}° until the next solar quarter.`,
+    },
+    year: {
+      fraction: yearFraction,
+      state: `${now.getFullYear()} • day ${getDayOfYear(now) + 1} of ${yearLength}`,
+      horizon: `Next civil year ${formatTemporalBoundary(yearEnd - now)}.`,
+    },
+    decade: {
+      fraction: decadeFraction,
+      state: `${decadeStart}s • year ${now.getFullYear() - decadeStart + 1} of 10`,
+      horizon: `Next decade ${formatTemporalBoundary(decadeEnd - now)}.`,
+    },
+    lifespan: {
+      fraction: null,
+      state: Number.isFinite(age)
+        ? `Age ${age} • ${getOrdinal(age + 1)} year of life`
+        : clockAuthState.authenticated
+          ? "Birth date not yet present in your signed-in profile"
+          : "Sign in and add a birth date for a personal life chapter",
+      horizon: Number.isFinite(age)
+        ? "Personal chapter is shown without predicting lifespan length."
+        : "Personalization boundary: birth data and consent are required.",
+      participatesInHarmony: false,
+    },
+    era: {
+      fraction: eraFraction,
+      state: `${getOrdinal(centuryNumber)} century • ${decadeStart}s`,
+      horizon: `Next century ${formatTemporalBoundary(eraEnd - now)}.`,
+    },
+  };
+
+  return TEMPORAL_SCALE_ORDER.map((key) => {
+    const definition = TEMPORAL_SCALE_LIBRARY[key];
+    const reading = readings[key];
+    const phase = Number.isFinite(reading.fraction)
+      ? getTemporalPhase(reading.fraction)
+      : { key: "personal", label: "Personal chapter", movement: "discern", counsel: "" };
+    return {
+      key,
+      ...definition,
+      ...reading,
+      phase,
+      participatesInHarmony: reading.participatesInHarmony !== false,
+    };
+  });
+}
+
+function buildTemporalScaleSynthesis(readings) {
+  const counts = new Map();
+  readings.filter((reading) => reading.participatesInHarmony).forEach((reading) => {
+    const key = reading.phase.key;
+    counts.set(key, (counts.get(key) || 0) + 1);
+  });
+  const ranked = TEMPORAL_PHASE_LIBRARY
+    .map((phase) => ({ phase, count: counts.get(phase.key) || 0 }))
+    .sort((left, right) => right.count - left.count);
+  const dominant = ranked[0];
+  const measurableCount = readings.filter((reading) => reading.participatesInHarmony).length;
+  return {
+    movement: dominant?.phase?.movement || "attend",
+    text: dominant?.phase?.counsel || "Attend to the present scale before widening the reading.",
+    summary: `${dominant?.count || 0} of ${measurableCount} measurable scales are in ${String(dominant?.phase?.label || "an active").toLowerCase()} motion.`,
+  };
+}
+
+function updateTemporalScalePanel(now, timeState) {
+  if (!drawerElements.temporalScaleSection) {
+    return null;
+  }
+  const readings = buildTemporalScaleReadings(now, timeState);
+  const selected = readings.find((reading) => reading.key === uiState.temporalScale) || readings[0];
+  const synthesis = buildTemporalScaleSynthesis(readings);
+  const updateKey = [
+    uiState.temporalScale,
+    Math.floor(now.getTime() / 1000),
+    selected.state,
+    synthesis.summary,
+    clockAuthState.authenticated ? "account" : "guest",
+  ].join("|");
+  currentTemporalScaleContext = { selected, readings, synthesis };
+  if (updateKey === lastTemporalScaleKey) {
+    return currentTemporalScaleContext;
+  }
+  lastTemporalScaleKey = updateKey;
+
+  drawerElements.temporalScaleNow.textContent = now.toLocaleString([], {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+  drawerElements.temporalScaleLabel.textContent = selected.label;
+  drawerElements.temporalScaleState.textContent = selected.state;
+  drawerElements.temporalScalePhase.textContent = selected.phase.label;
+  drawerElements.temporalScaleProgressFill.style.width = Number.isFinite(selected.fraction)
+    ? `${Math.max(2, Math.min(100, selected.fraction * 100)).toFixed(1)}%`
+    : "0%";
+  drawerElements.temporalScaleProgressFill.parentElement.classList.toggle(
+    "is-unmeasured",
+    !Number.isFinite(selected.fraction)
+  );
+  drawerElements.temporalScaleHorizon.textContent = selected.horizon;
+  drawerElements.temporalScaleContemplation.textContent = selected.contemplation;
+  drawerElements.temporalScalePractice.textContent = selected.practice;
+  drawerElements.temporalScaleRestraint.textContent = selected.restraint;
+  drawerElements.temporalScaleSynthesis.textContent = `Harmonic counsel • ${synthesis.summary} ${synthesis.text}`;
+  drawerElements.temporalScaleProvenance.textContent = selected.provenance;
+  return currentTemporalScaleContext;
 }
 
 function getPlanetaryDayLabel(now) {
@@ -9216,6 +9635,7 @@ function buildActionLoopContext(timeState, referenceMap, now, derived, lifeState
     lifeDomainFocus: lifeState?.focusedDomain?.name || ruleOfLife?.domain || null,
     weakestDomain: lifeState?.weakestDomain?.name || ruleOfLife?.weakestDomain || null,
     weakestDomainScore: lifeState?.weakestDomain?.score ?? ruleOfLife?.weakestScore ?? null,
+    temporalScale: currentTemporalScaleContext,
   };
 
   return mergeClockApiContext(baseContext, clockContext, clockRuntime);
@@ -11456,24 +11876,33 @@ function updateSurfacePanel(timeState, referenceMap, now, derived, lifeState) {
   const modePresentation = uiState.lens === "base"
     ? getModePresentation(timeState, referenceMap, now, derived, lifeState)
     : null;
+  const temporalReading = uiState.lens === "base" && uiState.mode === "guidance"
+    ? currentTemporalScaleContext?.selected
+    : null;
 
   drawerElements.surfaceLensLabel.textContent = modePresentation
     ? `${surfaceView.label} • ${modePresentation.surfaceLabel}`
-    : surfaceView.label || lensDefinition.title;
-  drawerElements.surfaceLensTitle.textContent = modePresentation?.surfaceTitle || surfaceView.title;
-  drawerElements.surfaceLensBody.textContent = modePresentation?.surfaceBody || surfaceView.body;
+    : temporalReading
+      ? `${surfaceView.label} • ${temporalReading.label} scale`
+      : surfaceView.label || lensDefinition.title;
+  drawerElements.surfaceLensTitle.textContent = modePresentation?.surfaceTitle
+    || (temporalReading ? `${temporalReading.label} • ${temporalReading.phase.label}` : surfaceView.title);
+  drawerElements.surfaceLensBody.textContent = modePresentation?.surfaceBody
+    || (temporalReading ? `${temporalReading.state}. ${temporalReading.horizon}` : surfaceView.body);
 
   if (drawerElements.surfaceLensQuestion) {
-    drawerElements.surfaceLensQuestion.textContent = surfaceView.question;
+    drawerElements.surfaceLensQuestion.textContent = temporalReading?.contemplation || surfaceView.question;
   }
   if (drawerElements.surfaceLensRing) {
     drawerElements.surfaceLensRing.textContent = surfaceView.ring;
   }
   if (drawerElements.surfaceLensCta) {
-    drawerElements.surfaceLensCta.textContent = surfaceView.cta;
+    drawerElements.surfaceLensCta.textContent = temporalReading?.practice || surfaceView.cta;
   }
 
-  updateSurfaceLensStack(surfaceView.stack);
+  updateSurfaceLensStack(temporalReading
+    ? [temporalReading.phase.movement, currentTemporalScaleContext?.synthesis?.movement, "Present moment"]
+    : surfaceView.stack);
   updateRuleOfLifePanels(modePresentation?.ruleOfLife || surfaceView.ruleOfLife || null);
 }
 
@@ -11509,6 +11938,9 @@ function updateDailyMeditationPanel(context, timeState, now) {
   const domain = context?.ruleOfLife?.domain || context?.lifeDomainFocus || "the present work";
   const virtue = context?.ruleOfLife?.virtue || "prudence";
   const focus = context?.activeFocus || "ordering the day";
+  const temporal = context?.temporalScale || currentTemporalScaleContext;
+  const temporalReading = temporal?.selected || null;
+  const harmonicCounsel = temporal?.synthesis || null;
   const solomonicRef = context?.solomonicRef || getMeditationElementText(drawerElements.bundleSolomonicRef) || "Solomonic correspondence";
   const hourRule = getPlanetaryHourRuler(now, rulerText);
   const runtimeHour = getClockRuntimeHourSummary(timeState?.clockRuntime || context?.clockRuntime);
@@ -11525,19 +11957,29 @@ function updateDailyMeditationPanel(context, timeState, now) {
     ? `${hourRule.ruler} hour ${hourRule.hourIndex + 1}`
     : "the present hour";
   const solomonicSnippet = getMeditationSnippet(drawerElements.bundleSolomonicText, focus, 150);
-  const clockExplanation = runtimeHour?.ruler
+  const baseClockExplanation = runtimeHour?.ruler
     ? `${runtimeHour.ruler} names the present ${runtimeHour.phase.toLowerCase()} interval within ${rulerText}'s day. Read ${runtimeHour.window || "this solar hour"} as the clock's immediate discipline: how today's wisdom should be enacted now, not merely admired.${nextHourPhrase ? ` Prepare the handoff: ${nextHourPhrase}.` : ""}`
     : hourRule?.ruler
     ? `${hourRule.ruler} names the present mode of action within ${rulerText}'s day. Read it as the clock's immediate discipline: how today's wisdom should be enacted now, not merely admired.`
     : `The clock names where today's wisdom should become concrete: ${focus}.`;
-  const nextAct = context?.ruleOfLife?.nextAct
+  const clockExplanation = temporalReading
+    ? `${baseClockExplanation} At the ${temporalReading.label.toLowerCase()} scale, the present is ${temporalReading.phase.label.toLowerCase()}: ${temporalReading.state}. ${harmonicCounsel?.text || ""}`.trim()
+    : baseClockExplanation;
+  const nextAct = temporalReading?.practice
+    || context?.ruleOfLife?.nextAct
     || context?.ruleOfLife?.morning
     || context?.guidedPrompt
     || "Choose one governed act and carry it without ornament.";
-  const restraint = context?.ruleOfLife?.restraint || "Do not spend the day reacting before you have judged what deserves speech.";
-  const reflection = context?.ruleOfLife?.reflection || "What became more ordered because you governed yourself first?";
+  const restraint = temporalReading?.restraint
+    || context?.ruleOfLife?.restraint
+    || "Do not spend the day reacting before you have judged what deserves speech.";
+  const reflection = temporalReading?.contemplation
+    || context?.ruleOfLife?.reflection
+    || "What became more ordered because you governed yourself first?";
 
-  drawerElements.meditationTitle.textContent = `${dayText} • ${rulerText} • ${domain} / ${virtue}`;
+  drawerElements.meditationTitle.textContent = temporalReading
+    ? `${dayText} • ${rulerText} • ${temporalReading.label} / ${temporalReading.phase.label}`
+    : `${dayText} • ${rulerText} • ${domain} / ${virtue}`;
   drawerElements.meditationClockRef.textContent = `${hourPhrase} • ${focus}`;
   drawerElements.meditationClockText.textContent = clockExplanation;
   drawerElements.meditationPentacleRef.textContent = solomonicRef;
@@ -11545,7 +11987,7 @@ function updateDailyMeditationPanel(context, timeState, now) {
   drawerElements.meditationPracticeText.textContent = nextAct;
 
   const paragraphs = [
-    `The clock reads ${dayText} through ${rulerText}, but it does not leave the day as an abstraction. It places the counsel in ${domain.toLowerCase()}, where ${virtue.toLowerCase()} has to become mastery rather than mood.`,
+    `The clock reads ${dayText} through ${rulerText}, but it does not leave the day as an abstraction. It places the counsel in ${domain.toLowerCase()}, where ${virtue.toLowerCase()} has to become mastery rather than mood.${harmonicCounsel ? ` ${harmonicCounsel.summary} ${harmonicCounsel.text}` : ""}`,
     `The clock signal matters because it makes the counsel immediate. ${clockExplanation}`,
     `The pentacle correspondence, ${solomonicRef}, turns this into practice: ${solomonicSnippet}. Treat the figure as a discipline of attention. Let it name what must be repaired, restrained, strengthened, or spoken with care.`,
     `For this next turn of the clock, take up one act: ${nextAct} Restraint: ${restraint} Evening question: ${reflection}`,
@@ -12701,6 +13143,7 @@ async function initialiseClock() {
   setupLensControls();
   setupDrawerToggle();
   setupDrawerTabControls();
+  setupTemporalScaleControls();
   setupDrawerAudioControls();
   setupDailyOpeningControls();
   setupSelectedTrackControls();
@@ -12806,6 +13249,7 @@ function renderClock(data, referenceMap, psalmMetadata, pentacleData, lifeDomain
     updateLensAnnotations(timeState, referenceMap, now, radii);
 
     updateCenterLabels(layers.core.name, timeState, referenceMap, now, derived, lifeState);
+    updateTemporalScalePanel(displayNow, timeState);
     updateSurfacePanel(timeState, referenceMap, now, derived, lifeState);
     currentActionLoopContext = buildActionLoopContext(timeState, referenceMap, displayNow, derived, lifeState, clockContext, clockRuntime);
     updateDailyOpening(currentActionLoopContext);
