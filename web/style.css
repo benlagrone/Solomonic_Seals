@@ -805,6 +805,40 @@ body[data-drawer-open="true"] .primary-drawer-button {
   text-align: left;
 }
 
+.manuscript-reading-page {
+  position: relative;
+  isolation: isolate;
+  border-color: rgba(250, 204, 21, 0.26);
+  border-radius: 0.72rem;
+  background:
+    linear-gradient(180deg, rgba(254, 243, 199, 0.045), transparent 34%),
+    radial-gradient(circle at 8% 0%, rgba(185, 28, 28, 0.12), transparent 30%),
+    radial-gradient(circle at 96% 8%, rgba(37, 99, 235, 0.12), transparent 34%),
+    rgba(10, 17, 31, 0.9);
+  box-shadow:
+    inset 0 0 0 1px rgba(254, 243, 199, 0.06),
+    0 18px 36px rgba(2, 6, 23, 0.28);
+}
+
+.manuscript-reading-page::before {
+  content: "";
+  position: absolute;
+  inset: 0.42rem;
+  border: 1px solid rgba(250, 204, 21, 0.12);
+  border-radius: 0.52rem;
+  pointer-events: none;
+}
+
+.manuscript-rubric {
+  letter-spacing: 0.02em;
+  text-transform: none;
+}
+
+.manuscript-marginalia {
+  border-left: 2px solid rgba(185, 28, 28, 0.42);
+  padding-left: 0.62rem;
+}
+
 .scripture-reader-top {
   display: flex;
   align-items: flex-start;
@@ -889,7 +923,7 @@ body[data-drawer-open="true"] .primary-drawer-button {
 .scripture-reader-text {
   margin-top: 0.55rem;
   padding: 0.95rem 1rem;
-  border-radius: 0.95rem;
+  border-radius: 0.62rem;
   border: 1px solid rgba(148, 163, 184, 0.16);
   background: rgba(2, 6, 23, 0.42);
   color: #e2e8f0;
@@ -898,6 +932,20 @@ body[data-drawer-open="true"] .primary-drawer-button {
   white-space: pre-wrap;
   max-height: 24rem;
   overflow: auto;
+}
+
+.manuscript-reading-body {
+  border-color: rgba(250, 204, 21, 0.16);
+  background:
+    linear-gradient(180deg, rgba(254, 243, 199, 0.035), rgba(2, 6, 23, 0.36)),
+    rgba(2, 6, 23, 0.38);
+  box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.8);
+}
+
+body.clock-page[data-drawer-tab="proverb"] .drawer .manuscript-reading-body,
+body.clock-page[data-drawer-tab="psalm"] .drawer .manuscript-reading-body {
+  max-height: none;
+  overflow: visible;
 }
 
 .scripture-illumination {

@@ -188,6 +188,15 @@ assertIncludes(css, "overflow: visible;", "Solomonic meditation body should not 
 assertIncludes(css, ".illuminated-heading::first-letter", "drawer tab headings should share the manuscript-style illuminated initial");
 assertIncludes(html, 'class="meditation-title illuminated-heading"', "Counsel tab title should use the illuminated heading treatment");
 assertIncludes(html, 'class="scripture-reader-title illuminated-heading"', "Psalm and Proverb reader titles should use the illuminated heading treatment");
+assertIncludes(html, 'class="scripture-reader-panel manuscript-reading-page"', "Psalm and Proverb reader should render as a manuscript reading page");
+assertIncludes(html, 'class="scripture-reader-ref manuscript-rubric"', "Psalm and Proverb reader reference should use a rubric line");
+assertIncludes(html, 'class="scripture-reader-text manuscript-reading-body"', "Psalm and Proverb reader body should use the manuscript reading surface");
+assertIncludes(html, 'class="scripture-reader-status manuscript-marginalia"', "Psalm and Proverb reader status should read as marginalia");
+assertIncludes(css, ".manuscript-reading-page::before", "manuscript reader should carry a quiet framed page boundary");
+assertIncludes(css, 'body.clock-page[data-drawer-tab="proverb"] .drawer .manuscript-reading-body', "full Proverb reader should avoid nested scrolling inside the drawer");
+assertIncludes(css, 'body.clock-page[data-drawer-tab="psalm"] .drawer .manuscript-reading-body', "full Psalm reader should avoid nested scrolling inside the drawer");
+assertIncludes(css, "overflow: visible;", "manuscript reader should let the drawer own scrolling");
+assert.ok(!html.includes('class="action-button manuscript'), "reader controls should remain plain controls instead of manuscript blocks");
 assertIncludes(html, 'class="lens-deep-title illuminated-heading"', "Practice tab title should use the illuminated heading treatment");
 assertIncludes(html, 'class="rule-heading illuminated-heading illuminated-heading--compact"', "Rule of Life subheader should use the compact illuminated treatment");
 assertIncludes(html, 'class="weekly-arc-heading illuminated-heading illuminated-heading--compact"', "Weekly Arc subheader should use the compact illuminated treatment");
