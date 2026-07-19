@@ -25,7 +25,7 @@ Canonical target:
 Deploy:
 
 ```bash
-cd /Users/benjaminlagrone/Documents/projects/pericopeai.com/Solomonic_Seals
+cd /path/to/Solomonic_Clocks
 docker compose -f docker-compose.yml up -d --build
 docker compose -f docker-compose.local-router.yml up -d
 ```
@@ -75,7 +75,7 @@ Deploy:
 ```bash
 ssh fortress.lan '
   set -e
-  cd /home/master-benjamin/Projects/pericopeai.com/Solomonic_Seals
+  cd /home/master-benjamin/Projects/Solomonic_Clocks
   git fetch origin main
   git checkout main
   git pull --ff-only origin main
@@ -160,7 +160,7 @@ For LAN rollback:
 
 ```bash
 ssh fortress.lan '
-  cd /home/master-benjamin/Projects/pericopeai.com/Solomonic_Seals
+  cd /home/master-benjamin/Projects/Solomonic_Clocks
   git checkout <known-good-sha>
 
   cd /home/master-benjamin/Projects/pericopeai.com/fortress-phronesis

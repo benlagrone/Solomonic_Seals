@@ -7,7 +7,7 @@ Goal:
 Consume the clock-owned guided-prompts API safely from Pericope without exposing the shared secret to browser clients.
 
 Authoritative clock-side contract:
-- [clock_guided_prompts_api_handoff.md](/Users/benjaminlagrone/Documents/projects/pericopeai.com/Solomonic_Seals/docs/clock_guided_prompts_api_handoff.md)
+- [clock_guided_prompts_api_handoff.md](clock_guided_prompts_api_handoff.md)
 
 Clock-side status:
 - `Solomonic_Seals` now exposes `POST /api/pericope/guided-prompts`

@@ -41,12 +41,17 @@ SCRIPTURE_MAPPINGS_PATH = REPO_ROOT / "data" / "scripture_mappings.json"
 LIFE_DOMAINS_PATH = REPO_ROOT / "data" / "life_domains.json"
 LOCAL_SOURCE_TEXTS_DIR = REPO_ROOT / "docs" / "source_texts"
 DEFAULT_AUGUSTINE_CORPUS_ROOT = Path(
-    "/Users/benjaminlagrone/Documents/projects/pericopeai.com/AugustineCorpus"
-)
-PERICOPEAI_ASSETS_PUBLIC_ROOT = REPO_ROOT.parent / "pericopeai-assets" / "public"
+    os.environ.get("SOLOMONIC_AUGUSTINE_CORPUS_ROOT", REPO_ROOT.parent / "AugustineCorpus")
+).expanduser()
+PERICOPEAI_ASSETS_PUBLIC_ROOT = Path(
+    os.environ.get(
+        "SOLOMONIC_PERICOPEAI_ASSETS_PUBLIC_ROOT",
+        REPO_ROOT.parent / "pericopeai-assets" / "public",
+    )
+).expanduser()
 DEFAULT_AUGUSTINE_AUTHOR_INDEX_PATH = DEFAULT_AUGUSTINE_CORPUS_ROOT / "author_index.json"
-DEFAULT_EXTERNAL_PSALMS_PATH = Path(
-    "/Users/benjaminlagrone/Documents/projects/pericopeai.com/AugustineCorpus/texts/david_texts/Psalms.txt"
+DEFAULT_EXTERNAL_PSALMS_PATH = (
+    DEFAULT_AUGUSTINE_CORPUS_ROOT / "texts" / "david_texts" / "Psalms.txt"
 )
 DEFAULT_LOCAL_PSALMS_PATH = LOCAL_SOURCE_TEXTS_DIR / "Psalms.txt"
 PSALM_NUMBER_MAP_PATH = REPO_ROOT / "data" / "psalm_number_map.csv"

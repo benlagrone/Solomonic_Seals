@@ -2,6 +2,26 @@
 
 Structured data and visualization scaffolding for the Solomonic Clock — a symbolic calendar that layers master, celestial, planetary, and spirit seals into one radial display.
 
+## Clone On A New Computer
+
+The checkout directory is not part of the runtime or publishing contract. Clone
+the repository wherever you keep projects:
+
+```bash
+git clone https://github.com/benlagrone/Solomonic_Seals.git Solomonic_Clocks
+cd Solomonic_Clocks
+cp .env.example .env
+docker network create fortress-phronesis-net 2>/dev/null || true
+docker compose up -d --build
+scripts/promotion_smoke.sh local
+```
+
+The default configuration uses the public Pericope API and the bundled source
+texts. A sibling AugustineCorpus checkout is optional. Configure its location
+with `SOLOMONIC_AUGUSTINE_CORPUS_ROOT`,
+`SOLOMONIC_AUGUSTINE_AUTHOR_INDEX_PATH`, or
+`SOLOMONIC_PSALMS_TEXT_PATH` when local corpus files are available.
+
 ## Local Quickstart
 
 1. (Optional) Create a virtual environment: `python3 -m venv .venv && source .venv/bin/activate`
@@ -78,13 +98,13 @@ docker compose --env-file .env.prod -f docker-compose.prod.yml up -d --build
 - `web/` — static visualization (HTML/CSS/JS)
 - `docs/` — research notes and project handoff material
 
-## Source Texts From PericopeAI (No Copy)
+## Optional Source Texts From PericopeAI
 
 If your Solomonic texts already live in PericopeAI, index them in place:
 
 ```bash
 python3 scripts/index_source_texts.py \
-  --source-dir /Users/benjaminlagrone/Documents/projects/pericopeai.com/AugustineCorpus/texts/solomon_expanded_texts \
+  --source-dir ../AugustineCorpus/texts/solomon_expanded_texts \
   --output data/source_texts_index.json
 ```
 

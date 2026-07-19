@@ -143,11 +143,11 @@ def extract_sections(text):
     return sections
 
 
-def path_for_output(path):
+def path_for_output(path, source_dir):
     try:
         return str(path.relative_to(ROOT))
     except ValueError:
-        return str(path)
+        return str(Path("external") / path.relative_to(source_dir))
 
 
 def index_sources(source_dir, metadata_path):
@@ -178,7 +178,7 @@ def index_sources(source_dir, metadata_path):
             {
                 "source_id": source_id,
                 "title": title,
-                "file": path_for_output(path),
+                "file": path_for_output(path, source_dir),
                 "source_urls": meta.get("sources") or [],
                 "retrieved": meta.get("retrieved"),
                 "notes": meta.get("notes"),

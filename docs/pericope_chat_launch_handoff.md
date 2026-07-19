@@ -28,9 +28,9 @@ Status:
 
 Authoritative upstream docs:
 
-- [clock_guided_prompts_api_handoff.md](/Users/benjaminlagrone/Documents/projects/pericopeai.com/Solomonic_Seals/docs/clock_guided_prompts_api_handoff.md)
-- [pericope_fe_guided_prompts_secure_proxy_handoff.md](/Users/benjaminlagrone/Documents/projects/pericopeai.com/Solomonic_Seals/docs/pericope_fe_guided_prompts_secure_proxy_handoff.md)
-- [pericope_clock_conversation_contract.md](/Users/benjaminlagrone/Documents/projects/pericopeai.com/Solomonic_Seals/docs/pericope_clock_conversation_contract.md)
+- [clock_guided_prompts_api_handoff.md](clock_guided_prompts_api_handoff.md)
+- [pericope_fe_guided_prompts_secure_proxy_handoff.md](pericope_fe_guided_prompts_secure_proxy_handoff.md)
+- [pericope_clock_conversation_contract.md](pericope_clock_conversation_contract.md)
 
 ## Primary Rule
 

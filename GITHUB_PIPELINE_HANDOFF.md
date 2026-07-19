@@ -2,6 +2,10 @@
 
 This project now follows the same controlled image deployment model as the other fortress-managed apps.
 
+The GitHub repository is the publishing boundary. Local checkout names and
+locations, including `Solomonic_Clocks`, do not affect image publication or the
+Fortress dispatch contract.
+
 ## Deployment flow
 
 Promotion order is fixed:
