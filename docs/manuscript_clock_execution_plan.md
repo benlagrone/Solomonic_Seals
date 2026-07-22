@@ -4,10 +4,13 @@ Created: 2026-07-19
 
 Purpose: apply the richer medieval manuscript visual language to the Solomonic Clock without burying the instrument under decoration. The style should make the deep reading surfaces feel like illuminated wisdom texts while keeping the live clock legible and controllable.
 
+Content-refocus note: `docs/clock_content_enrichment_feature_spec.md` preserves the current Clock structure and visible section titles. Apply manuscript treatment within those existing sections: the richest treatment belongs to `Solomonic Meditation`, `Psalm`, and `Proverb`; the live clock face remains restrained; no content is moved or renamed to create a new primary surface.
+
 ## Design Principle
 
 Use manuscript treatment by depth:
 
+- `Solomonic Meditation`, `Psalm`, and `Proverb` get the richest treatment in their existing locations.
 - Full reading surfaces get the richest treatment.
 - Counsel and pentacle detail get framed manuscript panels and marginalia.
 - The live clock face gets restrained active-state cues only.

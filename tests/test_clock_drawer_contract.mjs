@@ -42,6 +42,34 @@ assertIncludes(html, 'class="selected-track-reflect"', "selected life tracks sho
 assertIncludes(html, 'class="drawer-section drawer-controls"', "drawer should own migrated controls");
 
 [
+  "Daily Guidance",
+  "Counsel",
+  "Proverb",
+  "Psalm",
+  "Practice",
+  "History",
+  "The Moment Across Scales",
+  "Now is nested inside many rhythms",
+  "Solomonic Meditation",
+  "Selected Track",
+  "Today's Planetary Guidance",
+  "Today's Rule of Life",
+  "Weekly Arc (Advise Mode)",
+  "Recorded History",
+  "Weekly Review",
+].forEach((label) => {
+  assertIncludes(html, label, `protected Clock section label should remain unchanged: ${label}`);
+});
+
+[
+  "Today Summary",
+  "Present-Moment Folio",
+  "Daily Oracle",
+].forEach((replacementLabel) => {
+  assert.ok(!html.includes(replacementLabel), `Clock shell should not introduce replacement page label: ${replacementLabel}`);
+});
+
+[
   ".account-bar",
   ".presentation-bar",
   ".presentation-status",

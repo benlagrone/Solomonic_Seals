@@ -3640,6 +3640,28 @@ def _build_clock_context_payload(request_payload: dict[str, Any]) -> tuple[dict[
     return context_payload, None, status
 
 
+def _without_public_as_of(request_payload: dict[str, Any]) -> dict[str, Any]:
+    public_payload = dict(request_payload)
+    public_payload.pop("as_of", None)
+    return public_payload
+
+
+def _build_public_clock_context_payload(request_payload: dict[str, Any]) -> tuple[dict[str, Any] | None, str | None, HTTPStatus]:
+    context_payload, error, status = _build_clock_context_payload(_without_public_as_of(request_payload))
+    if context_payload is None:
+        return None, error, status
+    context_payload["temporal_policy"] = "fixed_now"
+    return context_payload, None, status
+
+
+def _build_public_clock_content_bundle_payload(request_payload: dict[str, Any]) -> tuple[dict[str, Any] | None, str | None, HTTPStatus]:
+    return _build_clock_content_bundle_payload(_without_public_as_of(request_payload))
+
+
+def _build_public_clock_wisdom_anchor_payload(request_payload: dict[str, Any]) -> tuple[dict[str, Any] | None, str | None, HTTPStatus]:
+    return _build_clock_wisdom_anchor_payload(_without_public_as_of(request_payload))
+
+
 def _build_clock_content_bundle_payload(request_payload: dict[str, Any]) -> tuple[dict[str, Any] | None, str | None, HTTPStatus]:
     context_payload, error, status = _build_clock_context_payload(request_payload)
     if context_payload is None:
@@ -4113,11 +4135,11 @@ class ClockRequestHandler(SimpleHTTPRequestHandler):
         elif request_path == VIBEVOICE_TTS_JOBS_API_PATH:
             response_payload, error, status = _build_vibevoice_job_payload(payload)
         elif request_path == CLOCK_CONTEXT_API_PATH:
-            response_payload, error, status = _build_clock_context_payload(payload)
+            response_payload, error, status = _build_public_clock_context_payload(payload)
         elif request_path == CLOCK_CONTENT_BUNDLE_API_PATH:
-            response_payload, error, status = _build_clock_content_bundle_payload(payload)
+            response_payload, error, status = _build_public_clock_content_bundle_payload(payload)
         elif request_path == CLOCK_WISDOM_ANCHOR_API_PATH:
-            response_payload, error, status = _build_clock_wisdom_anchor_payload(payload)
+            response_payload, error, status = _build_public_clock_wisdom_anchor_payload(payload)
         else:
             response_payload, error, status = _build_guided_prompts_payload(payload)
 

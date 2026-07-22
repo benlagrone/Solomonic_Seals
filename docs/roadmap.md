@@ -93,6 +93,25 @@ Detailed notes: see `docs/solomonic_clock_runtime_engine.md`.
 
 ## Workstream B: Daily Experience and Guidance
 
+### Current Priority: Existing Clock Content Enrichment
+
+Detailed contracts: see `docs/clock_content_enrichment_feature_spec.md`.
+
+This track preserves the current radial Clock, drawer, tabs, section order, and visible titles. It adds tangible content inside `Daily Guidance`, `Counsel`, `Proverb`, `Psalm`, `Practice`, `History`, `The Moment Across Scales`, `Solomonic Meditation`, `Selected Track`, `Today's Planetary Guidance`, `Today's Rule of Life`, `Weekly Arc (Advise Mode)`, `Recorded History`, and `Weekly Review`.
+
+Execution order:
+
+1. Lock the current shell and exact section labels with contract tests; prevent ordinary UI or public requests from changing the live effective moment.
+2. Complete full `Psalm` and `Proverb` readers and define required content for every existing section.
+3. Extend `POST /api/clock/context` additively with section content, generation state, current scales, timely guidance, cited works, sources, stable content ID, and cache metadata.
+4. Resolve deep current meaning from Minute through Era without creating time navigation.
+5. Add reviewed Passage Meaning and Clock Relevance records; pilot cited works from Marcus Aurelius, Benjamin Franklin, and Adam Smith without author impersonation.
+6. Apply manuscript treatment within existing sections, with the richest treatment on `Solomonic Meditation`, `Psalm`, and `Proverb`.
+7. Add optional private birth resonance, practice response, evening examination, history, and weekly review.
+8. Add boundary-based timely updates without regenerating the stable daily meditation.
+
+The existing titles and structure are product constraints, not placeholders. A separate Today, Summary, Folio, Oracle, or replacement dashboard page is out of scope.
+
 - Priority blocker: Psalm and Proverb reader completeness.
   - The Psalm page must expose the entire selected Psalm, not just the first sentence or anchor verse.
   - The Proverb page must expose the whole selected proverb chapter or the configured long wisdom passage.
@@ -113,11 +132,11 @@ Detailed notes: see `docs/solomonic_clock_runtime_engine.md`.
 - Weekly arc mode: show 7-day progression instead of isolated day cards.
 - Phase-gated memory: start read-only, then add optional vow selection and closeout tracking once the guidance engine is stable.
 - Consult the Clock panel: offer guided prompts such as decision, communication, travel, negotiation, and clarity instead of starting from blank chat.
-- Opportunity timeline: show the next 24 hours of planetary-hour windows so users can compare `now` versus `later`.
-- Election windows: rank the next favorable action windows so the clock can answer `when should I act?`, not only `what is happening now?`.
-- Presentation modes: support `Observatory`, `Wisdom`, and `Strategic` views over the same clock state.
-- Daily Oracle page: generate a dated counsel artifact from the current clock state so each day has a stable, shareable reading.
-- Hourly mini-oracle: generate short timing notes for the current and upcoming planetary hours.
+- Deferred advisory output: a future opportunity timeline may be reconsidered only outside the live Clock and must not reposition its effective moment.
+- Deferred advisory output: election windows may be reconsidered only as a separate report after the fixed-now content track is complete.
+- Preserve the current lenses; do not add replacement presentation modes that rename or restructure existing Clock sections.
+- Superseded: use the existing `Solomonic Meditation` section for stable daily generated counsel rather than adding a separate Daily Oracle page.
+- Timely guidance: update the current interval and next boundary inside existing guidance sections; do not create a browseable series of hourly mini-oracles.
 
 ### Pericope Prompt Composition Track
 
@@ -445,6 +464,8 @@ Suggested schema extension example:
 
 Detailed backend scoping: see `docs/pericope_ai_scope.md`.
 
+Clock boundary: this track may provide source passages and structured context to the Clock, but author-persona rendering remains a Pericope experience. Existing Clock sections cite works and use neutral synthesis; they do not simulate a conversation with the cited author.
+
 1. Treat the clock as a shared context engine:
    - the clock produces runtime state such as `planetary_day`, `planetary_hour`, `zodiac_segment`, `spirit`, `active_pentacle`, and `pentacle_theme`.
    - Pericope consumes that state as live environmental context rather than asking each persona to infer it.
@@ -588,6 +609,6 @@ Detailed notes: see `docs/life_os_architecture.md`.
 - Phase 2 (Experience MVP): ship the real-time clock engine (planetary day, planetary hour, solar longitude, zodiac, sector), instrument-style animation, daily profile card, reading depth toggle, explainability baseline, and local long-read support.
 - Phase 3 (Guidance Engine): add structured context/domain/output scoring, runtime state resolution from the unified schema and live engine, virtue-resolution across sector/planet/hour/domain/scripture, wisdom-graph traversal across sector/virtue/domain/scripture/practice, Christ/Scripture-first wisdom-index ordering across scripture/mentor/practice selection, Pericope corpus normalization with virtue/life-domain tags, confidence and severity, planetary hour inputs, conflict detection, election-window scoring, and mode-aware presentation.
 - Phase 4 (Follow-Through): add weekly arc, vow selection, closeout logging, micro-ritual actions, centered guidance cards, `Why this guidance?` reasoning, light local personalization, stored daily/hourly oracle records, and `act/delay/prepare` recommendations.
-- Phase 5 (Assistant and Advanced UI): ship Ask-the-Clock counsel flows, Pericope clock-context injection, virtue-index and `POST /lifeos/guidance` endpoints, 24-hour opportunity timeline, election-window panels and alerts, oracle publishing routes, energy forecast visualization, Council-of-Voices persona views, rose-window concentric UI layers, the center seal control surface, the Guidance Compass inside `Guidance` mode, the Virtue Compass overlay, a shared angular reference model across all radial layers, the Virtue Forecast arc/panel, the dynamic pentacle renderer, mentor selector/rotation UI, radial-first tooltip/accordion interactions, and advanced schema adoption across guidance and enrichment layers.
+- Phase 5 (Assistant and Advanced Content): ship Ask-the-Clock counsel flows, Pericope clock-context injection, virtue-index and `POST /lifeos/guidance` endpoints, stable enriched-context reuse for TTS/mobile/notifications, dynamic pentacle rendering within existing selected-element behavior, radial-first tooltip/accordion interactions, and advanced schema adoption without changing the current Clock structure or visible section titles. Keep Council-of-Voices inside Pericope, and defer opportunity timelines, election panels, forecast visualizations, oracle pages, new rose-window layers, center-control redesigns, and mentor-selector UI unless a future product decision explicitly unlocks those separate tracks.
 - Phase 6 (Life OS): add life domains, the Life Wheel ring, the Life Training Engine, the Rule-of-Life Generator, the Daily Guidance Narrative Engine, the Mentor Layer, the Wisdom Index, the Daily Opening ritual, virtue-wheel evaluation, reflection journaling, moral-architecture filtering, mentor dialogue, formation loops, and narrative life mapping.
 - Phase 7 (Rule of Life): add canonical hours, the 72-sector guidance engine, the Life Wheel scoring model (event impacts, decay, alignment multipliers, weekly normalization), practice-library refinement, wisdom-graph enrichment and explorer views, the Providence Timeline, the Providence Map, the Virtue Forecast Engine with weekly virtue-season summaries, weekly summaries, monthly pattern detection, Life Wheel history views, domain-targeted scripture selection, and deeper guidance by virtue/domain imbalance.

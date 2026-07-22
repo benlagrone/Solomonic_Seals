@@ -1,6 +1,6 @@
 # Solomonic Clock Combined Roadmap
 
-Last combined: 2026-06-22
+Last combined: 2026-07-19
 
 This is the canonical execution roadmap for the Solomonic Clock / Solomonic Seals work. It combines:
 
@@ -12,6 +12,7 @@ This is the canonical execution roadmap for the Solomonic Clock / Solomonic Seal
 - `docs/solomonic_calendar_expansion_guide.md`
 - `docs/lens_differentiation_pass.md`
 - `docs/harmonic_time_scale_content_plan.md`
+- `docs/clock_content_enrichment_feature_spec.md`
 - `docs/pericope_ai_scope.md`
 - `docs/life_os_architecture.md`
 - related Pericope handoff and contract docs
@@ -32,6 +33,8 @@ The detailed source documents remain useful for domain specifics. This document 
 ## Immediate Next Milestone
 
 Finish the Foundation to Experience MVP bridge.
+
+The content refocus is defined concretely in `docs/clock_content_enrichment_feature_spec.md`. It preserves the current Clock structure and exact visible section titles while giving each section fixed-now meaning, stable daily meditation, current multi-scale depth, timely guidance, source-grounded citations from works rather than author conversation, manuscript treatment, and formation actions. It enhances the existing `/api/clock/context` contract additively rather than replacing the Clock with a new page or API model. Its numbered requirements and acceptance criteria govern implementation of the related roadmap items below.
 
 1. Fix Psalm and Proverb reader completeness as a high-priority experience blocker:
    - the Psalm tab must show the complete selected Psalm, not only the anchor sentence or citation verse,
@@ -80,6 +83,211 @@ Finish the Foundation to Experience MVP bridge.
    - Samsung Fold cover,
    - Samsung Fold inner screen,
    - Android TV / remote focus.
+
+## Current Priority Track: Existing Clock Content Enrichment
+
+This track governs all overlapping Clock guidance, meditation, author-work, manuscript, and generated-content work. Detailed feature contracts and acceptance criteria live in `docs/clock_content_enrichment_feature_spec.md`.
+
+### Locked Product Constraints
+
+- Preserve the current radial Clock, drawer, tabs, section order, and visible section titles.
+- Do not add a replacement Today, Summary, Folio, Oracle, or dashboard page.
+- Keep `now` fixed. Selecting a ring or scale changes explanatory depth, not the effective date or time.
+- Fill the existing sections automatically on first entry.
+- Enhance `POST /api/clock/context` additively; preserve its current response fields.
+- Cite authors' works as sources. Do not present author conversation inside the Clock.
+- Keep author-persona conversation as an explicit Pericope handoff.
+
+The exact existing labels protected by this track include:
+
+- `Daily Guidance`
+- `Counsel`
+- `Proverb`
+- `Psalm`
+- `Practice`
+- `History`
+- `The Moment Across Scales`
+- `Now is nested inside many rhythms`
+- `Solomonic Meditation`
+- `Selected Track`
+- `Today's Planetary Guidance`
+- `Today's Rule of Life`
+- `Weekly Arc (Advise Mode)`
+- `Recorded History`
+- `Weekly Review`
+
+### CE-0: Lock The Existing Content Shell
+
+Scope:
+
+- inventory the current DOM selectors and visible labels for every protected section;
+- add contract tests that fail if those labels are renamed or the existing section ownership is moved;
+- remove or disable live-clock previous/next behavior that changes the effective moment;
+- keep past records accessible only through `History` and `Recorded History`;
+- define loading, ready, degraded, unavailable, and stale states inside current sections.
+
+Exit:
+
+- the existing Clock cannot be repositioned through ordinary UI or public context requests;
+- section-title contract tests pass;
+- no new page or replacement content hierarchy is required.
+
+Feature coverage: `CCE-001`, `CCE-002`.
+
+### CE-1: Make Existing Sections Substantive
+
+Scope:
+
+- complete full-reader content for `Psalm` and `Proverb`;
+- make `Daily Guidance` identify the governing day theme and active temporal factors;
+- make `Counsel` explain the dominant theme, counter-theme, main tension, and what to carry;
+- make `Practice` return one contemplation, action, restraint, and evening examination;
+- make `Solomonic Meditation` hold one stable daily meditation;
+- make `Selected Track` explain the currently selected existing clock element;
+- make `Today's Planetary Guidance` state the active day/hour discipline and next meaningful boundary;
+- make `Today's Rule of Life` provide concrete morning, midday, and evening practices;
+- make `Weekly Arc (Advise Mode)` explain the current position in the present week without browsing the Clock into another date.
+
+Exit:
+
+- each protected section has a required content schema and a meaningful populated or explicit unavailable state;
+- first entry fills the existing guidance sections without requiring exploratory clicking;
+- no section is merely a title swap over generic prose.
+
+Feature coverage: `CCE-002`, `CCE-004`, `CCE-005`, `CCE-012`.
+
+### CE-2: Enrich The Existing Clock Context API
+
+Scope:
+
+- extend `POST /api/clock/context` with `content_id`, `temporal_policy`, `moment`, `content_generation`, `section_content`, `timely_guidance`, `cited_works`, and `sources`;
+- preserve `daily_guidance`, `weekly_arc`, `daily_profile`, `why_selected`, `content_bundle`, and `source`;
+- compose `/api/clock/runtime` and `/api/clock/content-bundle` instead of duplicating their calculations;
+- trigger generation on first request when the daily content is absent;
+- return deterministic content with `content_generation.status: forming` while LLM synthesis is pending;
+- implement a daily-content cache key, concurrent-request lock, prompt version, source version, immutable input snapshot, and regeneration reason;
+- return degraded states without substituting invented text.
+
+Exit:
+
+- the current web Clock fills its existing sections from one additive context response;
+- equivalent first visits create one content ID;
+- reloads reuse stable daily content;
+- private personalized responses are not publicly cacheable.
+
+Feature coverage: `CCE-013`, `CCE-014`, `CCE-015`.
+
+### CE-3: Resolve Deep Meaning Across Current Scales
+
+Scope:
+
+- resolve Minute, Hour, Day, Week, Moon, Season, Year, Decade, Life, and Era into one immutable `MomentVector`;
+- give every scale position, phase, boundaries, observed signals, inherited themes, virtues, shadows, questions, practices, sources, and confidence;
+- calculate resonance, tension, dominant theme, and counter-theme across scales;
+- populate `The Moment Across Scales` with the current position only;
+- let scale selection reveal deeper current meaning without changing time.
+
+Exit:
+
+- one context request returns every implemented current scale;
+- measurable positions use normalized phase;
+- interpretive scales do not claim false numeric precision;
+- every displayed scale can explain its calculation or editorial basis.
+
+Feature coverage: `CCE-003`, `CCE-010`.
+
+### CE-4: Integrate Cited Works By Meaning
+
+Scope:
+
+- pilot Marcus Aurelius, Benjamin Franklin, and Adam Smith;
+- create at least 25 reviewed Passage Meaning Records per pilot author;
+- store original subject, argument role, historical setting, key terms, themes, virtues, shadows, movements, life domains, source location, edition, rights, and provenance;
+- create separate Clock Relevance Records for scales, phases, movements, virtues, shadows, life domains, counsel kinds, and reviewed `why_now`;
+- retrieve by eligible passage meaning and present relevance rather than author reputation;
+- show exact excerpt, author, work, citation, original context, and relation to the moment in existing source-detail behavior;
+- keep generated Clock prose visually and semantically separate from quoted work.
+
+Exit:
+
+- every displayed work is traceable to a stable passage ID;
+- every displayed work explains both original meaning and present relevance;
+- Clock generation uses no author-persona prompt or first-person simulated author speech;
+- tempting but contextually incorrect passages fail the evaluation set.
+
+Feature coverage: `CCE-007`, `CCE-008`, `CCE-009`, `CCE-010`, `CCE-016`.
+
+### CE-5: Apply Manuscript Style To Existing Content
+
+Scope:
+
+- apply the richest manuscript treatment to `Solomonic Meditation`, `Psalm`, and `Proverb` in their current locations;
+- render cited works as marginal source notes;
+- reuse the existing illuminated-initial and `frame-gold.svg` system;
+- keep the live clock face restrained and instrument-like;
+- keep buttons, tabs, focus states, and dense metadata conventional;
+- validate phone, Fold, desktop, and large-display layouts.
+
+Exit:
+
+- no content section is renamed or relocated;
+- source excerpts and generated interpretation are visually distinct;
+- no nested reader scroll, horizontal overflow, clipped controls, or illegible clock labels;
+- accessibility and reduced-motion checks pass.
+
+Feature coverage: `CCE-011`.
+
+### CE-6: Add Optional Personal Meaning And Formation
+
+Scope:
+
+- add a private Personal Time Profile with birth precision, birth location, current location, enabled traditions, export, correction, recalculation, and deletion;
+- keep `BirthVector` distinct from `MomentVector`;
+- add adopt, adapt, defer, reject, and complete states for practices;
+- connect evening examination to the actual day's meditation and practice;
+- let `History`, `Recorded History`, and `Weekly Review` show stored evidence without recalculating the live Clock for past dates.
+
+Exit:
+
+- guest guidance remains useful without birth data;
+- signed-in interpretation identifies which private fields influenced it;
+- incomplete birth precision limits dependent calculations explicitly;
+- stored history never changes the live effective moment.
+
+Feature coverage: `CCE-006`, `CCE-012`.
+
+### CE-7: Add Timely Updates Without Replacing Daily Content
+
+Scope:
+
+- keep `Solomonic Meditation` stable for the local day;
+- update only `Today's Planetary Guidance` or another existing timely field at meaningful boundaries;
+- initially support sunrise, solar noon, sunset, canonical hour when configured, and planetary-hour transition;
+- include validity and next-boundary metadata;
+- add optional TTS, mobile, and notification consumption over the same enriched context.
+
+Exit:
+
+- crossing a supported boundary updates timely guidance without changing the daily-content ID or meditation;
+- unavailable boundaries degrade explicitly;
+- the system does not regenerate full meditation content minute by minute.
+
+Feature coverage: `CCE-005`, `CCE-013`, `CCE-014`.
+
+### Placement Across Existing Phases
+
+- Phase 1 Foundation: CE-0 contracts, source rights, Passage Meaning and Clock Relevance schemas.
+- Phase 2 Experience MVP: CE-1 substantive sections, CE-2 enriched context API, first-visit generation, and stable caching.
+- Phase 3 Guidance Engine: CE-3 multi-scale resolution, CE-4 cited-works retrieval, evidence classes, and LLM validation.
+- Phase 4 Follow-Through: CE-6 practice states, evening examination, recorded history, and weekly review.
+- Phase 5 Advanced UI: CE-5 manuscript validation and CE-7 delivery channels after content contracts are stable.
+
+### Superseded Or Deferred Overlap
+
+- A separate `Daily Oracle page` is superseded by substantive `Solomonic Meditation` content in its existing section.
+- New Clock presentation modes do not replace the current lenses or rename current sections.
+- Opportunity timelines, election windows, and forecasts are outside this current-priority track. If retained later, they must be separate advisory outputs that leave the live Clock fixed at now.
+- Council-of-Voices and author-persona rendering remain Pericope capabilities. The Clock integration uses cited works and neutral synthesis.
 
 ## Phase 1: Foundation
 
@@ -225,6 +433,8 @@ Deliverables:
 Pericope integration deliverables:
 
 - Keep the clock as the temporal and symbolic context source.
+- For Clock section content, retrieve and cite relevant works by passage meaning; do not select an author persona or generate first-person author speech.
+- Keep author-persona selection, author conversation, and comparative voices inside an explicit Pericope experience.
 - Let Pericope compose final user-facing prompts over time.
 - Add a Pericope-side prompt composer that consumes:
   - clock context,
@@ -268,9 +478,9 @@ Deliverables:
 - Add export for user history and reflection logs.
 - Keep language formation-oriented rather than percentage/progress-oriented.
 
-## Phase 5: Assistant And Advanced UI
+## Phase 5: Assistant And Advanced Content
 
-Goal: make the clock usable as a constrained counsel system and advance the radial interface.
+Goal: make the existing clock usable as a constrained counsel system without restructuring its radial interface or renaming its sections.
 
 Deliverables:
 
@@ -284,45 +494,16 @@ Deliverables:
   - repair.
 - Add Pericope clock-context injection.
 - Add virtue-index and `POST /lifeos/guidance` endpoints where appropriate.
-- Add 24-hour opportunity timeline.
-- Add election-window panels and alerts.
-- Add oracle publishing routes:
-  - stable dated daily pages,
-  - hourly mini-oracles,
-  - feed/archive reuse.
-- Add energy forecast visualization.
-- Add Council-of-Voices persona views over the same state model.
-- Add rose-window concentric UI layers:
-  - Solomonic sector ring,
-  - zodiac ring,
-  - Life Wheel / virtue ring,
-  - canonical-hour ring,
-  - center scripture/guidance panel.
-- Align all radial layers to one shared angular reference model.
-- Turn the center seal into a six-wedge control surface:
-  - `Guidance`,
-  - `Practice`,
-  - `Reflection`,
-  - `Timeline`,
-  - `Forecast`,
-  - `Mentor`.
-- Keep the Guidance Compass inside `Guidance` mode:
-  - `Reflect`,
-  - `Learn`,
-  - `Act`,
-  - `Restore`.
-- Add Virtue Compass overlay:
-  - `Prudence`,
-  - `Love`,
-  - `Temperance`,
-  - `Fortitude`,
-  - with `Faith`, `Hope`, and `Justice` as inner modifiers.
-- Add Virtue Forecast arc/panel.
-- Add dynamic pentacle renderer:
+- Keep the current radial layers, center behavior, drawer ownership, tabs, and visible titles.
+- Reuse stable daily content through `History`, TTS, mobile, and notifications instead of adding separate oracle pages.
+- Keep Council-of-Voices and author-persona comparison inside Pericope.
+- Defer 24-hour opportunity timelines, election-window panels, alerts, and energy forecasts to a later separate advisory track that cannot reposition the live Clock.
+- Defer proposed new rose-window layers, six-wedge center controls, Guidance Compass, Virtue Compass, Virtue Forecast, and mentor-selector UI unless a future product decision explicitly unlocks Clock restructuring.
+- Add dynamic pentacle rendering only within existing selected-element and source-detail behavior:
   - driven by data,
   - layered output,
-  - responsive to mode,
-  - reused in center overlay, study view, and mentor reflection mode.
+  - responsive to current state,
+  - reused without introducing a new control surface.
 - Keep support content in tooltips, hover states, accordions, and drawer panels rather than stacked open prose.
 
 ## Phase 6: Life OS
@@ -514,6 +695,13 @@ Features:
 ## Pericope Roadmap Overlay
 
 Pericope should remain the Wisdom Service, not the owner of clock math, timeline persistence, or frontend orchestration.
+
+Boundary for the current content-enrichment track:
+
+- the Clock requests source passages, original meaning, and present relevance;
+- Pericope or Augustine corpus services return source-grounded passage records;
+- the Clock synthesizes in a neutral editorial voice;
+- simulated author conversation and Council-of-Voices behavior remain outside the Clock.
 
 Phase 1: MVP Integration
 

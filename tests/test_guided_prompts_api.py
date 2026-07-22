@@ -93,6 +93,24 @@ class GuidedPromptsApiTests(unittest.TestCase):
         self.assertIn("content_bundle", payload)
         self.assertNotIn("guided_prompts", payload)
 
+    def test_public_clock_context_ignores_request_as_of(self) -> None:
+        payload, error, status = webserver._build_public_clock_context_payload(
+            {
+                "timezone": "America/Chicago",
+                "as_of": "1999-01-01T00:00:00-06:00",
+                "latitude": 41.8781,
+                "longitude": -87.6298,
+            }
+        )
+
+        self.assertEqual(status, HTTPStatus.OK, error)
+        self.assertIsNone(error)
+        self.assertIsNotNone(payload)
+        assert payload is not None
+        self.assertEqual(payload["temporal_policy"], "fixed_now")
+        self.assertNotIn("1999-01-01", payload["as_of"])
+        self.assertNotIn("guided_prompts", payload)
+
     def test_clock_content_bundle_api_payload_is_context_slice(self) -> None:
         payload, error, status = webserver._build_clock_content_bundle_payload(
             {
