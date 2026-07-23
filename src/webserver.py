@@ -3633,6 +3633,129 @@ def _build_clock_context_payload(request_payload: dict[str, Any]) -> tuple[dict[
 
     context_payload = dict(payload)
     context_payload.pop("guided_prompts", None)
+    as_of = datetime.fromisoformat(str(context_payload["as_of"]).replace("Z", "+00:00"))
+    local_date = as_of.date().isoformat()
+    prompt_version = "clock-content-v1"
+    content_version = "deterministic-v1"
+    content_bundle = dict(context_payload.get("content_bundle") or {})
+    daily_guidance = dict(context_payload.get("daily_guidance") or {})
+    weekly_arc = dict(context_payload.get("weekly_arc") or {})
+    daily_profile = dict(context_payload.get("daily_profile") or {})
+    why_selected = dict(context_payload.get("why_selected") or {})
+    activities = list(daily_guidance.get("activities") or [])
+    psalm = dict(content_bundle.get("psalm") or {})
+    wisdom = dict(content_bundle.get("wisdom") or {})
+    solomonic = dict(content_bundle.get("solomonic") or {})
+    hour_start = as_of.replace(minute=0, second=0, microsecond=0)
+    hour_end = hour_start + timedelta(hours=1)
+    hour_ruler = str(daily_profile.get("hour_ruler") or "").strip() or "the present hour"
+    current_focus = str(daily_profile.get("focus") or weekly_arc.get("focus") or "the present work").strip()
+    first_activity = str(activities[0]).strip() if activities else "Choose one faithful action."
+    second_activity = str(activities[1]).strip() if len(activities) > 1 else "Restrain avoidable distraction."
+    third_activity = str(activities[2]).strip() if len(activities) > 2 else "End with honest review."
+    context_payload["schema_version"] = "clock-context-v2"
+    context_payload["content_id"] = f"clock-content:guest:{local_date}:{context_payload.get('timezone')}:v1"
+    context_payload["content_generation"] = {
+        "status": "ready",
+        "poll_after_ms": None,
+        "prompt_version": prompt_version,
+        "content_version": content_version,
+        "generated_at": as_of.isoformat(),
+        "cache_status": "deterministic",
+    }
+    context_payload["section_content"] = {
+        "counsel": {
+            "theme_title": daily_guidance.get("day") or "Daily Guidance",
+            "orientation": daily_guidance.get("tone") or "",
+            "dominant_theme": {
+                "label": current_focus,
+                "source": "daily_profile.focus",
+            },
+            "counter_theme": {
+                "label": second_activity,
+                "source": "daily_guidance.activities",
+            },
+            "carry_thought": first_activity,
+        },
+        "proverb": {
+            "source_ref": wisdom.get("ref") or "",
+            "full_text_ref": wisdom.get("ref") or "",
+            "original_context": "Wisdom reading selected from the current clock-owned content bundle.",
+            "why_now": daily_guidance.get("tone") or "",
+        },
+        "psalm": {
+            "source_ref": psalm.get("ref") or "",
+            "full_text_ref": psalm.get("chapter_ref") or psalm.get("ref") or "",
+            "original_context": "Psalm reading selected from the current pentacle or planetary-day fallback.",
+            "why_now": " ".join(str(reason) for reason in why_selected.get("reasons") or [] if reason),
+        },
+        "practice": {
+            "contemplation": f"What does {current_focus} require before the next boundary?",
+            "action": first_activity,
+            "restraint": second_activity,
+            "evening_question": third_activity,
+        },
+        "temporal_scales": {},
+        "solomonic_meditation": {
+            "meditation_title": f"{daily_guidance.get('day') or 'Today'} • {current_focus}",
+            "body": (
+                f"{daily_guidance.get('tone') or 'The present moment asks for governed attention'} "
+                f"Carry this through {current_focus.lower()} with one concrete practice: {first_activity}"
+            ).strip(),
+        },
+        "selected_track": {
+            "title": "Daily Guidance",
+            "focus": current_focus,
+            "practice": first_activity,
+        },
+        "planetary_guidance": {
+            "day": daily_guidance.get("day") or "",
+            "hour": hour_ruler,
+            "discipline": first_activity,
+            "next_boundary": hour_end.isoformat(),
+        },
+        "rule_of_life": {
+            "morning": first_activity,
+            "midday": second_activity,
+            "evening": third_activity,
+        },
+        "recorded_history": {
+            "state": "available_in_history",
+            "note": "History displays stored records without changing the live clock moment.",
+        },
+    }
+    context_payload["timely_guidance"] = {
+        "valid_from": hour_start.isoformat(),
+        "valid_until": hour_end.isoformat(),
+        "orientation": f"{hour_ruler} marks the current hour discipline.",
+        "next_boundary": hour_end.isoformat(),
+    }
+    context_payload["cited_works"] = [
+        {
+            "kind": "scripture",
+            "reference": psalm.get("chapter_ref") or psalm.get("ref") or "",
+            "section": "Psalm",
+        },
+        {
+            "kind": "wisdom",
+            "reference": wisdom.get("ref") or "",
+            "section": "Proverb",
+        },
+        {
+            "kind": "solomonic",
+            "reference": solomonic.get("ref") or "",
+            "section": "Solomonic Meditation",
+        },
+    ]
+    context_payload["sources"] = [
+        {
+            "id": "clock-deterministic-context",
+            "service": "solomonic_clock",
+            "evidence_class": "generated_interpretation",
+            "source_fields": ["daily_guidance", "weekly_arc", "daily_profile", "why_selected", "content_bundle"],
+            "version": content_version,
+        }
+    ]
     context_payload["source"] = {
         **dict(context_payload.get("source") or {}),
         "api": CLOCK_CONTEXT_API_PATH,
