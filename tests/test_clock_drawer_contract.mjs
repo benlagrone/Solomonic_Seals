@@ -110,6 +110,9 @@ assertIncludes(js, "clockRuntime", "Pericope launch context should carry clock r
 assertIncludes(js, "fetchClockDataset()", "clock initialization should load clock data through the API-first dataset loader");
 assert.ok(!js.includes('fetchJsonResource("../data/solomonic_clock_full.json", "clock data")'), "clock initialization should not prefer bundled clock JSON");
 assertIncludes(js, "function fetchClockWisdomAnchor", "clock frontend should fetch wisdom through the clock-owned API");
+assertIncludes(js, "function getProverbReferenceForDate", "Proverb selection should follow the displayed calendar date");
+assert.ok(!js.includes("WISDOM_REFERENCE_BY_RULER"), "Proverb selection should not use a planetary ruler map");
+assertIncludes(js, "apiWisdomRef === wisdomRef", "the displayed date should override a live API bundle for another date");
 assertIncludes(js, 'const CLOCK_CONTENT_BUNDLE_API_ENDPOINT = "/api/clock/content-bundle";', "daily bundle should use the Solomonic Clock content-bundle API contract");
 assertIncludes(js, "function fetchClockContentBundle", "clock frontend should fetch the daily bundle through the clock-owned API");
 assertIncludes(js, "fetchClockContentBundle(displayNow)", "daily content bundle should request the API bundle for the displayed clock date");

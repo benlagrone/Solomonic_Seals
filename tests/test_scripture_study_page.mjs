@@ -26,8 +26,15 @@ const {
   buildPracticePlan,
   extractVersePassageText,
   formatPassageBlockText,
+  getProverbReferenceForDate,
   parseScriptureReference,
 } = hooks;
+
+assert.equal(
+  getProverbReferenceForDate(new Date(2026, 6, 20)),
+  "Proverbs 20",
+  "expected the daily Proverb chapter to match the local calendar day"
+);
 
 const rawPassage = `
 Chapter 18

@@ -317,15 +317,6 @@ PLANETARY_CORRESPONDENCES = {
     "Venus": {"color": "Emerald", "metal": "Copper", "angel": "Anael"},
     "Saturn": {"color": "Black", "metal": "Lead", "angel": "Cassiel"},
 }
-WISDOM_REFERENCE_BY_RULER = {
-    "Sun": "Proverbs 4:18",
-    "Moon": "Ecclesiastes 3:1",
-    "Mars": "Proverbs 24:10",
-    "Mercury": "Proverbs 18:21",
-    "Jupiter": "Proverbs 11:25",
-    "Venus": "Proverbs 15:1",
-    "Saturn": "Proverbs 25:28",
-}
 FALLBACK_DAILY_PSALM_BY_RULER = {
     "Sun": {"chapter": 19, "verse": 1},
     "Moon": {"chapter": 63, "verse": 6},
@@ -2467,8 +2458,8 @@ def _extract_numbered_scripture_verse(excerpt: str, verse: str | None) -> str:
     return re.sub(r"\s+", " ", " ".join(parts)).strip()
 
 
-def _get_wisdom_reference_for_ruler(ruler: str | None) -> str:
-    return WISDOM_REFERENCE_BY_RULER.get(str(ruler or "").strip(), "Proverbs 16:3")
+def _get_proverb_reference_for_date(target: datetime) -> str:
+    return f"Proverbs {target.day}"
 
 
 def _load_wisdom_anchor_excerpt(reference: str) -> str:
@@ -2968,7 +2959,7 @@ def _build_weekly_arc_entry(
     target = target + timedelta(days=offset)
     day_label = _get_planetary_day_label(target)
     guidance = PLANETARY_DAY_GUIDANCE.get(day_label["rulerText"], {})
-    wisdom_ref = _get_wisdom_reference_for_ruler(day_label["rulerText"])
+    wisdom_ref = _get_proverb_reference_for_date(target)
     week_fraction = _get_week_fraction(target) if derived["planetaryGroupCount"] else 0
     pentacle_index = int(week_fraction * derived["totalPentacles"]) % derived["totalPentacles"] if derived["totalPentacles"] else -1
     active_pentacle = derived["flatPentacles"][pentacle_index] if pentacle_index >= 0 else None
@@ -3470,7 +3461,7 @@ def _build_guided_prompts_payload(request_payload: dict[str, Any]) -> tuple[dict
     pentacle_record = reference_map.get(pentacle_key) if pentacle_key else None
     primary_psalm = _get_primary_psalm_entry(pentacle_record)
     readable_psalm = _format_psalm_reference(primary_psalm)
-    wisdom_ref = _get_wisdom_reference_for_ruler(ruler_text)
+    wisdom_ref = _get_proverb_reference_for_date(as_of)
     wisdom_text = _load_wisdom_anchor_excerpt(wisdom_ref)
     correspondences = PLANETARY_CORRESPONDENCES.get(ruler_text, {})
     hour_rule = _get_planetary_hour_ruler(as_of, ruler_text)
@@ -3515,7 +3506,10 @@ def _build_guided_prompts_payload(request_payload: dict[str, Any]) -> tuple[dict
         daily_profile["life_domain_focus"] = life_state["focusedDomain"].get("name")
         daily_profile["weakest_domain"] = life_state["weakestDomain"].get("name")
 
-    reasons = [f"{day_text} is ruled by {ruler_text}, so {ruler_text}-aligned intentions are prioritized."]
+    reasons = [
+        f"Daily Proverb: calendar day {as_of.day} selects Proverbs {as_of.day}.",
+        f"{day_text} is ruled by {ruler_text}, so {ruler_text}-aligned intentions are prioritized.",
+    ]
     if hour_rule:
         reasons.append(
             f"Planetary hour proxy: local hour {hour_rule['hourIndex'] + 1} resolves to {hour_rule['ruler']} in the Chaldean sequence."
@@ -4273,7 +4267,7 @@ def _build_clock_wisdom_anchor_payload(request_payload: dict[str, Any]) -> tuple
         "source": {
             "service": "solomonic_clock",
             "api": CLOCK_WISDOM_ANCHOR_API_PATH,
-            "derived_from": ["wisdom_reference_map", "source_text_resolver"],
+            "derived_from": ["calendar_day_of_month", "source_text_resolver"],
         },
     }, None, status
 
