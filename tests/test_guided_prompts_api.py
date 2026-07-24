@@ -102,11 +102,22 @@ class GuidedPromptsApiTests(unittest.TestCase):
             set(payload["moment"]["scales"]),
             {"minute", "hour", "day", "week", "month", "season", "year", "decade", "lifespan", "era"},
         )
+        self.assertEqual(
+            set(payload["moment"]["scale_status"]["implemented"]),
+            {"minute", "hour", "day", "week", "month", "season", "year", "decade"},
+        )
+        self.assertEqual(set(payload["moment"]["scale_status"]["declared_future"]), {"lifespan", "era"})
+        self.assertEqual(set(payload["moment"]["scale_status"]["unmeasured"]), {"lifespan", "era"})
         self.assertEqual(payload["moment"]["scales"]["hour"]["position"], 0.25)
         self.assertEqual(payload["moment"]["scales"]["hour"]["phase"]["key"], "rising")
+        self.assertEqual(payload["moment"]["scales"]["hour"]["implementation_status"], "implemented")
+        self.assertIn("evidence_profile", payload["moment"]["scales"]["hour"])
+        self.assertIn("calculation", payload["moment"]["scales"]["hour"]["evidence_profile"])
         self.assertEqual(payload["moment"]["scales"]["day"]["phase"]["key"], "declining")
         self.assertIsNone(payload["moment"]["scales"]["lifespan"]["position"])
+        self.assertEqual(payload["moment"]["scales"]["lifespan"]["implementation_status"], "declared_future")
         self.assertEqual(payload["moment"]["scales"]["lifespan"]["precision"], "unmeasured")
+        self.assertIn("false personal precision", payload["moment"]["scales"]["lifespan"]["evidence_profile"]["limitations"][0])
         self.assertGreaterEqual(len(payload["moment"]["resonances"]), 1)
         self.assertGreaterEqual(len(payload["moment"]["tensions"]), 1)
         self.assertIn("section_content", payload)

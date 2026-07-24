@@ -3708,16 +3708,27 @@ def _scale_record(
     source_refs: list[str],
     confidence: str,
     precision: str = "measured",
+    implementation_status: str = "implemented",
+    evidence_basis: str = "clock-derived",
+    evidence_calculation: str = "normalized cycle fraction",
+    evidence_limitations: list[str] | None = None,
 ) -> dict[str, Any]:
     return {
         "scale": scale,
         "cycle_id": cycle_id,
+        "implementation_status": implementation_status,
         "label": label,
         "position": position,
         "phase": _cycle_phase(position),
         "begins_at": begins_at.isoformat() if begins_at else None,
         "ends_at": ends_at.isoformat() if ends_at else None,
         "observed_signals": observed_signals,
+        "evidence_profile": {
+            "basis": evidence_basis,
+            "calculation": evidence_calculation,
+            "precision": precision,
+            "limitations": evidence_limitations or [],
+        },
         "inherited_themes": inherited_themes,
         "virtues": virtues,
         "shadows": shadows,
@@ -3790,6 +3801,8 @@ def _build_context_moment(
             ["Pause and choose the next gesture deliberately."],
             ["system_clock"],
             "measured",
+            evidence_basis="local civil time",
+            evidence_calculation="second offset within the current local minute divided by 60",
         ),
         "hour": _scale_record(
             "hour",
@@ -3806,6 +3819,8 @@ def _build_context_moment(
             [first_activity],
             ["daily_profile.hour_ruler", "daily_guidance.activities"],
             "source-grounded",
+            evidence_basis="local civil hour with current planetary-hour ruler from daily profile",
+            evidence_calculation="minute and second offset within the current local hour divided by 3600",
         ),
         "day": _scale_record(
             "day",
@@ -3822,6 +3837,8 @@ def _build_context_moment(
             [first_activity, third_activity],
             ["daily_guidance", "daily_profile.focus"],
             "source-grounded",
+            evidence_basis="local civil day and clock-selected daily guidance",
+            evidence_calculation="elapsed seconds since local midnight divided by civil-day seconds",
         ),
         "week": _scale_record(
             "week",
@@ -3838,6 +3855,8 @@ def _build_context_moment(
             [second_activity],
             ["weekly_arc"],
             "source-grounded",
+            evidence_basis="ISO week and current weekly arc",
+            evidence_calculation="elapsed seconds since local Monday midnight divided by seven civil days",
         ),
         "month": _scale_record(
             "month",
@@ -3855,6 +3874,9 @@ def _build_context_moment(
             ["mean_synodic_month"],
             "approximate",
             "astronomical-approximation",
+            evidence_basis="mean synodic month approximation",
+            evidence_calculation="days since 2000-01-06 18:14 UTC modulo 29.530588853 days",
+            evidence_limitations=["Mean lunation approximation; not a precision ephemeris calculation."],
         ),
         "season": _scale_record(
             "season",
@@ -3872,6 +3894,9 @@ def _build_context_moment(
             ["approximate_solar_season"],
             "approximate",
             "calendar-approximation",
+            evidence_basis="northern-hemisphere calendar season approximation",
+            evidence_calculation="elapsed seconds between fixed equinox or solstice boundary dates",
+            evidence_limitations=["Approximate fixed boundary dates; not computed from solar longitude."],
         ),
         "year": _scale_record(
             "year",
@@ -3888,6 +3913,8 @@ def _build_context_moment(
             ["Connect today's action to one yearly commitment."],
             ["calendar_year"],
             "measured",
+            evidence_basis="local civil calendar year",
+            evidence_calculation="elapsed seconds since local Jan 1 divided by seconds until next Jan 1",
         ),
         "decade": _scale_record(
             "decade",
@@ -3904,6 +3931,8 @@ def _build_context_moment(
             ["Record the long arc before optimizing the short task."],
             ["calendar_decade"],
             "measured",
+            evidence_basis="civil calendar decade",
+            evidence_calculation="elapsed seconds since Jan 1 of the decade divided by ten calendar years",
         ),
         "lifespan": _scale_record(
             "lifespan",
@@ -3921,6 +3950,10 @@ def _build_context_moment(
             ["private_life_record_required"],
             "declared-future-scale",
             "unmeasured",
+            implementation_status="declared_future",
+            evidence_basis="private personal time profile",
+            evidence_calculation="no calculation until an opt-in birth and life record exists",
+            evidence_limitations=["Position is intentionally null to avoid false personal precision."],
         ),
         "era": _scale_record(
             "era",
@@ -3938,6 +3971,10 @@ def _build_context_moment(
             ["public_history_context_required"],
             "declared-future-scale",
             "unmeasured",
+            implementation_status="declared_future",
+            evidence_basis="sourced public-history context",
+            evidence_calculation="no calculation until a bounded historical-context source is connected",
+            evidence_limitations=["Position is intentionally null to avoid unsupported historical determinism."],
         ),
     }
 
@@ -3948,12 +3985,41 @@ def _build_context_moment(
             phase_counts[phase] = phase_counts.get(phase, 0) + 1
     dominant_phase = max(phase_counts.items(), key=lambda item: item[1])[0] if phase_counts else "interpretive"
     dominant_scale = next((scale for scale in scales.values() if scale["phase"]["key"] == dominant_phase), scales["day"])
+    implemented_scales = [
+        scale["scale"]
+        for scale in scales.values()
+        if scale.get("implementation_status") == "implemented"
+    ]
+    declared_future_scales = [
+        scale["scale"]
+        for scale in scales.values()
+        if scale.get("implementation_status") == "declared_future"
+    ]
 
     return {
         "as_of": as_of.isoformat(),
         "timezone": timezone_name,
         "runtime": {
             "derived_from": ["daily_guidance", "weekly_arc", "daily_profile", "system_clock"],
+        },
+        "scale_status": {
+            "implemented": implemented_scales,
+            "declared_future": declared_future_scales,
+            "measured": [
+                scale["scale"]
+                for scale in scales.values()
+                if scale.get("precision") == "measured"
+            ],
+            "approximate": [
+                scale["scale"]
+                for scale in scales.values()
+                if scale.get("precision") in {"astronomical-approximation", "calendar-approximation"}
+            ],
+            "unmeasured": [
+                scale["scale"]
+                for scale in scales.values()
+                if scale.get("precision") == "unmeasured"
+            ],
         },
         "scales": scales,
         "resonances": [
