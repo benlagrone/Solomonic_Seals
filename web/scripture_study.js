@@ -28,16 +28,6 @@ function configureScriptureInitialAssetUrl() {
 
 configureScriptureInitialAssetUrl();
 
-const WISDOM_REFERENCE_BY_RULER = {
-  Sun: "Proverbs 4:18",
-  Moon: "Ecclesiastes 3:1",
-  Mars: "Proverbs 24:10",
-  Mercury: "Proverbs 18:21",
-  Jupiter: "Proverbs 11:25",
-  Venus: "Proverbs 15:1",
-  Saturn: "Proverbs 25:28",
-};
-
 const FALLBACK_DAILY_PSALM_BY_RULER = {
   Sun: { chapter: 19, verse: "1" },
   Moon: { chapter: 63, verse: "6" },
@@ -48,8 +38,9 @@ const FALLBACK_DAILY_PSALM_BY_RULER = {
   Saturn: { chapter: 90, verse: "12" },
 };
 
-function getWisdomReferenceForRuler(rulerText) {
-  return WISDOM_REFERENCE_BY_RULER[String(rulerText || "").trim()] || "";
+function getProverbReferenceForDate(date = new Date()) {
+  const target = date instanceof Date ? date : new Date(date);
+  return `Proverbs ${target.getDate()}`;
 }
 
 const STUDY_DEPTHS = ["anchor", "context", "crossrefs", "discuss"];
@@ -542,7 +533,7 @@ function buildWhyToday(study, paired, solomonicRecord) {
 
 function buildPairedReading(study) {
   if (study.kind === "psalm") {
-    const pairedReference = getWisdomReferenceForRuler(study.rulerText);
+    const pairedReference = getProverbReferenceForDate();
     if (pairedReference) {
       return {
         kind: "wisdom",
@@ -1106,6 +1097,7 @@ if (typeof globalThis !== "undefined") {
     expandVerseSpecification,
     extractVersePassageText,
     formatPassageBlockText,
+    getProverbReferenceForDate,
     parseScriptureReference,
   };
 }

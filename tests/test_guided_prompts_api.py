@@ -1,5 +1,6 @@
 import os
 import unittest
+from datetime import datetime
 from http import HTTPStatus
 from pathlib import Path
 from unittest.mock import patch
@@ -42,6 +43,7 @@ class GuidedPromptsApiTests(unittest.TestCase):
         self.assertIn("ref", wisdom)
         self.assertIn("text", wisdom)
         self.assertNotEqual(wisdom["ref"], wisdom["text"])
+        self.assertEqual(wisdom["ref"], "Proverbs 13")
 
     def test_guided_prompt_limit_is_clamped(self) -> None:
         payload, error, status = webserver._build_guided_prompts_payload(
@@ -90,6 +92,10 @@ class GuidedPromptsApiTests(unittest.TestCase):
         self.assertIn("weekly_arc", payload)
         self.assertIn("daily_profile", payload)
         self.assertIn("why_selected", payload)
+        self.assertIn(
+            "Daily Proverb: calendar day 13 selects Proverbs 13.",
+            payload["why_selected"]["reasons"],
+        )
         self.assertIn("content_bundle", payload)
         self.assertEqual(payload["schema_version"], "clock-context-v2")
         self.assertEqual(payload["content_id"], "clock-content:guest:2026-03-13:America/Chicago:v1")
@@ -199,7 +205,18 @@ class GuidedPromptsApiTests(unittest.TestCase):
         self.assertIn("ref", payload["wisdom"])
         self.assertIn("text", payload["wisdom"])
         self.assertNotEqual(payload["wisdom"]["ref"], payload["wisdom"]["text"])
+        self.assertEqual(payload["wisdom"]["ref"], "Proverbs 13")
         self.assertNotIn("guided_prompts", payload)
+
+    def test_proverb_reference_follows_calendar_day_of_month(self) -> None:
+        self.assertEqual(
+            webserver._get_proverb_reference_for_date(datetime(2026, 7, 20)),
+            "Proverbs 20",
+        )
+        self.assertEqual(
+            webserver._get_proverb_reference_for_date(datetime(2026, 7, 31)),
+            "Proverbs 31",
+        )
 
     def test_clock_runtime_payload_exposes_compact_state_contract(self) -> None:
         payload, error, status = webserver._build_clock_runtime_payload(
@@ -290,7 +307,7 @@ class GuidedPromptsApiTests(unittest.TestCase):
         with patch.dict(os.environ, {webserver.GUIDED_PROMPTS_API_KEY_ENV: "server-secret"}):
             self.assertEqual(webserver._get_guided_prompts_expected_key(), "server-secret")
 
-    def test_runtime_wisdom_ruler_data_is_reference_map_not_content_library(self) -> None:
+    def test_runtime_proverb_selection_uses_calendar_date_not_ruler_map(self) -> None:
         runtime_files = [
             REPO_ROOT / "src" / "webserver.py",
             REPO_ROOT / "web" / "clock.js",
@@ -307,7 +324,7 @@ class GuidedPromptsApiTests(unittest.TestCase):
         for path in runtime_files:
             source = path.read_text(encoding="utf-8")
             with self.subTest(path=path.name):
-                self.assertIn("WISDOM_REFERENCE_BY_RULER", source)
+                self.assertNotIn("WISDOM_REFERENCE_BY_RULER", source)
                 for snippet in forbidden:
                     self.assertNotIn(snippet, source)
 

@@ -1311,15 +1311,6 @@ const PLANETARY_CORRESPONDENCES = {
     angel: "Cassiel",
   },
 };
-const WISDOM_REFERENCE_BY_RULER = {
-  Sun: "Proverbs 4:18",
-  Moon: "Ecclesiastes 3:1",
-  Mars: "Proverbs 24:10",
-  Mercury: "Proverbs 18:21",
-  Jupiter: "Proverbs 11:25",
-  Venus: "Proverbs 15:1",
-  Saturn: "Proverbs 25:28",
-};
 const FALLBACK_DAILY_PSALM_BY_RULER = {
   Sun: { chapter: 19, verse: 1 },
   Moon: { chapter: 63, verse: 6 },
@@ -1338,8 +1329,9 @@ const PSALM_TEXT_BY_REFERENCE = {
   "Psalm 45:2": "Thou art fairer than the children of men: grace is poured into thy lips: therefore God hath blessed thee for ever.",
   "Psalm 90:12": "So teach us to number our days, that we may apply our hearts unto wisdom.",
 };
-function getWisdomReferenceForRuler(rulerText) {
-  return WISDOM_REFERENCE_BY_RULER[String(rulerText || "").trim()] || "Proverbs 16:3";
+function getProverbReferenceForDate(date = new Date()) {
+  const target = date instanceof Date ? date : new Date(date);
+  return `Proverbs ${target.getDate()}`;
 }
 
 function getWisdomTextForReference(_reference) {
@@ -4577,7 +4569,7 @@ function updateCenterLabels(coreName, timeState, referenceMap, now, derived, lif
   const pentacleRecord = pentacleKey ? referenceMap.get(pentacleKey) : null;
   const primaryPsalm = getPrimaryPsalmEntry(pentacleRecord);
   const readablePsalm = formatReadablePsalmReference(primaryPsalm);
-  const wisdomRef = getWisdomReferenceForRuler(dayLabel.rulerText);
+  const wisdomRef = getProverbReferenceForDate(withSelectedDayOffset(now));
   const correspondences = PLANETARY_CORRESPONDENCES[dayLabel.rulerText] || {};
   const ritualThemes = Array.isArray(active.planetary?.themes) && active.planetary.themes.length
     ? active.planetary.themes.join(" • ")
@@ -4757,7 +4749,7 @@ function buildWeeklyArcEntry(baseDate, offset, derived, referenceMap) {
 
   const dayLabel = getPlanetaryDayLabel(target);
   const guidance = PLANETARY_DAY_GUIDANCE[dayLabel.rulerText];
-  const wisdomRef = getWisdomReferenceForRuler(dayLabel.rulerText);
+  const wisdomRef = getProverbReferenceForDate(target);
 
   const weekFraction = derived.planetaryGroupCount ? getWeekFraction(target) : 0;
   const pentacleIndex = derived.totalPentacles
@@ -7144,7 +7136,7 @@ function updateScriptureOverlay(timeState, referenceMap, now, radii) {
   const pentacleKey = getPentacleKey(activePentacle);
   const pentacleRecord = pentacleKey ? referenceMap.get(pentacleKey) : null;
   const primaryPsalm = formatReadablePsalmReference(getPrimaryPsalmEntry(pentacleRecord)) || "Psalm Mapping";
-  const wisdomRef = getWisdomReferenceForRuler(timeState.dayLabel.rulerText) || "Wisdom Anchor";
+  const wisdomRef = getProverbReferenceForDate(withSelectedDayOffset(now));
   const bandColor = "#facc15";
   const outerRadius = radii.core + 34;
   const innerRadius = radii.core + 18;
@@ -9648,7 +9640,7 @@ function mergeClockApiContext(baseContext, clockContext, clockRuntime = null) {
     activeFocus: String(profile.focus || weeklyArc?.focus || baseContext.activeFocus || "").trim(),
     activePentacleLabel: String(profile.active_pentacle || weeklyArc?.pentacleLabel || baseContext.activePentacleLabel || "").trim(),
     psalmRef: String(psalm.ref || weeklyArc?.psalmRef || baseContext.psalmRef || "").trim(),
-    wisdomRef: String(wisdom.ref || weeklyArc?.wisdomRef || baseContext.wisdomRef || "").trim(),
+    wisdomRef: String(baseContext.wisdomRef || wisdom.ref || weeklyArc?.wisdomRef || "").trim(),
     solomonicRef: String(solomonic.ref || baseContext.solomonicRef || "").trim(),
     lifeDomainFocus: String(profile.life_domain_focus || baseContext.lifeDomainFocus || "").trim() || baseContext.lifeDomainFocus,
     weakestDomain: String(profile.weakest_domain || baseContext.weakestDomain || "").trim() || baseContext.weakestDomain,
@@ -9668,7 +9660,7 @@ function buildActionLoopContext(timeState, referenceMap, now, derived, lifeState
   const pentacleKey = getPentacleKey(activePentacle);
   const pentacleRecord = pentacleKey ? referenceMap.get(pentacleKey) : null;
   const readablePsalm = formatReadablePsalmReference(getPrimaryPsalmEntry(pentacleRecord));
-  const wisdomRef = dayLabel ? getWisdomReferenceForRuler(dayLabel.rulerText) : "";
+  const wisdomRef = dayLabel ? getProverbReferenceForDate(now) : "";
   const dayText = dayLabel?.dayText || "Today";
   const rulerText = dayLabel?.rulerText || "Guidance";
   const label = ruleOfLife
@@ -11031,7 +11023,7 @@ function buildLensDeepView(context, timeState, referenceMap, now, derived, lifeS
   const pentacleRecord = pentacleKey ? referenceMap.get(pentacleKey) : null;
   const primaryPsalm = getPrimaryPsalmEntry(pentacleRecord);
   const readablePsalm = formatReadablePsalmReference(primaryPsalm);
-  const wisdomRef = dayLabel ? getWisdomReferenceForRuler(dayLabel.rulerText) : "";
+  const wisdomRef = dayLabel ? getProverbReferenceForDate(withSelectedDayOffset(now)) : "";
   const correspondences = dayLabel ? (PLANETARY_CORRESPONDENCES[dayLabel.rulerText] || {}) : {};
   const hourRule = dayLabel ? getPlanetaryHourRuler(now, dayLabel.rulerText) : null;
   const nextHourRule = dayLabel ? getNextPlanetaryHourRuler(now, dayLabel.rulerText) : null;
@@ -11485,7 +11477,7 @@ function buildLensSurfaceView(timeState, referenceMap, now, derived, lifeState) 
   const readablePsalm = formatReadablePsalmReference(primaryPsalm);
   const hourRule = dayLabel ? getPlanetaryHourRuler(now, dayLabel.rulerText) : null;
   const nextHourRule = dayLabel ? getNextPlanetaryHourRuler(now, dayLabel.rulerText) : null;
-  const wisdomRef = dayLabel ? getWisdomReferenceForRuler(dayLabel.rulerText) : "";
+  const wisdomRef = dayLabel ? getProverbReferenceForDate(withSelectedDayOffset(now)) : "";
   const correspondences = dayLabel ? (PLANETARY_CORRESPONDENCES[dayLabel.rulerText] || {}) : {};
   const weeklyEntry = buildWeeklyArcEntry(now, selectedDayOffset, derived, referenceMap);
   const ruleOfLife = buildRuleOfLife(timeState, referenceMap, now, derived, lifeState);
@@ -11834,7 +11826,7 @@ function getModePresentation(timeState, referenceMap, now, derived, lifeState) {
   const pentacleKey = getPentacleKey(activePentacle);
   const pentacleRecord = pentacleKey ? referenceMap.get(pentacleKey) : null;
   const readablePsalm = formatReadablePsalmReference(getPrimaryPsalmEntry(pentacleRecord));
-  const wisdomRef = dayLabel ? getWisdomReferenceForRuler(dayLabel.rulerText) : "";
+  const wisdomRef = dayLabel ? getProverbReferenceForDate(withSelectedDayOffset(now)) : "";
   const hourRule = dayLabel ? getPlanetaryHourRuler(now, dayLabel.rulerText) : null;
   const nextHourRule = dayLabel ? getNextPlanetaryHourRuler(now, dayLabel.rulerText) : null;
   const todayEntry = buildWeeklyArcEntry(now, selectedDayOffset, derived, referenceMap);
@@ -12233,14 +12225,14 @@ function hasDailyContentBundleElements() {
   );
 }
 
-function buildDailyContentBundleKey(timeState, referenceMap) {
+function buildDailyContentBundleKey(timeState, referenceMap, displayNow) {
   const dayText = timeState?.dayLabel?.dayText || "Unknown day";
   const rulerText = timeState?.dayLabel?.rulerText || "Unknown ruler";
   const activePentacle = timeState?.active?.pentacle || null;
   const pentacleKey = getPentacleKey(activePentacle);
   const record = pentacleKey ? referenceMap.get(pentacleKey) : null;
   const primaryPsalm = getPrimaryPsalmEntry(record);
-  return `${uiState.presentationMode}|${dayText}|${rulerText}|${pentacleKey || "none"}|${primaryPsalm?.number ?? primaryPsalm?.psalm ?? "fallback"}|${primaryPsalm?.verses || "none"}|${readingDepth}`;
+  return `${uiState.presentationMode}|${formatDateStorageKey(displayNow)}|${dayText}|${rulerText}|${pentacleKey || "none"}|${primaryPsalm?.number ?? primaryPsalm?.psalm ?? "fallback"}|${primaryPsalm?.verses || "none"}|${readingDepth}`;
 }
 
 function setDailyContentBundleLoading() {
@@ -12273,7 +12265,7 @@ function getPsalmRequestFromBundleReference(reference) {
   };
 }
 
-function renderClockContentBundlePayload(payload, timeState, requestId) {
+function renderClockContentBundlePayload(payload, timeState, requestId, displayNow) {
   const bundle = payload?.content_bundle || {};
   const psalm = bundle.psalm || {};
   const wisdom = bundle.wisdom || {};
@@ -12304,9 +12296,14 @@ function renderClockContentBundlePayload(payload, timeState, requestId) {
     hydrateFullReaderSource("psalm", bundleExpansionState.psalm, requestId);
   }
 
-  const wisdomRef = String(wisdom.ref || "Wisdom unavailable").trim();
+  const wisdomRef = getProverbReferenceForDate(displayNow);
+  const apiWisdomRef = String(wisdom.ref || "").trim();
   const fallbackWisdomText = getWisdomTextForReference(wisdomRef);
-  const wisdomText = sanitizeInlinePassageText(wisdom.text && wisdom.text !== wisdomRef ? wisdom.text : fallbackWisdomText);
+  const wisdomText = sanitizeInlinePassageText(
+    apiWisdomRef === wisdomRef && wisdom.text && wisdom.text !== wisdomRef
+      ? wisdom.text
+      : fallbackWisdomText
+  );
   const wisdomRequest = parseScriptureReference(wisdomRef) ? { kind: "wisdom", reference: wisdomRef } : null;
   drawerElements.bundleWisdomRef.textContent = wisdomRef;
   renderScriptureTextBlock(drawerElements.bundleWisdomText, wisdomText || "Wisdom passage unavailable.", {
@@ -12339,7 +12336,7 @@ function renderClockContentBundlePayload(payload, timeState, requestId) {
   });
 }
 
-function renderDailyContentBundleFallback(timeState, referenceMap, _psalmMetadata, requestId) {
+function renderDailyContentBundleFallback(timeState, referenceMap, _psalmMetadata, requestId, displayNow) {
   const rulerText = timeState?.dayLabel?.rulerText || "Unknown ruler";
   const activePentacle = timeState?.active?.pentacle || null;
   const pentacleKey = getPentacleKey(activePentacle);
@@ -12347,7 +12344,7 @@ function renderDailyContentBundleFallback(timeState, referenceMap, _psalmMetadat
   const primaryPsalm = getPrimaryPsalmEntry(record);
 
   drawerElements.bundleSolomonicItem.hidden = uiState.presentationMode === "guidance";
-  const wisdomRef = getWisdomReferenceForRuler(rulerText);
+  const wisdomRef = getProverbReferenceForDate(displayNow);
   const wisdomRequest = parseScriptureReference(wisdomRef) ? { kind: "wisdom", reference: wisdomRef } : null;
   const fallbackWisdomText = getWisdomTextForReference(wisdomRef);
   drawerElements.bundleWisdomRef.textContent = wisdomRef;
@@ -12490,7 +12487,7 @@ function updateDailyContentBundle(timeState, referenceMap, psalmMetadata, displa
     return;
   }
 
-  const key = buildDailyContentBundleKey(timeState, referenceMap);
+  const key = buildDailyContentBundleKey(timeState, referenceMap, displayNow);
   if (key === lastBundleKey) {
     return;
   }
@@ -12503,7 +12500,7 @@ function updateDailyContentBundle(timeState, referenceMap, psalmMetadata, displa
     if (requestId !== currentBundleRequestId) {
       return;
     }
-    renderClockContentBundlePayload(payload, timeState, requestId);
+    renderClockContentBundlePayload(payload, timeState, requestId, displayNow);
   }).catch((error) => {
     if (requestId !== currentBundleRequestId) {
       return;
@@ -12516,7 +12513,7 @@ function updateDailyContentBundle(timeState, referenceMap, psalmMetadata, displa
       fallbackUsed: true,
       message: error?.message || "Clock content bundle API failed; falling back to frontend resolver.",
     });
-    renderDailyContentBundleFallback(timeState, referenceMap, psalmMetadata, requestId);
+    renderDailyContentBundleFallback(timeState, referenceMap, psalmMetadata, requestId, displayNow);
   });
 }
 
