@@ -95,9 +95,29 @@ class GuidedPromptsApiTests(unittest.TestCase):
         self.assertEqual(payload["content_id"], "clock-content:guest:2026-03-13:America/Chicago:v1")
         self.assertEqual(payload["content_generation"]["status"], "ready")
         self.assertEqual(payload["content_generation"]["cache_status"], "deterministic")
+        self.assertIn("moment", payload)
+        self.assertEqual(payload["moment"]["as_of"], "2026-03-13T20:15:00-05:00")
+        self.assertEqual(payload["moment"]["timezone"], "America/Chicago")
+        self.assertEqual(
+            set(payload["moment"]["scales"]),
+            {"minute", "hour", "day", "week", "month", "season", "year", "decade", "lifespan", "era"},
+        )
+        self.assertEqual(payload["moment"]["scales"]["hour"]["position"], 0.25)
+        self.assertEqual(payload["moment"]["scales"]["hour"]["phase"]["key"], "rising")
+        self.assertEqual(payload["moment"]["scales"]["day"]["phase"]["key"], "declining")
+        self.assertIsNone(payload["moment"]["scales"]["lifespan"]["position"])
+        self.assertEqual(payload["moment"]["scales"]["lifespan"]["precision"], "unmeasured")
+        self.assertGreaterEqual(len(payload["moment"]["resonances"]), 1)
+        self.assertGreaterEqual(len(payload["moment"]["tensions"]), 1)
         self.assertIn("section_content", payload)
         self.assertIn("counsel", payload["section_content"])
         self.assertIn("practice", payload["section_content"])
+        self.assertIn("temporal_scales", payload["section_content"])
+        self.assertIn("summary", payload["section_content"]["temporal_scales"])
+        self.assertEqual(
+            payload["section_content"]["temporal_scales"]["scales"]["hour"],
+            payload["moment"]["scales"]["hour"],
+        )
         self.assertIn("solomonic_meditation", payload["section_content"])
         self.assertIn("planetary_guidance", payload["section_content"])
         self.assertIn("timely_guidance", payload)
@@ -123,6 +143,9 @@ class GuidedPromptsApiTests(unittest.TestCase):
         assert payload is not None
         self.assertEqual(payload["temporal_policy"], "fixed_now")
         self.assertNotIn("1999-01-01", payload["as_of"])
+        self.assertIn("moment", payload)
+        self.assertNotIn("1999-01-01", payload["moment"]["as_of"])
+        self.assertIn("temporal_scales", payload["section_content"])
         self.assertNotIn("guided_prompts", payload)
 
     def test_clock_content_bundle_api_payload_is_context_slice(self) -> None:

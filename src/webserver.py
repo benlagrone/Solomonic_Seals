@@ -3624,6 +3624,382 @@ def _build_guided_prompts_payload(request_payload: dict[str, Any]) -> tuple[dict
     return payload, None, HTTPStatus.OK
 
 
+def _cycle_fraction(as_of: datetime, begins_at: datetime, ends_at: datetime) -> float:
+    span_seconds = (ends_at - begins_at).total_seconds()
+    if span_seconds <= 0:
+        return 0.0
+    elapsed_seconds = (as_of - begins_at).total_seconds()
+    return round(max(0.0, min(1.0, elapsed_seconds / span_seconds)), 4)
+
+
+def _cycle_phase(position: float | None) -> dict[str, str]:
+    if position is None:
+        return {
+            "key": "interpretive",
+            "label": "Interpretive",
+            "movement": "discern",
+            "counsel": "Hold this scale as context until a grounded personal record can refine it.",
+        }
+    if position < 0.15:
+        return {
+            "key": "opening",
+            "label": "Opening",
+            "movement": "begin",
+            "counsel": "Name the intention before the work widens.",
+        }
+    if position < 0.4:
+        return {
+            "key": "rising",
+            "label": "Rising",
+            "movement": "build",
+            "counsel": "Give steady attention to what is gaining form.",
+        }
+    if position < 0.6:
+        return {
+            "key": "fullness",
+            "label": "Fullness",
+            "movement": "reveal",
+            "counsel": "Let the mature signal become visible before acting.",
+        }
+    if position < 0.85:
+        return {
+            "key": "declining",
+            "label": "Declining",
+            "movement": "complete",
+            "counsel": "Finish the portion that belongs to this interval.",
+        }
+    return {
+        "key": "returning",
+        "label": "Returning",
+        "movement": "release",
+        "counsel": "Clear what should not be carried into the next cycle.",
+    }
+
+
+def _season_window(as_of: datetime) -> tuple[str, datetime, datetime]:
+    zone = as_of.tzinfo
+    year = as_of.year
+    windows = [
+        ("winter", datetime(year - 1, 12, 21, tzinfo=zone), datetime(year, 3, 20, tzinfo=zone)),
+        ("spring", datetime(year, 3, 20, tzinfo=zone), datetime(year, 6, 21, tzinfo=zone)),
+        ("summer", datetime(year, 6, 21, tzinfo=zone), datetime(year, 9, 22, tzinfo=zone)),
+        ("autumn", datetime(year, 9, 22, tzinfo=zone), datetime(year, 12, 21, tzinfo=zone)),
+        ("winter", datetime(year, 12, 21, tzinfo=zone), datetime(year + 1, 3, 20, tzinfo=zone)),
+    ]
+    for label, begins_at, ends_at in windows:
+        if begins_at <= as_of < ends_at:
+            return label, begins_at, ends_at
+    return windows[-1]
+
+
+def _scale_record(
+    scale: str,
+    cycle_id: str,
+    label: str,
+    position: float | None,
+    begins_at: datetime | None,
+    ends_at: datetime | None,
+    observed_signals: list[str],
+    inherited_themes: list[str],
+    virtues: list[str],
+    shadows: list[str],
+    questions: list[str],
+    practices: list[str],
+    source_refs: list[str],
+    confidence: str,
+    precision: str = "measured",
+) -> dict[str, Any]:
+    return {
+        "scale": scale,
+        "cycle_id": cycle_id,
+        "label": label,
+        "position": position,
+        "phase": _cycle_phase(position),
+        "begins_at": begins_at.isoformat() if begins_at else None,
+        "ends_at": ends_at.isoformat() if ends_at else None,
+        "observed_signals": observed_signals,
+        "inherited_themes": inherited_themes,
+        "virtues": virtues,
+        "shadows": shadows,
+        "questions": questions,
+        "practices": practices,
+        "source_refs": source_refs,
+        "confidence": confidence,
+        "precision": precision,
+    }
+
+
+def _build_context_moment(
+    as_of: datetime,
+    context_payload: dict[str, Any],
+    daily_guidance: dict[str, Any],
+    weekly_arc: dict[str, Any],
+    daily_profile: dict[str, Any],
+) -> dict[str, Any]:
+    timezone_name = str(context_payload.get("timezone") or "UTC")
+    local_midnight = as_of.replace(hour=0, minute=0, second=0, microsecond=0)
+    minute_start = as_of.replace(second=0, microsecond=0)
+    hour_start = as_of.replace(minute=0, second=0, microsecond=0)
+    week_start = local_midnight - timedelta(days=as_of.weekday())
+    month_start = as_of.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    next_month = (
+        month_start.replace(year=month_start.year + 1, month=1)
+        if month_start.month == 12
+        else month_start.replace(month=month_start.month + 1)
+    )
+    year_start = as_of.replace(month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
+    next_year = year_start.replace(year=year_start.year + 1)
+    decade_year = (as_of.year // 10) * 10
+    decade_start = datetime(decade_year, 1, 1, tzinfo=as_of.tzinfo)
+    decade_end = datetime(decade_year + 10, 1, 1, tzinfo=as_of.tzinfo)
+    season_label, season_start, season_end = _season_window(as_of)
+
+    synodic_month_days = 29.530588853
+    lunar_epoch = datetime(2000, 1, 6, 18, 14, tzinfo=ZoneInfo("UTC"))
+    moon_age_days = (
+        (as_of.astimezone(ZoneInfo("UTC")) - lunar_epoch).total_seconds() / 86400.0
+    ) % synodic_month_days
+    lunation_start = as_of - timedelta(days=moon_age_days)
+    lunation_end = lunation_start + timedelta(days=synodic_month_days)
+    moon_position = round(moon_age_days / synodic_month_days, 4)
+
+    current_focus = str(daily_profile.get("focus") or weekly_arc.get("focus") or "the present work").strip()
+    day_label = str(daily_guidance.get("day") or daily_profile.get("day_label") or "Today").strip()
+    hour_ruler = str(daily_profile.get("hour_ruler") or "the present hour").strip()
+    activities = [str(activity).strip() for activity in daily_guidance.get("activities") or [] if str(activity).strip()]
+    first_activity = activities[0] if activities else "Choose one faithful action."
+    second_activity = activities[1] if len(activities) > 1 else "Restrain avoidable distraction."
+    third_activity = activities[2] if len(activities) > 2 else "End with honest review."
+    psalm_ref = str(weekly_arc.get("psalm_ref") or "").strip()
+    wisdom_ref = str(weekly_arc.get("wisdom_ref") or "").strip()
+    source_refs = [ref for ref in [psalm_ref, wisdom_ref] if ref]
+
+    scales = {
+        "minute": _scale_record(
+            "minute",
+            f"minute:{as_of.strftime('%Y-%m-%dT%H:%M')}",
+            "Minute",
+            _cycle_fraction(as_of, minute_start, minute_start + timedelta(minutes=1)),
+            minute_start,
+            minute_start + timedelta(minutes=1),
+            ["local clock second"],
+            ["attention threshold"],
+            ["presence"],
+            ["reactivity"],
+            ["What needs attention before the next minute closes?"],
+            ["Pause and choose the next gesture deliberately."],
+            ["system_clock"],
+            "measured",
+        ),
+        "hour": _scale_record(
+            "hour",
+            f"planetary-hour:{as_of.strftime('%Y-%m-%dT%H')}",
+            f"{hour_ruler} hour",
+            _cycle_fraction(as_of, hour_start, hour_start + timedelta(hours=1)),
+            hour_start,
+            hour_start + timedelta(hours=1),
+            ["local clock hour", f"planetary hour ruler: {hour_ruler}"],
+            [f"{hour_ruler} hour discipline"],
+            ["discernment", "execution"],
+            ["scattered effort"],
+            [f"How should {hour_ruler} govern this hour's next action?"],
+            [first_activity],
+            ["daily_profile.hour_ruler", "daily_guidance.activities"],
+            "source-grounded",
+        ),
+        "day": _scale_record(
+            "day",
+            f"day:{as_of.date().isoformat()}",
+            day_label,
+            _cycle_fraction(as_of, local_midnight, local_midnight + timedelta(days=1)),
+            local_midnight,
+            local_midnight + timedelta(days=1),
+            ["local date", day_label],
+            [current_focus],
+            ["faithfulness", "order"],
+            ["drift"],
+            [f"What does {current_focus} require before the day ends?"],
+            [first_activity, third_activity],
+            ["daily_guidance", "daily_profile.focus"],
+            "source-grounded",
+        ),
+        "week": _scale_record(
+            "week",
+            f"week:{as_of.strftime('%G-W%V')}",
+            f"Week of {week_start.date().isoformat()}",
+            _cycle_fraction(as_of, week_start, week_start + timedelta(days=7)),
+            week_start,
+            week_start + timedelta(days=7),
+            ["ISO week", str(weekly_arc.get("pentacle") or "").strip()],
+            [str(weekly_arc.get("focus") or current_focus).strip()],
+            ["steadiness", "review"],
+            ["overextension"],
+            ["Which thread should be completed before the week turns?"],
+            [second_activity],
+            ["weekly_arc"],
+            "source-grounded",
+        ),
+        "month": _scale_record(
+            "month",
+            f"lunation:{lunation_start.date().isoformat()}",
+            "Lunation",
+            moon_position,
+            lunation_start,
+            lunation_end,
+            ["mean synodic lunation"],
+            ["initiate, cultivate, reveal, release, rest"],
+            ["patience", "timing"],
+            ["forcing the season"],
+            ["What is waxing, full, waning, or ready for rest?"],
+            ["Match the work to the lunar phase rather than forcing pace."],
+            ["mean_synodic_month"],
+            "approximate",
+            "astronomical-approximation",
+        ),
+        "season": _scale_record(
+            "season",
+            f"season:{season_label}:{season_start.date().isoformat()}",
+            season_label.title(),
+            _cycle_fraction(as_of, season_start, season_end),
+            season_start,
+            season_end,
+            ["northern-hemisphere solar season approximation"],
+            ["environmental season"],
+            ["adaptation"],
+            ["ignoring conditions"],
+            ["What work belongs to this season rather than this hour?"],
+            ["Let the larger season set constraints on the day."],
+            ["approximate_solar_season"],
+            "approximate",
+            "calendar-approximation",
+        ),
+        "year": _scale_record(
+            "year",
+            f"year:{as_of.year}",
+            str(as_of.year),
+            _cycle_fraction(as_of, year_start, next_year),
+            year_start,
+            next_year,
+            ["local calendar year"],
+            ["annual stewardship"],
+            ["perseverance"],
+            ["short-termism"],
+            ["What annual obligation is this day serving?"],
+            ["Connect today's action to one yearly commitment."],
+            ["calendar_year"],
+            "measured",
+        ),
+        "decade": _scale_record(
+            "decade",
+            f"decade:{decade_year}s",
+            f"{decade_year}s",
+            _cycle_fraction(as_of, decade_start, decade_end),
+            decade_start,
+            decade_end,
+            ["calendar decade"],
+            ["long formation"],
+            ["continuity"],
+            ["forgetting accumulated cost"],
+            ["What pattern is this decade asking to mature or release?"],
+            ["Record the long arc before optimizing the short task."],
+            ["calendar_decade"],
+            "measured",
+        ),
+        "lifespan": _scale_record(
+            "lifespan",
+            "lifespan:private-record-required",
+            "Lifespan",
+            None,
+            None,
+            None,
+            ["private birth and life records not loaded"],
+            ["vocation", "formation"],
+            ["humility"],
+            ["false precision"],
+            ["What life-scale commitment should not be reduced to today's mood?"],
+            ["Treat personal life interpretation as opt-in and evidence-bound."],
+            ["private_life_record_required"],
+            "declared-future-scale",
+            "unmeasured",
+        ),
+        "era": _scale_record(
+            "era",
+            "era:public-history-context",
+            "Era",
+            None,
+            None,
+            None,
+            ["public history context not yet connected"],
+            ["inheritance", "civilizational memory"],
+            ["justice"],
+            ["myopia"],
+            ["Which inherited condition should be named without overstating causality?"],
+            ["Separate historical context from deterministic counsel."],
+            ["public_history_context_required"],
+            "declared-future-scale",
+            "unmeasured",
+        ),
+    }
+
+    phase_counts: dict[str, int] = {}
+    for scale in scales.values():
+        phase = scale.get("phase", {}).get("key")
+        if phase and phase != "interpretive":
+            phase_counts[phase] = phase_counts.get(phase, 0) + 1
+    dominant_phase = max(phase_counts.items(), key=lambda item: item[1])[0] if phase_counts else "interpretive"
+    dominant_scale = next((scale for scale in scales.values() if scale["phase"]["key"] == dominant_phase), scales["day"])
+
+    return {
+        "as_of": as_of.isoformat(),
+        "timezone": timezone_name,
+        "runtime": {
+            "derived_from": ["daily_guidance", "weekly_arc", "daily_profile", "system_clock"],
+        },
+        "scales": scales,
+        "resonances": [
+            {
+                "kind": "phase_cluster",
+                "phase": dominant_phase,
+                "scales": [
+                    scale["scale"]
+                    for scale in scales.values()
+                    if scale.get("phase", {}).get("key") == dominant_phase
+                ],
+                "summary": f"{dominant_scale['phase']['label']} motion is strongest across the measured scales.",
+            },
+            {
+                "kind": "theme_alignment",
+                "theme": current_focus,
+                "scales": ["day", "week", "hour"],
+                "summary": "Daily focus, weekly arc, and the immediate hour are read together before counsel is formed.",
+            },
+        ],
+        "tensions": [
+            {
+                "kind": "precision_boundary",
+                "scales": ["lifespan", "era"],
+                "summary": "Large interpretive scales are visible but do not claim measured position without source records.",
+            }
+        ],
+        "dominant_theme": {
+            "label": current_focus,
+            "source": "daily_profile.focus",
+            "contributing_scales": ["hour", "day", "week"],
+        },
+        "counter_theme": {
+            "label": second_activity,
+            "source": "daily_guidance.activities",
+            "contributing_scales": ["day", "week"],
+        },
+        "present_counsel": {
+            "summary": f"{dominant_scale['phase']['label']} motion frames the next action: {first_activity}",
+            "practice": first_activity,
+            "restraint": second_activity,
+        },
+        "provenance": source_refs + ["system_clock", "calendar_rules", "mean_synodic_month"],
+    }
+
+
 def _build_clock_context_payload(request_payload: dict[str, Any]) -> tuple[dict[str, Any] | None, str | None, HTTPStatus]:
     base_payload = dict(request_payload)
     base_payload.setdefault("limit", 1)
@@ -3653,8 +4029,10 @@ def _build_clock_context_payload(request_payload: dict[str, Any]) -> tuple[dict[
     first_activity = str(activities[0]).strip() if activities else "Choose one faithful action."
     second_activity = str(activities[1]).strip() if len(activities) > 1 else "Restrain avoidable distraction."
     third_activity = str(activities[2]).strip() if len(activities) > 2 else "End with honest review."
+    moment = _build_context_moment(as_of, context_payload, daily_guidance, weekly_arc, daily_profile)
     context_payload["schema_version"] = "clock-context-v2"
     context_payload["content_id"] = f"clock-content:guest:{local_date}:{context_payload.get('timezone')}:v1"
+    context_payload["moment"] = moment
     context_payload["content_generation"] = {
         "status": "ready",
         "poll_after_ms": None,
@@ -3695,7 +4073,14 @@ def _build_clock_context_payload(request_payload: dict[str, Any]) -> tuple[dict[
             "restraint": second_activity,
             "evening_question": third_activity,
         },
-        "temporal_scales": {},
+        "temporal_scales": {
+            "summary": moment["present_counsel"]["summary"],
+            "dominant_theme": moment["dominant_theme"],
+            "counter_theme": moment["counter_theme"],
+            "scales": moment["scales"],
+            "resonances": moment["resonances"],
+            "tensions": moment["tensions"],
+        },
         "solomonic_meditation": {
             "meditation_title": f"{daily_guidance.get('day') or 'Today'} • {current_focus}",
             "body": (
