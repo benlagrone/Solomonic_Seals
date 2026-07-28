@@ -10,6 +10,7 @@ latest generated dataset. Intended for local use and the Docker container.
 from __future__ import annotations
 
 import argparse
+import base64
 import csv
 import hashlib
 import hmac
@@ -28,7 +29,7 @@ from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from posixpath import normpath
 from typing import Any
-from urllib.parse import parse_qs, quote, unquote, urlparse
+from urllib.parse import parse_qs, quote, urlencode, unquote, urlparse
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 from xml.sax.saxutils import escape as xml_escape
@@ -129,6 +130,7 @@ ENGLISH_PSALM_MARKERS = {
 }
 BOOK_PARTIAL_API_PATH = "/api/pericope/book-partial"
 PERICOPE_GUIDED_PROMPTS_API_PATH = "/api/pericope/guided-prompts"
+PERICOPE_CHAT_LAUNCH_API_PATH = "/api/pericope/chat-launch"
 CLOCK_CONTEXT_API_PATH = "/api/clock/context"
 CLOCK_CONTENT_BUNDLE_API_PATH = "/api/clock/content-bundle"
 CLOCK_WISDOM_ANCHOR_API_PATH = "/api/clock/wisdom-anchor"
@@ -4454,6 +4456,93 @@ def _build_pericope_history_sessions_payload(
     }, None, HTTPStatus.OK
 
 
+def _base64_url_encode_json(payload: dict[str, Any]) -> str:
+    encoded = base64.urlsafe_b64encode(
+        json.dumps(payload, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
+    ).decode("ascii")
+    return encoded.rstrip("=")
+
+
+def _resolve_pericope_chat_base_url(request_payload: dict[str, Any]) -> str:
+    raw_base_url = str(request_payload.get("base_url") or _resolve_pericope_web_base_url()).strip()
+    if not raw_base_url:
+        raw_base_url = "https://pericopeai.com"
+
+    parsed = urlparse(raw_base_url)
+    if parsed.scheme not in {"http", "https"} or not parsed.netloc:
+        return _resolve_pericope_web_base_url().rstrip("/")
+    return raw_base_url.rstrip("/")
+
+
+def _select_launch_prompt(
+    request_payload: dict[str, Any],
+    prompts: list[dict[str, Any]],
+) -> tuple[str, str]:
+    message_override = " ".join(str(request_payload.get("message_override") or "").split()).strip()
+    requested_prompt_id = str(request_payload.get("prompt_id") or "").strip()
+    if message_override:
+        return message_override, requested_prompt_id
+
+    selected_prompt = None
+    if requested_prompt_id:
+        selected_prompt = next((prompt for prompt in prompts if prompt.get("id") == requested_prompt_id), None)
+    if selected_prompt is None and prompts:
+        selected_prompt = prompts[0]
+
+    if selected_prompt:
+        return str(selected_prompt.get("text") or "").strip(), str(selected_prompt.get("id") or requested_prompt_id).strip()
+
+    return "How should I carry today's clock guidance into one concrete action?", requested_prompt_id
+
+
+def _build_pericope_chat_launch_payload(request_payload: dict[str, Any]) -> tuple[dict[str, Any] | None, str | None, HTTPStatus]:
+    context_payload, error, status = _build_public_clock_context_payload(request_payload)
+    if context_payload is None:
+        return None, error, status
+
+    prompts_payload, error, status = _build_guided_prompts_payload({
+        **_without_public_as_of(request_payload),
+        "limit": 6,
+    })
+    if prompts_payload is None:
+        return None, error, status
+
+    prompts = [prompt for prompt in prompts_payload.get("guided_prompts") or [] if isinstance(prompt, dict)]
+    normalized_mode = "freeform" if request_payload.get("mode") == "freeform" else "guided"
+    message, prompt_id = _select_launch_prompt(request_payload, prompts)
+    context_payload["handoff"] = {
+        "target": "pericope_chat",
+        "mode": normalized_mode,
+        "prompt_id": prompt_id,
+        "message_is_user_facing": True,
+        "ctx_is_metadata": True,
+    }
+    encoded_context = _base64_url_encode_json(context_payload)
+    launch_params = {
+        "mode": normalized_mode,
+        "source": "solomonic_clock",
+        "message": message,
+        "ctx": encoded_context,
+    }
+    if prompt_id:
+        launch_params["prompt_id"] = prompt_id
+
+    chat_base_url = _resolve_pericope_chat_base_url(request_payload)
+    return {
+        "mode": normalized_mode,
+        "source": "solomonic_clock",
+        "message": message,
+        "prompt_id": prompt_id,
+        "ctx": encoded_context,
+        "clock_context": context_payload,
+        "launch_url": f"{chat_base_url}/chat?{urlencode(launch_params)}",
+        "rules": {
+            "message": "Only message is user-facing transcript seed content.",
+            "ctx": "Encoded clock context is structured session metadata, not a chat turn.",
+        },
+    }, None, HTTPStatus.OK
+
+
 def _get_guided_prompts_expected_key() -> str:
     return str(os.environ.get(GUIDED_PROMPTS_API_KEY_ENV) or "").strip()
 
@@ -4655,6 +4744,7 @@ class ClockRequestHandler(SimpleHTTPRequestHandler):
 
         if request_path not in {
             PERICOPE_GUIDED_PROMPTS_API_PATH,
+            PERICOPE_CHAT_LAUNCH_API_PATH,
             CLOCK_CONTEXT_API_PATH,
             CLOCK_CONTENT_BUNDLE_API_PATH,
             CLOCK_WISDOM_ANCHOR_API_PATH,
@@ -4702,6 +4792,8 @@ class ClockRequestHandler(SimpleHTTPRequestHandler):
             response_payload, error, status = _build_client_error_post_payload(payload)
         elif request_path == VIBEVOICE_TTS_JOBS_API_PATH:
             response_payload, error, status = _build_vibevoice_job_payload(payload)
+        elif request_path == PERICOPE_CHAT_LAUNCH_API_PATH:
+            response_payload, error, status = _build_pericope_chat_launch_payload(payload)
         elif request_path == CLOCK_CONTEXT_API_PATH:
             response_payload, error, status = _build_public_clock_context_payload(payload)
         elif request_path == CLOCK_CONTENT_BUNDLE_API_PATH:
@@ -5085,9 +5177,10 @@ def main() -> None:
     print("• Static assets are available directly (e.g. /web/clock_visualizer.html)")
     print("• Dataset endpoint: /api/clock")
     print(f"• Clock runtime endpoint: {CLOCK_RUNTIME_API_PATH}")
-    print("• Clock context endpoint: /api/clock/context")
-    print("• Clock content bundle endpoint: /api/clock/content-bundle")
-    print("• Clock wisdom anchor endpoint: /api/clock/wisdom-anchor")
+    print(f"• Clock context endpoint: {CLOCK_CONTEXT_API_PATH}")
+    print(f"• Clock content bundle endpoint: {CLOCK_CONTENT_BUNDLE_API_PATH}")
+    print(f"• Clock wisdom anchor endpoint: {CLOCK_WISDOM_ANCHOR_API_PATH}")
+    print(f"• Pericope chat launch endpoint: {PERICOPE_CHAT_LAUNCH_API_PATH}")
     print("• Local Psalms endpoint: /api/psalm?chapter=91&verse=11")
     print(f"• Psalms source mode: {source_mode} (set SOLOMONIC_PSALM_SOURCE_MODE to override)")
     print(

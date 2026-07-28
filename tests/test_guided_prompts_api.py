@@ -1,8 +1,11 @@
 import os
 import unittest
+import base64
+import json
 from datetime import datetime
 from http import HTTPStatus
 from pathlib import Path
+from urllib.parse import parse_qs, urlparse
 from unittest.mock import patch
 
 from src import webserver
@@ -217,6 +220,78 @@ class GuidedPromptsApiTests(unittest.TestCase):
             webserver._get_proverb_reference_for_date(datetime(2026, 7, 31)),
             "Proverbs 31",
         )
+
+    def test_pericope_chat_launch_payload_encodes_clock_context_metadata(self) -> None:
+        payload, error, status = webserver._build_pericope_chat_launch_payload(
+            {
+                "timezone": "America/Chicago",
+                "as_of": "1999-01-01T00:00:00-06:00",
+                "mode": "guided",
+                "message_override": "How should I carry today's proverb into one concrete act?",
+                "prompt_id": "manual-proverb-practice",
+                "base_url": "https://pericopeai.com",
+            }
+        )
+
+        self.assertEqual(status, HTTPStatus.OK, error)
+        self.assertIsNone(error)
+        self.assertIsNotNone(payload)
+        assert payload is not None
+
+        self.assertEqual(payload["mode"], "guided")
+        self.assertEqual(payload["source"], "solomonic_clock")
+        self.assertEqual(payload["prompt_id"], "manual-proverb-practice")
+        self.assertEqual(payload["message"], "How should I carry today's proverb into one concrete act?")
+        self.assertIn("ctx", payload)
+        self.assertNotIn("guided_prompts", payload["clock_context"])
+        self.assertNotIn("1999-01-01", payload["clock_context"]["as_of"])
+        self.assertEqual(payload["clock_context"]["temporal_policy"], "fixed_now")
+        self.assertEqual(payload["clock_context"]["handoff"]["ctx_is_metadata"], True)
+
+        parsed_url = urlparse(payload["launch_url"])
+        query = parse_qs(parsed_url.query)
+        self.assertEqual(parsed_url.scheme, "https")
+        self.assertEqual(parsed_url.netloc, "pericopeai.com")
+        self.assertEqual(parsed_url.path, "/chat")
+        self.assertEqual(query["mode"], ["guided"])
+        self.assertEqual(query["source"], ["solomonic_clock"])
+        self.assertEqual(query["message"], [payload["message"]])
+        self.assertEqual(query["prompt_id"], ["manual-proverb-practice"])
+        self.assertEqual(query["ctx"], [payload["ctx"]])
+
+        padded_ctx = payload["ctx"] + "=" * ((4 - (len(payload["ctx"]) % 4)) % 4)
+        decoded_context = json.loads(base64.urlsafe_b64decode(padded_ctx.encode("ascii")).decode("utf-8"))
+        self.assertEqual(decoded_context["content_id"], payload["clock_context"]["content_id"])
+        self.assertEqual(decoded_context["handoff"]["message_is_user_facing"], True)
+        self.assertNotIn("Clock context is attached", payload["message"])
+
+    def test_pericope_chat_launch_payload_selects_prompt_when_override_missing(self) -> None:
+        payload, error, status = webserver._build_pericope_chat_launch_payload(
+            {
+                "timezone": "America/Chicago",
+                "as_of": "2026-03-13T20:15:00-05:00",
+            }
+        )
+
+        self.assertEqual(status, HTTPStatus.OK, error)
+        self.assertIsNone(error)
+        self.assertIsNotNone(payload)
+        assert payload is not None
+        self.assertEqual(payload["mode"], "guided")
+        self.assertTrue(payload["message"])
+        self.assertTrue(payload["prompt_id"])
+        self.assertNotIn("Launch context", payload["message"])
+
+    def test_pericope_chat_launch_payload_rejects_invalid_timezone(self) -> None:
+        payload, error, status = webserver._build_pericope_chat_launch_payload(
+            {
+                "timezone": "No/SuchZone",
+            }
+        )
+
+        self.assertEqual(status, HTTPStatus.BAD_REQUEST)
+        self.assertIsNone(payload)
+        self.assertIn("Invalid timezone", error or "")
 
     def test_clock_runtime_payload_exposes_compact_state_contract(self) -> None:
         payload, error, status = webserver._build_clock_runtime_payload(
