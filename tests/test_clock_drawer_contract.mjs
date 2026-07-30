@@ -106,6 +106,11 @@ assertIncludes(js, "function getClockRuntimeNextHourSummary", "clock frontend sh
 assertIncludes(js, "clockRuntime?.next_planetary_hour", "runtime handoff summaries should use API-owned next planetary hour state");
 assertIncludes(js, "runtimeHour?.window", "ritual surfaces should show the API-owned solar hour interval");
 assertIncludes(js, "runtimeNextHour?.ruler", "ritual surfaces should show the API-owned next hour ruler");
+assertIncludes(js, 'const PERICOPE_CHAT_LAUNCH_API_ENDPOINT = "/api/pericope/chat-launch";', "Clock frontend should know the server-owned Pericope chat launch endpoint");
+assertIncludes(js, "async function fetchPericopeChatLaunchRequest", "Pericope launches should request the server-owned chat launch payload before opening");
+assertIncludes(js, "client_context: request.launchContext", "Pericope launch API calls should preserve UI action context overlays");
+assertIncludes(js, "await fetchPericopeChatLaunchRequest(localRequest) || localRequest", "Pericope launch should keep a local URL fallback when the API is unavailable");
+assertIncludes(js, 'window.open("about:blank", "_blank", "noopener")', "Pericope launch should open a user-initiated tab before awaiting the API");
 assertIncludes(js, "clockRuntime", "Pericope launch context should carry clock runtime state when available");
 assertIncludes(js, "fetchClockDataset()", "clock initialization should load clock data through the API-first dataset loader");
 assert.ok(!js.includes('fetchJsonResource("../data/solomonic_clock_full.json", "clock data")'), "clock initialization should not prefer bundled clock JSON");

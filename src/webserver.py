@@ -4495,10 +4495,67 @@ def _select_launch_prompt(
     return "How should I carry today's clock guidance into one concrete action?", requested_prompt_id
 
 
+def _prune_empty_payload(value: Any) -> Any:
+    if isinstance(value, list):
+        return [
+            entry
+            for entry in (_prune_empty_payload(entry) for entry in value)
+            if entry not in (None, "", [], {})
+        ]
+
+    if isinstance(value, dict):
+        return {
+            str(key): entry
+            for key, entry in ((key, _prune_empty_payload(entry)) for key, entry in value.items())
+            if entry not in (None, "", [], {})
+        }
+
+    if isinstance(value, str):
+        return value.strip()
+
+    return value
+
+
+def _merge_public_context_overlay(context_payload: dict[str, Any], request_payload: dict[str, Any]) -> dict[str, Any]:
+    raw_overlay = request_payload.get("client_context")
+    if not isinstance(raw_overlay, dict):
+        return context_payload
+
+    overlay = _prune_empty_payload(raw_overlay)
+    if not isinstance(overlay, dict) or not overlay:
+        return context_payload
+
+    protected_keys = {
+        "as_of",
+        "timezone",
+        "temporal_policy",
+        "source",
+        "schema_version",
+        "content_id",
+        "content_generation",
+        "guided_prompts",
+        "handoff",
+    }
+    allowed_overlay = {
+        key: value
+        for key, value in overlay.items()
+        if key not in protected_keys
+    }
+    if not allowed_overlay:
+        return context_payload
+
+    return {
+        **context_payload,
+        **allowed_overlay,
+    }
+
+
 def _build_pericope_chat_launch_payload(request_payload: dict[str, Any]) -> tuple[dict[str, Any] | None, str | None, HTTPStatus]:
     context_payload, error, status = _build_public_clock_context_payload(request_payload)
     if context_payload is None:
         return None, error, status
+
+    context_payload = _merge_public_context_overlay(context_payload, request_payload)
 
     prompts_payload, error, status = _build_guided_prompts_payload({
         **_without_public_as_of(request_payload),
@@ -4507,9 +4564,13 @@ def _build_pericope_chat_launch_payload(request_payload: dict[str, Any]) -> tupl
     if prompts_payload is None:
         return None, error, status
 
-    prompts = [prompt for prompt in prompts_payload.get("guided_prompts") or [] if isinstance(prompt, dict)]
     normalized_mode = "freeform" if request_payload.get("mode") == "freeform" else "guided"
-    message, prompt_id = _select_launch_prompt(request_payload, prompts)
+    prompts = [prompt for prompt in prompts_payload.get("guided_prompts") or [] if isinstance(prompt, dict)]
+    if normalized_mode == "freeform":
+        message = " ".join(str(request_payload.get("message_override") or "").split()).strip()
+        prompt_id = ""
+    else:
+        message, prompt_id = _select_launch_prompt(request_payload, prompts)
     context_payload["handoff"] = {
         "target": "pericope_chat",
         "mode": normalized_mode,
@@ -4521,9 +4582,10 @@ def _build_pericope_chat_launch_payload(request_payload: dict[str, Any]) -> tupl
     launch_params = {
         "mode": normalized_mode,
         "source": "solomonic_clock",
-        "message": message,
         "ctx": encoded_context,
     }
+    if message:
+        launch_params["message"] = message
     if prompt_id:
         launch_params["prompt_id"] = prompt_id
 

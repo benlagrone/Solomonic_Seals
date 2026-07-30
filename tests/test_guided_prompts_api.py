@@ -282,6 +282,73 @@ class GuidedPromptsApiTests(unittest.TestCase):
         self.assertTrue(payload["prompt_id"])
         self.assertNotIn("Launch context", payload["message"])
 
+    def test_pericope_chat_launch_payload_preserves_client_context_overlay(self) -> None:
+        payload, error, status = webserver._build_pericope_chat_launch_payload(
+            {
+                "timezone": "America/Chicago",
+                "as_of": "1999-01-01T00:00:00-06:00",
+                "mode": "guided",
+                "message_override": "Help me examine today's guidance in light of this reflection.",
+                "prompt_id": "reflection-mind-mercury",
+                "client_context": {
+                    "as_of": "1999-01-01T00:00:00-06:00",
+                    "timezone": "Bad/Override",
+                    "temporal_policy": "client_supplied",
+                    "reflection": "I avoided the hard conversation.",
+                    "rule_of_life": {
+                        "virtue": "Prudence",
+                        "domain": "Mind",
+                    },
+                    "weekly_review": {
+                        "carry_forward": "Name the conversation before noon.",
+                    },
+                    "guided_prompts": [{"id": "should-not-merge"}],
+                },
+            }
+        )
+
+        self.assertEqual(status, HTTPStatus.OK, error)
+        self.assertIsNone(error)
+        self.assertIsNotNone(payload)
+        assert payload is not None
+
+        context = payload["clock_context"]
+        self.assertNotIn("1999-01-01", context["as_of"])
+        self.assertEqual(context["timezone"], "America/Chicago")
+        self.assertEqual(context["temporal_policy"], "fixed_now")
+        self.assertNotIn("guided_prompts", context)
+        self.assertEqual(context["reflection"], "I avoided the hard conversation.")
+        self.assertEqual(context["rule_of_life"]["virtue"], "Prudence")
+        self.assertEqual(context["weekly_review"]["carry_forward"], "Name the conversation before noon.")
+
+        padded_ctx = payload["ctx"] + "=" * ((4 - (len(payload["ctx"]) % 4)) % 4)
+        decoded_context = json.loads(base64.urlsafe_b64decode(padded_ctx.encode("ascii")).decode("utf-8"))
+        self.assertEqual(decoded_context["reflection"], "I avoided the hard conversation.")
+        self.assertEqual(decoded_context["handoff"]["prompt_id"], "reflection-mind-mercury")
+
+    def test_pericope_chat_launch_payload_keeps_freeform_blank_when_no_override(self) -> None:
+        payload, error, status = webserver._build_pericope_chat_launch_payload(
+            {
+                "timezone": "America/Chicago",
+                "mode": "freeform",
+                "base_url": "https://pericopeai.com",
+            }
+        )
+
+        self.assertEqual(status, HTTPStatus.OK, error)
+        self.assertIsNone(error)
+        self.assertIsNotNone(payload)
+        assert payload is not None
+        self.assertEqual(payload["mode"], "freeform")
+        self.assertEqual(payload["message"], "")
+        self.assertEqual(payload["prompt_id"], "")
+
+        parsed_url = urlparse(payload["launch_url"])
+        query = parse_qs(parsed_url.query)
+        self.assertEqual(query["mode"], ["freeform"])
+        self.assertNotIn("prompt_id", query)
+        self.assertNotIn("message", query)
+
     def test_pericope_chat_launch_payload_rejects_invalid_timezone(self) -> None:
         payload, error, status = webserver._build_pericope_chat_launch_payload(
             {

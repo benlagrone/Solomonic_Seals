@@ -628,6 +628,7 @@ const CLOCK_DATA_API_ENDPOINT = "/api/clock";
 const CLOCK_RUNTIME_API_ENDPOINT = "/api/clock/runtime";
 const CLOCK_DATA_FALLBACK_RESOURCE = "../data/solomonic_clock_full.json";
 const BOOK_PARTIAL_API_ENDPOINT = "/api/pericope/book-partial";
+const PERICOPE_CHAT_LAUNCH_API_ENDPOINT = "/api/pericope/chat-launch";
 const CLIENT_ERRORS_API_ENDPOINT = "/api/client-errors";
 const VIBEVOICE_TTS_JOBS_API_ENDPOINT = "/api/vibevoice/tts/jobs";
 const VIBEVOICE_HEALTH_API_ENDPOINT = "/api/vibevoice/health";
@@ -2862,6 +2863,77 @@ function buildPericopeLaunchUrl(context, mode = "guided", options = {}) {
   return buildPericopeLaunchRequest(context, mode, options)?.url || "";
 }
 
+async function fetchPericopeChatLaunchRequest(request) {
+  if (
+    typeof window === "undefined"
+    || typeof window.fetch !== "function"
+    || !request
+  ) {
+    return null;
+  }
+
+  const payload = {
+    ...buildClockApiRequestPayload(request.launchContext?.as_of || new Date()),
+    mode: request.mode,
+    message_override: request.message,
+    prompt_id: request.promptId,
+    base_url: getPericopeBaseUrl(),
+    client_context: request.launchContext,
+  };
+
+  let response;
+  try {
+    response = await window.fetch(PERICOPE_CHAT_LAUNCH_API_ENDPOINT, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+      credentials: "same-origin",
+    });
+  } catch (error) {
+    reportClientError("pericope_chat_launch_fetch_error", {
+      endpoint: PERICOPE_CHAT_LAUNCH_API_ENDPOINT,
+      requestKind: "pericope_chat_launch",
+      fallbackUsed: true,
+      message: error?.message || "Pericope chat launch API request failed.",
+    });
+    return null;
+  }
+
+  const responsePayload = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    reportClientError("pericope_chat_launch_http_error", {
+      endpoint: PERICOPE_CHAT_LAUNCH_API_ENDPOINT,
+      httpStatus: response.status,
+      requestKind: "pericope_chat_launch",
+      fallbackUsed: true,
+      message: responsePayload?.error || `Pericope chat launch API returned HTTP ${response.status}.`,
+    });
+    return null;
+  }
+
+  const launchUrl = String(responsePayload?.launch_url || "").trim();
+  if (!launchUrl) {
+    reportClientError("pericope_chat_launch_missing_url", {
+      endpoint: PERICOPE_CHAT_LAUNCH_API_ENDPOINT,
+      requestKind: "pericope_chat_launch",
+      fallbackUsed: true,
+      message: "Pericope chat launch API response did not include launch_url.",
+    });
+    return null;
+  }
+
+  return {
+    ...request,
+    url: launchUrl,
+    mode: responsePayload?.mode === "freeform" ? "freeform" : request.mode,
+    message: String(responsePayload?.message || request.message || "").trim(),
+    promptId: String(responsePayload?.prompt_id || request.promptId || "").trim(),
+    launchContext: responsePayload?.clock_context && typeof responsePayload.clock_context === "object"
+      ? responsePayload.clock_context
+      : request.launchContext,
+  };
+}
+
 function recordPericopeLaunch(context, request) {
   if (!context?.dateKey || !request) {
     return;
@@ -2885,16 +2957,26 @@ function recordPericopeLaunch(context, request) {
   schedulePericopeSessionSync(2400);
 }
 
-function launchPericopeChat(context, mode = "guided", options = {}) {
-  const request = buildPericopeLaunchRequest(context, mode, options);
-  const url = request?.url || "";
-  if (!url || typeof window === "undefined") {
+async function launchPericopeChat(context, mode = "guided", options = {}) {
+  const localRequest = buildPericopeLaunchRequest(context, mode, options);
+  if (!localRequest || typeof window === "undefined") {
     return false;
   }
 
-  const launched = window.open(url, "_blank", "noopener");
-  if (launched) {
-    launched.opener = null;
+  const pendingWindow = window.open("about:blank", "_blank", "noopener");
+  if (pendingWindow) {
+    pendingWindow.opener = null;
+  }
+
+  const request = await fetchPericopeChatLaunchRequest(localRequest) || localRequest;
+  const url = request?.url || "";
+  if (!url) {
+    pendingWindow?.close();
+    return false;
+  }
+
+  if (pendingWindow) {
+    pendingWindow.location.assign(url);
     recordPericopeLaunch(context, request);
     return true;
   }
@@ -3042,7 +3124,7 @@ function openBundleStudy(kind) {
   );
 }
 
-function launchBundleDiscussion(kind) {
+async function launchBundleDiscussion(kind) {
   const context = currentActionLoopContext;
   const state = bundleExpansionState[kind];
   if (!context || !state?.previewRef) {
@@ -3051,7 +3133,7 @@ function launchBundleDiscussion(kind) {
 
   const reference = state.previewRef;
   const excerpt = state.expanded ? state.expandedText : state.previewText;
-  const launched = launchPericopeChat(
+  const launched = await launchPericopeChat(
     context,
     "guided",
     {
@@ -3243,7 +3325,7 @@ function setupActionLoopControls() {
     }
   });
 
-  drawerElements.actionPericopeGuided.addEventListener("click", () => {
+  drawerElements.actionPericopeGuided.addEventListener("click", async () => {
     const context = currentActionLoopContext;
     if (!context) {
       return;
@@ -3251,7 +3333,7 @@ function setupActionLoopControls() {
 
     const reflectionText = getActionLoopReflectionText(context);
     const usingReflection = shouldLaunchReflectionPrompt(context, reflectionText);
-    const launched = launchPericopeChat(context, "guided");
+    const launched = await launchPericopeChat(context, "guided");
     if (launched) {
       setActionNotice(usingReflection
         ? "Opening guided chat with your reflection..."
@@ -3259,12 +3341,12 @@ function setupActionLoopControls() {
     }
   });
 
-  drawerElements.actionPericopeFreeform.addEventListener("click", () => {
+  drawerElements.actionPericopeFreeform.addEventListener("click", async () => {
     const context = currentActionLoopContext;
     if (!context) {
       return;
     }
-    const launched = launchPericopeChat(context, "freeform");
+    const launched = await launchPericopeChat(context, "freeform");
     if (launched) {
       setActionNotice("Opening freeform chat in Pericope...");
     }
@@ -3420,7 +3502,7 @@ function setupHistoryReviewControls() {
     persistWeeklyReview("revised");
   });
 
-  drawerElements.historyReviewPericope.addEventListener("click", () => {
+  drawerElements.historyReviewPericope.addEventListener("click", async () => {
     const reviewContext = currentWeeklyReviewContext;
     if (!reviewContext?.selectedEntry || !reviewContext.weeklyReview) {
       setActionNotice("No weekly review is ready yet.");
@@ -3428,7 +3510,7 @@ function setupHistoryReviewControls() {
     }
 
     const launchContext = buildWeeklyReviewLaunchContext(reviewContext.selectedEntry, reviewContext.weeklyReview);
-    const launched = launchPericopeChat(launchContext, "guided", {
+    const launched = await launchPericopeChat(launchContext, "guided", {
       message: reviewContext.weeklyReview.prompt,
       promptId: `weekly-review-${reviewContext.selectedEntry.dateKey}`,
       extraContext: {
@@ -8363,7 +8445,7 @@ function setupBundleExpansionControls() {
     if (!button) {
       if (discuss) {
         discuss.addEventListener("click", () => {
-          launchBundleDiscussion(kind);
+          void launchBundleDiscussion(kind);
         });
       }
       if (study) {
@@ -8383,7 +8465,7 @@ function setupBundleExpansionControls() {
     }
     if (discuss) {
       discuss.addEventListener("click", () => {
-        launchBundleDiscussion(kind);
+        void launchBundleDiscussion(kind);
       });
     }
     if (listen) {
