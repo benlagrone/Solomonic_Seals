@@ -1,0 +1,100 @@
+{
+  "schema_version": "passage-meaning-seed-v1",
+  "generated": "2026-08-03",
+  "editorial_status": "reviewed_seed",
+  "records": [
+    {
+      "passage_id": "marcus-aurelius-meditations-2-5-duty",
+      "author": "Marcus Aurelius",
+      "author_slug": "marcus_aurelius",
+      "work": "Meditations",
+      "citation": "Book 2, section 5",
+      "edition": "George Long translation",
+      "rights": "public_domain_translation",
+      "excerpt": "Do every act of thy life as if it were the last.",
+      "original_subject": "disciplined present action",
+      "argument_role": "exhortation",
+      "historical_setting": "Stoic imperial notebook on attention, duty, and mortality.",
+      "key_terms": ["attention", "duty", "mortality", "discipline"],
+      "themes": ["present action", "discipline", "restraint", "completion"],
+      "virtues": ["prudence", "temperance", "fortitude"],
+      "shadows": ["distraction", "delay", "vanity"],
+      "movements": ["complete", "restrain"],
+      "life_domains": ["mind", "work", "vocation"],
+      "clock_relevance": {
+        "scales": ["minute", "hour", "day"],
+        "phases": ["declining", "returning"],
+        "rulers": ["Saturn", "Mercury"],
+        "practice_tags": ["attention", "discipline", "review"]
+      },
+      "editorial_review": {
+        "status": "reviewed_seed",
+        "reviewed_by": "solomonic-clock-seed",
+        "reviewed_at": "2026-08-03",
+        "confidence": "medium"
+      }
+    },
+    {
+      "passage_id": "franklin-poor-richards-almanack-lost-time",
+      "author": "Benjamin Franklin",
+      "author_slug": "benjamin_franklin",
+      "work": "Poor Richard's Almanack",
+      "citation": "1736 almanack maxim",
+      "edition": "public-domain collected maxims",
+      "rights": "public_domain",
+      "excerpt": "Lost time is never found again.",
+      "original_subject": "stewardship of time",
+      "argument_role": "practical maxim",
+      "historical_setting": "Eighteenth-century civic and household prudence literature.",
+      "key_terms": ["time", "industry", "stewardship", "delay"],
+      "themes": ["time stewardship", "industry", "timely action"],
+      "virtues": ["prudence", "diligence", "temperance"],
+      "shadows": ["procrastination", "waste", "drift"],
+      "movements": ["begin", "build"],
+      "life_domains": ["work", "stewardship", "household"],
+      "clock_relevance": {
+        "scales": ["minute", "hour", "day", "week"],
+        "phases": ["opening", "rising"],
+        "rulers": ["Mercury", "Sun"],
+        "practice_tags": ["organize", "schedule", "act"]
+      },
+      "editorial_review": {
+        "status": "reviewed_seed",
+        "reviewed_by": "solomonic-clock-seed",
+        "reviewed_at": "2026-08-03",
+        "confidence": "medium"
+      }
+    },
+    {
+      "passage_id": "adam-smith-wealth-nations-real-price-labor",
+      "author": "Adam Smith",
+      "author_slug": "adam_smith",
+      "work": "An Inquiry into the Nature and Causes of the Wealth of Nations",
+      "citation": "Book I, chapter V",
+      "edition": "public-domain text",
+      "rights": "public_domain",
+      "excerpt": "The real price of every thing is the toil and trouble of acquiring it.",
+      "original_subject": "labor as real cost",
+      "argument_role": "economic definition",
+      "historical_setting": "Classical political economy on exchange, labor, and value.",
+      "key_terms": ["labor", "cost", "exchange", "value"],
+      "themes": ["stewardship", "cost", "work", "exchange"],
+      "virtues": ["prudence", "justice", "diligence"],
+      "shadows": ["false economy", "mispriced effort", "waste"],
+      "movements": ["measure", "restrain", "complete"],
+      "life_domains": ["work", "stewardship", "vocation"],
+      "clock_relevance": {
+        "scales": ["day", "week", "year"],
+        "phases": ["fullness", "declining"],
+        "rulers": ["Mercury", "Jupiter", "Saturn"],
+        "practice_tags": ["review", "measure", "negotiate"]
+      },
+      "editorial_review": {
+        "status": "reviewed_seed",
+        "reviewed_by": "solomonic-clock-seed",
+        "reviewed_at": "2026-08-03",
+        "confidence": "medium"
+      }
+    }
+  ]
+}

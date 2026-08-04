@@ -144,8 +144,39 @@ class GuidedPromptsApiTests(unittest.TestCase):
         self.assertEqual(payload["timely_guidance"]["valid_from"], "2026-03-13T20:00:00-05:00")
         self.assertEqual(payload["timely_guidance"]["valid_until"], "2026-03-13T21:00:00-05:00")
         self.assertIn("cited_works", payload)
+        cited_work_records = [work for work in payload["cited_works"] if work.get("kind") == "cited_work"]
+        self.assertGreaterEqual(len(cited_work_records), 1)
+        self.assertIn(cited_work_records[0]["author"], {"Marcus Aurelius", "Benjamin Franklin", "Adam Smith"})
+        self.assertEqual(cited_work_records[0]["editorial_review"]["status"], "reviewed_seed")
+        self.assertIn("relation_to_moment", cited_work_records[0])
+        self.assertIn(
+            "cited_work_passages",
+            payload["section_content"]["solomonic_meditation"],
+        )
+        self.assertEqual(
+            payload["section_content"]["solomonic_meditation"]["cited_work_passages"],
+            cited_work_records,
+        )
+        self.assertNotIn("persona", json.dumps(cited_work_records).lower())
         self.assertIn("sources", payload)
+        self.assertIn(
+            "passage-meaning-seed-v1",
+            {source["id"] for source in payload["sources"]},
+        )
         self.assertNotIn("guided_prompts", payload)
+
+    def test_passage_meaning_seed_records_are_reviewed_and_clock_eligible(self) -> None:
+        payload = webserver._load_passage_meaning_records()
+        records = payload["records"]
+
+        authors = {record["author"] for record in records}
+        self.assertTrue({"Marcus Aurelius", "Benjamin Franklin", "Adam Smith"}.issubset(authors))
+        for record in records:
+            self.assertTrue(record["passage_id"])
+            self.assertEqual(record["editorial_review"]["status"], "reviewed_seed")
+            self.assertIn("clock_relevance", record)
+            self.assertIn("practice_tags", record["clock_relevance"])
+            self.assertLessEqual(len(record["excerpt"].split()), 25)
 
     def test_public_clock_context_ignores_request_as_of(self) -> None:
         payload, error, status = webserver._build_public_clock_context_payload(

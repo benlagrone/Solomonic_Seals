@@ -40,6 +40,7 @@ DATA_PATH = REPO_ROOT / "data" / "solomonic_clock_full.json"
 PENTACLE_PSALMS_PATH = REPO_ROOT / "data" / "pentacle_psalms.json"
 SCRIPTURE_MAPPINGS_PATH = REPO_ROOT / "data" / "scripture_mappings.json"
 LIFE_DOMAINS_PATH = REPO_ROOT / "data" / "life_domains.json"
+PASSAGE_MEANING_RECORDS_PATH = REPO_ROOT / "data" / "passage_meaning_records.json"
 LOCAL_SOURCE_TEXTS_DIR = REPO_ROOT / "docs" / "source_texts"
 DEFAULT_AUGUSTINE_CORPUS_ROOT = Path(
     os.environ.get("SOLOMONIC_AUGUSTINE_CORPUS_ROOT", REPO_ROOT.parent / "AugustineCorpus")
@@ -176,6 +177,8 @@ _PSALM_LOOKUP_NUMBERING: str | None = None
 _PSALM_NUMBER_MAP: dict[int, list["PsalmReferenceSpan"]] | None = None
 _PSALM_NUMBER_MAP_ERROR: str | None = None
 _AUTHOR_TEXTS_DIR_CACHE: dict[str, Path] | None = None
+_PASSAGE_MEANING_RECORDS: dict[str, Any] | None = None
+_PASSAGE_MEANING_RECORDS_MTIME: float | None = None
 GUIDED_PROMPTS_API_KEY_ENV = "SOLOMONIC_GUIDED_PROMPTS_API_KEY"
 GUIDED_PROMPTS_AUTH_HEADER = "X-Solomonic-Clock-Key"
 HISTORY_SYNC_API_PATH = "/api/history/sync"
@@ -4062,6 +4065,154 @@ def _build_context_moment(
     }
 
 
+def _normalize_match_tokens(value: Any) -> set[str]:
+    if value is None:
+        return set()
+
+    if isinstance(value, dict):
+        tokens: set[str] = set()
+        for entry in value.values():
+            tokens.update(_normalize_match_tokens(entry))
+        return tokens
+
+    if isinstance(value, (list, tuple, set)):
+        tokens = set()
+        for entry in value:
+            tokens.update(_normalize_match_tokens(entry))
+        return tokens
+
+    return {
+        token
+        for token in re.split(r"[^a-z0-9]+", str(value).lower())
+        if len(token) >= 3
+    }
+
+
+def _load_passage_meaning_records() -> dict[str, Any]:
+    global _PASSAGE_MEANING_RECORDS, _PASSAGE_MEANING_RECORDS_MTIME
+
+    try:
+        mtime = PASSAGE_MEANING_RECORDS_PATH.stat().st_mtime
+    except FileNotFoundError:
+        return {"schema_version": "missing", "records": []}
+
+    if _PASSAGE_MEANING_RECORDS is not None and _PASSAGE_MEANING_RECORDS_MTIME == mtime:
+        return _PASSAGE_MEANING_RECORDS
+
+    try:
+        payload = json.loads(PASSAGE_MEANING_RECORDS_PATH.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        payload = {"schema_version": "unavailable", "records": []}
+
+    if not isinstance(payload, dict):
+        payload = {"schema_version": "invalid", "records": []}
+    if not isinstance(payload.get("records"), list):
+        payload["records"] = []
+
+    _PASSAGE_MEANING_RECORDS = payload
+    _PASSAGE_MEANING_RECORDS_MTIME = mtime
+    return payload
+
+
+def _score_passage_meaning_record(record: dict[str, Any], context_tokens: set[str], ruler: str) -> int:
+    record_tokens = _normalize_match_tokens([
+        record.get("themes"),
+        record.get("virtues"),
+        record.get("shadows"),
+        record.get("movements"),
+        record.get("life_domains"),
+        record.get("key_terms"),
+        (record.get("clock_relevance") or {}).get("practice_tags"),
+        record.get("original_subject"),
+    ])
+    score = len(context_tokens.intersection(record_tokens))
+    relevant_rulers = {
+        str(entry).strip().lower()
+        for entry in ((record.get("clock_relevance") or {}).get("rulers") or [])
+        if str(entry).strip()
+    }
+    if ruler and ruler.lower() in relevant_rulers:
+        score += 2
+    if (record.get("editorial_review") or {}).get("status") == "reviewed_seed":
+        score += 1
+    return score
+
+
+def _select_passage_meaning_records(
+    daily_guidance: dict[str, Any],
+    daily_profile: dict[str, Any],
+    weekly_arc: dict[str, Any],
+    moment: dict[str, Any],
+    *,
+    limit: int = 2,
+) -> list[dict[str, Any]]:
+    records = [
+        record
+        for record in _load_passage_meaning_records().get("records") or []
+        if isinstance(record, dict)
+    ]
+    if not records:
+        return []
+
+    current_hour = (moment.get("scales") or {}).get("hour") or {}
+    context_tokens = _normalize_match_tokens([
+        daily_guidance.get("tone"),
+        daily_guidance.get("activities"),
+        daily_profile.get("focus"),
+        daily_profile.get("life_domain_focus"),
+        daily_profile.get("weakest_domain"),
+        weekly_arc.get("focus"),
+        weekly_arc.get("tone"),
+        moment.get("dominant_theme"),
+        moment.get("counter_theme"),
+        moment.get("present_counsel"),
+        current_hour.get("label"),
+        current_hour.get("practices"),
+    ])
+    ruler = str(daily_profile.get("hour_ruler") or weekly_arc.get("ruler") or "").strip()
+    ranked = sorted(
+        (
+            (_score_passage_meaning_record(record, context_tokens, ruler), record)
+            for record in records
+        ),
+        key=lambda entry: (
+            entry[0],
+            str(entry[1].get("author") or ""),
+            str(entry[1].get("passage_id") or ""),
+        ),
+        reverse=True,
+    )
+
+    selected: list[dict[str, Any]] = []
+    for score, record in ranked:
+        if score <= 0:
+            continue
+        selected.append({
+            "kind": "cited_work",
+            "passage_id": str(record.get("passage_id") or "").strip(),
+            "author": str(record.get("author") or "").strip(),
+            "work": str(record.get("work") or "").strip(),
+            "citation": str(record.get("citation") or "").strip(),
+            "edition": str(record.get("edition") or "").strip(),
+            "rights": str(record.get("rights") or "").strip(),
+            "excerpt": str(record.get("excerpt") or "").strip(),
+            "original_subject": str(record.get("original_subject") or "").strip(),
+            "argument_role": str(record.get("argument_role") or "").strip(),
+            "relation_to_moment": {
+                "matched_score": score,
+                "themes": record.get("themes") or [],
+                "virtues": record.get("virtues") or [],
+                "life_domains": record.get("life_domains") or [],
+            },
+            "editorial_review": record.get("editorial_review") or {},
+            "section": "Solomonic Meditation",
+        })
+        if len(selected) >= limit:
+            break
+
+    return selected
+
+
 def _build_clock_context_payload(request_payload: dict[str, Any]) -> tuple[dict[str, Any] | None, str | None, HTTPStatus]:
     base_payload = dict(request_payload)
     base_payload.setdefault("limit", 1)
@@ -4092,6 +4243,7 @@ def _build_clock_context_payload(request_payload: dict[str, Any]) -> tuple[dict[
     second_activity = str(activities[1]).strip() if len(activities) > 1 else "Restrain avoidable distraction."
     third_activity = str(activities[2]).strip() if len(activities) > 2 else "End with honest review."
     moment = _build_context_moment(as_of, context_payload, daily_guidance, weekly_arc, daily_profile)
+    cited_work_records = _select_passage_meaning_records(daily_guidance, daily_profile, weekly_arc, moment)
     context_payload["schema_version"] = "clock-context-v2"
     context_payload["content_id"] = f"clock-content:guest:{local_date}:{context_payload.get('timezone')}:v1"
     context_payload["moment"] = moment
@@ -4149,6 +4301,7 @@ def _build_clock_context_payload(request_payload: dict[str, Any]) -> tuple[dict[
                 f"{daily_guidance.get('tone') or 'The present moment asks for governed attention'} "
                 f"Carry this through {current_focus.lower()} with one concrete practice: {first_activity}"
             ).strip(),
+            "cited_work_passages": cited_work_records,
         },
         "selected_track": {
             "title": "Daily Guidance",
@@ -4193,7 +4346,7 @@ def _build_clock_context_payload(request_payload: dict[str, Any]) -> tuple[dict[
             "reference": solomonic.get("ref") or "",
             "section": "Solomonic Meditation",
         },
-    ]
+    ] + cited_work_records
     context_payload["sources"] = [
         {
             "id": "clock-deterministic-context",
@@ -4203,6 +4356,22 @@ def _build_clock_context_payload(request_payload: dict[str, Any]) -> tuple[dict[
             "version": content_version,
         }
     ]
+    if cited_work_records:
+        passage_meaning_payload = _load_passage_meaning_records()
+        context_payload["sources"].append({
+            "id": "passage-meaning-seed-v1",
+            "service": "solomonic_clock",
+            "evidence_class": "reviewed_passage_meaning_seed",
+            "source_file": "data/passage_meaning_records.json",
+            "source_fields": [
+                "themes",
+                "virtues",
+                "life_domains",
+                "clock_relevance",
+                "editorial_review",
+            ],
+            "version": passage_meaning_payload.get("schema_version") or "passage-meaning-seed-v1",
+        })
     context_payload["source"] = {
         **dict(context_payload.get("source") or {}),
         "api": CLOCK_CONTEXT_API_PATH,
