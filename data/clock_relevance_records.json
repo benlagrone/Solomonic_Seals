@@ -1,0 +1,70 @@
+{
+  "schema_version": "clock-relevance-seed-v1",
+  "generated": "2026-08-07",
+  "editorial_status": "reviewed_seed",
+  "records": [
+    {
+      "relevance_id": "clock-rel-marcus-aurelius-meditations-2-5-duty",
+      "passage_id": "marcus-aurelius-meditations-2-5-duty",
+      "scales": ["minute", "hour", "day"],
+      "phases": ["declining", "returning"],
+      "rulers": ["Saturn", "Mercury"],
+      "virtues": ["prudence", "temperance", "fortitude"],
+      "shadows": ["distraction", "delay", "vanity"],
+      "life_domains": ["mind", "work", "vocation"],
+      "movements": ["complete", "restrain"],
+      "counsel_kinds": ["attention", "restraint", "review"],
+      "practice_tags": ["attention", "discipline", "review"],
+      "evidence_class": "inherited_wisdom",
+      "reviewed_why_now": "Use when the moment asks for disciplined present action, completion before the next boundary, or restraint from drift.",
+      "selection_review": {
+        "status": "reviewed_seed",
+        "reviewed_by": "solomonic-clock-seed",
+        "reviewed_at": "2026-08-07",
+        "confidence": "medium"
+      }
+    },
+    {
+      "relevance_id": "clock-rel-franklin-poor-richards-almanack-lost-time",
+      "passage_id": "franklin-poor-richards-almanack-lost-time",
+      "scales": ["minute", "hour", "day", "week"],
+      "phases": ["opening", "rising"],
+      "rulers": ["Mercury", "Sun"],
+      "virtues": ["prudence", "diligence", "temperance"],
+      "shadows": ["procrastination", "waste", "drift"],
+      "life_domains": ["work", "stewardship", "household"],
+      "movements": ["begin", "build"],
+      "counsel_kinds": ["timely_action", "stewardship", "ordering"],
+      "practice_tags": ["organize", "schedule", "act"],
+      "evidence_class": "inherited_wisdom",
+      "reviewed_why_now": "Use when the current interval favors timely action, ordered stewardship, and refusal of preventable delay.",
+      "selection_review": {
+        "status": "reviewed_seed",
+        "reviewed_by": "solomonic-clock-seed",
+        "reviewed_at": "2026-08-07",
+        "confidence": "medium"
+      }
+    },
+    {
+      "relevance_id": "clock-rel-adam-smith-wealth-nations-real-price-labor",
+      "passage_id": "adam-smith-wealth-nations-real-price-labor",
+      "scales": ["day", "week", "year"],
+      "phases": ["fullness", "declining"],
+      "rulers": ["Mercury", "Jupiter", "Saturn"],
+      "virtues": ["prudence", "justice", "diligence"],
+      "shadows": ["false economy", "mispriced effort", "waste"],
+      "life_domains": ["work", "stewardship", "vocation"],
+      "movements": ["measure", "restrain", "complete"],
+      "counsel_kinds": ["valuation", "measurement", "completion"],
+      "practice_tags": ["review", "measure", "negotiate"],
+      "evidence_class": "inherited_wisdom",
+      "reviewed_why_now": "Use when the moment calls for measuring real cost, honoring labor, or refusing an attractive but wasteful exchange.",
+      "selection_review": {
+        "status": "reviewed_seed",
+        "reviewed_by": "solomonic-clock-seed",
+        "reviewed_at": "2026-08-07",
+        "confidence": "medium"
+      }
+    }
+  ]
+}

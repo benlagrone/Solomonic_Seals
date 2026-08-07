@@ -9,6 +9,7 @@
       "author_slug": "marcus_aurelius",
       "work": "Meditations",
       "citation": "Book 2, section 5",
+      "source_location": "Meditations, Book 2, section 5",
       "edition": "George Long translation",
       "rights": "public_domain_translation",
       "excerpt": "Do every act of thy life as if it were the last.",
@@ -21,12 +22,6 @@
       "shadows": ["distraction", "delay", "vanity"],
       "movements": ["complete", "restrain"],
       "life_domains": ["mind", "work", "vocation"],
-      "clock_relevance": {
-        "scales": ["minute", "hour", "day"],
-        "phases": ["declining", "returning"],
-        "rulers": ["Saturn", "Mercury"],
-        "practice_tags": ["attention", "discipline", "review"]
-      },
       "editorial_review": {
         "status": "reviewed_seed",
         "reviewed_by": "solomonic-clock-seed",
@@ -40,6 +35,7 @@
       "author_slug": "benjamin_franklin",
       "work": "Poor Richard's Almanack",
       "citation": "1736 almanack maxim",
+      "source_location": "Poor Richard's Almanack, 1736 maxim",
       "edition": "public-domain collected maxims",
       "rights": "public_domain",
       "excerpt": "Lost time is never found again.",
@@ -52,12 +48,6 @@
       "shadows": ["procrastination", "waste", "drift"],
       "movements": ["begin", "build"],
       "life_domains": ["work", "stewardship", "household"],
-      "clock_relevance": {
-        "scales": ["minute", "hour", "day", "week"],
-        "phases": ["opening", "rising"],
-        "rulers": ["Mercury", "Sun"],
-        "practice_tags": ["organize", "schedule", "act"]
-      },
       "editorial_review": {
         "status": "reviewed_seed",
         "reviewed_by": "solomonic-clock-seed",
@@ -71,6 +61,7 @@
       "author_slug": "adam_smith",
       "work": "An Inquiry into the Nature and Causes of the Wealth of Nations",
       "citation": "Book I, chapter V",
+      "source_location": "Wealth of Nations, Book I, chapter V",
       "edition": "public-domain text",
       "rights": "public_domain",
       "excerpt": "The real price of every thing is the toil and trouble of acquiring it.",
@@ -83,12 +74,6 @@
       "shadows": ["false economy", "mispriced effort", "waste"],
       "movements": ["measure", "restrain", "complete"],
       "life_domains": ["work", "stewardship", "vocation"],
-      "clock_relevance": {
-        "scales": ["day", "week", "year"],
-        "phases": ["fullness", "declining"],
-        "rulers": ["Mercury", "Jupiter", "Saturn"],
-        "practice_tags": ["review", "measure", "negotiate"]
-      },
       "editorial_review": {
         "status": "reviewed_seed",
         "reviewed_by": "solomonic-clock-seed",

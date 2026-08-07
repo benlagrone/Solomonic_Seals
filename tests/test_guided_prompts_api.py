@@ -148,7 +148,13 @@ class GuidedPromptsApiTests(unittest.TestCase):
         self.assertGreaterEqual(len(cited_work_records), 1)
         self.assertIn(cited_work_records[0]["author"], {"Marcus Aurelius", "Benjamin Franklin", "Adam Smith"})
         self.assertEqual(cited_work_records[0]["editorial_review"]["status"], "reviewed_seed")
+        self.assertEqual(cited_work_records[0]["selection_review"]["status"], "reviewed_seed")
+        self.assertTrue(cited_work_records[0]["relevance_id"])
+        self.assertTrue(cited_work_records[0]["source_location"])
+        self.assertTrue(cited_work_records[0]["original_context"])
         self.assertIn("relation_to_moment", cited_work_records[0])
+        self.assertTrue(cited_work_records[0]["relation_to_moment"]["why_now"])
+        self.assertEqual(cited_work_records[0]["relation_to_moment"]["evidence_class"], "inherited_wisdom")
         self.assertIn(
             "cited_work_passages",
             payload["section_content"]["solomonic_meditation"],
@@ -163,6 +169,10 @@ class GuidedPromptsApiTests(unittest.TestCase):
             "passage-meaning-seed-v1",
             {source["id"] for source in payload["sources"]},
         )
+        self.assertIn(
+            "clock-relevance-seed-v1",
+            {source["id"] for source in payload["sources"]},
+        )
         self.assertNotIn("guided_prompts", payload)
 
     def test_passage_meaning_seed_records_are_reviewed_and_clock_eligible(self) -> None:
@@ -173,10 +183,23 @@ class GuidedPromptsApiTests(unittest.TestCase):
         self.assertTrue({"Marcus Aurelius", "Benjamin Franklin", "Adam Smith"}.issubset(authors))
         for record in records:
             self.assertTrue(record["passage_id"])
+            self.assertTrue(record["source_location"])
             self.assertEqual(record["editorial_review"]["status"], "reviewed_seed")
-            self.assertIn("clock_relevance", record)
-            self.assertIn("practice_tags", record["clock_relevance"])
+            self.assertNotIn("clock_relevance", record)
             self.assertLessEqual(len(record["excerpt"].split()), 25)
+
+    def test_clock_relevance_seed_records_are_separate_and_reviewed(self) -> None:
+        passage_payload = webserver._load_passage_meaning_records()
+        relevance_payload = webserver._load_clock_relevance_records()
+        passage_ids = {record["passage_id"] for record in passage_payload["records"]}
+
+        self.assertEqual(relevance_payload["schema_version"], "clock-relevance-seed-v1")
+        for record in relevance_payload["records"]:
+            self.assertTrue(record["relevance_id"])
+            self.assertIn(record["passage_id"], passage_ids)
+            self.assertTrue(record["reviewed_why_now"])
+            self.assertIn("practice_tags", record)
+            self.assertEqual(record["selection_review"]["status"], "reviewed_seed")
 
     def test_public_clock_context_ignores_request_as_of(self) -> None:
         payload, error, status = webserver._build_public_clock_context_payload(
