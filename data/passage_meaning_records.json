@@ -80,6 +80,84 @@
         "reviewed_at": "2026-08-03",
         "confidence": "medium"
       }
+    },
+    {
+      "passage_id": "franklin-poor-richards-almanack-early-bed",
+      "author": "Benjamin Franklin",
+      "author_slug": "benjamin_franklin",
+      "work": "Poor Richard's Almanack",
+      "citation": "1735 almanack maxim",
+      "source_location": "Poor Richard's Almanack, 1735 maxim",
+      "edition": "public-domain collected maxims",
+      "rights": "public_domain",
+      "excerpt": "Early to bed and early to rise, makes a man healthy, wealthy, and wise.",
+      "original_subject": "orderly household rhythm",
+      "argument_role": "practical maxim",
+      "historical_setting": "Eighteenth-century civic and household prudence literature.",
+      "key_terms": ["health", "wealth", "wisdom", "sleep"],
+      "themes": ["routine", "health", "industry"],
+      "virtues": ["prudence", "diligence", "temperance"],
+      "shadows": ["disorder", "indulgence", "delay"],
+      "movements": ["begin", "order"],
+      "life_domains": ["body", "household", "stewardship"],
+      "editorial_review": {
+        "status": "reviewed_seed",
+        "reviewed_by": "solomonic-clock-seed",
+        "reviewed_at": "2026-08-10",
+        "confidence": "medium"
+      }
+    },
+    {
+      "passage_id": "adam-smith-theory-moral-sentiments-prudence",
+      "author": "Adam Smith",
+      "author_slug": "adam_smith",
+      "work": "The Theory of Moral Sentiments",
+      "citation": "Part VI, section I",
+      "source_location": "Theory of Moral Sentiments, Part VI, section I",
+      "edition": "public-domain text",
+      "rights": "rights_review_pending",
+      "excerpt": "Prudence is of all the virtues that which is most useful to the individual.",
+      "original_subject": "prudence and self-command",
+      "argument_role": "moral definition",
+      "historical_setting": "Classical moral philosophy on prudence, sympathy, and self-command.",
+      "key_terms": ["prudence", "self-command", "utility", "virtue"],
+      "themes": ["prudence", "self-command", "usefulness"],
+      "virtues": ["prudence", "temperance"],
+      "shadows": ["rashness", "vanity", "excess"],
+      "movements": ["restrain", "measure"],
+      "life_domains": ["mind", "stewardship", "vocation"],
+      "editorial_review": {
+        "status": "reviewed_seed",
+        "reviewed_by": "solomonic-clock-seed",
+        "reviewed_at": "2026-08-10",
+        "confidence": "low"
+      }
+    },
+    {
+      "passage_id": "franklin-experiments-observations-electric-kite",
+      "author": "Benjamin Franklin",
+      "author_slug": "benjamin_franklin",
+      "work": "Experiments and Observations on Electricity",
+      "citation": "Letter XI",
+      "source_location": "Experiments and Observations on Electricity, Letter XI",
+      "edition": "public-domain text",
+      "rights": "public_domain",
+      "excerpt": "The electrical fire would, I think, be drawn out of a cloud silently.",
+      "original_subject": "electrical experiment and storm observation",
+      "argument_role": "experimental hypothesis",
+      "historical_setting": "Eighteenth-century natural philosophy on electricity and atmospheric experiment.",
+      "key_terms": ["electricity", "cloud", "storm", "experiment"],
+      "themes": ["natural philosophy", "observation", "experiment"],
+      "virtues": ["curiosity", "care"],
+      "shadows": ["hazard", "overconfidence"],
+      "movements": ["observe", "test"],
+      "life_domains": ["craft"],
+      "editorial_review": {
+        "status": "reviewed_seed",
+        "reviewed_by": "solomonic-clock-seed",
+        "reviewed_at": "2026-08-10",
+        "confidence": "medium"
+      }
     }
   ]
 }

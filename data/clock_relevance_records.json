@@ -65,6 +65,69 @@
         "reviewed_at": "2026-08-07",
         "confidence": "medium"
       }
+    },
+    {
+      "relevance_id": "clock-rel-franklin-poor-richards-almanack-early-bed",
+      "passage_id": "franklin-poor-richards-almanack-early-bed",
+      "scales": ["day", "week"],
+      "phases": ["opening"],
+      "rulers": ["Sun"],
+      "virtues": ["prudence", "diligence", "temperance"],
+      "shadows": ["disorder", "indulgence", "delay"],
+      "life_domains": ["body", "household", "stewardship"],
+      "movements": ["begin", "order"],
+      "counsel_kinds": ["routine", "health_rhythm", "household_order"],
+      "practice_tags": ["sleep", "rise", "routine"],
+      "evidence_class": "inherited_wisdom",
+      "reviewed_why_now": "Use when the moment is about ordered bodily rhythm, beginning the day, or restoring household cadence.",
+      "selection_review": {
+        "status": "reviewed_seed",
+        "reviewed_by": "solomonic-clock-seed",
+        "reviewed_at": "2026-08-10",
+        "confidence": "medium"
+      }
+    },
+    {
+      "relevance_id": "clock-rel-adam-smith-theory-moral-sentiments-prudence",
+      "passage_id": "adam-smith-theory-moral-sentiments-prudence",
+      "scales": ["hour", "day", "week"],
+      "phases": ["declining", "returning"],
+      "rulers": ["Mercury", "Saturn"],
+      "virtues": ["prudence", "temperance"],
+      "shadows": ["rashness", "vanity", "excess"],
+      "life_domains": ["mind", "stewardship", "vocation"],
+      "movements": ["restrain", "measure"],
+      "counsel_kinds": ["prudence", "self_command", "measurement"],
+      "practice_tags": ["restrain", "measure", "review"],
+      "evidence_class": "inherited_wisdom",
+      "reviewed_why_now": "Use only after rights review when prudence and self-command are the dominant counsel.",
+      "selection_review": {
+        "status": "reviewed_seed",
+        "reviewed_by": "solomonic-clock-seed",
+        "reviewed_at": "2026-08-10",
+        "confidence": "low"
+      }
+    },
+    {
+      "relevance_id": "clock-rel-franklin-experiments-observations-electric-kite",
+      "passage_id": "franklin-experiments-observations-electric-kite",
+      "scales": ["season"],
+      "phases": ["storm"],
+      "rulers": ["Uranus"],
+      "virtues": ["curiosity", "care"],
+      "shadows": ["hazard", "overconfidence"],
+      "life_domains": ["craft"],
+      "movements": ["observe", "test"],
+      "counsel_kinds": ["experiment", "natural_observation"],
+      "practice_tags": ["observe", "test", "document"],
+      "evidence_class": "observed_physical_state",
+      "reviewed_why_now": "Use when the moment is explicitly about natural observation, experiment, or storm evidence, not merely because Franklin is an eligible author.",
+      "selection_review": {
+        "status": "reviewed_seed",
+        "reviewed_by": "solomonic-clock-seed",
+        "reviewed_at": "2026-08-10",
+        "confidence": "medium"
+      }
     }
   ]
 }

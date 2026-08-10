@@ -182,6 +182,18 @@ _PASSAGE_MEANING_RECORDS: dict[str, Any] | None = None
 _PASSAGE_MEANING_RECORDS_MTIME: float | None = None
 _CLOCK_RELEVANCE_RECORDS: dict[str, Any] | None = None
 _CLOCK_RELEVANCE_RECORDS_MTIME: float | None = None
+_MATCH_TOKEN_STOPWORDS = {
+    "and",
+    "are",
+    "for",
+    "the",
+    "this",
+    "that",
+    "with",
+    "from",
+    "into",
+    "your",
+}
 GUIDED_PROMPTS_API_KEY_ENV = "SOLOMONIC_GUIDED_PROMPTS_API_KEY"
 GUIDED_PROMPTS_AUTH_HEADER = "X-Solomonic-Clock-Key"
 HISTORY_SYNC_API_PATH = "/api/history/sync"
@@ -4087,7 +4099,7 @@ def _normalize_match_tokens(value: Any) -> set[str]:
     return {
         token
         for token in re.split(r"[^a-z0-9]+", str(value).lower())
-        if len(token) >= 3
+        if len(token) >= 3 and token not in _MATCH_TOKEN_STOPWORDS
     }
 
 
@@ -4178,7 +4190,6 @@ def _score_passage_meaning_record(
         record.get("key_terms"),
         relevance.get("practice_tags"),
         relevance.get("counsel_kinds"),
-        relevance.get("reviewed_why_now"),
         record.get("original_subject"),
     ])
     score = len(context_tokens.intersection(record_tokens))
@@ -4189,6 +4200,8 @@ def _score_passage_meaning_record(
     }
     if ruler and ruler.lower() in relevant_rulers:
         score += 2
+    if score <= 0:
+        return 0
     if (record.get("editorial_review") or {}).get("status") == "reviewed_seed":
         score += 1
     if (relevance.get("selection_review") or {}).get("status") == "reviewed_seed":
@@ -4196,21 +4209,53 @@ def _score_passage_meaning_record(
     return score
 
 
-def _select_passage_meaning_records(
+def _get_passage_selection_exclusion_reasons(record: dict[str, Any], relevance: dict[str, Any]) -> list[str]:
+    reasons: list[str] = []
+    required_fields = [
+        "passage_id",
+        "author",
+        "work",
+        "citation",
+        "source_location",
+        "edition",
+        "rights",
+        "excerpt",
+    ]
+    for field in required_fields:
+        if not str(record.get(field) or "").strip():
+            reasons.append(f"missing_{field}")
+
+    rights = str(record.get("rights") or "").strip().lower()
+    if rights in {"", "rights_review_pending", "unknown", "restricted"}:
+        reasons.append("rights_not_display_eligible")
+
+    if (record.get("editorial_review") or {}).get("status") != "reviewed_seed":
+        reasons.append("passage_not_reviewed")
+    if not relevance:
+        reasons.append("missing_clock_relevance")
+    elif (relevance.get("selection_review") or {}).get("status") != "reviewed_seed":
+        reasons.append("relevance_not_reviewed")
+    if relevance and not str(relevance.get("reviewed_why_now") or "").strip():
+        reasons.append("missing_reviewed_why_now")
+
+    return reasons
+
+
+def _build_cited_work_selection(
     daily_guidance: dict[str, Any],
     daily_profile: dict[str, Any],
     weekly_arc: dict[str, Any],
     moment: dict[str, Any],
     *,
     limit: int = 2,
-) -> list[dict[str, Any]]:
+) -> dict[str, Any]:
     records = [
         record
         for record in _load_passage_meaning_records().get("records") or []
         if isinstance(record, dict)
     ]
     if not records:
-        return []
+        return {"selected": [], "excluded": [], "selection_policy": "reviewed_relevance_v1"}
 
     relevance_records = _clock_relevance_records_by_passage()
     current_hour = (moment.get("scales") or {}).get("hour") or {}
@@ -4229,19 +4274,18 @@ def _select_passage_meaning_records(
         current_hour.get("practices"),
     ])
     ruler = str(daily_profile.get("hour_ruler") or weekly_arc.get("ruler") or "").strip()
+
+    candidates: list[tuple[int, dict[str, Any], dict[str, Any], list[str]]] = []
+    for record in records:
+        relevance = _get_passage_relevance(record, relevance_records)
+        exclusion_reasons = _get_passage_selection_exclusion_reasons(record, relevance)
+        score = _score_passage_meaning_record(record, relevance, context_tokens, ruler)
+        if score <= 0 and not exclusion_reasons:
+            exclusion_reasons = ["not_relevant_to_current_moment"]
+        candidates.append((score, record, relevance, exclusion_reasons))
+
     ranked = sorted(
-        (
-            (
-                _score_passage_meaning_record(
-                    record,
-                    _get_passage_relevance(record, relevance_records),
-                    context_tokens,
-                    ruler,
-                ),
-                record,
-            )
-            for record in records
-        ),
+        candidates,
         key=lambda entry: (
             entry[0],
             str(entry[1].get("author") or ""),
@@ -4251,42 +4295,77 @@ def _select_passage_meaning_records(
     )
 
     selected: list[dict[str, Any]] = []
-    for score, record in ranked:
-        if score <= 0:
+    excluded: list[dict[str, Any]] = []
+    selected_passage_ids: set[str] = set()
+    for score, record, relevance, exclusion_reasons in ranked:
+        passage_id = str(record.get("passage_id") or "").strip()
+        if not exclusion_reasons and len(selected) < limit:
+            selected.append({
+                "kind": "cited_work",
+                "passage_id": passage_id,
+                "relevance_id": str(relevance.get("relevance_id") or "").strip(),
+                "author": str(record.get("author") or "").strip(),
+                "work": str(record.get("work") or "").strip(),
+                "citation": str(record.get("citation") or "").strip(),
+                "source_location": str(record.get("source_location") or record.get("citation") or "").strip(),
+                "edition": str(record.get("edition") or "").strip(),
+                "rights": str(record.get("rights") or "").strip(),
+                "excerpt": str(record.get("excerpt") or "").strip(),
+                "original_subject": str(record.get("original_subject") or "").strip(),
+                "original_context": str(record.get("historical_setting") or "").strip(),
+                "argument_role": str(record.get("argument_role") or "").strip(),
+                "relation_to_moment": {
+                    "matched_score": score,
+                    "themes": record.get("themes") or [],
+                    "virtues": record.get("virtues") or [],
+                    "life_domains": record.get("life_domains") or [],
+                    "movements": relevance.get("movements") or record.get("movements") or [],
+                    "counsel_kinds": relevance.get("counsel_kinds") or [],
+                    "evidence_class": relevance.get("evidence_class") or "inherited_wisdom",
+                    "why_now": str(relevance.get("reviewed_why_now") or "").strip(),
+                },
+                "editorial_review": record.get("editorial_review") or {},
+                "selection_review": relevance.get("selection_review") or {},
+                "section": "Solomonic Meditation",
+            })
+            selected_passage_ids.add(passage_id)
             continue
-        relevance = _get_passage_relevance(record, relevance_records)
-        selected.append({
-            "kind": "cited_work",
-            "passage_id": str(record.get("passage_id") or "").strip(),
+
+        if passage_id in selected_passage_ids:
+            continue
+        reasons = exclusion_reasons or ["selection_limit_reached"]
+        excluded.append({
+            "passage_id": passage_id,
             "relevance_id": str(relevance.get("relevance_id") or "").strip(),
             "author": str(record.get("author") or "").strip(),
-            "work": str(record.get("work") or "").strip(),
-            "citation": str(record.get("citation") or "").strip(),
-            "source_location": str(record.get("source_location") or record.get("citation") or "").strip(),
-            "edition": str(record.get("edition") or "").strip(),
-            "rights": str(record.get("rights") or "").strip(),
-            "excerpt": str(record.get("excerpt") or "").strip(),
-            "original_subject": str(record.get("original_subject") or "").strip(),
-            "original_context": str(record.get("historical_setting") or "").strip(),
-            "argument_role": str(record.get("argument_role") or "").strip(),
-            "relation_to_moment": {
-                "matched_score": score,
-                "themes": record.get("themes") or [],
-                "virtues": record.get("virtues") or [],
-                "life_domains": record.get("life_domains") or [],
-                "movements": relevance.get("movements") or record.get("movements") or [],
-                "counsel_kinds": relevance.get("counsel_kinds") or [],
-                "evidence_class": relevance.get("evidence_class") or "inherited_wisdom",
-                "why_now": str(relevance.get("reviewed_why_now") or "").strip(),
-            },
-            "editorial_review": record.get("editorial_review") or {},
-            "selection_review": relevance.get("selection_review") or {},
-            "section": "Solomonic Meditation",
+            "matched_score": score,
+            "exclusion_reasons": reasons,
         })
-        if len(selected) >= limit:
-            break
 
-    return selected
+    return {
+        "selected": selected,
+        "excluded": excluded[:8],
+        "selection_policy": "reviewed_relevance_v1",
+        "candidate_count": len(records),
+        "eligible_count": len([candidate for candidate in candidates if not candidate[3]]),
+    }
+
+
+def _select_passage_meaning_records(
+    daily_guidance: dict[str, Any],
+    daily_profile: dict[str, Any],
+    weekly_arc: dict[str, Any],
+    moment: dict[str, Any],
+    *,
+    limit: int = 2,
+) -> list[dict[str, Any]]:
+    return _build_cited_work_selection(
+        daily_guidance,
+        daily_profile,
+        weekly_arc,
+        moment,
+        limit=limit,
+    )["selected"]
 
 
 def _build_clock_context_payload(request_payload: dict[str, Any]) -> tuple[dict[str, Any] | None, str | None, HTTPStatus]:
@@ -4319,10 +4398,22 @@ def _build_clock_context_payload(request_payload: dict[str, Any]) -> tuple[dict[
     second_activity = str(activities[1]).strip() if len(activities) > 1 else "Restrain avoidable distraction."
     third_activity = str(activities[2]).strip() if len(activities) > 2 else "End with honest review."
     moment = _build_context_moment(as_of, context_payload, daily_guidance, weekly_arc, daily_profile)
-    cited_work_records = _select_passage_meaning_records(daily_guidance, daily_profile, weekly_arc, moment)
+    cited_work_selection = _build_cited_work_selection(daily_guidance, daily_profile, weekly_arc, moment)
+    cited_work_records = list(cited_work_selection.get("selected") or [])
     context_payload["schema_version"] = "clock-context-v2"
     context_payload["content_id"] = f"clock-content:guest:{local_date}:{context_payload.get('timezone')}:v1"
     context_payload["moment"] = moment
+    context_payload["cited_work_selection"] = {
+        "selection_policy": cited_work_selection.get("selection_policy"),
+        "selected_passage_ids": [
+            str(record.get("passage_id") or "").strip()
+            for record in cited_work_records
+            if str(record.get("passage_id") or "").strip()
+        ],
+        "excluded": cited_work_selection.get("excluded") or [],
+        "candidate_count": cited_work_selection.get("candidate_count") or 0,
+        "eligible_count": cited_work_selection.get("eligible_count") or 0,
+    }
     context_payload["content_generation"] = {
         "status": "ready",
         "poll_after_ms": None,

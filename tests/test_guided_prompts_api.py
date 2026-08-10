@@ -146,6 +146,30 @@ class GuidedPromptsApiTests(unittest.TestCase):
         self.assertIn("cited_works", payload)
         cited_work_records = [work for work in payload["cited_works"] if work.get("kind") == "cited_work"]
         self.assertGreaterEqual(len(cited_work_records), 1)
+        self.assertIn("cited_work_selection", payload)
+        self.assertEqual(payload["cited_work_selection"]["selection_policy"], "reviewed_relevance_v1")
+        self.assertEqual(
+            payload["cited_work_selection"]["selected_passage_ids"],
+            [work["passage_id"] for work in cited_work_records],
+        )
+        self.assertGreaterEqual(payload["cited_work_selection"]["candidate_count"], 6)
+        self.assertGreaterEqual(payload["cited_work_selection"]["eligible_count"], 3)
+        excluded_by_id = {
+            item["passage_id"]: item["exclusion_reasons"]
+            for item in payload["cited_work_selection"]["excluded"]
+        }
+        self.assertIn(
+            "rights_not_display_eligible",
+            excluded_by_id["adam-smith-theory-moral-sentiments-prudence"],
+        )
+        self.assertIn(
+            "selection_limit_reached",
+            excluded_by_id["franklin-poor-richards-almanack-early-bed"],
+        )
+        self.assertIn(
+            "not_relevant_to_current_moment",
+            excluded_by_id["franklin-experiments-observations-electric-kite"],
+        )
         self.assertIn(cited_work_records[0]["author"], {"Marcus Aurelius", "Benjamin Franklin", "Adam Smith"})
         self.assertEqual(cited_work_records[0]["editorial_review"]["status"], "reviewed_seed")
         self.assertEqual(cited_work_records[0]["selection_review"]["status"], "reviewed_seed")
@@ -187,6 +211,12 @@ class GuidedPromptsApiTests(unittest.TestCase):
             self.assertEqual(record["editorial_review"]["status"], "reviewed_seed")
             self.assertNotIn("clock_relevance", record)
             self.assertLessEqual(len(record["excerpt"].split()), 25)
+        pending_rights = {
+            record["passage_id"]
+            for record in records
+            if record.get("rights") == "rights_review_pending"
+        }
+        self.assertIn("adam-smith-theory-moral-sentiments-prudence", pending_rights)
 
     def test_clock_relevance_seed_records_are_separate_and_reviewed(self) -> None:
         passage_payload = webserver._load_passage_meaning_records()
