@@ -30,6 +30,8 @@ assert.ok(!html.includes("Read the day through Scripture-first counsel"), "main 
 assertIncludes(html, "A Solomonic Clock of Spheres", "clock legacy line should use the current product wording");
 assertIncludes(clockData, '"spirit": "#b8a46a"', "outer spirit ring should use muted brass instead of fuchsia/pink");
 assertIncludes(js, 'const CLOCK_STATIC_DATA_VERSION = "20260620-spirit-brass1";', "clock data fetches should be versioned so palette changes are not stuck behind JSON cache");
+assertIncludes(html, "/web/vendor/d3.v7.min.js", "clock should have a local D3 fallback before importing clock.js");
+assertIncludes(html, "await ensureD3();", "clock bootstrap should wait for D3 before loading clock.js");
 assertIncludes(html, 'class="clock-readout"', "live clock readout should sit above the SVG instead of over the center of the clock");
 assertIncludes(js, "function updateClockReadout", "clock render loop should hydrate the above-clock readout");
 assertIncludes(css, "svg#clock .center-label", "SVG center text should be suppressed after moving the readout above the clock");
@@ -223,6 +225,14 @@ assertIncludes(css, ".clock-page .meditation-body", "Solomonic meditation body s
 assertIncludes(css, "overflow: visible;", "Solomonic meditation body should not create a nested scroll area");
 assertIncludes(css, ".illuminated-heading::first-letter", "drawer tab headings should share the manuscript-style illuminated initial");
 assertIncludes(html, 'class="meditation-title illuminated-heading"', "Counsel tab title should use the illuminated heading treatment");
+assertIncludes(html, 'class="meditation-source-notes manuscript-source-note"', "Solomonic Meditation should render cited works as manuscript source notes");
+assertIncludes(html, 'class="meditation-source-note-list"', "Solomonic Meditation should expose a container for cited-work source notes");
+assertIncludes(js, "function getClockContextCitedWorks", "Clock context cited works should be extracted for source-note rendering");
+assertIncludes(js, "function updateMeditationSourceNotes", "Solomonic Meditation should render reviewed cited works in the drawer");
+assertIncludes(js, 'work.kind === "cited_work"', "source notes should only render cited-work records, not scripture placeholders");
+assertIncludes(js, "work.relation_to_moment?.why_now", "source notes should explain why the cited work fits the moment");
+assertIncludes(css, ".manuscript-source-note", "cited works should use a manuscript source-note treatment");
+assertIncludes(css, ".meditation-source-excerpt", "source excerpts should be visually distinct from generated synthesis");
 assertIncludes(html, 'class="scripture-reader-title illuminated-heading"', "Psalm and Proverb reader titles should use the illuminated heading treatment");
 assertIncludes(html, 'class="scripture-reader-panel manuscript-reading-page"', "Psalm and Proverb reader should render as a manuscript reading page");
 assertIncludes(html, 'class="scripture-reader-ref manuscript-rubric"', "Psalm and Proverb reader reference should use a rubric line");

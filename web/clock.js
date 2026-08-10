@@ -282,6 +282,8 @@ const drawerElements = {
   meditationClockText: document.querySelector(".meditation-clock-text"),
   meditationPentacleRef: document.querySelector(".meditation-pentacle-ref"),
   meditationPentacleText: document.querySelector(".meditation-pentacle-text"),
+  meditationSourceNotes: document.querySelector(".meditation-source-notes"),
+  meditationSourceNoteList: document.querySelector(".meditation-source-note-list"),
   meditationPracticeText: document.querySelector(".meditation-practice-text"),
   selectedClockSection: document.querySelector(".selected-clock-section"),
   selectedClockTitle: document.querySelector(".selected-clock-title"),
@@ -12060,6 +12062,64 @@ function getMeditationSnippet(element, fallback = "", limit = 150) {
   return toSnippet(getMeditationElementText(element) || fallback, limit);
 }
 
+function getClockContextCitedWorks(context) {
+  const apiContext = context?.clockApiContext && typeof context.clockApiContext === "object"
+    ? context.clockApiContext
+    : null;
+  const citedWorks = Array.isArray(apiContext?.cited_works) ? apiContext.cited_works : [];
+  return citedWorks.filter((work) => work && work.kind === "cited_work");
+}
+
+function formatCitedWorkSourceLine(work) {
+  return [
+    work.author,
+    work.work,
+    work.citation,
+  ].map((part) => String(part || "").trim()).filter(Boolean).join(" • ");
+}
+
+function updateMeditationSourceNotes(context) {
+  if (!drawerElements.meditationSourceNoteList) {
+    return;
+  }
+
+  const citedWorks = getClockContextCitedWorks(context).slice(0, 2);
+  drawerElements.meditationSourceNoteList.innerHTML = "";
+  if (!citedWorks.length) {
+    const empty = document.createElement("p");
+    empty.className = "meditation-source-empty";
+    empty.textContent = "Cited work notes will appear when reviewed passages match the moment.";
+    drawerElements.meditationSourceNoteList.appendChild(empty);
+    return;
+  }
+
+  citedWorks.forEach((work) => {
+    const note = document.createElement("article");
+    note.className = "meditation-source-note";
+
+    const source = document.createElement("p");
+    source.className = "meditation-source-ref";
+    source.textContent = formatCitedWorkSourceLine(work) || "Reviewed cited work";
+
+    const excerpt = document.createElement("blockquote");
+    excerpt.className = "meditation-source-excerpt";
+    excerpt.textContent = String(work.excerpt || "").trim();
+
+    const relevance = document.createElement("p");
+    relevance.className = "meditation-source-relevance";
+    relevance.textContent = String(work.relation_to_moment?.why_now || work.original_context || "").trim();
+
+    note.appendChild(source);
+    if (excerpt.textContent) {
+      note.appendChild(excerpt);
+    }
+    if (relevance.textContent) {
+      note.appendChild(relevance);
+    }
+    drawerElements.meditationSourceNoteList.appendChild(note);
+  });
+}
+
 function updateDailyMeditationPanel(context, timeState, now) {
   if (
     !drawerElements.meditationTitle
@@ -12125,6 +12185,7 @@ function updateDailyMeditationPanel(context, timeState, now) {
   drawerElements.meditationPentacleRef.textContent = solomonicRef;
   drawerElements.meditationPentacleText.textContent = solomonicSnippet;
   drawerElements.meditationPracticeText.textContent = nextAct;
+  updateMeditationSourceNotes(context);
 
   const paragraphs = [
     `The clock reads ${dayText} through ${rulerText}, but it does not leave the day as an abstraction. It places the counsel in ${domain.toLowerCase()}, where ${virtue.toLowerCase()} has to become mastery rather than mood.${harmonicCounsel ? ` ${harmonicCounsel.summary} ${harmonicCounsel.text}` : ""}`,

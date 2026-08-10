@@ -839,6 +839,68 @@ body[data-drawer-open="true"] .primary-drawer-button {
   padding-left: 0.62rem;
 }
 
+.manuscript-source-note {
+  border-left: 2px solid rgba(185, 28, 28, 0.45);
+  padding-left: 0.72rem;
+}
+
+.meditation-source-notes {
+  margin-top: 1rem;
+  text-align: left;
+}
+
+.meditation-source-notes-label {
+  margin: 0;
+  color: #fde68a;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.meditation-source-note-list {
+  display: grid;
+  gap: 0.72rem;
+  margin-top: 0.55rem;
+}
+
+.meditation-source-note {
+  padding: 0.72rem 0.82rem;
+  border-radius: 0.56rem;
+  border: 1px solid rgba(250, 204, 21, 0.14);
+  background: rgba(2, 6, 23, 0.24);
+}
+
+.meditation-source-ref,
+.meditation-source-excerpt,
+.meditation-source-relevance,
+.meditation-source-empty {
+  margin: 0;
+}
+
+.meditation-source-ref {
+  color: #f8fafc;
+  font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1.38;
+}
+
+.meditation-source-excerpt {
+  margin-top: 0.45rem;
+  color: #fde68a;
+  font-family: var(--scripture-serif);
+  font-size: 0.95rem;
+  line-height: 1.55;
+}
+
+.meditation-source-relevance,
+.meditation-source-empty {
+  margin-top: 0.42rem;
+  color: #cbd5f5;
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
 .scripture-reader-top {
   display: flex;
   align-items: flex-start;

@@ -467,6 +467,12 @@
                 </div>
               </article>
             </div>
+            <aside class="meditation-source-notes manuscript-source-note" aria-label="From the Works">
+              <p class="meditation-source-notes-label">From the Works</p>
+              <div class="meditation-source-note-list">
+                <p class="meditation-source-empty">Cited work notes will appear when reviewed passages match the moment.</p>
+              </div>
+            </aside>
             <div class="meditation-practice">
               <p class="meditation-practice-label">Practice</p>
               <p class="meditation-practice-text">Choose one faithful action and carry it through the next turn of the day.</p>
@@ -712,12 +718,25 @@
     </footer>
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <script type="module">
+      async function ensureD3() {
+        if (window.d3) {
+          return;
+        }
+        await new Promise((resolve) => {
+          const script = document.createElement("script");
+          script.src = "/web/vendor/d3.v7.min.js?v=20260810-local-d3";
+          script.onload = resolve;
+          script.onerror = resolve;
+          document.head.appendChild(script);
+        });
+      }
       try {
         const keycloakModule = await import("https://cdn.jsdelivr.net/npm/keycloak-js@26.0.2/+esm");
         window.Keycloak = keycloakModule.default;
       } catch (_error) {
         window.Keycloak = null;
       }
+      await ensureD3();
       import("/web/clock.js?v=20260705-full-readings1");
     </script>
   </body>
