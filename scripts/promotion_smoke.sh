@@ -54,7 +54,7 @@ for expected in \
   'data-drawer-tab="psalm"' \
   '/web/vendor/d3.v7.min.js'
 do
-  if ! printf '%s' "$clock_html" | grep -Fq "$expected"; then
+  if ! grep -Fq "$expected" <<<"$clock_html"; then
     echo "Clock page check failed: expected deployed /clock to include $expected" >&2
     exit 1
   fi
@@ -68,7 +68,7 @@ for expected in \
   '@media (min-width: 1280px) and (min-height: 700px) and (hover: none)' \
   '.meditation-source-excerpt'
 do
-  if ! printf '%s' "$style_css" | grep -Fq "$expected"; then
+  if ! grep -Fq "$expected" <<<"$style_css"; then
     echo "Responsive CE-5 style check failed: expected deployed CSS to include $expected" >&2
     exit 1
   fi
@@ -83,7 +83,7 @@ fi
 rm -f /tmp/truevineos-smoke-d3.$$
 
 clock_json="$(curl -sS --max-time 15 "$base_url/api/clock")"
-if ! printf '%s' "$clock_json" | grep -q '"title"[[:space:]]*:[[:space:]]*"True Vine OS"'; then
+if ! grep -q '"title"[[:space:]]*:[[:space:]]*"True Vine OS"' <<<"$clock_json"; then
   echo "Clock API check failed: expected title \"True Vine OS\"." >&2
   printf '%s\n' "$clock_json" | head -40 >&2
   exit 1
