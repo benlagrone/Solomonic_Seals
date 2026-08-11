@@ -11,6 +11,7 @@ const html = fs.readFileSync(path.join(repoRoot, "web", "clock_visualizer.html")
 const css = fs.readFileSync(path.join(repoRoot, "web", "style.css"), "utf8");
 const js = fs.readFileSync(path.join(repoRoot, "web", "clock.js"), "utf8");
 const clockData = fs.readFileSync(path.join(repoRoot, "data", "solomonic_clock_full.json"), "utf8");
+const promotionSmoke = fs.readFileSync(path.join(repoRoot, "scripts", "promotion_smoke.sh"), "utf8");
 
 function assertIncludes(source, needle, message) {
   assert.ok(source.includes(needle), message || `expected source to include ${needle}`);
@@ -277,5 +278,11 @@ assertIncludes(css, "@media (min-width: 1280px) and (min-height: 700px) and (hov
 assertIncludes(css, "outline-offset: 4px;", "Android TV mode should emphasize focus visibility");
 assertIncludes(css, "@media (pointer: coarse)", "touch targets should be sized for phones and foldables");
 assertIncludes(css, "min-height: 44px;", "touch controls should meet mobile target size");
+assertIncludes(promotionSmoke, 'class="meditation-source-notes manuscript-source-note"', "promotion smoke should verify deployed source-note markup");
+assertIncludes(promotionSmoke, '@media (max-width: 640px)', "promotion smoke should verify deployed phone styles");
+assertIncludes(promotionSmoke, '@media (min-width: 700px) and (max-width: 1180px) and (min-height: 600px)', "promotion smoke should verify deployed Fold inner styles");
+assertIncludes(promotionSmoke, '@media (min-width: 1280px) and (min-height: 700px) and (hover: none)', "promotion smoke should verify deployed large-display styles");
+assertIncludes(promotionSmoke, 'work.get("kind") == "cited_work"', "promotion smoke should verify cited-work context records");
+assertIncludes(promotionSmoke, 'relation_to_moment', "promotion smoke should verify cited-work why-now provenance");
 
 console.log("clock drawer contract tests: PASS");

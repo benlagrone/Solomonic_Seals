@@ -275,6 +275,24 @@ class GuidedPromptsApiTests(unittest.TestCase):
         self.assertGreaterEqual(len(psalm["full_text"]), len(psalm["text"]))
         self.assertNotIn("guided_prompts", payload)
 
+    def test_clock_content_bundle_psalm_full_text_uses_resolved_chapter(self) -> None:
+        payload, error, status = webserver._build_clock_content_bundle_payload(
+            {
+                "timezone": "America/Chicago",
+                "as_of": "2026-08-10T21:12:00-05:00",
+            }
+        )
+
+        self.assertEqual(status, HTTPStatus.OK, error)
+        self.assertIsNone(error)
+        self.assertIsNotNone(payload)
+        assert payload is not None
+        psalm = payload["content_bundle"]["psalm"]
+        full_text = psalm["full_text"]
+        self.assertGreater(len(full_text), len(psalm["text"]) * 3)
+        self.assertIn("Which turned the rock into a standing water", full_text)
+        self.assertIn("Not unto us, O LORD, not unto us", full_text)
+
     def test_clock_wisdom_anchor_api_payload_resolves_source_text(self) -> None:
         payload, error, status = webserver._build_clock_wisdom_anchor_payload(
             {

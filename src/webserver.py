@@ -3562,10 +3562,21 @@ def _build_guided_prompts_payload(request_payload: dict[str, Any]) -> tuple[dict
         chapter = int(fallback["chapter"])
         verse = str(fallback["verse"])
 
-    psalm_ref = f"Psalm {chapter}:{verse}" if verse else f"Psalm {chapter}"
-    psalm_text = _load_scripture_excerpt(chapter, verse) if chapter else "Psalm excerpt unavailable."
     psalm_chapter_ref = f"Psalm {chapter}" if chapter else "Psalm"
-    psalm_full_text = _load_scripture_chapter_text(chapter) if chapter else "Psalm excerpt unavailable."
+    psalm_ref = f"Psalm {chapter}:{verse}" if verse else psalm_chapter_ref
+    psalm_text = _load_scripture_excerpt(chapter, verse) if chapter else "Psalm excerpt unavailable."
+    psalm_lookup_payload, _psalm_lookup_error = (
+        _build_psalm_lookup_chapter_payload(chapter, psalm_chapter_ref)
+        if chapter
+        else (None, None)
+    )
+    psalm_full_text = (
+        str(psalm_lookup_payload.get("content") or "").strip()
+        if psalm_lookup_payload
+        else ""
+    )
+    if not psalm_full_text:
+        psalm_full_text = _load_scripture_chapter_text(chapter) if chapter else "Psalm excerpt unavailable."
     content_bundle = {
         "psalm": {
             "ref": psalm_ref,
