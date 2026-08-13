@@ -279,6 +279,7 @@ const drawerElements = {
   personalTimeProfileStatus: document.querySelector(".personal-time-profile-status"),
   personalTimeProfileDetail: document.querySelector(".personal-time-profile-detail"),
   personalTimeProfileFields: document.querySelector(".personal-time-profile-fields"),
+  personalTimeProfileExport: document.querySelector(".personal-time-profile-export"),
   meditationSection: document.querySelector(".daily-meditation"),
   meditationTitle: document.querySelector(".meditation-title"),
   meditationBody: document.querySelector(".meditation-body"),
@@ -489,6 +490,8 @@ let lastHistoryReviewKey = null;
 let lastProvidenceTimelineKey = null;
 let lastProvidenceMapKey = null;
 let lastTemporalScaleKey = null;
+let personalTimeProfileExportNotice = "";
+let personalTimeProfileExportNoticeUntil = 0;
 let currentPsalmRequestId = 0;
 let currentBundleRequestId = 0;
 let currentRulePsalmRequestId = 0;
@@ -4482,7 +4485,9 @@ function updatePersonalTimeProfilePanel() {
   const status = getPersonalTimeProfileStatus();
   drawerElements.personalTimeProfile.dataset.profileState = status.key;
   drawerElements.personalTimeProfileStatus.textContent = status.status;
-  drawerElements.personalTimeProfileDetail.textContent = status.detail;
+  drawerElements.personalTimeProfileDetail.textContent = Date.now() < personalTimeProfileExportNoticeUntil
+    ? personalTimeProfileExportNotice
+    : status.detail;
   drawerElements.personalTimeProfileFields.replaceChildren(
     ...status.fields.map((field) => {
       const item = document.createElement("li");
@@ -4491,6 +4496,63 @@ function updatePersonalTimeProfilePanel() {
     })
   );
   return status;
+}
+
+function buildPersonalTimeProfileExport(status = getPersonalTimeProfileStatus()) {
+  return {
+    schema_version: "personal-time-profile-status-v1",
+    generated_at: new Date().toISOString(),
+    account_mode: clockAuthState.authenticated ? "signed_in" : "guest",
+    profile_state: status.key,
+    status: status.status,
+    detail: status.detail,
+    fields: status.fields,
+    privacy_boundary: {
+      moment_vector: "public clock context",
+      birth_vector: status.key === "ready" ? "available from private signed-in profile" : "not calculated",
+      raw_private_values_included: false,
+      network_submission: false,
+    },
+    required_controls: ["export", "correction", "recalculation", "deletion"],
+  };
+}
+
+function downloadJsonArtifact(filename, payload) {
+  if (typeof document === "undefined" || typeof URL === "undefined" || typeof Blob === "undefined") {
+    return false;
+  }
+  const blob = new Blob([`${JSON.stringify(payload, null, 2)}\n`], { type: "application/json" });
+  const href = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = href;
+  anchor.download = filename;
+  anchor.rel = "noopener";
+  document.body.append(anchor);
+  anchor.click();
+  anchor.remove();
+  window.setTimeout(() => URL.revokeObjectURL(href), 0);
+  return true;
+}
+
+function exportPersonalTimeProfileStatus() {
+  const status = getPersonalTimeProfileStatus();
+  const dateStamp = new Date().toISOString().slice(0, 10);
+  const exported = downloadJsonArtifact(
+    `solomonic-personal-time-profile-status-${dateStamp}.json`,
+    buildPersonalTimeProfileExport(status)
+  );
+  personalTimeProfileExportNotice = exported
+    ? "Exported a local JSON status file. No private values were sent or embedded."
+    : status.detail;
+  personalTimeProfileExportNoticeUntil = Date.now() + 5000;
+  if (drawerElements.personalTimeProfileDetail) {
+    drawerElements.personalTimeProfileDetail.textContent = personalTimeProfileExportNotice;
+  }
+  return exported;
+}
+
+function setupPersonalTimeProfileControls() {
+  drawerElements.personalTimeProfileExport?.addEventListener("click", exportPersonalTimeProfileStatus);
 }
 
 function buildTemporalScaleReadings(now, timeState) {
@@ -5961,6 +6023,8 @@ function applyClockAuthProfile(profile, options = {}) {
       sub: String(profile.sub || "").trim(),
       name: String(profile.name || profile.preferred_username || profile.email || "").trim(),
       email: String(profile.email || "").trim(),
+      birthdate: String(profile.birthdate || profile.birth_date || profile.attributes?.birthdate?.[0] || "").trim(),
+      birth_date: String(profile.birth_date || profile.birthdate || profile.attributes?.birth_date?.[0] || "").trim(),
     } : null,
     devFake: Boolean(options.devFake),
     bridge: Boolean(options.bridge),
@@ -13623,6 +13687,7 @@ async function initialiseClock() {
   setupDrawerToggle();
   setupDrawerTabControls();
   setupTemporalScaleControls();
+  setupPersonalTimeProfileControls();
   setupDrawerAudioControls();
   setupDailyOpeningControls();
   setupSelectedTrackControls();

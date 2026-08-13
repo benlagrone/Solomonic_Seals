@@ -211,7 +211,12 @@ assertIncludes(js, "temporalScale: currentTemporalScaleContext", "the temporal r
 assertIncludes(js, "Personal frame: requires a saved birth profile", "lifespan content should disclose its personal-data boundary");
 assertIncludes(html, 'class="personal-time-profile"', "Counsel should disclose Personal Time Profile readiness inside the existing temporal-scale section");
 assertIncludes(html, "Guest guidance uses the public moment only", "Guest Personal Time Profile copy should preserve the public-only guidance boundary");
+assertIncludes(html, 'class="personal-time-profile-export action-button"', "Personal Time Profile should expose a local export status control");
 assertIncludes(js, "function getPersonalTimeProfileStatus", "Personal Time Profile status should be derived from auth/profile state");
+assertIncludes(js, "function buildPersonalTimeProfileExport", "Personal Time Profile export should be built as a structured status artifact");
+assertIncludes(js, "raw_private_values_included: false", "Personal Time Profile status export should not include raw private values");
+assertIncludes(js, "network_submission: false", "Personal Time Profile status export should remain local-only");
+assertIncludes(js, "setupPersonalTimeProfileControls();", "Personal Time Profile export should be wired during clock initialization");
 assertIncludes(js, "BirthVector to MomentVector", "Personal profile copy should keep BirthVector distinct from MomentVector");
 assertIncludes(js, "export, correction, recalculation, and deletion", "Personal profile copy should name export, correction, recalculation, and deletion readiness");
 assertIncludes(css, ".clock-page .personal-time-profile[data-profile-state=\"ready\"]", "Ready personal profile state should have an explicit visual treatment");
