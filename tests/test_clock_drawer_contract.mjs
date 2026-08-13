@@ -209,6 +209,12 @@ assertIncludes(js, "setupTemporalScaleControls();", "temporal scale selection sh
 assertIncludes(js, "updateTemporalScalePanel(displayNow, timeState);", "the render loop should keep temporal topics anchored to the displayed moment");
 assertIncludes(js, "temporalScale: currentTemporalScaleContext", "the temporal reading should govern the action-loop context");
 assertIncludes(js, "Personal frame: requires a saved birth profile", "lifespan content should disclose its personal-data boundary");
+assertIncludes(html, 'class="personal-time-profile"', "Counsel should disclose Personal Time Profile readiness inside the existing temporal-scale section");
+assertIncludes(html, "Guest guidance uses the public moment only", "Guest Personal Time Profile copy should preserve the public-only guidance boundary");
+assertIncludes(js, "function getPersonalTimeProfileStatus", "Personal Time Profile status should be derived from auth/profile state");
+assertIncludes(js, "BirthVector to MomentVector", "Personal profile copy should keep BirthVector distinct from MomentVector");
+assertIncludes(js, "export, correction, recalculation, and deletion", "Personal profile copy should name export, correction, recalculation, and deletion readiness");
+assertIncludes(css, ".clock-page .personal-time-profile[data-profile-state=\"ready\"]", "Ready personal profile state should have an explicit visual treatment");
 assertIncludes(js, "not a deterministic claim", "lunar counsel should avoid presenting contemplation as causal fact");
 assertIncludes(css, 'body.clock-page[data-drawer-tab="now"] .drawer .temporal-scale-section', "temporal scales should appear in the Counsel tab");
 assertIncludes(css, ".clock-page .temporal-scale-button.active", "the selected temporal scale should have a visible state");

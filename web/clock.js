@@ -275,6 +275,10 @@ const drawerElements = {
   temporalScaleRestraint: document.querySelector(".temporal-scale-restraint"),
   temporalScaleSynthesis: document.querySelector(".temporal-scale-synthesis"),
   temporalScaleProvenance: document.querySelector(".temporal-scale-provenance"),
+  personalTimeProfile: document.querySelector(".personal-time-profile"),
+  personalTimeProfileStatus: document.querySelector(".personal-time-profile-status"),
+  personalTimeProfileDetail: document.querySelector(".personal-time-profile-detail"),
+  personalTimeProfileFields: document.querySelector(".personal-time-profile-fields"),
   meditationSection: document.querySelector(".daily-meditation"),
   meditationTitle: document.querySelector(".meditation-title"),
   meditationBody: document.querySelector(".meditation-body"),
@@ -4415,6 +4419,80 @@ function getClockBirthDate() {
   return Number.isNaN(birthDate.getTime()) ? null : birthDate;
 }
 
+function getPersonalTimeProfileStatus() {
+  const profile = clockAuthState?.profile || {};
+  const rawBirthValue = String(
+    profile.birthdate
+      || profile.birth_date
+      || profile.attributes?.birthdate?.[0]
+      || profile.attributes?.birth_date?.[0]
+      || ""
+  ).trim();
+  const birthDate = getClockBirthDate();
+  const hasBirthTime = /T\d{2}:\d{2}/.test(rawBirthValue) || /\d{2}:\d{2}/.test(rawBirthValue.slice(10));
+  const precision = birthDate ? (hasBirthTime ? "birth date and time" : "birth date only") : "missing birth date";
+
+  if (!clockAuthState.authenticated) {
+    return {
+      key: "guest",
+      status: "Private profile inactive",
+      detail: "Guest guidance uses the public MomentVector only; the Life scale remains unmeasured.",
+      fields: [
+        "No birth data loaded",
+        "No private location loaded",
+        "Export, correction, and deletion unlock after sign-in",
+      ],
+    };
+  }
+
+  if (!birthDate) {
+    return {
+      key: "incomplete",
+      status: "Profile incomplete",
+      detail: "Signed-in guidance still uses the public MomentVector until a birth date is present with explicit consent.",
+      fields: [
+        "BirthVector not calculated",
+        "Birth location and current location remain private profile fields",
+        "Export, correction, recalculation, and deletion must operate on the saved profile",
+      ],
+    };
+  }
+
+  return {
+    key: "ready",
+    status: "Personal profile ready",
+    detail: "Life-scale counsel may compare BirthVector to MomentVector, but it never predicts lifespan length.",
+    fields: [
+      `Precision: ${precision}`,
+      "Private influence: birth date; birth/current location only when saved",
+      "Profile must support export, correction, recalculation, and deletion",
+    ],
+  };
+}
+
+function updatePersonalTimeProfilePanel() {
+  if (
+    !drawerElements.personalTimeProfile ||
+    !drawerElements.personalTimeProfileStatus ||
+    !drawerElements.personalTimeProfileDetail ||
+    !drawerElements.personalTimeProfileFields
+  ) {
+    return null;
+  }
+  const status = getPersonalTimeProfileStatus();
+  drawerElements.personalTimeProfile.dataset.profileState = status.key;
+  drawerElements.personalTimeProfileStatus.textContent = status.status;
+  drawerElements.personalTimeProfileDetail.textContent = status.detail;
+  drawerElements.personalTimeProfileFields.replaceChildren(
+    ...status.fields.map((field) => {
+      const item = document.createElement("li");
+      item.textContent = field;
+      return item;
+    })
+  );
+  return status;
+}
+
 function buildTemporalScaleReadings(now, timeState) {
   const secondFraction = (now.getSeconds() + now.getMilliseconds() / 1000) / 60;
   const minuteEnd = new Date(now);
@@ -4572,12 +4650,14 @@ function updateTemporalScalePanel(now, timeState) {
   const readings = buildTemporalScaleReadings(now, timeState);
   const selected = readings.find((reading) => reading.key === uiState.temporalScale) || readings[0];
   const synthesis = buildTemporalScaleSynthesis(readings);
+  const profileStatus = getPersonalTimeProfileStatus();
   const updateKey = [
     uiState.temporalScale,
     Math.floor(now.getTime() / 1000),
     selected.state,
     synthesis.summary,
     clockAuthState.authenticated ? "account" : "guest",
+    profileStatus.key,
   ].join("|");
   currentTemporalScaleContext = { selected, readings, synthesis };
   if (updateKey === lastTemporalScaleKey) {
@@ -4608,6 +4688,7 @@ function updateTemporalScalePanel(now, timeState) {
   drawerElements.temporalScaleRestraint.textContent = selected.restraint;
   drawerElements.temporalScaleSynthesis.textContent = `Harmonic counsel • ${synthesis.summary} ${synthesis.text}`;
   drawerElements.temporalScaleProvenance.textContent = selected.provenance;
+  updatePersonalTimeProfilePanel();
   return currentTemporalScaleContext;
 }
 
