@@ -270,6 +270,19 @@ assertIncludes(css, ".clock-page .drawer-controls .action-pericope-guided", "Pra
 assert.ok(!css.includes('body.clock-page[data-drawer-tab="practice"] .drawer .selected-clock-section,'), "Practice tab should combine Daily Guidance into the practice frame instead of showing a second guidance card");
 assertIncludes(js, 'kicker: "Daily Guidance"', "Practice frame should carry the Daily Guidance label after combining the sections");
 assertIncludes(js, 'title: "One act, one repair, one horizon"', "Practice frame should keep the concise practice hierarchy after combining sections");
+assertIncludes(html, 'class="practice-decision-panel"', "Practice tab should expose a visible CE-6 decision panel");
+["adopted", "adapted", "deferred", "rejected", "completed"].forEach((decision) => {
+  assertIncludes(html, `data-practice-decision="${decision}"`, `Practice decision should expose ${decision}`);
+});
+assertIncludes(js, 'const PRACTICE_DECISION_STATES = new Set(["adopted", "adapted", "deferred", "rejected", "completed"]);', "Practice decision states should be canonicalized in the frontend");
+assertIncludes(js, "function recordPracticeDecision", "Practice decisions should persist through one shared writer");
+assertIncludes(js, "practiceDecisionAt", "Practice decisions should carry a timestamp for sync and history merge");
+assertIncludes(js, "adaptedCount", "Weekly Review should count adapted practices");
+assertIncludes(js, "deferredCount", "Weekly Review should count deferred practices");
+assertIncludes(js, "rejectedCount", "Weekly Review should count rejected practices");
+assertIncludes(css, ".clock-page .drawer-controls .practice-decision-panel", "Practice decision controls should be scoped inside drawer controls");
+assertIncludes(css, 'body.clock-page[data-drawer-tab="practice"] .drawer .practice-decision-panel', "Practice decision controls should only be shown on the Practice tab");
+assertIncludes(css, ".practice-decision-button.is-active", "Practice decision buttons should show the selected state");
 assert.ok(!html.includes('class="history-weekly-summary"'), "History tab should combine Weekly Summary into the Weekly Review card");
 assertIncludes(html, 'class="history-weekly-review"', "History tab should retain one combined weekly review section");
 assertIncludes(css, 'body[data-drawer-open="true"] .page', "Fold inner mode should preserve the clock beside the drawer");

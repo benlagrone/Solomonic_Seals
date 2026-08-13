@@ -423,6 +423,8 @@ const drawerElements = {
   actionPericopeFreeform: document.querySelector(".action-pericope-freeform"),
   actionCopy: document.querySelector(".action-copy"),
   actionStatus: document.querySelector(".action-loop-status"),
+  practiceDecisionButtons: Array.from(document.querySelectorAll(".practice-decision-button[data-practice-decision]")),
+  practiceDecisionNote: document.querySelector(".practice-decision-note"),
   reflectionPrimaryLabel: document.querySelector(".reflection-primary-label"),
   reflectionSection: document.querySelector(".reflection-capture"),
   reflectionInput: document.querySelector(".reflection-input"),
@@ -562,6 +564,14 @@ const CLOCK_DEV_AUTH_NAME_PARAM = "clock_dev_auth_name";
 const CLOCK_AUTH_FORCE_BRIDGE_PARAM = "clock_auth_bridge";
 const CLOCK_AUTH_BRIDGE_STORAGE_KEY = "truevineos-auth-bridge-v1";
 const CLOCK_AUTH_BRIDGE_MESSAGE_SOURCE = "pericope-clock-auth";
+const PRACTICE_DECISION_STATES = new Set(["adopted", "adapted", "deferred", "rejected", "completed"]);
+const PRACTICE_DECISION_LABELS = {
+  adopted: "Adopted",
+  adapted: "Adapted",
+  deferred: "Deferred",
+  rejected: "Rejected",
+  completed: "Completed",
+};
 let clockKeycloak = null;
 let clockAuthReady = false;
 let clockAuthRefreshTimer = null;
@@ -3259,15 +3269,7 @@ function setupActionLoopControls() {
 
   drawerElements.actionAdopt.addEventListener("click", () => {
     const context = currentActionLoopContext;
-    if (!context) {
-      return;
-    }
-    patchDailyActionEntry(context.dateKey, {
-      ...buildDailyActionSnapshot(context),
-      adoptedAt: new Date().toISOString(),
-    });
-    setActionNotice(`Practice adopted for ${context.label}.`);
-    setMode("practice");
+    recordPracticeDecision(context, "adopted");
   });
 
   drawerElements.actionComplete.addEventListener("click", () => {
@@ -3276,10 +3278,7 @@ function setupActionLoopControls() {
       return;
     }
     const selectedTrackId = uiState.selectedJourneyTrackId || context.entry?.selectedJourneyTrackId || "";
-    patchDailyActionEntry(context.dateKey, {
-      ...buildDailyActionSnapshot(context),
-      completedAt: new Date().toISOString(),
-    });
+    recordPracticeDecision(context, "completed");
     if (selectedTrackId) {
       patchJourneyTrackState(selectedTrackId, {
         practicedAt: new Date().toISOString(),
@@ -3290,6 +3289,29 @@ function setupActionLoopControls() {
       refreshSelectedJourneyDrawer();
     }
     setActionNotice(`Practice marked for ${context.label}.`);
+  });
+
+  drawerElements.practiceDecisionButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      const context = currentActionLoopContext;
+      if (!context) {
+        return;
+      }
+      const decision = button.dataset.practiceDecision || "";
+      recordPracticeDecision(context, decision);
+      if (decision === "completed") {
+        const selectedTrackId = uiState.selectedJourneyTrackId || context.entry?.selectedJourneyTrackId || "";
+        if (selectedTrackId) {
+          patchJourneyTrackState(selectedTrackId, {
+            practicedAt: new Date().toISOString(),
+            practice: uiState.selectedClockLayer && uiState.selectedClockDatum
+              ? buildSelectedClockJourney(uiState.selectedClockLayer, uiState.selectedClockDatum).practice
+              : "",
+          });
+          refreshSelectedJourneyDrawer();
+        }
+      }
+    });
   });
 
   drawerElements.actionReflect.addEventListener("click", () => {
@@ -6203,6 +6225,14 @@ function normalizeDailyActionEntry(entry) {
   }
 
   const weakestDomainScore = String(entry.weakestDomainScore ?? "").trim();
+  const rawPracticeDecision = String(entry.practiceDecision || "").trim().toLowerCase();
+  const practiceDecision = PRACTICE_DECISION_STATES.has(rawPracticeDecision)
+    ? rawPracticeDecision
+    : entry.completedAt
+      ? "completed"
+      : entry.adoptedAt
+        ? "adopted"
+        : "";
   const launches = Array.isArray(entry.launches)
     ? entry.launches
       .map((launch) => normalizeDailyActionLaunch(launch))
@@ -6229,6 +6259,9 @@ function normalizeDailyActionEntry(entry) {
   }
 
   return pruneEmptyFields({
+    practiceDecision,
+    practiceDecisionAt: String(entry.practiceDecisionAt || entry.completedAt || entry.adoptedAt || "").trim(),
+    practiceDecisionNote: String(entry.practiceDecisionNote || "").trim(),
     adoptedAt: String(entry.adoptedAt || "").trim(),
     completedAt: String(entry.completedAt || "").trim(),
     openingCompletedAt: String(entry.openingCompletedAt || "").trim(),
@@ -6525,6 +6558,47 @@ function patchDailyActionEntry(dateKey, patch) {
   saveDailyActionState(state);
   scheduleHistorySync();
   return state[dateKey];
+}
+
+function getPracticeDecisionLabel(decision) {
+  return PRACTICE_DECISION_LABELS[String(decision || "").trim().toLowerCase()] || "";
+}
+
+function buildPracticeDecisionPatch(context, decision) {
+  const normalizedDecision = String(decision || "").trim().toLowerCase();
+  if (!PRACTICE_DECISION_STATES.has(normalizedDecision)) {
+    return null;
+  }
+
+  const now = new Date().toISOString();
+  return {
+    ...buildDailyActionSnapshot(context),
+    practiceDecision: normalizedDecision,
+    practiceDecisionAt: now,
+    adoptedAt: ["adopted", "adapted", "completed"].includes(normalizedDecision)
+      ? (context?.entry?.adoptedAt || now)
+      : "",
+    completedAt: normalizedDecision === "completed"
+      ? (context?.entry?.completedAt || now)
+      : "",
+  };
+}
+
+function recordPracticeDecision(context, decision) {
+  if (!context?.dateKey) {
+    return null;
+  }
+
+  const patch = buildPracticeDecisionPatch(context, decision);
+  if (!patch) {
+    return null;
+  }
+
+  const entry = patchDailyActionEntry(context.dateKey, patch);
+  const label = getPracticeDecisionLabel(entry.practiceDecision);
+  setActionNotice(label ? `Practice ${label.toLowerCase()} for ${context.label}.` : "Practice decision recorded.");
+  setMode("practice");
+  return entry;
 }
 
 function patchDailyActionLaunch(dateKey, launchKey, patch = {}, entryPatch = {}) {
@@ -10009,8 +10083,10 @@ function getHistoryEntryStatusBadges(entry) {
   if (entry.opened) {
     badges.push("Opened");
   }
-  if (entry.completed) {
+  if (entry.practiceDecision === "completed" || entry.completed) {
     badges.push("Practiced");
+  } else if (entry.practiceDecision) {
+    badges.push(getPracticeDecisionLabel(entry.practiceDecision));
   } else if (entry.adopted) {
     badges.push("Adopted");
   }
@@ -10040,6 +10116,15 @@ function getHistoryEntryRecordColor(entry) {
   if (entry.completed) {
     return "#4ade80";
   }
+  if (entry.practiceDecision === "adapted") {
+    return "#38bdf8";
+  }
+  if (entry.practiceDecision === "deferred") {
+    return "#f59e0b";
+  }
+  if (entry.practiceDecision === "rejected") {
+    return "#fb7185";
+  }
   if (entry.adopted) {
     return "#facc15";
   }
@@ -10065,6 +10150,15 @@ function getHistoryEntryOutcomeLabel(entry) {
   if (entry.completed && !entry.closed) {
     return "Practiced but left open";
   }
+  if (entry.practiceDecision === "adapted") {
+    return "Adapted practice";
+  }
+  if (entry.practiceDecision === "deferred") {
+    return "Deferred practice";
+  }
+  if (entry.practiceDecision === "rejected") {
+    return "Rejected practice";
+  }
   if (entry.adopted && !entry.completed) {
     return "Adopted and awaiting return";
   }
@@ -10089,6 +10183,15 @@ function getHistoryEntryPatternBucket(entry) {
   }
   if (entry.completed && !entry.closed) {
     return "completed_open";
+  }
+  if (entry.practiceDecision === "adapted") {
+    return "adapted_practice";
+  }
+  if (entry.practiceDecision === "deferred") {
+    return "deferred_practice";
+  }
+  if (entry.practiceDecision === "rejected") {
+    return "rejected_practice";
   }
   if (entry.adopted && !entry.completed) {
     return "unfinished_after_adoption";
@@ -10121,6 +10224,15 @@ function getHistoryEntryPatternLabel(bucket, count) {
   if (bucket === "unfinished_after_adoption") {
     return `${count} adopted ${count === 1 ? "day awaited return" : "days awaited return"}, so intention is outrunning follow-through.`;
   }
+  if (bucket === "adapted_practice") {
+    return `${count} ${count === 1 ? "practice was adapted" : "practices were adapted"}, so the rule met real conditions instead of staying abstract.`;
+  }
+  if (bucket === "deferred_practice") {
+    return `${count} ${count === 1 ? "practice was deferred" : "practices were deferred"}, so the trail needs a clean carry-forward or release.`;
+  }
+  if (bucket === "rejected_practice") {
+    return `${count} ${count === 1 ? "practice was rejected" : "practices were rejected"}, so the reason should be reviewed rather than hidden.`;
+  }
   if (bucket === "reflection_without_close") {
     return `${count} ${count === 1 ? "day reflected without a close" : "days reflected without a close"}, so insight formed without being sealed.`;
   }
@@ -10152,14 +10264,16 @@ function buildHistoryTimelineEntry(baseDate, offset, derived, referenceMap) {
   const launches = Array.isArray(entry.launches) ? entry.launches : [];
   const latestLaunch = launches.length ? launches[launches.length - 1] : null;
   const latestLinkedLaunch = getLatestLinkedLaunch(launches);
+  const practiceDecision = String(entry.practiceDecision || "").trim().toLowerCase();
+  const practiceDecisionLabel = getPracticeDecisionLabel(practiceDecision);
   const opened = Boolean(entry.openingCompletedAt);
   const closed = Boolean(entry.closingCompletedAt || closingSummary || closingCarryForward || closingGratitude || closingDifficulty);
-  const adopted = Boolean(entry.adoptedAt);
-  const completed = Boolean(entry.completedAt);
+  const adopted = Boolean(entry.adoptedAt) || ["adopted", "adapted", "completed"].includes(practiceDecision);
+  const completed = Boolean(entry.completedAt) || practiceDecision === "completed";
   const hasReflection = Boolean(reflection);
   const launchCount = launches.length;
   const linkedLaunchCount = launches.filter((launch) => Boolean(launch?.sessionId)).length;
-  const hasRecord = opened || closed || adopted || completed || hasReflection || launchCount > 0;
+  const hasRecord = opened || closed || adopted || completed || Boolean(practiceDecision) || hasReflection || launchCount > 0;
   const rule = entry.ruleOfLife && typeof entry.ruleOfLife === "object" ? entry.ruleOfLife : null;
   const summaryLine = closingSummary
     || closingCarryForward
@@ -10170,8 +10284,8 @@ function buildHistoryTimelineEntry(baseDate, offset, derived, referenceMap) {
     || entry.activeFocus
     || weeklyEntry.focus;
   const titleLine = entry.label || (rule ? `${rule.domain} • ${rule.virtue}` : `${weeklyEntry.rulerText} guidance`);
-  const statusBadges = getHistoryEntryStatusBadges({ opened, closed, adopted, completed, hasReflection, launchCount });
-  const recordColor = getHistoryEntryRecordColor({ opened, closed, adopted, completed, hasReflection, launchCount });
+  const statusBadges = getHistoryEntryStatusBadges({ opened, closed, adopted, completed, practiceDecision, hasReflection, launchCount });
+  const recordColor = getHistoryEntryRecordColor({ opened, closed, adopted, completed, practiceDecision, hasReflection, launchCount });
   const launchSummary = latestLaunch
     ? `${latestLaunch.mode === "freeform" ? "Freeform" : "Guided"} • ${latestLaunch.promptId || "clock launch"}`
     : "";
@@ -10187,7 +10301,9 @@ function buildHistoryTimelineEntry(baseDate, offset, derived, referenceMap) {
   const morningPracticeSnippet = rule?.morning
     ? toInlineSnippet(rule.morning, 128).replace(/[.!?]+$/u, "")
     : "";
-  const actionLine = completed
+  const actionLine = practiceDecision && practiceDecision !== "completed" && practiceDecisionLabel
+    ? `${practiceDecisionLabel} practice${morningPracticeSnippet ? `: ${morningPracticeSnippet}` : ""}`
+    : completed
     ? morningPracticeSnippet
       ? `Practiced: ${morningPracticeSnippet}`
       : rule?.summary
@@ -10214,7 +10330,7 @@ function buildHistoryTimelineEntry(baseDate, offset, derived, referenceMap) {
     : rule?.evening
       ? `Carry forward • ${toInlineSnippet(rule.evening, 132)}`
       : "";
-  const outcomeLabel = getHistoryEntryOutcomeLabel({ opened, closed, adopted, completed, hasReflection, launchCount });
+  const outcomeLabel = getHistoryEntryOutcomeLabel({ opened, closed, adopted, completed, practiceDecision, hasReflection, launchCount });
   const trailSegments = [
     openingLine,
     actionLine,
@@ -10240,7 +10356,7 @@ function buildHistoryTimelineEntry(baseDate, offset, derived, referenceMap) {
     closingLine,
     carryLine,
   ].filter(Boolean).join(" • ");
-  const patternBucket = getHistoryEntryPatternBucket({ opened, closed, adopted, completed, hasReflection, launchCount });
+  const patternBucket = getHistoryEntryPatternBucket({ opened, closed, adopted, completed, practiceDecision, hasReflection, launchCount });
 
   return {
     ...weeklyEntry,
@@ -10252,6 +10368,8 @@ function buildHistoryTimelineEntry(baseDate, offset, derived, referenceMap) {
     closed,
     adopted,
     completed,
+    practiceDecision,
+    practiceDecisionLabel,
     hasReflection,
     hasRecord,
     launchCount,
@@ -10450,7 +10568,10 @@ function buildWeeklyHistorySummary(baseDate, derived, referenceMap) {
   const completedCount = recordedEntries.filter((entry) => entry.completed).length;
   const reflectedCount = recordedEntries.filter((entry) => entry.hasReflection).length;
   const adoptedCount = recordedEntries.filter((entry) => entry.adopted).length;
-  const incompleteCount = recordedEntries.filter((entry) => entry.adopted && !entry.completed).length;
+  const adaptedCount = recordedEntries.filter((entry) => entry.practiceDecision === "adapted").length;
+  const deferredCount = recordedEntries.filter((entry) => entry.practiceDecision === "deferred").length;
+  const rejectedCount = recordedEntries.filter((entry) => entry.practiceDecision === "rejected").length;
+  const incompleteCount = recordedEntries.filter((entry) => entry.adopted && !entry.completed && !["adapted", "deferred", "rejected"].includes(entry.practiceDecision)).length;
   const cleanCloseCount = recordedEntries.filter((entry) => entry.completed && entry.closed).length;
   const unclosedCount = recordedEntries.filter((entry) => !entry.closed).length;
   const launchCount = recordedEntries.reduce((sum, entry) => sum + entry.launchCount, 0);
@@ -10485,6 +10606,15 @@ function buildWeeklyHistorySummary(baseDate, derived, referenceMap) {
     narrativeParts.push(`${completedCount} practiced`);
   } else if (adoptedCount) {
     narrativeParts.push(`${adoptedCount} adopted`);
+  }
+  if (adaptedCount) {
+    narrativeParts.push(`${adaptedCount} adapted`);
+  }
+  if (deferredCount) {
+    narrativeParts.push(`${deferredCount} deferred`);
+  }
+  if (rejectedCount) {
+    narrativeParts.push(`${rejectedCount} rejected`);
   }
 
   if (reflectedCount) {
@@ -10523,6 +10653,15 @@ function buildWeeklyHistorySummary(baseDate, derived, referenceMap) {
   if (incompleteCount >= 2) {
     patterns.push(`${incompleteCount} adopted ${incompleteCount === 1 ? "day remained" : "days remained"} open, which suggests resistance after intention was set.`);
   }
+  if (adaptedCount >= 2) {
+    patterns.push(`${adaptedCount} ${adaptedCount === 1 ? "practice was adapted" : "practices were adapted"}, so formation is meeting actual constraints rather than ideal conditions.`);
+  }
+  if (deferredCount >= 2) {
+    patterns.push(`${deferredCount} ${deferredCount === 1 ? "practice was deferred" : "practices were deferred"}, so the week needs a clean carry-forward or release.`);
+  }
+  if (rejectedCount >= 2) {
+    patterns.push(`${rejectedCount} ${rejectedCount === 1 ? "practice was rejected" : "practices were rejected"}, so refusal itself needs review.`);
+  }
   if (unclosedCount >= 2) {
     patterns.push(`${unclosedCount} recorded ${unclosedCount === 1 ? "day was" : "days were"} left open without a full closing, so review may be trailing behind action.`);
   }
@@ -10552,6 +10691,15 @@ function buildWeeklyHistorySummary(baseDate, derived, referenceMap) {
   if (completedCount) {
     metaItems.push(`${completedCount} practiced`);
   }
+  if (adaptedCount) {
+    metaItems.push(`${adaptedCount} adapted`);
+  }
+  if (deferredCount) {
+    metaItems.push(`${deferredCount} deferred`);
+  }
+  if (rejectedCount) {
+    metaItems.push(`${rejectedCount} rejected`);
+  }
   if (reflectedCount) {
     metaItems.push(`${reflectedCount} reflected`);
   }
@@ -10571,7 +10719,7 @@ function buildWeeklyHistorySummary(baseDate, derived, referenceMap) {
   return {
     key: JSON.stringify({
       windowLabel,
-      recorded: recordedEntries.map((entry) => `${entry.dateKey}:${entry.entry.updatedAt || entry.entry.closingUpdatedAt || entry.entry.reflectionUpdatedAt || entry.entry.completedAt || entry.entry.adoptedAt || ""}:${entry.launchCount}`),
+      recorded: recordedEntries.map((entry) => `${entry.dateKey}:${entry.entry.updatedAt || entry.entry.practiceDecisionAt || entry.entry.closingUpdatedAt || entry.entry.reflectionUpdatedAt || entry.entry.completedAt || entry.entry.adoptedAt || ""}:${entry.practiceDecision || ""}:${entry.launchCount}`),
       topVirtue: topVirtue?.label || "",
       topDomain: topDomain?.label || "",
       topOutcome: topOutcome?.label || "",
@@ -10587,6 +10735,9 @@ function buildWeeklyHistorySummary(baseDate, derived, referenceMap) {
     completedCount,
     reflectedCount,
     adoptedCount,
+    adaptedCount,
+    deferredCount,
+    rejectedCount,
     incompleteCount,
     unclosedCount,
     launchCount,
@@ -11784,10 +11935,12 @@ function updateActionLoop(context) {
   }
 
   const entry = context?.entry || {};
+  const practiceDecision = String(entry.practiceDecision || "").trim().toLowerCase();
+  const practiceDecisionLabel = getPracticeDecisionLabel(practiceDecision);
   const opened = Boolean(entry.openingCompletedAt);
   const closed = Boolean(entry.closingCompletedAt || entry.closingSummary || entry.closingCarryForward);
-  const adopted = Boolean(entry.adoptedAt);
-  const completed = Boolean(entry.completedAt);
+  const adopted = Boolean(entry.adoptedAt) || ["adopted", "adapted", "completed"].includes(practiceDecision);
+  const completed = Boolean(entry.completedAt) || practiceDecision === "completed";
   const reflection = String(entry.reflection || "");
   const closingSummary = String(entry.closingSummary || "");
   const closingGratitude = String(entry.closingGratitude || "");
@@ -11826,6 +11979,16 @@ function updateActionLoop(context) {
   }
   drawerElements.actionAdopt.disabled = adopted;
   drawerElements.actionComplete.disabled = !adopted || completed;
+  drawerElements.practiceDecisionButtons.forEach((button) => {
+    const isActive = button.dataset.practiceDecision === practiceDecision;
+    button.classList.toggle("is-active", isActive);
+    button.setAttribute("aria-pressed", isActive ? "true" : "false");
+  });
+  if (drawerElements.practiceDecisionNote) {
+    drawerElements.practiceDecisionNote.textContent = practiceDecisionLabel
+      ? `${practiceDecisionLabel} ${entry.practiceDecisionAt ? `at ${formatClockRuntimeTime(entry.practiceDecisionAt)}` : "for today"}.`
+      : "No practice decision recorded yet.";
+  }
   drawerElements.actionReflect.setAttribute("aria-pressed", uiState.reflectionOpen ? "true" : "false");
   const practicePageActive = uiState.drawerTab === "practice";
   drawerElements.reflectionSection.hidden = !(practicePageActive || uiState.reflectionOpen || (uiState.mode === "reflection" && !uiState.closingOpen));
@@ -11870,7 +12033,9 @@ function updateActionLoop(context) {
   actionNotice = null;
 
   if (!opened) {
-    drawerElements.actionStatus.textContent = lensCopy.notOpenedStatus;
+    drawerElements.actionStatus.textContent = practiceDecisionLabel
+      ? `Practice ${practiceDecisionLabel.toLowerCase()} before the opening was completed. Revisit the opening if you want to anchor it.`
+      : lensCopy.notOpenedStatus;
     return;
   }
 
@@ -11888,6 +12053,21 @@ function updateActionLoop(context) {
     drawerElements.actionStatus.textContent = closingSummary
       ? lensCopy.closedWithSummaryStatus
       : lensCopy.closedGenericStatus;
+    return;
+  }
+
+  if (practiceDecision === "adapted") {
+    drawerElements.actionStatus.textContent = "Practice adapted. Record what changed so the evening review can judge the actual act, not only the original plan.";
+    return;
+  }
+
+  if (practiceDecision === "deferred") {
+    drawerElements.actionStatus.textContent = "Practice deferred. Name the honest constraint, then decide whether tomorrow should inherit it or release it.";
+    return;
+  }
+
+  if (practiceDecision === "rejected") {
+    drawerElements.actionStatus.textContent = "Practice rejected. Keep the reason visible so rejection becomes discernment rather than avoidance.";
     return;
   }
 

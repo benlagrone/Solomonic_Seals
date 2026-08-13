@@ -218,6 +218,17 @@
             <button type="button" class="action-button action-copy">Copy Guided Prompt</button>
           </div>
           <p class="action-loop-status" aria-live="polite">Choose one concrete practice to make the day actionable.</p>
+          <section class="practice-decision-panel" aria-label="Practice decision">
+            <p class="practice-decision-label">Practice Decision</p>
+            <div class="practice-decision-options" role="group" aria-label="Choose practice state">
+              <button type="button" class="practice-decision-button" data-practice-decision="adopted">Adopt</button>
+              <button type="button" class="practice-decision-button" data-practice-decision="adapted">Adapt</button>
+              <button type="button" class="practice-decision-button" data-practice-decision="deferred">Defer</button>
+              <button type="button" class="practice-decision-button" data-practice-decision="rejected">Reject</button>
+              <button type="button" class="practice-decision-button" data-practice-decision="completed">Complete</button>
+            </div>
+            <p class="practice-decision-note">No practice decision recorded yet.</p>
+          </section>
           <section class="reflection-capture" hidden aria-label="Reflection capture">
             <label class="reflection-label reflection-primary-label" for="reflection-input">Evening Reflection</label>
             <textarea

@@ -293,6 +293,30 @@ class GuidedPromptsApiTests(unittest.TestCase):
         self.assertIn("Which turned the rock into a standing water", full_text)
         self.assertIn("Not unto us, O LORD, not unto us", full_text)
 
+    def test_history_sync_preserves_practice_decision_state(self) -> None:
+        normalized = webserver._normalize_history_entry(
+            {
+                "practiceDecision": "adapted",
+                "practiceDecisionAt": "2026-08-12T12:00:00Z",
+                "practiceDecisionNote": "Changed the practice to fit the actual constraint.",
+                "adoptedAt": "2026-08-12T11:00:00Z",
+            }
+        )
+
+        self.assertEqual(normalized["practiceDecision"], "adapted")
+        self.assertEqual(normalized["practiceDecisionAt"], "2026-08-12T12:00:00Z")
+        self.assertIn("actual constraint", normalized["practiceDecisionNote"])
+
+    def test_history_sync_maps_legacy_completion_to_practice_decision(self) -> None:
+        normalized = webserver._normalize_history_entry(
+            {
+                "completedAt": "2026-08-12T12:30:00Z",
+            }
+        )
+
+        self.assertEqual(normalized["practiceDecision"], "completed")
+        self.assertEqual(normalized["practiceDecisionAt"], "2026-08-12T12:30:00Z")
+
     def test_clock_wisdom_anchor_api_payload_resolves_source_text(self) -> None:
         payload, error, status = webserver._build_clock_wisdom_anchor_payload(
             {

@@ -2165,7 +2165,27 @@ def _normalize_history_entry(entry: Any) -> dict[str, Any]:
         }
         normalized_rule = {key: value for key, value in normalized_rule.items() if value}
 
+    raw_practice_decision = str(entry.get("practiceDecision", "")).strip().lower()
+    practice_decision = raw_practice_decision if raw_practice_decision in {
+        "adopted",
+        "adapted",
+        "deferred",
+        "rejected",
+        "completed",
+    } else ""
+    if not practice_decision:
+        if str(entry.get("completedAt", "")).strip():
+            practice_decision = "completed"
+        elif str(entry.get("adoptedAt", "")).strip():
+            practice_decision = "adopted"
+
     payload = {
+        "practiceDecision": practice_decision,
+        "practiceDecisionAt": _to_snippet(
+            str(entry.get("practiceDecisionAt") or entry.get("completedAt") or entry.get("adoptedAt") or "").strip(),
+            64,
+        ),
+        "practiceDecisionNote": _to_snippet(str(entry.get("practiceDecisionNote", "")).strip(), 280),
         "adoptedAt": _to_snippet(str(entry.get("adoptedAt", "")).strip(), 64),
         "completedAt": _to_snippet(str(entry.get("completedAt", "")).strip(), 64),
         "openingCompletedAt": _to_snippet(str(entry.get("openingCompletedAt", "")).strip(), 64),
@@ -2234,6 +2254,7 @@ def _normalize_history_state(state: Any) -> dict[str, dict[str, Any]]:
 def _history_entry_timestamp(entry: dict[str, Any]) -> str:
     for key in (
         "updatedAt",
+        "practiceDecisionAt",
         "closingUpdatedAt",
         "closingCompletedAt",
         "lastLaunchAt",
