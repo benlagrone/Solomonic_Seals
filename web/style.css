@@ -5988,10 +5988,16 @@ body.clock-page[data-drawer-tab="now"] .drawer .daily-meditation {
   gap: 0.4rem;
 }
 
-.clock-page .personal-time-profile-export {
+.clock-page .personal-time-profile-export,
+.clock-page .personal-time-profile-action {
   min-height: 1.9rem;
   padding-inline: 0.74rem;
   font-size: 0.66rem;
+}
+
+.clock-page .personal-time-profile-action {
+  border-color: rgba(148, 163, 184, 0.2);
+  color: #c9d7e7;
 }
 
 .clock-page .personal-time-profile[data-profile-state="ready"] {

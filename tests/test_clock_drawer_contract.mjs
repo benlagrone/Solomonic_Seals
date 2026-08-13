@@ -212,8 +212,13 @@ assertIncludes(js, "Personal frame: requires a saved birth profile", "lifespan c
 assertIncludes(html, 'class="personal-time-profile"', "Counsel should disclose Personal Time Profile readiness inside the existing temporal-scale section");
 assertIncludes(html, "Guest guidance uses the public moment only", "Guest Personal Time Profile copy should preserve the public-only guidance boundary");
 assertIncludes(html, 'class="personal-time-profile-export action-button"', "Personal Time Profile should expose a local export status control");
+["correct", "recalculate", "delete"].forEach((action) => {
+  assertIncludes(html, `data-profile-action="${action}"`, `Personal Time Profile should expose a ${action} readiness control`);
+});
 assertIncludes(js, "function getPersonalTimeProfileStatus", "Personal Time Profile status should be derived from auth/profile state");
 assertIncludes(js, "function buildPersonalTimeProfileExport", "Personal Time Profile export should be built as a structured status artifact");
+assertIncludes(js, "function getPersonalTimeProfileActionNotice", "Personal Time Profile controls should explain locked or ready action state");
+assertIncludes(js, "function handlePersonalTimeProfileAction", "Personal Time Profile controls should route through one action handler");
 assertIncludes(js, "raw_private_values_included: false", "Personal Time Profile status export should not include raw private values");
 assertIncludes(js, "network_submission: false", "Personal Time Profile status export should remain local-only");
 assertIncludes(js, "setupPersonalTimeProfileControls();", "Personal Time Profile export should be wired during clock initialization");

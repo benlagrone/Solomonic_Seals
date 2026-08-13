@@ -280,6 +280,7 @@ const drawerElements = {
   personalTimeProfileDetail: document.querySelector(".personal-time-profile-detail"),
   personalTimeProfileFields: document.querySelector(".personal-time-profile-fields"),
   personalTimeProfileExport: document.querySelector(".personal-time-profile-export"),
+  personalTimeProfileActionButtons: Array.from(document.querySelectorAll(".personal-time-profile-action[data-profile-action]")),
   meditationSection: document.querySelector(".daily-meditation"),
   meditationTitle: document.querySelector(".meditation-title"),
   meditationBody: document.querySelector(".meditation-body"),
@@ -4551,8 +4552,44 @@ function exportPersonalTimeProfileStatus() {
   return exported;
 }
 
+function getPersonalTimeProfileActionNotice(action, status = getPersonalTimeProfileStatus()) {
+  if (action === "correct") {
+    return status.key === "guest"
+      ? "Correction is locked until sign-in because guest mode has no saved private profile to edit."
+      : "Correction is ready to route to the saved profile editor; no local profile data was changed here.";
+  }
+  if (action === "recalculate") {
+    return status.key === "ready"
+      ? "Recalculation is ready to compare the private BirthVector with the public MomentVector when the profile service is connected."
+      : "Recalculation is locked until a consented BirthVector exists; the public MomentVector remains unchanged.";
+  }
+  if (action === "delete") {
+    return status.key === "guest"
+      ? "Deletion is locked because guest mode has no saved private profile on this surface."
+      : "Deletion must run against the saved private profile service; no private data was deleted from this local panel.";
+  }
+  return status.detail;
+}
+
+function showPersonalTimeProfileNotice(text) {
+  personalTimeProfileExportNotice = text;
+  personalTimeProfileExportNoticeUntil = Date.now() + 5000;
+  if (drawerElements.personalTimeProfileDetail) {
+    drawerElements.personalTimeProfileDetail.textContent = text;
+  }
+}
+
+function handlePersonalTimeProfileAction(action) {
+  showPersonalTimeProfileNotice(getPersonalTimeProfileActionNotice(action));
+}
+
 function setupPersonalTimeProfileControls() {
   drawerElements.personalTimeProfileExport?.addEventListener("click", exportPersonalTimeProfileStatus);
+  drawerElements.personalTimeProfileActionButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      handlePersonalTimeProfileAction(String(button.dataset.profileAction || "").trim().toLowerCase());
+    });
+  });
 }
 
 function buildTemporalScaleReadings(now, timeState) {
