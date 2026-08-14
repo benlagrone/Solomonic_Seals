@@ -279,6 +279,7 @@ const drawerElements = {
   personalTimeProfileStatus: document.querySelector(".personal-time-profile-status"),
   personalTimeProfileDetail: document.querySelector(".personal-time-profile-detail"),
   personalTimeProfileFields: document.querySelector(".personal-time-profile-fields"),
+  personalTimeProfilePending: document.querySelector(".personal-time-profile-pending"),
   personalTimeProfileExport: document.querySelector(".personal-time-profile-export"),
   personalTimeProfileActionButtons: Array.from(document.querySelectorAll(".personal-time-profile-action[data-profile-action]")),
   meditationSection: document.querySelector(".daily-meditation"),
@@ -493,6 +494,7 @@ let lastProvidenceMapKey = null;
 let lastTemporalScaleKey = null;
 let personalTimeProfileExportNotice = "";
 let personalTimeProfileExportNoticeUntil = 0;
+let personalTimeProfilePendingAction = null;
 let currentPsalmRequestId = 0;
 let currentBundleRequestId = 0;
 let currentRulePsalmRequestId = 0;
@@ -4474,6 +4476,13 @@ function getPersonalTimeProfileStatus() {
   };
 }
 
+function getPersonalTimeProfileActionLabel(action) {
+  if (action === "correct") return "Correction";
+  if (action === "recalculate") return "Recalculation";
+  if (action === "delete") return "Deletion";
+  return "";
+}
+
 function updatePersonalTimeProfilePanel() {
   if (
     !drawerElements.personalTimeProfile ||
@@ -4496,6 +4505,17 @@ function updatePersonalTimeProfilePanel() {
       return item;
     })
   );
+  if (drawerElements.personalTimeProfilePending) {
+    const actionLabel = getPersonalTimeProfileActionLabel(personalTimeProfilePendingAction?.action);
+    drawerElements.personalTimeProfilePending.textContent = actionLabel
+      ? `${actionLabel} requested locally at ${formatClockRuntimeTime(personalTimeProfilePendingAction.requestedAt)}. No profile data has been changed or transmitted.`
+      : "No profile operation pending.";
+  }
+  drawerElements.personalTimeProfileActionButtons.forEach((button) => {
+    const active = button.dataset.profileAction === personalTimeProfilePendingAction?.action;
+    button.classList.toggle("is-active", active);
+    button.setAttribute("aria-pressed", active ? "true" : "false");
+  });
   return status;
 }
 
@@ -4514,6 +4534,12 @@ function buildPersonalTimeProfileExport(status = getPersonalTimeProfileStatus())
       raw_private_values_included: false,
       network_submission: false,
     },
+    pending_action: personalTimeProfilePendingAction ? {
+      action: personalTimeProfilePendingAction.action,
+      requested_at: personalTimeProfilePendingAction.requestedAt,
+      profile_mutated: false,
+      network_submission: false,
+    } : null,
     required_controls: ["export", "correction", "recalculation", "deletion"],
   };
 }
@@ -4580,7 +4606,13 @@ function showPersonalTimeProfileNotice(text) {
 }
 
 function handlePersonalTimeProfileAction(action) {
-  showPersonalTimeProfileNotice(getPersonalTimeProfileActionNotice(action));
+  const normalizedAction = String(action || "").trim().toLowerCase();
+  personalTimeProfilePendingAction = {
+    action: normalizedAction,
+    requestedAt: new Date().toISOString(),
+  };
+  showPersonalTimeProfileNotice(getPersonalTimeProfileActionNotice(normalizedAction));
+  updatePersonalTimeProfilePanel();
 }
 
 function setupPersonalTimeProfileControls() {

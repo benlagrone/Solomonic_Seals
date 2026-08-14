@@ -212,19 +212,23 @@ assertIncludes(js, "Personal frame: requires a saved birth profile", "lifespan c
 assertIncludes(html, 'class="personal-time-profile"', "Counsel should disclose Personal Time Profile readiness inside the existing temporal-scale section");
 assertIncludes(html, "Guest guidance uses the public moment only", "Guest Personal Time Profile copy should preserve the public-only guidance boundary");
 assertIncludes(html, 'class="personal-time-profile-export action-button"', "Personal Time Profile should expose a local export status control");
+assertIncludes(html, 'class="personal-time-profile-pending"', "Personal Time Profile should show the locally pending profile operation");
 ["correct", "recalculate", "delete"].forEach((action) => {
   assertIncludes(html, `data-profile-action="${action}"`, `Personal Time Profile should expose a ${action} readiness control`);
 });
 assertIncludes(js, "function getPersonalTimeProfileStatus", "Personal Time Profile status should be derived from auth/profile state");
+assertIncludes(js, "let personalTimeProfilePendingAction", "Personal Time Profile controls should keep a local pending action");
 assertIncludes(js, "function buildPersonalTimeProfileExport", "Personal Time Profile export should be built as a structured status artifact");
 assertIncludes(js, "function getPersonalTimeProfileActionNotice", "Personal Time Profile controls should explain locked or ready action state");
 assertIncludes(js, "function handlePersonalTimeProfileAction", "Personal Time Profile controls should route through one action handler");
 assertIncludes(js, "raw_private_values_included: false", "Personal Time Profile status export should not include raw private values");
 assertIncludes(js, "network_submission: false", "Personal Time Profile status export should remain local-only");
+assertIncludes(js, "pending_action: personalTimeProfilePendingAction", "Personal Time Profile export should include local pending action metadata");
 assertIncludes(js, "setupPersonalTimeProfileControls();", "Personal Time Profile export should be wired during clock initialization");
 assertIncludes(js, "BirthVector to MomentVector", "Personal profile copy should keep BirthVector distinct from MomentVector");
 assertIncludes(js, "export, correction, recalculation, and deletion", "Personal profile copy should name export, correction, recalculation, and deletion readiness");
 assertIncludes(css, ".clock-page .personal-time-profile[data-profile-state=\"ready\"]", "Ready personal profile state should have an explicit visual treatment");
+assertIncludes(css, ".clock-page .personal-time-profile-action.is-active", "Pending profile action should have a selected visual state");
 assertIncludes(js, "not a deterministic claim", "lunar counsel should avoid presenting contemplation as causal fact");
 assertIncludes(css, 'body.clock-page[data-drawer-tab="now"] .drawer .temporal-scale-section', "temporal scales should appear in the Counsel tab");
 assertIncludes(css, ".clock-page .temporal-scale-button.active", "the selected temporal scale should have a visible state");

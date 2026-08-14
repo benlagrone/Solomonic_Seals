@@ -5965,6 +5965,15 @@ body.clock-page[data-drawer-tab="now"] .drawer .daily-meditation {
   line-height: 1.42;
 }
 
+.clock-page .personal-time-profile-pending {
+  margin: 0;
+  border-top: 1px solid rgba(148, 163, 184, 0.14);
+  padding-top: 0.44rem;
+  color: #fde68a;
+  font-size: 0.68rem;
+  line-height: 1.42;
+}
+
 .clock-page .personal-time-profile-fields {
   display: flex;
   flex-wrap: wrap;
@@ -5998,6 +6007,12 @@ body.clock-page[data-drawer-tab="now"] .drawer .daily-meditation {
 .clock-page .personal-time-profile-action {
   border-color: rgba(148, 163, 184, 0.2);
   color: #c9d7e7;
+}
+
+.clock-page .personal-time-profile-action.is-active {
+  border-color: rgba(250, 204, 21, 0.62);
+  background: rgba(250, 204, 21, 0.12);
+  color: #fde68a;
 }
 
 .clock-page .personal-time-profile[data-profile-state="ready"] {
