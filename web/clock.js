@@ -249,6 +249,9 @@ const drawerElements = {
   accountStatus: document.querySelector(".account-status"),
   accountSignIn: document.querySelector(".account-sign-in"),
   accountSignOut: document.querySelector(".account-sign-out"),
+  billingStatus: document.querySelector(".billing-status"),
+  billingCheckoutButtons: Array.from(document.querySelectorAll(".billing-checkout[data-price-lookup-key]")),
+  billingManage: document.querySelector(".billing-manage"),
   headerTitle: document.querySelector(".drawer-header h2"),
   clockReadoutTime: document.querySelector(".clock-readout-time"),
   clockReadoutTitle: document.querySelector(".clock-readout-title"),
@@ -536,6 +539,7 @@ const HISTORY_CLIENT_HEADER = "X-TrueVine-History-Client";
 const HISTORY_KEY_HEADER = "X-TrueVine-History-Key";
 const DEV_AUTH_SUB_HEADER = "X-Dev-Auth-Sub";
 const DEV_AUTH_NAME_HEADER = "X-Dev-Auth-Name";
+const DEV_AUTH_EMAIL_HEADER = "X-Dev-Auth-Email";
 const MAX_DAILY_ACTION_LAUNCHES = 12;
 let dailyActionStateCache = null;
 let historySyncIdentity = null;
@@ -596,6 +600,11 @@ let clockAuthState = {
   bridge: false,
   error: "",
 };
+let billingAccountState = {
+  loading: false,
+  entitlement: null,
+  error: "",
+};
 const uiState = {
   presentationMode: "guidance",
   lens: "base",
@@ -654,6 +663,9 @@ const PERICOPE_CHAT_LAUNCH_API_ENDPOINT = "/api/pericope/chat-launch";
 const CLIENT_ERRORS_API_ENDPOINT = "/api/client-errors";
 const VIBEVOICE_TTS_JOBS_API_ENDPOINT = "/api/vibevoice/tts/jobs";
 const VIBEVOICE_HEALTH_API_ENDPOINT = "/api/vibevoice/health";
+const BILLING_ENTITLEMENT_API_ENDPOINT = "/api/billing/entitlement";
+const BILLING_CHECKOUT_API_ENDPOINT = "/api/billing/checkout";
+const BILLING_PORTAL_API_ENDPOINT = "/api/billing/portal";
 const CLOCK_STATIC_DATA_VERSION = "20260620-spirit-brass1";
 const ENABLE_REMOTE_SCRIPTURE_FETCH = true;
 const CLIENT_ERROR_DEDUPE_WINDOW_MS = 90_000;
@@ -6010,6 +6022,131 @@ function updateAccountUi() {
   }
 }
 
+function updateBillingUi() {
+  if (!drawerElements.billingStatus) {
+    return;
+  }
+  const authenticated = Boolean(clockAuthState.authenticated && clockAuthState.profile?.sub);
+  const entitlement = billingAccountState.entitlement;
+  const paid = Boolean(entitlement?.has_paid_access);
+
+  drawerElements.billingCheckoutButtons.forEach((button) => {
+    button.hidden = !authenticated || paid;
+    button.disabled = billingAccountState.loading;
+  });
+  if (drawerElements.billingManage) {
+    drawerElements.billingManage.hidden = !authenticated || !paid;
+    drawerElements.billingManage.disabled = billingAccountState.loading;
+  }
+
+  if (!authenticated) {
+    drawerElements.billingStatus.textContent = "The complete clock is free. Sign in for three generated voice requests each day.";
+    drawerElements.billingStatus.dataset.state = "guest";
+  } else if (billingAccountState.loading) {
+    drawerElements.billingStatus.textContent = "Checking subscription…";
+    drawerElements.billingStatus.dataset.state = "loading";
+  } else if (billingAccountState.error) {
+    drawerElements.billingStatus.textContent = billingAccountState.error;
+    drawerElements.billingStatus.dataset.state = "error";
+  } else if (paid) {
+    const plan = String(entitlement.plan || "paid");
+    const cancellation = entitlement.cancel_at_period_end ? " Cancellation is scheduled at period end." : "";
+    drawerElements.billingStatus.textContent = `${plan[0].toUpperCase()}${plan.slice(1)} access is active with unlimited generated voice.${cancellation}`;
+    drawerElements.billingStatus.dataset.state = "active";
+  } else {
+    const remaining = Number(entitlement?.free_voice_remaining_today ?? 0);
+    const limit = Number(entitlement?.free_voice_daily_limit ?? 0);
+    drawerElements.billingStatus.textContent = `Free access includes the full clock and ${remaining} of ${limit} generated voice requests remaining today. Upgrade for unlimited voice.`;
+    drawerElements.billingStatus.dataset.state = "free";
+  }
+}
+
+async function fetchBillingJson(endpoint, options = {}) {
+  const access = await getHistorySyncAccess();
+  if (access?.mode !== "user") {
+    throw new Error("Sign in to manage billing.");
+  }
+  const response = await fetch(endpoint, {
+    ...options,
+    cache: "no-store",
+    headers: {
+      Accept: "application/json",
+      ...(options.body ? { "Content-Type": "application/json" } : {}),
+      ...access.headers,
+      ...(options.headers || {}),
+    },
+  });
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(payload?.error || `Billing request failed (${response.status}).`);
+  }
+  return payload;
+}
+
+async function refreshBillingAccount(options = {}) {
+  if (!clockAuthState.authenticated || !clockAuthState.profile?.sub) {
+    billingAccountState = { loading: false, entitlement: null, error: "" };
+    updateBillingUi();
+    return null;
+  }
+  billingAccountState = { ...billingAccountState, loading: true, error: "" };
+  updateBillingUi();
+  const attempts = options.poll ? 12 : 1;
+  for (let attempt = 0; attempt < attempts; attempt += 1) {
+    try {
+      const entitlement = await fetchBillingJson(BILLING_ENTITLEMENT_API_ENDPOINT);
+      billingAccountState = { loading: false, entitlement, error: "" };
+      updateBillingUi();
+      if (entitlement?.has_paid_access || !options.poll) {
+        return entitlement;
+      }
+    } catch (error) {
+      billingAccountState = { loading: false, entitlement: null, error: error?.message || "Billing status is unavailable." };
+      updateBillingUi();
+      return null;
+    }
+    await new Promise((resolve) => window.setTimeout(resolve, 1000));
+  }
+  return billingAccountState.entitlement;
+}
+
+async function startBillingCheckout(priceLookupKey) {
+  if (!clockAuthState.authenticated) {
+    startClockLogin();
+    return;
+  }
+  billingAccountState = { ...billingAccountState, loading: true, error: "" };
+  updateBillingUi();
+  try {
+    const session = await fetchBillingJson(BILLING_CHECKOUT_API_ENDPOINT, {
+      method: "POST",
+      body: JSON.stringify({ price_lookup_key: priceLookupKey }),
+    });
+    if (!session?.url) {
+      throw new Error("Checkout did not return a redirect URL.");
+    }
+    window.location.assign(session.url);
+  } catch (error) {
+    billingAccountState = { ...billingAccountState, loading: false, error: error?.message || "Checkout could not start." };
+    updateBillingUi();
+  }
+}
+
+async function openBillingPortal() {
+  billingAccountState = { ...billingAccountState, loading: true, error: "" };
+  updateBillingUi();
+  try {
+    const session = await fetchBillingJson(BILLING_PORTAL_API_ENDPOINT, { method: "POST", body: "{}" });
+    if (!session?.url) {
+      throw new Error("Billing portal did not return a redirect URL.");
+    }
+    window.location.assign(session.url);
+  } catch (error) {
+    billingAccountState = { ...billingAccountState, loading: false, error: error?.message || "Billing portal could not open." };
+    updateBillingUi();
+  }
+}
+
 function scheduleClockAuthRefresh() {
   clearClockAuthRefreshTimer();
   if (typeof window === "undefined" || !clockKeycloak?.tokenParsed?.exp) {
@@ -6250,7 +6387,12 @@ function setupAccountControls() {
   drawerElements.accountSignOut?.addEventListener("click", () => {
     startClockLogout();
   });
+  drawerElements.billingCheckoutButtons.forEach((button) => {
+    button.addEventListener("click", () => startBillingCheckout(button.dataset.priceLookupKey || ""));
+  });
+  drawerElements.billingManage?.addEventListener("click", () => openBillingPortal());
   updateAccountUi();
+  updateBillingUi();
 }
 
 function getGuestHistorySyncIdentity() {
@@ -6300,6 +6442,7 @@ async function getHistorySyncAccess() {
         headers: {
           [DEV_AUTH_SUB_HEADER]: clockAuthState.profile.sub,
           [DEV_AUTH_NAME_HEADER]: getClockAuthDisplayName() || "Local Clock User",
+          [DEV_AUTH_EMAIL_HEADER]: clockAuthState.profile.email || `${clockAuthState.profile.sub}@example.test`,
         },
         userId: clockAuthState.profile.sub,
       };
@@ -9083,15 +9226,22 @@ function buildVibeVoiceAudioResult(job, audioUrl) {
 }
 
 async function requestVibeVoiceAudio({ speechText, token, tokenType }) {
+  const access = await getHistorySyncAccess();
+  const billingAuthHeaders = access?.mode === "user" ? access.headers : {};
   const createPayload = await fetchVibeVoiceJson(VIBEVOICE_TTS_JOBS_API_ENDPOINT, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+      ...billingAuthHeaders,
     },
     body: JSON.stringify({
       text: speechText,
     }),
   });
+  if (createPayload?.billing) {
+    billingAccountState = { loading: false, entitlement: createPayload.billing, error: "" };
+    updateBillingUi();
+  }
   const jobId = String(createPayload?.job_id || "").trim();
   if (!jobId) {
     throw new Error("VibeVoice did not return a job id.");
@@ -13770,7 +13920,12 @@ async function initialiseClock() {
   setupProvidenceTimelineControls();
   setupPericopeSessionSyncRefresh();
   const authPromise = initialiseClockAuth();
-  const historySyncPromise = authPromise.then(() => bootstrapHistorySync());
+  const historySyncPromise = authPromise.then(async () => {
+    const result = await bootstrapHistorySync();
+    const billingResult = new URLSearchParams(window.location.search).get("billing");
+    await refreshBillingAccount({ poll: billingResult === "success" });
+    return result;
+  });
 
   try {
     const [clockData, psalmData, pentacleData, lifeDomainData, scriptureData] = await Promise.all([

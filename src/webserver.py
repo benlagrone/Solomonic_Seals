@@ -144,6 +144,13 @@ CLIENT_ERRORS_API_PATH = "/api/client-errors"
 VIBEVOICE_TTS_JOBS_API_PATH = "/api/vibevoice/tts/jobs"
 VIBEVOICE_AUDIO_API_PATH = "/api/vibevoice/audio"
 VIBEVOICE_HEALTH_API_PATH = "/api/vibevoice/health"
+BILLING_ENTITLEMENT_API_PATH = "/api/billing/entitlement"
+BILLING_CATALOG_API_PATH = "/api/billing/catalog"
+BILLING_CHECKOUT_API_PATH = "/api/billing/checkout"
+BILLING_PORTAL_API_PATH = "/api/billing/portal"
+BILLING_INVOICES_API_PATH = "/api/billing/invoices"
+BILLING_FULFILLMENT_API_PATH = "/api/billing/fulfillment"
+STRIPE_WEBHOOK_PROXY_API_PATH = "/api/stripe/webhook"
 VIBEVOICE_API_BASE_ENV = "SOLOMONIC_VIBEVOICE_API_BASE"
 VIBEVOICE_FALLBACK_API_BASE_ENV = "SOLOMONIC_VIBEVOICE_FALLBACK_API_BASE"
 VIBEVOICE_API_TOKEN_ENV = "SOLOMONIC_VIBEVOICE_API_TOKEN"
@@ -201,15 +208,20 @@ HISTORY_CLIENT_HEADER = "X-TrueVine-History-Client"
 HISTORY_KEY_HEADER = "X-TrueVine-History-Key"
 DEV_AUTH_SUB_HEADER = "X-Dev-Auth-Sub"
 DEV_AUTH_NAME_HEADER = "X-Dev-Auth-Name"
+DEV_AUTH_EMAIL_HEADER = "X-Dev-Auth-Email"
+DEV_AUTH_ROLES_HEADER = "X-Dev-Auth-Roles"
 HISTORY_STORE_PATH_ENV = "SOLOMONIC_HISTORY_STORE_PATH"
 DEFAULT_HISTORY_STORE_PATH = Path("/var/lib/solomonic-clock/history_store.json")
 CLIENT_ERRORS_STORE_PATH_ENV = "SOLOMONIC_CLIENT_ERRORS_STORE_PATH"
 DEFAULT_CLIENT_ERRORS_STORE_PATH = Path("/var/lib/solomonic-clock/client_errors.jsonl")
+BILLING_STORE_PATH_ENV = "SOLOMONIC_BILLING_STORE_PATH"
+DEFAULT_BILLING_STORE_PATH = Path("/var/lib/solomonic-clock/billing_store.json")
 MAX_HISTORY_ENTRIES_PER_CLIENT = 400
 MAX_HISTORY_REFLECTION_LENGTH = 4000
 MAX_HISTORY_LAUNCHES_PER_ENTRY = 12
 _HISTORY_STORE_LOCK = threading.Lock()
 _CLIENT_ERRORS_STORE_LOCK = threading.Lock()
+_BILLING_STORE_LOCK = threading.Lock()
 DEFAULT_SITE_URL = "https://truevineos.cloud"
 SITE_URL_ENV = "SOLOMONIC_SITE_URL"
 APP_VERSION_ENV = "SOLOMONIC_APP_VERSION"
@@ -224,9 +236,29 @@ AUTH_DISABLED_ENV = "SOLOMONIC_AUTH_DISABLED"
 DEV_FAKE_AUTH_ENV = "SOLOMONIC_DEV_FAKE_AUTH"
 DEV_FAKE_AUTH_DEFAULT_SUB_ENV = "SOLOMONIC_DEV_FAKE_AUTH_DEFAULT_SUB"
 DEV_FAKE_AUTH_DEFAULT_NAME_ENV = "SOLOMONIC_DEV_FAKE_AUTH_DEFAULT_NAME"
+DEV_FAKE_AUTH_DEFAULT_ROLES_ENV = "SOLOMONIC_DEV_FAKE_AUTH_DEFAULT_ROLES"
+BILLING_ENFORCEMENT_ENV = "SOLOMONIC_BILLING_ENFORCEMENT"
+BILLING_SERVICE_URL_ENV = "SOLOMONIC_BILLING_SERVICE_URL"
+BILLING_SERVICE_API_KEY_ENV = "SOLOMONIC_BILLING_SERVICE_API_KEY"
+BILLING_FULFILLMENT_SECRET_ENV = "SOLOMONIC_BILLING_FULFILLMENT_SECRET"
+FREE_VOICE_DAILY_LIMIT_ENV = "SOLOMONIC_FREE_VOICE_DAILY_LIMIT"
 DEFAULT_AUTH_URL = "https://auth.pericopeai.com"
 DEFAULT_AUTH_REALM = "pericope"
 DEFAULT_AUTH_CLIENT_ID = "pericope-web"
+TRUEVINE_PLAN_ROLE_PRECEDENCE = (
+    ("org", "truevineos_org"),
+    ("pro", "truevineos_pro"),
+    ("starter", "truevineos_starter"),
+)
+TRUEVINE_ACTIVE_SUBSCRIPTION_STATUSES = {"active", "trialing"}
+TRUEVINE_PRICE_LOOKUP_KEYS = {
+    "starter": "truevineos_starter_monthly",
+    "pro": "truevineos_pro_monthly",
+    "org": "truevineos_org_monthly",
+}
+TRUEVINE_PROTECTED_FEATURES = {"voice_generation": "starter"}
+DEFAULT_FREE_VOICE_DAILY_LIMIT = 3
+DEFAULT_BILLING_SERVICE_URL = "http://lecrown-billing:8090"
 DEFAULT_PERICOPE_API_BASE = "https://pericopeai.com/api/v1"
 DEFAULT_APP_VERSION = "0.0.0-dev"
 DEFAULT_APP_RELEASE = "local"
@@ -1600,6 +1632,19 @@ def _resolve_client_errors_fallback_path() -> Path:
     return Path(tempfile.gettempdir()) / "solomonic-clock-client_errors.jsonl"
 
 
+def _resolve_billing_store_path() -> Path:
+    configured = os.environ.get(BILLING_STORE_PATH_ENV, "").strip()
+    if configured:
+        return Path(configured)
+    if DEFAULT_BILLING_STORE_PATH.exists():
+        return DEFAULT_BILLING_STORE_PATH
+    try:
+        _ensure_parent_dir(DEFAULT_BILLING_STORE_PATH)
+        return DEFAULT_BILLING_STORE_PATH
+    except OSError:
+        return Path(tempfile.gettempdir()) / "solomonic-clock-billing_store.json"
+
+
 def _is_truthy(value: Any) -> bool:
     return str(value or "").strip().lower() in {"1", "true", "yes", "on"}
 
@@ -1646,6 +1691,386 @@ def _default_dev_fake_auth_name() -> str:
     return str(os.environ.get(DEV_FAKE_AUTH_DEFAULT_NAME_ENV, "Local Clock User") or "Local Clock User").strip()
 
 
+def _default_dev_fake_auth_roles() -> list[str]:
+    return [
+        role.strip()
+        for role in str(os.environ.get(DEV_FAKE_AUTH_DEFAULT_ROLES_ENV, "") or "").split(",")
+        if role.strip()
+    ]
+
+
+def _resolve_billing_enforcement_mode() -> str:
+    raw_mode = str(os.environ.get(BILLING_ENFORCEMENT_ENV, "disabled") or "disabled").strip().lower()
+    aliases = {"off": "disabled", "shadow": "audit", "on": "enforce"}
+    mode = aliases.get(raw_mode, raw_mode)
+    if mode not in {"disabled", "audit", "enforce"}:
+        raise ValueError(
+            f"Invalid {BILLING_ENFORCEMENT_ENV} value {raw_mode!r}; expected disabled, audit, or enforce."
+        )
+    return mode
+
+
+def _resolve_billing_service_url() -> str:
+    return str(
+        os.environ.get(BILLING_SERVICE_URL_ENV, DEFAULT_BILLING_SERVICE_URL)
+        or DEFAULT_BILLING_SERVICE_URL
+    ).strip().rstrip("/")
+
+
+def _read_billing_store() -> dict[str, Any]:
+    path = _resolve_billing_store_path()
+    if not path.exists():
+        return {"users": {}, "events": {}, "usage": {}}
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except Exception:
+        return {"users": {}, "events": {}, "usage": {}}
+    if not isinstance(payload, dict):
+        return {"users": {}, "events": {}, "usage": {}}
+    return {
+        "users": payload.get("users") if isinstance(payload.get("users"), dict) else {},
+        "events": payload.get("events") if isinstance(payload.get("events"), dict) else {},
+        "usage": payload.get("usage") if isinstance(payload.get("usage"), dict) else {},
+    }
+
+
+def _write_billing_store(payload: dict[str, Any]) -> None:
+    path = _resolve_billing_store_path()
+    _ensure_parent_dir(path)
+    temp_path = path.with_suffix(f"{path.suffix}.tmp")
+    temp_path.write_text(json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8")
+    temp_path.replace(path)
+
+
+def _get_billing_record(subject: str) -> dict[str, Any] | None:
+    if not subject:
+        return None
+    with _BILLING_STORE_LOCK:
+        record = _read_billing_store().get("users", {}).get(subject)
+    return dict(record) if isinstance(record, dict) else None
+
+
+def _resolve_free_voice_daily_limit() -> int:
+    raw_limit = str(
+        os.environ.get(FREE_VOICE_DAILY_LIMIT_ENV, DEFAULT_FREE_VOICE_DAILY_LIMIT)
+        or DEFAULT_FREE_VOICE_DAILY_LIMIT
+    ).strip()
+    try:
+        limit = int(raw_limit)
+    except ValueError as exc:
+        raise ValueError(f"Invalid {FREE_VOICE_DAILY_LIMIT_ENV} value {raw_limit!r}; expected 0 through 100.") from exc
+    if not 0 <= limit <= 100:
+        raise ValueError(f"Invalid {FREE_VOICE_DAILY_LIMIT_ENV} value {raw_limit!r}; expected 0 through 100.")
+    return limit
+
+
+def _utc_usage_date() -> str:
+    return datetime.now(ZoneInfo("UTC")).date().isoformat()
+
+
+def _free_voice_usage_snapshot(subject: str) -> dict[str, int]:
+    limit = _resolve_free_voice_daily_limit()
+    used = 0
+    if subject:
+        with _BILLING_STORE_LOCK:
+            record = _read_billing_store().get("usage", {}).get(subject, {})
+        if isinstance(record, dict) and record.get("date") == _utc_usage_date():
+            try:
+                used = max(0, int(record.get("voice_generation", 0)))
+            except (TypeError, ValueError):
+                used = 0
+    return {
+        "free_voice_daily_limit": limit,
+        "free_voice_used_today": used,
+        "free_voice_remaining_today": max(0, limit - used),
+    }
+
+
+def _reserve_free_voice_use(subject: str) -> tuple[bool, dict[str, int]]:
+    limit = _resolve_free_voice_daily_limit()
+    usage_date = _utc_usage_date()
+    with _BILLING_STORE_LOCK:
+        store = _read_billing_store()
+        record = store["usage"].get(subject, {})
+        used = 0
+        if isinstance(record, dict) and record.get("date") == usage_date:
+            try:
+                used = max(0, int(record.get("voice_generation", 0)))
+            except (TypeError, ValueError):
+                used = 0
+        if used >= limit:
+            return False, {
+                "free_voice_daily_limit": limit,
+                "free_voice_used_today": used,
+                "free_voice_remaining_today": 0,
+            }
+        used += 1
+        store["usage"][subject] = {"date": usage_date, "voice_generation": used}
+        _write_billing_store(store)
+    return True, {
+        "free_voice_daily_limit": limit,
+        "free_voice_used_today": used,
+        "free_voice_remaining_today": max(0, limit - used),
+    }
+
+
+def _release_free_voice_use(subject: str) -> None:
+    if not subject:
+        return
+    usage_date = _utc_usage_date()
+    with _BILLING_STORE_LOCK:
+        store = _read_billing_store()
+        record = store["usage"].get(subject)
+        if not isinstance(record, dict) or record.get("date") != usage_date:
+            return
+        try:
+            used = max(0, int(record.get("voice_generation", 0)))
+        except (TypeError, ValueError):
+            used = 0
+        record["voice_generation"] = max(0, used - 1)
+        store["usage"][subject] = record
+        _write_billing_store(store)
+
+
+def _finalize_free_voice_reservation(billing: dict[str, Any] | None, successful: bool) -> None:
+    if billing and billing.get("free_usage_reserved") and not successful:
+        _release_free_voice_use(str(billing.get("subject") or ""))
+
+
+def _billing_service_request(path: str, payload: dict[str, Any] | None = None) -> dict[str, Any]:
+    service_key = str(os.environ.get(BILLING_SERVICE_API_KEY_ENV, "") or "").strip()
+    if not service_key:
+        raise ValueError(f"Billing service is not configured. Set {BILLING_SERVICE_API_KEY_ENV}.")
+    body = None if payload is None else json.dumps(payload).encode("utf-8")
+    request = Request(
+        f"{_resolve_billing_service_url()}{path}",
+        data=body,
+        method="GET" if payload is None else "POST",
+        headers={
+            "Accept": "application/json",
+            "Authorization": f"Bearer {service_key}",
+            **({"Content-Type": "application/json"} if body is not None else {}),
+        },
+    )
+    try:
+        with urlopen(request, timeout=15) as response:
+            decoded = json.loads(response.read().decode("utf-8"))
+    except HTTPError as exc:
+        try:
+            error_payload = json.loads(exc.read().decode("utf-8"))
+            message = str(error_payload.get("error") or "").strip()
+            code = str(error_payload.get("code") or "").strip()
+        except Exception:
+            message, code = "", ""
+        error = ValueError(message or f"Billing service returned HTTP {exc.code}.")
+        setattr(error, "http_status", exc.code)
+        setattr(error, "billing_code", code)
+        raise error from exc
+    except (URLError, OSError) as exc:
+        reason = getattr(exc, "reason", None) or str(exc)
+        raise ValueError(f"Billing service is unavailable: {reason}") from exc
+    if not isinstance(decoded, dict):
+        raise ValueError("Billing service returned an invalid response.")
+    return decoded
+
+
+def _billing_identity(headers: Any) -> tuple[dict[str, Any] | None, str | None, HTTPStatus]:
+    claims, status, error = _extract_billing_claims(headers)
+    if error:
+        return None, error, status
+    subject = str((claims or {}).get("sub", "") or "").strip()
+    if not subject:
+        return None, "Sign in to manage billing.", HTTPStatus.UNAUTHORIZED
+    email = str((claims or {}).get("email", "") or "").strip().lower()
+    if not email or "@" not in email:
+        return None, "Your signed-in account must include an email address.", HTTPStatus.BAD_REQUEST
+    return {"project": "truevineos", "user_id": subject, "email": email}, None, HTTPStatus.OK
+
+
+def _build_billing_checkout_payload(
+    headers: Any, request_payload: dict[str, Any], site_url: str
+) -> tuple[dict[str, Any] | None, str | None, HTTPStatus]:
+    identity, error, status = _billing_identity(headers)
+    if identity is None:
+        return None, error, status
+    lookup_key = str(request_payload.get("price_lookup_key") or "").strip()
+    if lookup_key not in TRUEVINE_PRICE_LOOKUP_KEYS.values():
+        return None, "Unknown TrueVine plan.", HTTPStatus.BAD_REQUEST
+    idempotency_seed = f"{identity['user_id']}:{lookup_key}:{int(time.time() // 300)}"
+    payload = {
+        **identity,
+        "price_lookup_key": lookup_key,
+        "success_url": f"{site_url}/clock?billing=success&session_id={{CHECKOUT_SESSION_ID}}",
+        "cancel_url": f"{site_url}/clock?billing=cancelled",
+        "idempotency_key": f"truevineos:{hashlib.sha256(idempotency_seed.encode()).hexdigest()}",
+    }
+    try:
+        return _billing_service_request("/v1/checkout/sessions", payload), None, HTTPStatus.CREATED
+    except ValueError as exc:
+        response_status = getattr(exc, "http_status", HTTPStatus.BAD_GATEWAY)
+        return None, str(exc), HTTPStatus(response_status)
+
+
+def _build_billing_portal_payload(
+    headers: Any, site_url: str
+) -> tuple[dict[str, Any] | None, str | None, HTTPStatus]:
+    identity, error, status = _billing_identity(headers)
+    if identity is None:
+        return None, error, status
+    try:
+        return _billing_service_request(
+            "/v1/customer-portal/sessions", {**identity, "return_url": f"{site_url}/clock"}
+        ), None, HTTPStatus.CREATED
+    except ValueError as exc:
+        response_status = getattr(exc, "http_status", HTTPStatus.BAD_GATEWAY)
+        return None, str(exc), HTTPStatus(response_status)
+
+
+def _build_billing_invoices_payload(
+    headers: Any,
+) -> tuple[dict[str, Any] | None, str | None, HTTPStatus]:
+    identity, error, status = _billing_identity(headers)
+    if identity is None:
+        return None, error, status
+    try:
+        return _billing_service_request("/v1/invoices", identity), None, HTTPStatus.OK
+    except ValueError as exc:
+        response_status = getattr(exc, "http_status", HTTPStatus.BAD_GATEWAY)
+        return None, str(exc), HTTPStatus(response_status)
+
+
+def _verify_fulfillment_signature(raw_body: bytes, signature_header: str) -> bool:
+    secret = str(os.environ.get(BILLING_FULFILLMENT_SECRET_ENV, "") or "").strip()
+    if not secret:
+        return False
+    parts = {}
+    for item in str(signature_header or "").split(","):
+        if "=" in item:
+            key, value = item.split("=", 1)
+            parts[key.strip()] = value.strip()
+    try:
+        timestamp = int(parts.get("t", "0"))
+    except ValueError:
+        return False
+    if abs(int(time.time()) - timestamp) > 300:
+        return False
+    expected = hmac.new(
+        secret.encode("utf-8"), f"{timestamp}.".encode("ascii") + raw_body, hashlib.sha256
+    ).hexdigest()
+    return hmac.compare_digest(parts.get("v1", ""), expected)
+
+
+def _apply_billing_fulfillment(
+    raw_body: bytes, signature_header: str
+) -> tuple[dict[str, Any] | None, str | None, HTTPStatus]:
+    if not _verify_fulfillment_signature(raw_body, signature_header):
+        return None, "Invalid billing fulfillment signature.", HTTPStatus.UNAUTHORIZED
+    try:
+        payload = json.loads(raw_body.decode("utf-8"))
+    except json.JSONDecodeError:
+        return None, "Invalid billing fulfillment JSON.", HTTPStatus.BAD_REQUEST
+    if not isinstance(payload, dict) or payload.get("project") != "truevineos":
+        return None, "Invalid billing fulfillment project.", HTTPStatus.BAD_REQUEST
+    event_id = str(payload.get("event_id") or "").strip()
+    subject = str(payload.get("user_id") or "").strip()
+    subscription_status = str(payload.get("status") or "").strip().lower()
+    plan = str(payload.get("plan") or "").strip().lower()
+    allowed_statuses = {
+        "active", "trialing", "past_due", "unpaid", "paused", "canceled", "incomplete", "incomplete_expired"
+    }
+    if not event_id or not subject or subscription_status not in allowed_statuses:
+        return None, "Billing fulfillment event is incomplete.", HTTPStatus.BAD_REQUEST
+    if plan and plan not in TRUEVINE_PRICE_LOOKUP_KEYS:
+        return None, "Billing fulfillment plan is invalid.", HTTPStatus.BAD_REQUEST
+    now_iso = datetime.utcnow().isoformat() + "Z"
+    with _BILLING_STORE_LOCK:
+        store = _read_billing_store()
+        if event_id in store["events"]:
+            return {"received": True, "duplicate": True}, None, HTTPStatus.OK
+        store["users"][subject] = {
+            "plan": plan or None,
+            "subscription_status": subscription_status,
+            "customer_id": str(payload.get("customer_id") or "") or None,
+            "subscription_id": str(payload.get("subscription_id") or "") or None,
+            "price_lookup_key": str(payload.get("price_lookup_key") or "") or None,
+            "cancel_at_period_end": bool(payload.get("cancel_at_period_end")),
+            "current_period_end": payload.get("current_period_end"),
+            "updated_at": now_iso,
+            "source": "stripe_webhook",
+        }
+        store["events"][event_id] = {"event_type": payload.get("event_type"), "received_at": now_iso}
+        if len(store["events"]) > 2000:
+            for oldest in list(store["events"])[: len(store["events"]) - 2000]:
+                store["events"].pop(oldest, None)
+        _write_billing_store(store)
+    return {"received": True, "subject": subject, "status": subscription_status}, None, HTTPStatus.OK
+
+
+def _proxy_stripe_webhook(
+    raw_body: bytes, signature_header: str
+) -> tuple[dict[str, Any] | None, str | None, HTTPStatus]:
+    if not signature_header:
+        return None, "Missing Stripe-Signature header.", HTTPStatus.BAD_REQUEST
+    request = Request(
+        f"{_resolve_billing_service_url()}/v1/stripe/webhook",
+        data=raw_body,
+        method="POST",
+        headers={
+            "Content-Type": "application/json",
+            "Stripe-Signature": signature_header,
+        },
+    )
+    try:
+        with urlopen(request, timeout=15) as response:
+            payload = json.loads(response.read().decode("utf-8"))
+            return payload, None, HTTPStatus(response.status)
+    except HTTPError as exc:
+        try:
+            payload = json.loads(exc.read().decode("utf-8"))
+            message = str(payload.get("error") or "").strip()
+        except Exception:
+            message = ""
+        return None, message or f"Billing webhook service returned HTTP {exc.code}.", HTTPStatus(exc.code)
+    except (URLError, OSError) as exc:
+        reason = getattr(exc, "reason", None) or str(exc)
+        return None, f"Billing webhook service is unavailable: {reason}", HTTPStatus.BAD_GATEWAY
+
+
+def _normalize_billing_role(value: Any) -> str:
+    return str(value or "").strip().lower().replace("-", "_").replace(":", "_")
+
+
+def _extract_billing_roles(claims: dict[str, Any] | None) -> set[str]:
+    if not isinstance(claims, dict):
+        return set()
+
+    role_values: list[Any] = []
+    realm_access = claims.get("realm_access")
+    if isinstance(realm_access, dict) and isinstance(realm_access.get("roles"), list):
+        role_values.extend(realm_access["roles"])
+
+    resource_access = claims.get("resource_access")
+    if isinstance(resource_access, dict):
+        for resource in resource_access.values():
+            if isinstance(resource, dict) and isinstance(resource.get("roles"), list):
+                role_values.extend(resource["roles"])
+
+    if isinstance(claims.get("roles"), list):
+        role_values.extend(claims["roles"])
+
+    return {_normalize_billing_role(role) for role in role_values if _normalize_billing_role(role)}
+
+
+def _resolve_truevine_plan(claims: dict[str, Any] | None) -> tuple[str | None, str | None]:
+    roles = _extract_billing_roles(claims)
+    if "truevineos_admin" in roles:
+        return "org", "truevineos_admin"
+    for plan, role in TRUEVINE_PLAN_ROLE_PRECEDENCE:
+        if role in roles:
+            return plan, role
+    return None, None
+
+
 def _extract_bearer_token(headers: Any) -> str:
     authorization = str(headers.get("Authorization", "") or "").strip()
     match = re.match(r"Bearer\s+(.+)$", authorization, re.I)
@@ -1663,10 +2088,17 @@ def _build_dev_fake_auth_claims(headers: Any) -> dict[str, Any] | None:
         return None
 
     name = str(headers.get(DEV_AUTH_NAME_HEADER, "") or "").strip() or _default_dev_fake_auth_name()
+    email = str(headers.get(DEV_AUTH_EMAIL_HEADER, "") or "").strip().lower() or f"{sub}@example.test"
+    supplied_roles = str(headers.get(DEV_AUTH_ROLES_HEADER, "") or "").strip()
+    roles = [role.strip() for role in supplied_roles.split(",") if role.strip()]
+    if not roles:
+        roles = _default_dev_fake_auth_roles()
     return {
         "sub": sub,
         "name": name,
         "preferred_username": sub,
+        "email": email,
+        "realm_access": {"roles": roles},
         "dev_fake_auth": True,
         "iss": _resolve_auth_issuer(),
     }
@@ -1721,6 +2153,171 @@ def _verify_userinfo_token(token: str) -> dict[str, Any]:
         }
 
     return payload
+
+
+def _extract_billing_claims(headers: Any) -> tuple[dict[str, Any] | None, HTTPStatus, str | None]:
+    bearer = _extract_bearer_token(headers)
+    if bearer:
+        try:
+            claims = _verify_userinfo_token(bearer)
+        except ValueError as exc:
+            return None, HTTPStatus.UNAUTHORIZED, str(exc)
+        return claims, HTTPStatus.OK, None
+
+    dev_claims = _build_dev_fake_auth_claims(headers)
+    if dev_claims:
+        return dev_claims, HTTPStatus.OK, None
+    return None, HTTPStatus.OK, None
+
+
+def _build_billing_entitlement_payload(
+    headers: Any,
+) -> tuple[dict[str, Any] | None, str | None, HTTPStatus]:
+    try:
+        enforcement_mode = _resolve_billing_enforcement_mode()
+    except ValueError as exc:
+        return None, str(exc), HTTPStatus.SERVICE_UNAVAILABLE
+
+    claims, status, error = _extract_billing_claims(headers)
+    if error:
+        return None, error, status
+
+    subject = str((claims or {}).get("sub", "") or "").strip()
+    plan, matched_role = _resolve_truevine_plan(claims)
+    subscription_status = str(
+        (claims or {}).get("truevineos_subscription_status", "") or ""
+    ).strip().lower()
+    billing_record = _get_billing_record(subject)
+    if billing_record:
+        stored_plan = str(billing_record.get("plan") or "").strip().lower()
+        stored_status = str(billing_record.get("subscription_status") or "").strip().lower()
+        if stored_plan in TRUEVINE_PRICE_LOOKUP_KEYS:
+            plan = stored_plan
+            matched_role = "stripe_webhook"
+        subscription_status = stored_status or subscription_status
+    if plan and not subscription_status:
+        subscription_status = "active"
+
+    has_paid_access = bool(
+        subject
+        and plan
+        and subscription_status in TRUEVINE_ACTIVE_SUBSCRIPTION_STATUSES
+    )
+    try:
+        free_usage = _free_voice_usage_snapshot(subject)
+    except ValueError as exc:
+        return None, str(exc), HTTPStatus.SERVICE_UNAVAILABLE
+    voice_access = (
+        "paid_unlimited"
+        if has_paid_access
+        else "free_quota"
+        if subject and free_usage["free_voice_remaining_today"] > 0
+        else "quota_exhausted"
+        if subject
+        else "sign_in_required"
+    )
+    return {
+        "service": "truevineos",
+        "environment": "test" if enforcement_mode in {"audit", "enforce"} else "unconfigured",
+        "enforcement_mode": enforcement_mode,
+        "authenticated": bool(subject),
+        "subject": subject or None,
+        "tier": plan if has_paid_access else ("free" if subject else "guest"),
+        "plan": plan,
+        "matched_role": matched_role,
+        "subscription_status": subscription_status or ("free" if subject else "guest"),
+        "has_paid_access": has_paid_access,
+        "would_deny_paid_features": not has_paid_access,
+        "would_deny_voice_generation": voice_access in {"quota_exhausted", "sign_in_required"},
+        "voice_access": voice_access,
+        **free_usage,
+        "free_features": [
+            "clock",
+            "scripture",
+            "study",
+            "guided_prompts",
+            "discussion_handoff",
+            "browser_history",
+        ],
+        "protected_features": dict(TRUEVINE_PROTECTED_FEATURES),
+        "price_lookup_key": (
+            str((billing_record or {}).get("price_lookup_key") or "").strip()
+            or TRUEVINE_PRICE_LOOKUP_KEYS.get(plan or "")
+        ),
+        "cancel_at_period_end": bool((billing_record or {}).get("cancel_at_period_end")),
+        "current_period_end": (billing_record or {}).get("current_period_end"),
+        "billing_updated_at": (billing_record or {}).get("updated_at"),
+    }, None, HTTPStatus.OK
+
+
+def _authorize_paid_feature(
+    headers: Any,
+    feature: str,
+) -> tuple[bool, HTTPStatus, str | None, dict[str, Any]]:
+    normalized_feature = str(feature or "").strip().lower()
+    required_plan = TRUEVINE_PROTECTED_FEATURES.get(normalized_feature)
+    if not required_plan:
+        return False, HTTPStatus.INTERNAL_SERVER_ERROR, "Unknown paid feature.", {}
+
+    try:
+        enforcement_mode = _resolve_billing_enforcement_mode()
+    except ValueError as exc:
+        return False, HTTPStatus.SERVICE_UNAVAILABLE, str(exc), {
+            "feature": normalized_feature,
+            "required_plan": required_plan,
+        }
+
+    if enforcement_mode == "disabled":
+        return True, HTTPStatus.OK, None, {
+            "feature": normalized_feature,
+            "required_plan": required_plan,
+            "enforcement_mode": enforcement_mode,
+            "would_deny_paid_features": False,
+        }
+
+    entitlement, error, status = _build_billing_entitlement_payload(headers)
+    if entitlement is None:
+        if enforcement_mode == "audit":
+            return True, HTTPStatus.OK, None, {
+                "feature": normalized_feature,
+                "required_plan": required_plan,
+                "enforcement_mode": enforcement_mode,
+                "would_deny_paid_features": True,
+                "authentication_error": error,
+            }
+        return False, status, error or "Unable to verify billing entitlement.", {
+            "feature": normalized_feature,
+            "required_plan": required_plan,
+            "enforcement_mode": enforcement_mode,
+        }
+
+    billing = {
+        **entitlement,
+        "feature": normalized_feature,
+        "required_plan": required_plan,
+    }
+    if entitlement["has_paid_access"]:
+        return True, HTTPStatus.OK, None, billing
+    if enforcement_mode == "audit":
+        return True, HTTPStatus.OK, None, billing
+    if not entitlement["authenticated"]:
+        return False, HTTPStatus.UNAUTHORIZED, "Sign in to use free generated voice.", billing
+    try:
+        reserved, usage = _reserve_free_voice_use(str(entitlement.get("subject") or ""))
+    except ValueError as exc:
+        return False, HTTPStatus.SERVICE_UNAVAILABLE, str(exc), billing
+    billing.update(usage)
+    billing["voice_access"] = "free_quota" if reserved else "quota_exhausted"
+    billing["would_deny_voice_generation"] = not reserved
+    if reserved:
+        billing["free_usage_reserved"] = True
+        return True, HTTPStatus.OK, None, billing
+    return (
+        False,
+        HTTPStatus.TOO_MANY_REQUESTS,
+        "Daily free voice limit reached. Upgrade for unlimited generated voice.",
+        billing,
+    )
 
 
 def _extract_history_actor(headers: Any) -> tuple[dict[str, Any] | None, HTTPStatus, str | None]:
@@ -5030,6 +5627,9 @@ class ClockRequestHandler(SimpleHTTPRequestHandler):
         normalized_path = "/" if request_path in {"", "/"} else request_path.rstrip("/")
         if normalized_path in NOINDEX_PATHS or normalized_path.startswith(NOINDEX_PREFIXES):
             self.send_header("X-Robots-Tag", "noindex, nofollow")
+        if normalized_path.startswith("/api/billing/") or normalized_path == STRIPE_WEBHOOK_PROXY_API_PATH or normalized_path.startswith(VIBEVOICE_TTS_JOBS_API_PATH):
+            self.send_header("Cache-Control", "no-store")
+            self.send_header("Vary", "Authorization, X-Dev-Auth-Sub, X-Dev-Auth-Roles")
         super().end_headers()
 
     def list_directory(self, path: str):  # type: ignore[override]
@@ -5198,6 +5798,10 @@ class ClockRequestHandler(SimpleHTTPRequestHandler):
             HISTORY_SYNC_API_PATH,
             CLIENT_ERRORS_API_PATH,
             VIBEVOICE_TTS_JOBS_API_PATH,
+            BILLING_CHECKOUT_API_PATH,
+            BILLING_PORTAL_API_PATH,
+            BILLING_FULFILLMENT_API_PATH,
+            STRIPE_WEBHOOK_PROXY_API_PATH,
         }:
             self.send_error(HTTPStatus.NOT_FOUND, "Unknown API route")
             return
@@ -5206,6 +5810,26 @@ class ClockRequestHandler(SimpleHTTPRequestHandler):
             allowed, status, error = self._authorize_guided_prompts_request()
             if not allowed:
                 self._send_json({"error": error or "Unauthorized."}, status)
+                return
+
+        billing: dict[str, Any] | None = None
+        if request_path == VIBEVOICE_TTS_JOBS_API_PATH:
+            allowed, status, error, billing = _authorize_paid_feature(self.headers, "voice_generation")
+            if not allowed:
+                self._send_json(
+                    {
+                        "error": error or "Generated voice access is unavailable.",
+                        "code": (
+                            "free_voice_limit_reached"
+                            if status == HTTPStatus.TOO_MANY_REQUESTS
+                            else "voice_sign_in_required"
+                            if status == HTTPStatus.UNAUTHORIZED
+                            else "billing_subscription_required"
+                        ),
+                        "billing": billing,
+                    },
+                    status,
+                )
                 return
 
         try:
@@ -5218,6 +5842,26 @@ class ClockRequestHandler(SimpleHTTPRequestHandler):
             raw_body = self.rfile.read(content_length) if content_length > 0 else b"{}"
         except Exception as exc:  # pragma: no cover - socket read failure
             self._send_json({"error": f"Unable to read request body: {exc}"}, HTTPStatus.BAD_REQUEST)
+            return
+
+        if request_path == STRIPE_WEBHOOK_PROXY_API_PATH:
+            response_payload, error, status = _proxy_stripe_webhook(
+                raw_body, str(self.headers.get("Stripe-Signature", "") or "")
+            )
+            if response_payload is None:
+                self._send_json({"error": error or "Unable to deliver Stripe webhook."}, status)
+                return
+            self._send_json(response_payload, status)
+            return
+
+        if request_path == BILLING_FULFILLMENT_API_PATH:
+            response_payload, error, status = _apply_billing_fulfillment(
+                raw_body, str(self.headers.get("X-Billing-Signature", "") or "")
+            )
+            if response_payload is None:
+                self._send_json({"error": error or "Unable to apply billing fulfillment."}, status)
+                return
+            self._send_json(response_payload, status)
             return
 
         try:
@@ -5238,6 +5882,20 @@ class ClockRequestHandler(SimpleHTTPRequestHandler):
             response_payload, error, status = _build_client_error_post_payload(payload)
         elif request_path == VIBEVOICE_TTS_JOBS_API_PATH:
             response_payload, error, status = _build_vibevoice_job_payload(payload)
+            if billing and billing.get("free_usage_reserved"):
+                _finalize_free_voice_reservation(billing, response_payload is not None)
+                if response_payload is not None:
+                    response_payload["billing"] = {
+                        key: value for key, value in billing.items() if key != "free_usage_reserved"
+                    }
+        elif request_path == BILLING_CHECKOUT_API_PATH:
+            response_payload, error, status = _build_billing_checkout_payload(
+                self.headers, payload, self._resolve_site_url()
+            )
+        elif request_path == BILLING_PORTAL_API_PATH:
+            response_payload, error, status = _build_billing_portal_payload(
+                self.headers, self._resolve_site_url()
+            )
         elif request_path == PERICOPE_CHAT_LAUNCH_API_PATH:
             response_payload, error, status = _build_pericope_chat_launch_payload(payload)
         elif request_path == CLOCK_CONTEXT_API_PATH:
@@ -5257,6 +5915,8 @@ class ClockRequestHandler(SimpleHTTPRequestHandler):
                 if request_path == CLIENT_ERRORS_API_PATH
                 else "Unable to create VibeVoice audio job."
                 if request_path == VIBEVOICE_TTS_JOBS_API_PATH
+                else "Unable to create a billing session."
+                if request_path in {BILLING_CHECKOUT_API_PATH, BILLING_PORTAL_API_PATH}
                 else "Unable to build guided prompts payload."
             )
             self._send_json({"error": error or fallback_error}, status)
@@ -5326,6 +5986,35 @@ class ClockRequestHandler(SimpleHTTPRequestHandler):
 
         if normalized_path == VIBEVOICE_HEALTH_API_PATH:
             self._send_json(_build_vibevoice_health_payload(), HTTPStatus.OK, send_body=send_body)
+            return True
+
+        if normalized_path == BILLING_ENTITLEMENT_API_PATH:
+            payload, error, status = _build_billing_entitlement_payload(self.headers)
+            if payload is None:
+                self._send_json(
+                    {"error": error or "Unable to resolve billing entitlement."},
+                    status,
+                    send_body=send_body,
+                )
+                return True
+            self._send_json(payload, status, send_body=send_body)
+            return True
+
+        if normalized_path == BILLING_CATALOG_API_PATH:
+            try:
+                payload = _billing_service_request("/v1/catalog")
+            except ValueError as exc:
+                self._send_json({"error": str(exc)}, HTTPStatus.BAD_GATEWAY, send_body=send_body)
+                return True
+            self._send_json(payload, HTTPStatus.OK, send_body=send_body)
+            return True
+
+        if normalized_path == BILLING_INVOICES_API_PATH:
+            payload, error, status = _build_billing_invoices_payload(self.headers)
+            if payload is None:
+                self._send_json({"error": error or "Unable to list invoices."}, status, send_body=send_body)
+                return True
+            self._send_json(payload, status, send_body=send_body)
             return True
 
         if normalized_path == "/api/psalm":
@@ -5627,6 +6316,8 @@ def main() -> None:
     print(f"• Clock content bundle endpoint: {CLOCK_CONTENT_BUNDLE_API_PATH}")
     print(f"• Clock wisdom anchor endpoint: {CLOCK_WISDOM_ANCHOR_API_PATH}")
     print(f"• Pericope chat launch endpoint: {PERICOPE_CHAT_LAUNCH_API_PATH}")
+    print(f"• Billing entitlement endpoint: {BILLING_ENTITLEMENT_API_PATH}")
+    print(f"• Billing enforcement: {_resolve_billing_enforcement_mode()}")
     print("• Local Psalms endpoint: /api/psalm?chapter=91&verse=11")
     print(f"• Psalms source mode: {source_mode} (set SOLOMONIC_PSALM_SOURCE_MODE to override)")
     print(

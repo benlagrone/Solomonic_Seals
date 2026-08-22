@@ -56,6 +56,8 @@ Clock-specific envs:
 - `SOLOMONIC_PSALM_SOURCE_MODE` — default `pericope_first`
 - `SOLOMONIC_PERICOPE_API_BASE` — defaults to `http://host.docker.internal:8001` in the standalone compose file; the control-plane stack uses the internal corpus DNS name instead
 - `SOLOMONIC_SITE_URL` — optional canonical site URL for sitemap/canonical metadata (defaults to the incoming request host)
+- `SOLOMONIC_BILLING_ENFORCEMENT` — `disabled`, `audit`, or `enforce`; use `audit` until test Checkout and webhook fulfillment grant and revoke True Vine OS roles reliably
+- `SOLOMONIC_FREE_VOICE_DAILY_LIMIT` — signed-in free-account generated voice allowance per UTC day (default `3`); paid accounts are unlimited
 
 The image also includes `docs/source_texts/Psalms.txt` as a public-domain English Psalms fallback. If Pericope corpus lookup is unavailable, `/api/psalm` and Psalm study expansions still resolve from this local source.
 

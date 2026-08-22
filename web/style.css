@@ -5357,6 +5357,21 @@ svg#clock .center-label {
   line-height: 1.45;
 }
 
+.billing-status {
+  margin: 0.35rem 0 0;
+  color: #bfdbfe;
+  font-size: 0.88rem;
+  line-height: 1.4;
+}
+
+.billing-status[data-state="active"] {
+  color: #86efac;
+}
+
+.billing-status[data-state="error"] {
+  color: #fda4af;
+}
+
 .account-actions {
   display: flex;
   flex-wrap: wrap;

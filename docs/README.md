@@ -23,6 +23,7 @@ Program-level strategy, deployment policy, and release governance are maintained
 - [Deployment Promotion Runbook](deployment_promotion_runbook.md)
 - [Production Domain Setup](production_domain_setup.md)
 - [MVP Mobile App Roadmap](mvp_mobile_app_roadmap.md)
+- [Paid Access Test Plan](paid_access_test_plan.md) — test-mode entitlement roles, enforcement modes, first protected feature, and promotion gates
 - [Combined Roadmap](combined_roadmap.md)
 - [Solomonic Calendar Expansion Guide](solomonic_calendar_expansion_guide.md)
 - [Source Texts Indexing Plan](source_texts_indexing_plan.md)

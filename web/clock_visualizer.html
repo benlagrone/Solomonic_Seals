@@ -109,9 +109,14 @@
           <div class="account-copy">
             <p class="account-kicker">Account</p>
             <p class="account-status">Guest mode. History is saved in this browser until you sign in.</p>
+            <p class="billing-status" aria-live="polite">The complete clock is free. Sign in for three generated voice requests each day.</p>
           </div>
           <div class="account-actions">
             <button type="button" class="action-button account-sign-in">Sign In</button>
+            <button type="button" class="action-button billing-checkout" data-price-lookup-key="truevineos_starter_monthly" hidden>Starter</button>
+            <button type="button" class="action-button billing-checkout" data-price-lookup-key="truevineos_pro_monthly" hidden>Pro</button>
+            <button type="button" class="action-button billing-checkout" data-price-lookup-key="truevineos_org_monthly" hidden>Organization</button>
+            <button type="button" class="action-button billing-manage" hidden>Manage Billing</button>
             <button type="button" class="action-button account-sign-out" hidden>Sign Out</button>
           </div>
         </section>
