@@ -55,6 +55,52 @@ class BillingEntitlementTests(unittest.TestCase):
         self.assertTrue(billing["would_deny_paid_features"])
         self.assertFalse(billing["has_paid_access"])
 
+    def test_entitlement_environment_defaults_to_test_when_enabled(self) -> None:
+        with patch.dict(
+            os.environ,
+            {
+                "SOLOMONIC_BILLING_ENFORCEMENT": "audit",
+                "SOLOMONIC_DEV_FAKE_AUTH": "true",
+            },
+            clear=False,
+        ):
+            payload, error, status = _build_billing_entitlement_payload(self._dev_headers())
+
+        self.assertIsNone(error)
+        self.assertEqual(status, HTTPStatus.OK)
+        self.assertEqual(payload["environment"], "test")
+
+    def test_entitlement_environment_can_be_marked_live(self) -> None:
+        with patch.dict(
+            os.environ,
+            {
+                "SOLOMONIC_BILLING_ENFORCEMENT": "audit",
+                "SOLOMONIC_BILLING_ENVIRONMENT": "live",
+                "SOLOMONIC_DEV_FAKE_AUTH": "true",
+            },
+            clear=False,
+        ):
+            payload, error, status = _build_billing_entitlement_payload(self._dev_headers())
+
+        self.assertIsNone(error)
+        self.assertEqual(status, HTTPStatus.OK)
+        self.assertEqual(payload["environment"], "live")
+
+    def test_disabled_entitlement_environment_is_unconfigured(self) -> None:
+        with patch.dict(
+            os.environ,
+            {
+                "SOLOMONIC_BILLING_ENFORCEMENT": "disabled",
+                "SOLOMONIC_BILLING_ENVIRONMENT": "live",
+            },
+            clear=False,
+        ):
+            payload, error, status = _build_billing_entitlement_payload({})
+
+        self.assertIsNone(error)
+        self.assertEqual(status, HTTPStatus.OK)
+        self.assertEqual(payload["environment"], "unconfigured")
+
     def test_enforce_mode_requires_sign_in(self) -> None:
         with patch.dict(os.environ, {"SOLOMONIC_BILLING_ENFORCEMENT": "enforce"}, clear=False):
             allowed, status, error, billing = _authorize_paid_feature({}, "voice_generation")

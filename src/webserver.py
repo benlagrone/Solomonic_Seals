@@ -238,6 +238,7 @@ DEV_FAKE_AUTH_DEFAULT_SUB_ENV = "SOLOMONIC_DEV_FAKE_AUTH_DEFAULT_SUB"
 DEV_FAKE_AUTH_DEFAULT_NAME_ENV = "SOLOMONIC_DEV_FAKE_AUTH_DEFAULT_NAME"
 DEV_FAKE_AUTH_DEFAULT_ROLES_ENV = "SOLOMONIC_DEV_FAKE_AUTH_DEFAULT_ROLES"
 BILLING_ENFORCEMENT_ENV = "SOLOMONIC_BILLING_ENFORCEMENT"
+BILLING_ENVIRONMENT_ENV = "SOLOMONIC_BILLING_ENVIRONMENT"
 BILLING_SERVICE_URL_ENV = "SOLOMONIC_BILLING_SERVICE_URL"
 BILLING_SERVICE_API_KEY_ENV = "SOLOMONIC_BILLING_SERVICE_API_KEY"
 BILLING_FULFILLMENT_SECRET_ENV = "SOLOMONIC_BILLING_FULFILLMENT_SECRET"
@@ -1717,6 +1718,13 @@ def _resolve_billing_service_url() -> str:
     ).strip().rstrip("/")
 
 
+def _resolve_billing_environment(enforcement_mode: str) -> str:
+    if enforcement_mode == "disabled":
+        return "unconfigured"
+    environment = str(os.environ.get(BILLING_ENVIRONMENT_ENV, "test") or "test").strip().lower()
+    return environment if environment in {"test", "live"} else "unknown"
+
+
 def _read_billing_store() -> dict[str, Any]:
     path = _resolve_billing_store_path()
     if not path.exists():
@@ -2218,7 +2226,7 @@ def _build_billing_entitlement_payload(
     )
     return {
         "service": "truevineos",
-        "environment": "test" if enforcement_mode in {"audit", "enforce"} else "unconfigured",
+        "environment": _resolve_billing_environment(enforcement_mode),
         "enforcement_mode": enforcement_mode,
         "authenticated": bool(subject),
         "subject": subject or None,
