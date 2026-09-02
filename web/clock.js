@@ -663,6 +663,8 @@ const PERICOPE_CHAT_LAUNCH_API_ENDPOINT = "/api/pericope/chat-launch";
 const CLIENT_ERRORS_API_ENDPOINT = "/api/client-errors";
 const VIBEVOICE_TTS_JOBS_API_ENDPOINT = "/api/vibevoice/tts/jobs";
 const VIBEVOICE_HEALTH_API_ENDPOINT = "/api/vibevoice/health";
+const VIBEVOICE_POLL_INTERVAL_MS = 3_000;
+const VIBEVOICE_MAX_WAIT_MS = 10 * 60_000;
 const BILLING_ENTITLEMENT_API_ENDPOINT = "/api/billing/entitlement";
 const BILLING_CHECKOUT_API_ENDPOINT = "/api/billing/checkout";
 const BILLING_PORTAL_API_ENDPOINT = "/api/billing/portal";
@@ -9248,7 +9250,8 @@ async function requestVibeVoiceAudio({ speechText, token, tokenType }) {
   }
 
   let job = createPayload;
-  for (let attempt = 0; attempt < 80; attempt += 1) {
+  const timeoutAt = Date.now() + VIBEVOICE_MAX_WAIT_MS;
+  while (true) {
     const activeToken = tokenType === "bundle" ? bundleSpeechToken : scriptureReaderSpeechToken;
     if (token !== activeToken) {
       return null;
@@ -9263,7 +9266,11 @@ async function requestVibeVoiceAudio({ speechText, token, tokenType }) {
     if (job.status === "failed") {
       throw new Error(job.detail || "VibeVoice audio generation failed.");
     }
-    await waitForVibeVoicePoll(3000);
+    const remainingWaitMs = timeoutAt - Date.now();
+    if (remainingWaitMs <= 0) {
+      break;
+    }
+    await waitForVibeVoicePoll(Math.min(VIBEVOICE_POLL_INTERVAL_MS, remainingWaitMs));
     job = await fetchVibeVoiceJson(`${VIBEVOICE_TTS_JOBS_API_ENDPOINT}/${encodeURIComponent(jobId)}`);
   }
 

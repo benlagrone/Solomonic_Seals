@@ -15,6 +15,9 @@ function assertIncludes(source, needle, message) {
 }
 
 assertIncludes(js, 'const VIBEVOICE_HEALTH_API_ENDPOINT = "/api/vibevoice/health";', "Speak diagnostics should expose the VibeVoice health endpoint");
+assertIncludes(js, "const VIBEVOICE_MAX_WAIT_MS = 10 * 60_000;", "Speak generation should allow slow voice jobs up to ten minutes");
+assertIncludes(js, "const timeoutAt = Date.now() + VIBEVOICE_MAX_WAIT_MS;", "Speak polling should use a time-based deadline");
+assert.ok(!js.includes("attempt < 80"), "Speak polling should not retain the four-minute attempt limit");
 assertIncludes(js, "function formatVibeVoiceEngineLabel", "Speak playback should format VibeVoice engine labels");
 assertIncludes(js, "function buildVibeVoiceAudioResult", "Speak playback should preserve VibeVoice job metadata");
 assertIncludes(js, "const billingAuthHeaders = access?.mode === \"user\" ? access.headers : {};", "Paid voice generation should send authenticated account headers");
@@ -31,6 +34,6 @@ assertIncludes(js, "Playing ${display.reference} via ${audioResult.engineLabel}.
 assertIncludes(js, "Finished reading ${display.reference} via ${audioResult.engineLabel}.", "Scripture reader should disclose the engine used after playback");
 assertIncludes(js, "Generated ${kind} speech via ${audioResult.engineLabel}.", "Bundle Speak should disclose the engine used");
 assertIncludes(js, "function speakDrawerMeditation", "Drawer Speak should read the active drawer tab as a meditation");
-assertIncludes(html, "20260813-profile-pending1", "clock asset version should bust cached JS for Personal Time Profile pending action state");
+assertIncludes(html, "20260901-voice-timeout1", "clock asset version should bust cached JS for the extended voice timeout");
 
 console.log("vibevoice frontend contract tests: PASS");
