@@ -3,7 +3,7 @@ set -euo pipefail
 
 usage() {
   cat <<'EOF'
-Usage: scripts/billing_live_smoke.sh [base-url]
+Usage: scripts/billing_live_smoke.sh [base-url] [expected-enforcement]
 
 Runs non-destructive live billing checks for True Vine OS:
   - public root and clock page
@@ -26,12 +26,22 @@ esac
 
 base_url="${1:-https://truevineos.cloud}"
 base_url="${base_url%/}"
+expected_enforcement="${2:-enforce}"
 
 case "${base_url}" in
   http://*|https://*)
     ;;
   *)
     usage >&2
+    exit 2
+    ;;
+esac
+
+case "${expected_enforcement}" in
+  disabled|audit|enforce)
+    ;;
+  *)
+    echo "Expected enforcement must be disabled, audit, or enforce." >&2
     exit 2
     ;;
 esac
@@ -98,17 +108,22 @@ for lookup_key, (plan_name, amount) in expected.items():
 PY
 
 curl -fsS --max-time 15 "${base_url}/api/billing/entitlement" -o "${tmp_dir}/entitlement.json"
-python3 - "${tmp_dir}/entitlement.json" <<'PY'
+python3 - "${tmp_dir}/entitlement.json" "${expected_enforcement}" <<'PY'
 import json
 import sys
 
 with open(sys.argv[1], "r", encoding="utf-8") as handle:
     entitlement = json.load(handle)
+expected_enforcement = sys.argv[2]
 
 if entitlement.get("service") != "truevineos":
     raise SystemExit(f"unexpected service: {entitlement.get('service')!r}")
 if entitlement.get("environment") != "live":
     raise SystemExit(f"expected live entitlement, got {entitlement.get('environment')!r}")
+if entitlement.get("enforcement_mode") != expected_enforcement:
+    raise SystemExit(
+        f"expected {expected_enforcement} enforcement, got {entitlement.get('enforcement_mode')!r}"
+    )
 if entitlement.get("authenticated") is not False:
     raise SystemExit("guest entitlement should be unauthenticated")
 if entitlement.get("tier") != "guest":
@@ -190,7 +205,7 @@ PY
 echo "OK: ${base_url}/"
 echo "OK: ${base_url}/clock"
 echo "OK: ${base_url}/api/billing/catalog is live"
-echo "OK: ${base_url}/api/billing/entitlement is live guest"
+echo "OK: ${base_url}/api/billing/entitlement is live guest with ${expected_enforcement} enforcement"
 echo "OK: checkout requires a signed-in user"
 echo "OK: webhook requires Stripe signature"
 echo "OK: Keycloak auth page accepts ${base_url}/clock redirect"
