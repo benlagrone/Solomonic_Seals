@@ -12,6 +12,7 @@ from unittest.mock import patch
 from src.webserver import (
     _authorize_paid_feature,
     _apply_billing_fulfillment,
+    _build_billing_checkout_payload,
     _build_billing_entitlement_payload,
     _finalize_free_voice_reservation,
     _proxy_stripe_webhook,
@@ -201,6 +202,64 @@ class BillingEntitlementTests(unittest.TestCase):
         self.assertEqual(status, HTTPStatus.OK)
         self.assertEqual(payload["plan"], "org")
         self.assertTrue(payload["has_paid_access"])
+
+    def test_checkout_session_payload_uses_authenticated_account(self) -> None:
+        captured = {}
+
+        def fake_billing_request(path: str, payload: dict):
+            captured["path"] = path
+            captured["payload"] = payload
+            return {"id": "cs_test_123", "url": "https://checkout.stripe.com/c/pay/test"}
+
+        claims = {
+            "sub": "billing-test-user",
+            "email": "Billing.User@Example.COM",
+        }
+        with (
+            patch("src.webserver._verify_userinfo_token", return_value=claims),
+            patch("src.webserver._billing_service_request", side_effect=fake_billing_request),
+            patch("src.webserver.time.time", return_value=1_780_000_000),
+        ):
+            payload, error, status = _build_billing_checkout_payload(
+                {"Authorization": "Bearer user-token"},
+                {"price_lookup_key": "truevineos_starter_monthly"},
+                "https://truevineos.cloud",
+            )
+
+        self.assertIsNone(error)
+        self.assertEqual(status, HTTPStatus.CREATED)
+        self.assertEqual(payload["url"], "https://checkout.stripe.com/c/pay/test")
+        self.assertEqual(captured["path"], "/v1/checkout/sessions")
+        self.assertEqual(captured["payload"]["project"], "truevineos")
+        self.assertEqual(captured["payload"]["user_id"], "billing-test-user")
+        self.assertEqual(captured["payload"]["email"], "billing.user@example.com")
+        self.assertEqual(captured["payload"]["price_lookup_key"], "truevineos_starter_monthly")
+        self.assertEqual(
+            captured["payload"]["success_url"],
+            "https://truevineos.cloud/clock?billing=success&session_id={CHECKOUT_SESSION_ID}",
+        )
+        self.assertEqual(captured["payload"]["cancel_url"], "https://truevineos.cloud/clock?billing=cancelled")
+        self.assertTrue(captured["payload"]["idempotency_key"].startswith("truevineos:"))
+
+    def test_checkout_session_rejects_unknown_plan_before_service_call(self) -> None:
+        claims = {
+            "sub": "billing-test-user",
+            "email": "billing.user@example.com",
+        }
+        with (
+            patch("src.webserver._verify_userinfo_token", return_value=claims),
+            patch("src.webserver._billing_service_request") as billing_request,
+        ):
+            payload, error, status = _build_billing_checkout_payload(
+                {"Authorization": "Bearer user-token"},
+                {"price_lookup_key": "price_unsafe"},
+                "https://truevineos.cloud",
+            )
+
+        self.assertIsNone(payload)
+        self.assertEqual(status, HTTPStatus.BAD_REQUEST)
+        self.assertIn("Unknown TrueVine plan", error)
+        billing_request.assert_not_called()
 
     def test_client_resource_role_grants_paid_access(self) -> None:
         claims = {

@@ -10,6 +10,7 @@ Runs non-destructive live billing checks for True Vine OS:
   - live billing catalog and plan lookup keys
   - unauthenticated entitlement state
   - checkout auth guard
+  - optional authenticated Checkout Session creation with TRUEVINEOS_SMOKE_BEARER_TOKEN
   - Stripe webhook signature guard
   - Keycloak authorization page reachability for the clock redirect
 
@@ -142,6 +143,40 @@ if [[ "${checkout_status}" != "401" ]]; then
   exit 1
 fi
 
+if [[ -n "${TRUEVINEOS_SMOKE_BEARER_TOKEN:-}" ]]; then
+  authenticated_checkout_status="$(
+    curl -sS -o "${tmp_dir}/authenticated_checkout.json" -w '%{http_code}' --max-time 20 \
+      -X POST "${base_url}/api/billing/checkout" \
+      -H 'Content-Type: application/json' \
+      -H "Authorization: Bearer ${TRUEVINEOS_SMOKE_BEARER_TOKEN}" \
+      --data '{"price_lookup_key":"truevineos_starter_monthly"}'
+  )"
+  if [[ "${authenticated_checkout_status}" != "201" ]]; then
+    echo "Authenticated checkout failed: expected HTTP 201, got HTTP ${authenticated_checkout_status}." >&2
+    cat "${tmp_dir}/authenticated_checkout.json" >&2
+    exit 1
+  fi
+  python3 - "${tmp_dir}/authenticated_checkout.json" <<'PY'
+import json
+import sys
+from urllib.parse import urlparse
+
+with open(sys.argv[1], "r", encoding="utf-8") as handle:
+    session = json.load(handle)
+
+session_id = str(session.get("id") or "")
+session_url = str(session.get("url") or "")
+parsed = urlparse(session_url)
+
+if not session_id.startswith("cs_"):
+    raise SystemExit(f"unexpected checkout session id: {session_id!r}")
+if parsed.scheme != "https" or parsed.netloc != "checkout.stripe.com":
+    raise SystemExit(f"unexpected checkout URL: {session_url!r}")
+if session.get("livemode") is not True:
+    raise SystemExit(f"expected live Checkout Session, got livemode={session.get('livemode')!r}")
+PY
+fi
+
 webhook_status="$(
   curl -sS -o "${tmp_dir}/webhook.json" -w '%{http_code}' --max-time 15 \
     -X POST "${base_url}/api/stripe/webhook" \
@@ -207,5 +242,10 @@ echo "OK: ${base_url}/clock"
 echo "OK: ${base_url}/api/billing/catalog is live"
 echo "OK: ${base_url}/api/billing/entitlement is live guest with ${expected_enforcement} enforcement"
 echo "OK: checkout requires a signed-in user"
+if [[ -n "${TRUEVINEOS_SMOKE_BEARER_TOKEN:-}" ]]; then
+  echo "OK: authenticated checkout creates a live Stripe Checkout Session"
+else
+  echo "SKIP: authenticated checkout session creation; set TRUEVINEOS_SMOKE_BEARER_TOKEN to test it"
+fi
 echo "OK: webhook requires Stripe signature"
 echo "OK: Keycloak auth page accepts ${base_url}/clock redirect"
