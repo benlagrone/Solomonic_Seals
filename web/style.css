@@ -5529,7 +5529,7 @@ svg#clock .center-label {
 .clock-page .drawer-controls {
   order: 0;
   flex: 0 0 auto;
-  display: none !important;
+  display: grid !important;
   gap: 0.46rem;
 }
 
@@ -5546,14 +5546,21 @@ body.clock-page[data-drawer-tab="practice"] .drawer-controls {
   display: none !important;
 }
 
+.clock-page .drawer-controls .account-bar {
+  display: flex !important;
+}
+
 .clock-page .drawer-controls .action-loop {
   order: 3;
 }
 
-.clock-page .drawer-controls .account-bar,
 .clock-page .drawer-controls .daily-opening-card,
 .clock-page .drawer-controls .presentation-status,
 .clock-page .drawer-controls .lens-status {
+  display: none !important;
+}
+
+body.clock-page:not([data-drawer-tab="practice"]) .drawer-controls .action-loop {
   display: none !important;
 }
 

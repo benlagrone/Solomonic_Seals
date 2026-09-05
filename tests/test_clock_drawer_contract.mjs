@@ -18,9 +18,11 @@ function assertIncludes(source, needle, message) {
 }
 
 function extractCssBlock(selector) {
-  const start = css.indexOf(selector);
+  const pattern = new RegExp(`(^|\\n)${selector.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\s*\\{`);
+  const match = pattern.exec(css);
+  const start = match?.index ?? -1;
   assert.notEqual(start, -1, `expected CSS selector ${selector}`);
-  const open = css.indexOf("{", start);
+  const open = css.indexOf("{", start + (match?.[1]?.length ?? 0));
   const close = css.indexOf("\n}", open);
   assert.ok(open > start && close > open, `expected CSS block for ${selector}`);
   return css.slice(open + 1, close);
@@ -177,6 +179,12 @@ assert.doesNotMatch(selectedRingBlock, /\bborder\b|\bbox-shadow\b|\boutline\b/, 
 const drawerButtonOpenBlock = extractCssBlock('body[data-drawer-open="true"] .primary-drawer-button');
 assert.match(drawerButtonOpenBlock, /opacity:\s*0/, "drawer button should hide while drawer is open");
 assert.match(drawerButtonOpenBlock, /pointer-events:\s*none/, "hidden drawer button should not sit in front of the open drawer");
+const drawerControlsBlock = extractCssBlock(".clock-page .drawer-controls");
+assert.match(drawerControlsBlock, /display:\s*grid\s*!important/, "drawer account controls should remain reachable from every drawer tab");
+const drawerAccountBlock = extractCssBlock(".clock-page .drawer-controls .account-bar");
+assert.match(drawerAccountBlock, /display:\s*flex\s*!important/, "account actions should remain clickable after drawer migration");
+const nonPracticeActionLoopBlock = extractCssBlock('body.clock-page:not([data-drawer-tab="practice"]) .drawer-controls .action-loop');
+assert.match(nonPracticeActionLoopBlock, /display:\s*none\s*!important/, "only practice-specific action controls should hide outside Practice tab");
 
 assertIncludes(css, "Target screen modes: regular phone, Fold cover, Fold inner, and Android TV.", "responsive target modes should be documented in CSS");
 assertIncludes(css, "@media (max-width: 640px)", "regular phone mode should have an explicit breakpoint");
