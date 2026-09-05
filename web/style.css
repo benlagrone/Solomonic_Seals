@@ -5527,7 +5527,7 @@ svg#clock .center-label {
 }
 
 .clock-page .drawer-controls {
-  order: 0;
+  order: -3;
   flex: 0 0 auto;
   display: grid !important;
   gap: 0.46rem;

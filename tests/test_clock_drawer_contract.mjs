@@ -180,6 +180,7 @@ const drawerButtonOpenBlock = extractCssBlock('body[data-drawer-open="true"] .pr
 assert.match(drawerButtonOpenBlock, /opacity:\s*0/, "drawer button should hide while drawer is open");
 assert.match(drawerButtonOpenBlock, /pointer-events:\s*none/, "hidden drawer button should not sit in front of the open drawer");
 const drawerControlsBlock = extractCssBlock(".clock-page .drawer-controls");
+assert.match(drawerControlsBlock, /order:\s*-3/, "drawer account controls should stay before long drawer content");
 assert.match(drawerControlsBlock, /display:\s*grid\s*!important/, "drawer account controls should remain reachable from every drawer tab");
 const drawerAccountBlock = extractCssBlock(".clock-page .drawer-controls .account-bar");
 assert.match(drawerAccountBlock, /display:\s*flex\s*!important/, "account actions should remain clickable after drawer migration");
