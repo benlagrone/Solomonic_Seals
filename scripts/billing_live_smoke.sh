@@ -10,11 +10,14 @@ Runs non-destructive live billing checks for True Vine OS:
   - live billing catalog and plan lookup keys
   - unauthenticated entitlement state
   - checkout auth guard
-  - optional authenticated Checkout Session creation with TRUEVINEOS_SMOKE_BEARER_TOKEN
+  - authenticated Checkout Session creation with TRUEVINEOS_SMOKE_BEARER_TOKEN when present
   - Stripe webhook signature guard
   - Keycloak authorization page reachability for the clock redirect
 
 This script does not submit card details or create a paid subscription.
+
+Set TRUEVINEOS_REQUIRE_AUTHENTICATED_CHECKOUT=true to fail when the bearer token
+is not available.
 EOF
 }
 
@@ -28,6 +31,7 @@ esac
 base_url="${1:-https://truevineos.cloud}"
 base_url="${base_url%/}"
 expected_enforcement="${2:-enforce}"
+require_authenticated_checkout="${TRUEVINEOS_REQUIRE_AUTHENTICATED_CHECKOUT:-false}"
 
 case "${base_url}" in
   http://*|https://*)
@@ -175,6 +179,9 @@ if parsed.scheme != "https" or parsed.netloc != "checkout.stripe.com":
 if session.get("livemode") is not True:
     raise SystemExit(f"expected live Checkout Session, got livemode={session.get('livemode')!r}")
 PY
+elif [[ "${require_authenticated_checkout}" == "true" ]]; then
+  echo "Authenticated checkout was required but TRUEVINEOS_SMOKE_BEARER_TOKEN is not set." >&2
+  exit 1
 fi
 
 webhook_status="$(
