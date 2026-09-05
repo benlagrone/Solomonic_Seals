@@ -1832,7 +1832,6 @@ function setupDrawerContentMigration() {
     document.querySelector(".lens-bar"),
     document.querySelector(".clock-surface-panel"),
     document.querySelector(".action-loop"),
-    document.querySelector(".account-bar"),
     document.querySelector(".daily-opening-card"),
     document.querySelector(".presentation-status"),
     document.querySelector(".lens-status"),

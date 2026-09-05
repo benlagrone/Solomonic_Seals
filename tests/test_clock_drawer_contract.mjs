@@ -75,7 +75,6 @@ assertIncludes(html, 'class="drawer-section drawer-controls"', "drawer should ow
 });
 
 [
-  ".account-bar",
   ".presentation-bar",
   ".presentation-status",
   ".lens-bar",
@@ -87,6 +86,8 @@ assertIncludes(html, 'class="drawer-section drawer-controls"', "drawer should ow
 ].forEach((selector) => {
   assertIncludes(js, `document.querySelector("${selector}")`, `${selector} should be migrated into the drawer`);
 });
+assertIncludes(js, 'accountSignIn: document.querySelector(".account-sign-in")', "account Sign In should be wired from the main account bar");
+assert.ok(!js.includes('document.querySelector(".account-bar"),'), "account controls should stay on the main page while the drawer is closed");
 
 assertIncludes(js, "function handleClockElementSelection", "clock elements need a central click-selection handler");
 assertIncludes(js, "const JOURNEY_TRACK_LIBRARY", "life aspects should have canonical journey track copy");

@@ -34,6 +34,6 @@ assertIncludes(js, "Playing ${display.reference} via ${audioResult.engineLabel}.
 assertIncludes(js, "Finished reading ${display.reference} via ${audioResult.engineLabel}.", "Scripture reader should disclose the engine used after playback");
 assertIncludes(js, "Generated ${kind} speech via ${audioResult.engineLabel}.", "Bundle Speak should disclose the engine used");
 assertIncludes(js, "function speakDrawerMeditation", "Drawer Speak should read the active drawer tab as a meditation");
-assertIncludes(html, "20260901-voice-timeout1", "clock asset version should bust cached JS for the extended voice timeout");
+assertIncludes(html, "20260905-account-main1", "clock asset version should bust cached JS for account-control clickability");
 
 console.log("vibevoice frontend contract tests: PASS");
