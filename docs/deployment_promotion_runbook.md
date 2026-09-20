@@ -75,7 +75,7 @@ Deploy:
 ```bash
 ssh fortress.lan '
   set -e
-  cd /home/master-benjamin/Projects/Solomonic_Clocks
+  cd /home/master-benjamin/Projects/pericopeai.com/Solomonic_Seals
   git fetch origin main
   git checkout main
   git pull --ff-only origin main
@@ -160,7 +160,7 @@ For LAN rollback:
 
 ```bash
 ssh fortress.lan '
-  cd /home/master-benjamin/Projects/Solomonic_Clocks
+  cd /home/master-benjamin/Projects/pericopeai.com/Solomonic_Seals
   git checkout <known-good-sha>
 
   cd /home/master-benjamin/Projects/pericopeai.com/fortress-phronesis
@@ -171,3 +171,25 @@ ssh fortress.lan '
 
 For local rollback, checkout the known good SHA and rerun the local compose
 command.
+
+## Contract documentation release
+
+The `SolomonicSchedule` v1 release changes documentation only. Publishing its
+image preserves the existing Clock implementation and public API response
+shapes; it does not activate a schedule endpoint, adapter, or Timefold service.
+See [the inventory](clock_contract_inventory.md) and
+[the versioned specification](solomonic_schedule_v1.md).
+
+The LAN compose build context was verified on September 19, 2026 to resolve to
+`/home/master-benjamin/Projects/pericopeai.com/Solomonic_Seals`. The former
+`/home/master-benjamin/Projects/Solomonic_Clocks` path does not exist on that host.
+Check the active compose build context before future promotions.
+
+For isolated local validation, an image may run on a free loopback port (this
+release used `127.0.0.1:18086`) with the same promotion smoke assertions against
+that URL. Do not confuse a healthy older local/LAN instance with verification of
+the intended release: compare the changed documentation bytes in each image.
+After publishing, verify the exact source SHA in the build/deployment workflow,
+the public release metadata, and the served documentation bytes in addition to
+the public smoke checks. Deployment evidence belongs in the release/tracker
+record; documentation publication alone does not establish adapter parity.

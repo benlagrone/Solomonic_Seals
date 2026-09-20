@@ -95,6 +95,12 @@ docker compose --env-file .env.prod -f docker-compose.prod.yml up -d --build
 
 ## Repository Layout
 
+The [Clock contract inventory](docs/clock_contract_inventory.md) records the
+current implementation. [SolomonicSchedule v1](docs/solomonic_schedule_v1.md)
+defines a solver-independent interface and compatibility gates. This is a
+documentation-only extraction; the existing production Clock remains the
+runtime implementation.
+
 - `data/` — generated JSON (`solomonic_clock_full.json`)
 - `src/` — dataset generator, validator, and dev web server
 - `web/` — static visualization (HTML/CSS/JS)
