@@ -185,6 +185,13 @@ The LAN compose build context was verified on September 19, 2026 to resolve to
 `/home/master-benjamin/Projects/Solomonic_Clocks` path does not exist on that host.
 Check the active compose build context before future promotions.
 
+For this documentation-only release, LAN application smoke passed through the
+existing service address `http://192.168.0.126:8086`. The developer Mac could not
+resolve `truevineos.lan`; forcing that hostname to the LAN host reached an
+unrelated nginx default route and returned 502. The direct service smoke is the
+recorded LAN application gate for this release, not a claim that LAN hostname
+routing passed. No DNS or shared proxy configuration was changed.
+
 For isolated local validation, an image may run on a free loopback port (this
 release used `127.0.0.1:18086`) with the same promotion smoke assertions against
 that URL. Do not confuse a healthy older local/LAN instance with verification of
